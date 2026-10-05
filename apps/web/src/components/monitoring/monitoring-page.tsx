@@ -6,6 +6,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import type { Watch } from '@domain-scout/contracts';
 import { api } from '@/lib/api';
+import { useWatchEvents } from '@/lib/events';
 import { WATCH_STATE } from '@/lib/labels';
 import { formatCount, formatInterval, plural } from '@/lib/format';
 import { qk, useUnreadNoticeCount } from '@/lib/queries';
@@ -81,6 +82,7 @@ function WatchRow({ watch }: { watch: Watch }) {
 export function MonitoringPage() {
   const [creating, setCreating] = useState(false);
   const unread = useUnreadNoticeCount();
+  useWatchEvents();
   const watches = useInfiniteQuery({
     queryKey: qk.watches,
     queryFn: ({ pageParam, signal }) => api.call('listWatches', { query: { cursor: pageParam, limit: 100 }, signal }),

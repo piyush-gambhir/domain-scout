@@ -121,8 +121,9 @@ export async function mockMonitoring(page: Page) {
       return paged(list);
     },
     'POST /notices/read': (c) => {
-      const body = c.body as { ids?: string[]; all?: boolean };
-      notices = notices.map((n) => (body.all || body.ids?.includes(n.id) ? { ...n, readAt: n.readAt ?? NOW } : n));
+      const body = c.body as { ids?: string[]; all?: boolean; watchId?: string };
+      const selected = (n: (typeof notices)[number]) => (body.all || body.ids?.includes(n.id)) && (!body.watchId || n.watchId === body.watchId);
+      notices = notices.map((n) => (selected(n) ? { ...n, readAt: n.readAt ?? NOW } : n));
       sync();
       return ok({ ok: true });
     },
@@ -136,13 +137,34 @@ export const DONE = uuid(0x101);
 export const INTERRUPTED = uuid(0x102);
 
 function entry(id: string, overrides: Record<string, unknown>) {
-  return { jobId: id, type: 'registry_scan', label: null, state: 'completed', createdAt: EARLIER, finishedAt: EARLIER, total: 2, unresolved: 0, extensions: ['com'], resumable: false, ...overrides };
+  return {
+    jobId: id,
+    type: 'registry_scan',
+    label: null,
+    state: 'completed',
+    createdAt: EARLIER,
+    finishedAt: EARLIER,
+    total: 2,
+    unresolved: 0,
+    extensions: ['com'],
+    destinations: [] as string[],
+    resumable: false,
+    ...overrides,
+  };
 }
 
 export async function mockHistory(page: Page) {
   let entries = [
     entry(DONE, { label: 'Launch scan' }),
-    entry(INTERRUPTED, { label: 'Interrupted scan', state: 'interrupted', finishedAt: null, total: 4, unresolved: 2, resumable: true }),
+    entry(INTERRUPTED, {
+      label: 'Interrupted scan',
+      state: 'interrupted',
+      finishedAt: null,
+      total: 4,
+      unresolved: 2,
+      resumable: true,
+      destinations: ['rdap.verisign.com', 'rdap.arnes.si'],
+    }),
     entry(uuid(0x103), { label: 'Quote request', type: 'quote', extensions: [] }),
     ...Array.from({ length: 55 }, (_, i) => entry(uuid(0x200 + i), { label: `Fixture scan ${i + 1}` })),
   ];
@@ -248,8 +270,16 @@ export async function mockPrices(page: Page) {
       ]),
     'GET /aftermarket/sources': () =>
       paged([
-        { id: 'sedo', name: 'Sedo', supported: true, requiresCredentials: false, searchUrlTemplate: null, reason: null },
-        { id: 'afternic', name: 'Afternic', supported: false, requiresCredentials: false, searchUrlTemplate: 'https://afternic.marketplace.invalid/search?q={domain}', reason: 'No public listing API' },
+        { id: 'sedo', name: 'Sedo', supported: true, requiresCredentials: false, apiHosts: ['api.sedo.com'], searchUrlTemplate: null, reason: null },
+        {
+          id: 'afternic',
+          name: 'Afternic',
+          supported: false,
+          requiresCredentials: false,
+          apiHosts: [],
+          searchUrlTemplate: 'https://afternic.marketplace.invalid/search?q={domain}',
+          reason: 'No public listing API',
+        },
       ]),
     'GET /domains/:name/listings': (_c, p) =>
       paged(

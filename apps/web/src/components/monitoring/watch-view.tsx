@@ -4,7 +4,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { api } from '@/lib/api';
+import { useWatchEvents, watchesDeletedHere } from '@/lib/events';
 import { WATCH_STATE, watchRunStatus } from '@/lib/labels';
 import { formatCount, formatDateTime, formatInterval, plural } from '@/lib/format';
 import { qk, useProviders } from '@/lib/queries';
@@ -125,6 +127,12 @@ export function WatchView({ watchId }: { watchId: string }) {
     refetchInterval: 30_000,
   });
   const names = new Map((providers.data ?? []).map((p) => [p.id, p.name]));
+  // Deleted in another tab: leave the page instead of showing a missing watch.
+  useWatchEvents((deletedId) => {
+    if (deletedId !== watchId) return;
+    if (!watchesDeletedHere.has(deletedId)) toast('This watch was deleted');
+    router.replace('/monitoring');
+  });
 
   const back = (
     <Link href="/monitoring" className="mb-3 inline-block rounded-sm text-sm text-muted-foreground hover:text-foreground">

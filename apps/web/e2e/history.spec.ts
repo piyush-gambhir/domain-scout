@@ -41,6 +41,8 @@ test('resumes incomplete jobs and deletes finished ones only after confirming', 
   await page.goto('/history');
   const interrupted = page.getByTestId('history-row').filter({ hasText: 'Interrupted scan' });
   await expect(interrupted).toContainText('Interrupted');
+  // Resuming contacts the job's destinations again; they are named before the click.
+  await expect(interrupted.getByTestId('resume-destinations')).toContainText('rdap.verisign.com, rdap.arnes.si');
   await interrupted.getByRole('button', { name: 'Resume' }).click();
   await expect(page.getByText('Resumed Interrupted scan')).toBeVisible();
   expect(calls.some((c) => c.method === 'POST' && c.path === `/jobs/${INTERRUPTED}/resume`)).toBe(true);

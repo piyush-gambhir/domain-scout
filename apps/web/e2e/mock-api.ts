@@ -3,8 +3,8 @@ import type { Page, Request } from '@playwright/test';
 /*
  * Route fixtures for pages whose backend modules are still settling, or whose real calls would
  * touch the network or shared state (watch runs, quotes, coverage refresh, data deletion, service
- * stop). Handlers answer by method and path; anything unhandled continues to the real local
- * backend. Domain names are limited to example.com, google.com, nic.si, bbc.co.uk and random
+ * stop). Handlers answer by method and path; anything unhandled falls back to an earlier layer,
+ * then to the real local backend. Domain names are limited to example.com, google.com, nic.si, bbc.co.uk and random
  * 24-character labels. Shapes follow packages/contracts.
  */
 
@@ -81,7 +81,8 @@ export async function mockApi(page: Page, handlers: Record<string, Handler>): Pr
       const reply = await handler(call, { ...(match.groups ?? {}) });
       return route.fulfill({ status: reply.status ?? 200, contentType: 'application/json', body: JSON.stringify(reply.json) });
     }
-    return route.continue();
+    // Next handler (an earlier mockApi layer), else the real local backend.
+    return route.fallback();
   });
   return calls;
 }

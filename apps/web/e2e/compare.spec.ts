@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures';
 import { mockPrices } from './page-fixtures';
 import { JOB_ID, domainAt, mockJobApi } from './mock-job';
-import { PHONE, pageOverflow } from './mock-api';
+import { NOW, PHONE, SETTINGS, mockApi, ok, pageOverflow } from './mock-api';
 
 // Comparisons, transfer options and listings use fixtures so prices are known; a fresh backend has
 // none. The portfolio test and the settings defaults (3 year horizon) use the real backend.
@@ -62,7 +62,7 @@ test('aftermarket separates supported and link-only sources and discloses before
 
   await expect(page.getByRole('button', { name: 'Look up listings' })).toBeDisabled();
   await page.getByRole('checkbox', { name: 'Sedo' }).click();
-  await expect(page.getByTestId('disclosure')).toContainText('Sends 1 domain name to Sedo');
+  await expect(page.getByTestId('disclosure')).toContainText('Sends 1 domain name to Sedo (api.sedo.com)');
   await page.getByRole('button', { name: 'Look up listings' }).click();
   await expect(page.getByText('Listing lookup started')).toBeVisible();
   const lookup = calls.find((c) => c.method === 'POST' && c.path === '/aftermarket');
@@ -115,4 +115,32 @@ test.describe('at 375px', () => {
     await expect(page.getByTestId('listing')).toBeVisible();
     expect(await pageOverflow(page)).toBeLessThanOrEqual(0);
   });
+});
+
+test('original currencies is an explicit choice when settings convert by default', async ({ page }) => {
+  const calls = await mockPrices(page);
+  await mockApi(page, {
+    'GET /settings': () =>
+      ok({
+        ...SETTINGS,
+        comparison: { horizonYears: 3, currency: 'EUR' },
+        fxRates: [{ from: 'USD', to: 'EUR', rate: '0.92', source: 'ECB reference rate', observedAt: NOW }],
+      }),
+  });
+  await page.goto('/compare?domains=example.com');
+  const comparisons = () => calls.filter((c) => c.method === 'POST' && c.path === '/comparisons').map((c) => c.body);
+  // Untouched, the request leaves the currency to settings.
+  await expect.poll(() => comparisons().length).toBe(1);
+  expect(comparisons()[0]).not.toHaveProperty('currency');
+  await page.getByRole('combobox', { name: 'Currency' }).click();
+  await expect(page.getByRole('option', { name: 'Default, EUR' })).toBeVisible();
+  await page.getByRole('option', { name: 'Original currencies' }).click();
+  await page.getByRole('button', { name: 'Compare', exact: true }).click();
+  await expect.poll(() => comparisons().length).toBe(2);
+  expect(comparisons()[1]).toMatchObject({ currency: null });
+  await page.getByRole('combobox', { name: 'Currency' }).click();
+  await page.getByRole('option', { name: 'USD' }).click();
+  await page.getByRole('button', { name: 'Compare', exact: true }).click();
+  await expect.poll(() => comparisons().length).toBe(3);
+  expect(comparisons()[2]).toMatchObject({ currency: 'USD' });
 });

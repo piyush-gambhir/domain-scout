@@ -149,7 +149,8 @@ export function JobView({ jobId }: { jobId: string }) {
   const detailName = searchParams.get('d');
   const running = job.data ? !isTerminal(job.data) : false;
   const operation = job.data ? JOB_OPERATION[job.data.type] : 'registry';
-  const domainJob = job.data?.type !== 'name_check';
+  // Name checks are about names and catalog refreshes about providers; neither has domain subjects.
+  const domainJob = job.data?.type !== 'name_check' && job.data?.type !== 'catalog_refresh';
 
   const setUrl = useCallback(
     (params: URLSearchParams) => {
@@ -317,7 +318,7 @@ export function JobView({ jobId }: { jobId: string }) {
     },
     [isDesktop, router, setUrl],
   );
-  const canOpen = useCallback((item: JobItem) => item.operation !== 'name_check', []);
+  const canOpen = useCallback((item: JobItem) => item.operation !== 'name_check' && item.operation !== 'catalog', []);
   const closeDetail = () => {
     const params = new URLSearchParams(window.location.search);
     params.delete('d');

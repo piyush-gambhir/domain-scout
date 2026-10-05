@@ -9,6 +9,7 @@ import {
   type Job,
   type JobItem,
   type OperationResponse,
+  type Watch,
 } from '@domain-scout/contracts';
 import { qk } from './queries';
 
@@ -20,6 +21,7 @@ const EVENT_TYPES: EventType[] = [
   'result.observed',
   'quote.observed',
   'watch.changed',
+  'watch.deleted',
   'notice.created',
   'source.cooldown',
   'catalog.updated',
@@ -212,4 +214,84 @@ export function useJobEvents(jobId: string | null | undefined, onEvent?: (event:
   }, [jobId, client]);
 
   return { live };
+}
+
+const WATCH_EVENT_TYPES: EventType[] = ['watch.changed', 'watch.deleted', 'notice.created', 'stream.reset'];
+
+/** Watches deleted from this tab, so the tab that deleted one does not also announce it. */
+export const watchesDeletedHere = new Set<string>();
+
+/**
+ * Keeps watch and notice views current across tabs: changes refresh them, and a deleted watch
+ * disappears. Mounted only on monitoring pages, since browsers allow few open streams per host.
+ */
+export function useWatchEvents(onDeleted?: (watchId: string) => void) {
+  const client = useQueryClient();
+  const onDeletedRef = useRef(onDeleted);
+  useEffect(() => {
+    onDeletedRef.current = onDeleted;
+  });
+
+  useEffect(() => {
+    if (typeof EventSource === 'undefined') return;
+    let source: EventSource | null = null;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+    let lastId = 0;
+    let disposed = false;
+
+    const refresh = () => {
+      void client.invalidateQueries({ queryKey: qk.watches });
+      void client.invalidateQueries({ queryKey: qk.notices });
+    };
+    const handle = (message: MessageEvent<string>) => {
+      let event: DomainEvent;
+      try {
+        event = JSON.parse(message.data) as DomainEvent;
+      } catch {
+        return;
+      }
+      const id = Number(event.eventId ?? message.lastEventId);
+      if (Number.isFinite(id) && id > 0) {
+        if (id <= lastId) return;
+        lastId = id;
+      }
+      if (event.type === 'watch.changed') {
+        const watch = event.payload as Watch;
+        client.setQueryData(qk.watch(watch.id), watch);
+        void client.invalidateQueries({ queryKey: qk.watches, exact: true });
+      } else if (event.type === 'watch.deleted') {
+        // The tombstone carries only the id; the watch's own ref is null so its details never replay.
+        const { watchId } = event.payload as { watchId: string };
+        refresh();
+        onDeletedRef.current?.(watchId);
+      } else if (event.type === 'notice.created' || event.type === 'stream.reset') {
+        refresh();
+      }
+    };
+
+    const open = () => {
+      if (disposed) return;
+      const params = new URLSearchParams({ types: WATCH_EVENT_TYPES.join(',') });
+      if (lastId > 0) params.set('after', String(lastId));
+      source = new EventSource(`/api/v1/events?${params.toString()}`);
+      source.onmessage = handle;
+      for (const type of WATCH_EVENT_TYPES) source.addEventListener(type, handle as EventListener);
+      source.onerror = () => {
+        if (source?.readyState === EventSource.CLOSED) {
+          source.close();
+          retryTimer = setTimeout(() => {
+            refresh();
+            open();
+          }, 20_000);
+        }
+      };
+    };
+
+    open();
+    return () => {
+      disposed = true;
+      source?.close();
+      if (retryTimer) clearTimeout(retryTimer);
+    };
+  }, [client]);
 }

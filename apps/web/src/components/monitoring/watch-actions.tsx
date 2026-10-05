@@ -6,6 +6,7 @@ import { Ellipsis, Pause, Pencil, Play, RefreshCw, Trash } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Watch } from '@domain-scout/contracts';
 import { api } from '@/lib/api';
+import { watchesDeletedHere } from '@/lib/events';
 import { qk } from '@/lib/queries';
 import { useIdempotency } from '@/lib/use-idempotency';
 import { isTerminal, useLiveJob } from '@/lib/use-job';
@@ -63,7 +64,10 @@ export function WatchActions({ watch, compact, onDeleted }: { watch: Watch; comp
     onSuccess: store,
   });
   const remove = useMutation({
-    mutationFn: async () => api.call('deleteWatch', { params: { id: watch.id } }),
+    mutationFn: async () => {
+      watchesDeletedHere.add(watch.id);
+      return api.call('deleteWatch', { params: { id: watch.id } });
+    },
     onSuccess: () => {
       toast.success(`Deleted ${watch.name}`);
       setDeleting(false);

@@ -24,21 +24,8 @@ type EvidenceRef = Notice['before'];
 export function useMarkNoticesRead() {
   const client = useQueryClient();
   return useMutation({
-    /** `watchId` marks every unread notice of that watch: the API takes ids or all, so page through them. */
-    mutationFn: async (target: { ids?: string[]; all?: boolean; watchId?: string }) => {
-      let ids = target.ids;
-      if (target.watchId) {
-        ids = [];
-        let cursor: string | undefined;
-        do {
-          const page = await api.call('listNotices', { query: { watchId: target.watchId, unread: 'true', cursor, limit: 500 } });
-          ids.push(...page.data.map((n) => n.id));
-          cursor = page.nextCursor ?? undefined;
-        } while (cursor);
-        if (ids.length === 0) return null;
-      }
-      return api.call('markNoticesRead', { body: target.all ? { all: true } : { ids } });
-    },
+    /** `{ all: true, watchId }` marks every notice of one watch read; `{ all: true }` marks every notice. */
+    mutationFn: async (body: { ids?: string[]; all?: boolean; watchId?: string }) => api.call('markNoticesRead', { body }),
     onSuccess: () => {
       void client.invalidateQueries({ queryKey: qk.notices });
       void client.invalidateQueries({ queryKey: qk.watches });
@@ -116,8 +103,7 @@ export function NoticeFeed({ watchId, unreadCount, title = 'Notices' }: { watchI
   const unreadLoaded = rows.filter((n) => n.readAt === null);
   const markRead = useMarkNoticesRead();
 
-  const markAll = () =>
-    markRead.mutate(watchId ? { watchId } : { all: true }, { onSuccess: (result) => result && toast.success('Notices marked read') });
+  const markAll = () => markRead.mutate(watchId ? { all: true, watchId } : { all: true }, { onSuccess: () => toast.success('Notices marked read') });
 
 
   return (

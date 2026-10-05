@@ -1,5 +1,6 @@
 import { expect, test } from './fixtures';
 import { JOB_ID, TOTAL, domainAt, mockJobApi } from './mock-job';
+import { NOW, job, mockApi, ok, paged, uuid } from './mock-api';
 
 // Uses intercepted API fixtures (reserved .test names), so it exercises the UI without any scan.
 
@@ -121,4 +122,44 @@ test('TXT exports keep candidates by default and include every name only when as
   const second = page.waitForRequest((r) => r.url().endsWith('/api/v1/exports') && r.method() === 'POST');
   await dialog.getByRole('button', { name: 'Export', exact: true }).click();
   expect((await second).postDataJSON()).toMatchObject({ format: 'txt', candidatesOnly: false });
+});
+
+test('catalog refresh items are providers, not domains', async ({ page }) => {
+  const id = uuid(0x801);
+  const catalogItem = (providerId: string, n: number) => ({
+    id: uuid(0x810 + n),
+    jobId: id,
+    subject: providerId,
+    unicode: providerId,
+    suffix: null,
+    operation: 'catalog',
+    target: providerId,
+    source: `provider:${providerId}`,
+    state: 'finished',
+    attempts: 1,
+    outcome: 'updated',
+    resolved: true,
+    error: null,
+    retryAt: null,
+    startedAt: NOW,
+    finishedAt: NOW,
+    // Catalog prices are browsed through the provider catalog endpoint, not job evidence.
+    evidence: { registry: null, confirmation: null, offers: [], nameCheck: null, diagnostic: null, listing: null },
+    bestPrice: null,
+    collectionIds: [],
+  });
+  await mockApi(page, {
+    'GET /jobs/:id': () =>
+      ok(job(id, { type: 'catalog_refresh', label: 'Catalog refresh', counters: { total: 2, pending: 0, running: 0, finished: 2, interrupted: 0, resolved: 2, unresolved: 0, outcomes: { updated: 2 } } })),
+    'GET /jobs/:id/results': () => paged([catalogItem('porkbun', 1), catalogItem('dynadot', 2)]),
+  });
+  await page.goto(`/jobs/${id}`);
+  await expect(page.getByRole('checkbox', { name: 'Select porkbun' })).toBeVisible();
+  // Rows do not open a domain panel, and domain bulk actions are not offered.
+  await expect(page.getByRole('button', { name: 'porkbun', exact: true })).toHaveCount(0);
+  await page.getByRole('checkbox', { name: 'Select porkbun' }).click();
+  const toolbar = page.getByRole('toolbar', { name: 'Selected results' });
+  await expect(toolbar).toContainText('1 selected');
+  await expect(toolbar.getByRole('button', { name: 'Shortlist' })).toHaveCount(0);
+  await expect(toolbar.getByRole('button', { name: 'Export' })).toBeVisible();
 });

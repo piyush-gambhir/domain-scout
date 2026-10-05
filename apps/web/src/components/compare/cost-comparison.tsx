@@ -15,7 +15,6 @@ import { CheckedAt } from '../domain/time';
 import { EmptyState, ErrorState } from '../states';
 import { StatusDot } from '../status';
 import { Button } from '../ui/button';
-import { Input } from '../ui/input';
 import { Field } from '../ui/label';
 import { Segmented } from '../ui/segmented';
 import { Select } from '../ui/select';
@@ -36,6 +35,9 @@ const MISSING_LABEL: Record<string, string> = {
 function capitalize(text: string): string {
   return `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
 }
+
+const DEFAULT = '__default__';
+const ORIGINAL = '__original__';
 
 const thClass = 'pb-2 pr-4 text-xs font-medium text-muted-foreground';
 const tdClass = 'py-2.5 pr-4 align-top';
@@ -221,7 +223,8 @@ export function CostComparison({
   const [horizon, setHorizon] = useState<number | null>(null);
   const [purchasePath, setPurchasePath] = useState<PurchasePath>(path === 'transfer' ? 'transfer' : 'new_registration');
   const [providerIds, setProviderIds] = useState<string[]>([]);
-  const [currency, setCurrency] = useState<string | null>(null);
+  // DEFAULT omits the field (settings decide), ORIGINAL sends null, a code converts with a saved rate.
+  const [currency, setCurrency] = useState<string>(DEFAULT);
   // Domains from the URL compare right away; comparisons read retained data only.
   const [submitted, setSubmitted] = useState<ComparisonRequest | null>(() => {
     const initial = autoRun ? usableDomains(domainsText) : null;
@@ -230,19 +233,24 @@ export function CostComparison({
   const [quoteOpen, setQuoteOpen] = useState(false);
 
   const horizonYears = horizon ?? settings.data?.comparison.horizonYears ?? 3;
-  const currencyValue = currency ?? settings.data?.comparison.currency ?? '';
-  const currencyValid = currencyValue === '' || /^[A-Z]{3}$/.test(currencyValue);
+  const settingsCurrency = settings.data?.comparison.currency ?? null;
+  const rateCurrencies = [...new Set((settings.data?.fxRates ?? []).flatMap((r) => [r.from, r.to]))].sort();
+  const currencyOptions = [
+    { value: DEFAULT, label: settingsCurrency ? `Default, ${settingsCurrency}` : 'Original currencies' },
+    ...(settingsCurrency ? [{ value: ORIGINAL, label: 'Original currencies' }] : []),
+    ...rateCurrencies.filter((c) => c !== settingsCurrency).map((c) => ({ value: c, label: c })),
+  ];
   const domains = usableDomains(domainsText);
 
   // Horizon and currency are sent only when changed here; otherwise backend settings decide.
   const build = (): ComparisonRequest | null =>
-    domains && currencyValid
+    domains
       ? {
           domains,
           purchasePath,
           ...(horizon !== null ? { horizonYears: horizon } : {}),
           ...(providerIds.length ? { providerIds } : {}),
-          ...(currency ? { currency } : {}),
+          ...(currency === ORIGINAL ? { currency: null } : currency !== DEFAULT ? { currency } : {}),
         }
       : null;
 
@@ -299,17 +307,9 @@ export function CostComparison({
             <ProviderFilter providers={(providers.data ?? []).map((p) => ({ id: p.id, name: p.name }))} value={providerIds} onChange={setProviderIds} />
           </div>
           <Field label="Currency" htmlFor={`currency-${path}`}>
-            <Input
-              id={`currency-${path}`}
-              value={currencyValue}
-              maxLength={3}
-              placeholder="Original"
-              aria-invalid={!currencyValid || undefined}
-              onChange={(e) => setCurrency(e.target.value.toUpperCase())}
-              className="w-28 font-mono uppercase placeholder:normal-case"
-            />
+            <Select id={`currency-${path}`} value={currency} onValueChange={setCurrency} options={currencyOptions} className="w-48" />
           </Field>
-          <Button type="submit" variant="primary" disabled={!domains || !currencyValid}>
+          <Button type="submit" variant="primary" disabled={!domains}>
             <Scale />
             Compare
           </Button>

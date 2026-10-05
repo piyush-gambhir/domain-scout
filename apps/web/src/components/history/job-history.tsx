@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Ellipsis, Play, Search, Trash, Undo2 } from 'lucide-react';
+import { Ellipsis, Play, Search, Send, Trash, Undo2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { TERMINAL_JOB_STATES, type JobState, type OperationResponse } from '@domain-scout/contracts';
 import { api } from '@/lib/api';
@@ -62,7 +62,14 @@ function HistoryRow({ entry, onDelete }: { entry: HistoryEntry; onDelete: () => 
       <StatusLabel status={jobStateStatus(entry.state)} className="hidden text-sm sm:inline-flex" />
       <div className="row-span-2 flex items-center gap-1 sm:row-span-1">
         {entry.resumable ? (
-          <Button size="sm" variant="secondary" disabled={resume.isPending} onClick={() => resume.mutate()}>
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={resume.isPending}
+            onClick={() => resume.mutate()}
+            title={entry.destinations.length ? `Sends names to ${entry.destinations.join(', ')}` : undefined}
+            aria-description={entry.destinations.length ? `Sends names to ${entry.destinations.join(', ')}` : undefined}
+          >
             <Play />
             Resume
           </Button>
@@ -90,6 +97,15 @@ function HistoryRow({ entry, onDelete }: { entry: HistoryEntry; onDelete: () => 
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      {entry.resumable && entry.destinations.length ? (
+        // Resuming contacts these again, so they are stated before the click, not after.
+        <p className="col-span-full flex min-w-0 gap-1.5 text-xs text-muted-foreground" data-testid="resume-destinations">
+          <Send aria-hidden className="mt-px size-3.5 shrink-0" />
+          <span className="min-w-0">
+            Resume sends names to <span className="break-all font-mono">{entry.destinations.join(', ')}</span>
+          </span>
+        </p>
+      ) : null}
       <p className="col-start-1 flex gap-3 text-xs sm:hidden">
         <StatusLabel status={jobStateStatus(entry.state)} />
         <span className="font-mono text-muted-foreground tabular">{plural(entry.total, 'item')}</span>

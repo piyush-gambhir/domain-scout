@@ -1,6 +1,7 @@
+import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { W1, mockMonitoring } from './page-fixtures';
-import { PHONE, pageOverflow, uuid } from './mock-api';
+import { W1, W2, mockMonitoring } from './page-fixtures';
+import { NOW, PHONE, pageOverflow } from './mock-api';
 
 // Route fixtures: a real watch run would query registries, so watches, runs and notices are
 // simulated in memory. Providers and settings are fixtures too so the disclosure is deterministic.
@@ -32,10 +33,10 @@ test('lists watches with honest run state and opens the detail with runs and not
   // A missing record is never presented as available.
   await expect(page.getByText('Available')).toHaveCount(0);
 
-  // Per watch, mark all read sends every unread id of this watch (not the global "all").
+  // Per watch, mark all read is scoped to this watch, not every watch.
   await page.getByRole('button', { name: 'Mark all read' }).click();
   await expect(page.getByTestId('notice').filter({ hasText: 'Unread' })).toHaveCount(0);
-  expect(calls.find((c) => c.path === '/notices/read')?.body).toEqual({ ids: [uuid(0xc1)] });
+  expect(calls.find((c) => c.path === '/notices/read')?.body).toEqual({ all: true, watchId: W1 });
 });
 
 test('creating a watch names every API host before saving', async ({ page }) => {
@@ -119,4 +120,36 @@ test.describe('at 375px', () => {
     await expect(page.getByTestId('watch-run')).toHaveCount(3);
     expect(await pageOverflow(page)).toBeLessThanOrEqual(0);
   });
+});
+
+/** Serves the event stream: empty (reconnect quickly) until `deliver` holds an event. */
+async function streamEvents(page: Page) {
+  const pending: string[] = [];
+  await page.route('**/api/v1/events**', (route) => {
+    const body = pending.length ? pending.splice(0).join('') : 'retry: 100\n\n';
+    return route.fulfill({ status: 200, contentType: 'text/event-stream', body });
+  });
+  let id = 100;
+  return (type: string, payload: unknown) => {
+    id += 1;
+    const event = { contractVersion: '1.0.0', eventId: String(id), type, occurredAt: NOW, jobId: null, watchId: null, payload };
+    pending.push(`retry: 100\nid: ${id}\nevent: ${type}\ndata: ${JSON.stringify(event)}\n\n`);
+  };
+}
+
+test('a watch deleted in another tab disappears from the list and closes its page', async ({ page }) => {
+  await mockMonitoring(page);
+  const send = await streamEvents(page);
+  await page.goto('/monitoring');
+  await expect(page.getByTestId('watch-row')).toHaveCount(2);
+  // Another tab deletes the watch: the backend state changes, then the tombstone event arrives.
+  await page.evaluate((id) => fetch(`/api/v1/watches/${id}`, { method: 'DELETE' }), W2);
+  send('watch.deleted', { watchId: W2, deletedAt: NOW });
+  await expect(page.getByTestId('watch-row')).toHaveCount(1);
+
+  await page.goto(`/monitoring/${W1}`);
+  await expect(page.getByRole('heading', { level: 1, name: 'Launch names' })).toBeVisible();
+  send('watch.deleted', { watchId: W1, deletedAt: NOW });
+  await expect(page).toHaveURL(/\/monitoring$/);
+  await expect(page.getByText('This watch was deleted')).toBeVisible();
 });

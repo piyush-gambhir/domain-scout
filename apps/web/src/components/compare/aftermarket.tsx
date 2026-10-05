@@ -171,7 +171,10 @@ export function Aftermarket({ domainsText, onDomainsText, autoRun }: { domainsTe
                             })
                           }
                         />
-                        <span className="flex-1">{source.name}</span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block">{source.name}</span>
+                          {source.apiHosts.length ? <span className="block truncate font-mono text-xs text-muted-foreground">{source.apiHosts.join(', ')}</span> : null}
+                        </span>
                         {source.requiresCredentials ? <span className="text-xs text-muted-foreground">Needs credentials</span> : null}
                       </label>
                     </li>
@@ -198,7 +201,7 @@ export function Aftermarket({ domainsText, onDomainsText, autoRun }: { domainsTe
         )}
         {selected.length > 0 && domains ? (
           <Disclosure>
-            Sends {plural(domains.length, 'domain name')} to {joinNames(selected.map((s) => s.name))}.
+            Sends {plural(domains.length, 'domain name')} to {joinNames(selected.map((s) => (s.apiHosts.length ? `${s.name} (${s.apiHosts.join(', ')})` : s.name)))}.
           </Disclosure>
         ) : null}
         <div className="mt-4">
