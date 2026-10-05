@@ -3,7 +3,11 @@ import type {
   InputPreview,
   InputSourceParsed,
   Job,
+  JobItem,
+  NameCheckService,
   NormalizedDomain,
+  ProviderReadiness,
+  ResultFilterParsed,
 } from '@domain-scout/contracts';
 
 /**
@@ -48,4 +52,51 @@ export interface SubmitOptions {
 export abstract class JobSubmitter {
   abstract submit(request: CreateJobRequestParsed | WatchJobRequest | CatalogJobRequest, options?: SubmitOptions): Job;
   abstract get(jobId: string): Job;
+}
+
+/** Implemented by JobsModule. Notifies after a job reaches a terminal state (committed). */
+export abstract class JobLifecycle {
+  abstract onFinished(listener: (job: Job) => void): () => void;
+}
+
+/** Implemented by JobsModule. The one filter/sort implementation shared by results, CLI and exports. */
+export abstract class JobResults {
+  abstract list(
+    jobId: string,
+    filter: ResultFilterParsed,
+    cursor?: string | null,
+    limit?: number,
+  ): { items: JobItem[]; nextCursor: string | null; total: number };
+  /** Every item id matching the filter, in result order (for exports resolved at creation time). */
+  abstract matchingIds(jobId: string, filter: ResultFilterParsed): string[];
+  /** Items by id, in the given order; unknown ids are skipped. */
+  abstract byIds(itemIds: string[]): JobItem[];
+}
+
+/** Implemented by RegistryModule. */
+export abstract class CoverageReader {
+  abstract counts(): { tested: number; discovered: number; unsupported: number };
+}
+
+export interface SuffixProvider {
+  providerId: string;
+  name: string;
+  supportsSuffix: 'yes' | 'no' | 'unknown';
+  purchaseUrl: string | null;
+  purchaseKind: 'search' | 'dashboard' | null;
+  enabled: boolean;
+  preferred: boolean;
+}
+
+/** Implemented by ProvidersModule. */
+export abstract class ProviderDirectory {
+  abstract summary(): { id: string; name: string; readiness: ProviderReadiness }[];
+  /** Providers for a domain's suffix with matching purchase destinations (same provider, same path). */
+  abstract forDomain(domain: string, suffix: string): SuffixProvider[];
+  abstract exists(providerId: string): boolean;
+}
+
+/** Implemented by EnrichmentModule. */
+export abstract class NameCheckCatalog {
+  abstract services(): NameCheckService[];
 }
