@@ -176,6 +176,15 @@ function parameters(def: RouteDef, schemaFor: ReturnType<typeof buildSchemas>['s
       });
     }
   }
+  if (def.produces === 'sse') {
+    params.push({
+      name: 'Last-Event-ID',
+      in: 'header',
+      required: false,
+      description: 'Resume after this event id (takes precedence over the `after` query parameter)',
+      schema: { type: 'string' },
+    });
+  }
   if (def.idempotent) {
     params.push({
       name: 'Idempotency-Key',
@@ -186,6 +195,36 @@ function parameters(def: RouteDef, schemaFor: ReturnType<typeof buildSchemas>['s
     });
   }
   return params;
+}
+
+/**
+ * Zod emits discriminated unions as plain oneOf. Add an OpenAPI discriminator wherever every
+ * variant is a named component with a single-value enum on the same property, so generated
+ * clients pick variants by tag rather than by position.
+ */
+function addDiscriminators(components: Record<string, unknown>) {
+  const tagOf = (name: string, property: string) => {
+    const schema = components[name] as JsonSchema | undefined;
+    const prop = (schema?.properties as Record<string, JsonSchema> | undefined)?.[property];
+    const values = prop?.enum as unknown[] | undefined;
+    return values?.length === 1 && typeof values[0] === 'string' ? (values[0] as string) : null;
+  };
+  for (const schema of Object.values(components) as JsonSchema[]) {
+    const variants = schema.oneOf as JsonSchema[] | undefined;
+    if (!variants?.length || !variants.every((v) => typeof v.$ref === 'string')) continue;
+    const names = variants.map((v) => (v.$ref as string).slice(REF_PREFIX.length));
+    const first = components[names[0]!] as JsonSchema | undefined;
+    for (const property of Object.keys((first?.properties as object) ?? {})) {
+      const tags = names.map((n) => tagOf(n, property));
+      if (tags.every((t): t is string => t !== null) && new Set(tags).size === tags.length) {
+        schema.discriminator = {
+          propertyName: property,
+          mapping: Object.fromEntries(tags.map((t, i) => [t, `${REF_PREFIX}${names[i]}`])),
+        };
+        break;
+      }
+    }
+  }
 }
 
 export function buildOpenApiDocument() {
@@ -227,6 +266,8 @@ export function buildOpenApiDocument() {
     }
     (paths[openApiPath] ??= {})[def.method] = operation;
   }
+
+  addDiscriminators(components);
 
   return {
     openapi: '3.0.3',

@@ -4,12 +4,12 @@ import { ResultFilter } from './jobs.js';
 
 export const ExportScope = z
   .discriminatedUnion('kind', [
-    z.object({ kind: z.literal('selection'), itemIds: z.array(Uuid).min(1).max(100_000) }),
-    z.object({ kind: z.literal('filter'), jobId: Uuid, filter: ResultFilter }),
-    z.object({ kind: z.literal('job'), jobId: Uuid }),
-    z.object({ kind: z.literal('collection'), collectionId: Uuid }),
-    z.object({ kind: z.literal('domains'), domains: z.array(z.string()).min(1).max(100_000) }),
-    z.object({ kind: z.literal('all') }),
+    z.object({ kind: z.literal('selection'), itemIds: z.array(Uuid).min(1).max(100_000) }).meta({ id: 'SelectionScope' }),
+    z.object({ kind: z.literal('filter'), jobId: Uuid, filter: ResultFilter }).meta({ id: 'FilterScope' }),
+    z.object({ kind: z.literal('job'), jobId: Uuid }).meta({ id: 'JobScope' }),
+    z.object({ kind: z.literal('collection'), collectionId: Uuid }).meta({ id: 'CollectionScope' }),
+    z.object({ kind: z.literal('domains'), domains: z.array(z.string()).min(1).max(100_000) }).meta({ id: 'DomainsScope' }),
+    z.object({ kind: z.literal('all') }).meta({ id: 'AllScope' }),
   ])
   .meta({ id: 'ExportScope', description: 'Resolved to stable item and evidence ids when the export is created' });
 export type ExportScope = z.infer<typeof ExportScope>;

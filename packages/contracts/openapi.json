@@ -1673,6 +1673,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "Last-Event-ID",
+            "in": "header",
+            "required": false,
+            "description": "Resume after this event id (takes precedence over the `after` query parameter)",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -12358,7 +12367,19 @@
           {
             "$ref": "#/components/schemas/DiagnosticsJobRequest"
           }
-        ]
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "registry_scan": "#/components/schemas/ScanJobRequest",
+            "provider_check": "#/components/schemas/ProviderCheckJobRequest",
+            "quote": "#/components/schemas/QuoteJobRequest",
+            "transfer": "#/components/schemas/TransferJobRequest",
+            "aftermarket": "#/components/schemas/AftermarketJobRequest",
+            "name_check": "#/components/schemas/NameCheckJobRequest",
+            "diagnostics": "#/components/schemas/DiagnosticsJobRequest"
+          }
+        }
       },
       "CreateJobRequestInput": {
         "oneOf": [
@@ -12383,7 +12404,19 @@
           {
             "$ref": "#/components/schemas/DiagnosticsJobRequestInput"
           }
-        ]
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "registry_scan": "#/components/schemas/ScanJobRequestInput",
+            "provider_check": "#/components/schemas/ProviderCheckJobRequest",
+            "quote": "#/components/schemas/QuoteJobRequest",
+            "transfer": "#/components/schemas/TransferJobRequest",
+            "aftermarket": "#/components/schemas/AftermarketJobRequest",
+            "name_check": "#/components/schemas/NameCheckJobRequest",
+            "diagnostics": "#/components/schemas/DiagnosticsJobRequestInput"
+          }
+        }
       },
       "ProviderJobBody": {
         "type": "object",
@@ -14700,251 +14733,213 @@
         ],
         "description": "SSE data payload; payload schema depends on type"
       },
-      "ExportScope": {
-        "oneOf": [
-          {
-            "type": "object",
-            "properties": {
-              "kind": {
-                "type": "string",
-                "enum": [
-                  "selection"
-                ]
-              },
-              "itemIds": {
-                "minItems": 1,
-                "maxItems": 100000,
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Uuid"
-                }
-              }
-            },
-            "required": [
-              "kind",
-              "itemIds"
+      "SelectionScope": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "selection"
             ]
           },
-          {
-            "type": "object",
-            "properties": {
-              "kind": {
-                "type": "string",
-                "enum": [
-                  "filter"
-                ]
-              },
-              "jobId": {
-                "$ref": "#/components/schemas/Uuid"
-              },
-              "filter": {
-                "$ref": "#/components/schemas/ResultFilter"
-              }
-            },
-            "required": [
-              "kind",
-              "jobId",
+          "itemIds": {
+            "minItems": 1,
+            "maxItems": 100000,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Uuid"
+            }
+          }
+        },
+        "required": [
+          "kind",
+          "itemIds"
+        ]
+      },
+      "FilterScope": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
               "filter"
             ]
           },
-          {
-            "type": "object",
-            "properties": {
-              "kind": {
-                "type": "string",
-                "enum": [
-                  "job"
-                ]
-              },
-              "jobId": {
-                "$ref": "#/components/schemas/Uuid"
-              }
-            },
-            "required": [
-              "kind",
-              "jobId"
+          "jobId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "filter": {
+            "$ref": "#/components/schemas/ResultFilter"
+          }
+        },
+        "required": [
+          "kind",
+          "jobId",
+          "filter"
+        ]
+      },
+      "FilterScopeInput": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "filter"
             ]
           },
-          {
-            "type": "object",
-            "properties": {
-              "kind": {
-                "type": "string",
-                "enum": [
-                  "collection"
-                ]
-              },
-              "collectionId": {
-                "$ref": "#/components/schemas/Uuid"
-              }
-            },
-            "required": [
-              "kind",
-              "collectionId"
+          "jobId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "filter": {
+            "$ref": "#/components/schemas/ResultFilterInput"
+          }
+        },
+        "required": [
+          "kind",
+          "jobId",
+          "filter"
+        ]
+      },
+      "JobScope": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "job"
             ]
           },
-          {
-            "type": "object",
-            "properties": {
-              "kind": {
-                "type": "string",
-                "enum": [
-                  "domains"
-                ]
-              },
-              "domains": {
-                "minItems": 1,
-                "maxItems": 100000,
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            },
-            "required": [
-              "kind",
+          "jobId": {
+            "$ref": "#/components/schemas/Uuid"
+          }
+        },
+        "required": [
+          "kind",
+          "jobId"
+        ]
+      },
+      "CollectionScope": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "collection"
+            ]
+          },
+          "collectionId": {
+            "$ref": "#/components/schemas/Uuid"
+          }
+        },
+        "required": [
+          "kind",
+          "collectionId"
+        ]
+      },
+      "DomainsScope": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
               "domains"
             ]
           },
-          {
-            "type": "object",
-            "properties": {
-              "kind": {
-                "type": "string",
-                "enum": [
-                  "all"
-                ]
-              }
-            },
-            "required": [
-              "kind"
+          "domains": {
+            "minItems": 1,
+            "maxItems": 100000,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "kind",
+          "domains"
+        ]
+      },
+      "AllScope": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "all"
             ]
           }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "ExportScope": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/SelectionScope"
+          },
+          {
+            "$ref": "#/components/schemas/FilterScope"
+          },
+          {
+            "$ref": "#/components/schemas/JobScope"
+          },
+          {
+            "$ref": "#/components/schemas/CollectionScope"
+          },
+          {
+            "$ref": "#/components/schemas/DomainsScope"
+          },
+          {
+            "$ref": "#/components/schemas/AllScope"
+          }
         ],
-        "description": "Resolved to stable item and evidence ids when the export is created"
+        "description": "Resolved to stable item and evidence ids when the export is created",
+        "discriminator": {
+          "propertyName": "kind",
+          "mapping": {
+            "selection": "#/components/schemas/SelectionScope",
+            "filter": "#/components/schemas/FilterScope",
+            "job": "#/components/schemas/JobScope",
+            "collection": "#/components/schemas/CollectionScope",
+            "domains": "#/components/schemas/DomainsScope",
+            "all": "#/components/schemas/AllScope"
+          }
+        }
       },
       "ExportScopeInput": {
         "oneOf": [
           {
-            "type": "object",
-            "properties": {
-              "kind": {
-                "type": "string",
-                "enum": [
-                  "selection"
-                ]
-              },
-              "itemIds": {
-                "minItems": 1,
-                "maxItems": 100000,
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Uuid"
-                }
-              }
-            },
-            "required": [
-              "kind",
-              "itemIds"
-            ]
+            "$ref": "#/components/schemas/SelectionScope"
           },
           {
-            "type": "object",
-            "properties": {
-              "kind": {
-                "type": "string",
-                "enum": [
-                  "filter"
-                ]
-              },
-              "jobId": {
-                "$ref": "#/components/schemas/Uuid"
-              },
-              "filter": {
-                "$ref": "#/components/schemas/ResultFilterInput"
-              }
-            },
-            "required": [
-              "kind",
-              "jobId",
-              "filter"
-            ]
+            "$ref": "#/components/schemas/FilterScopeInput"
           },
           {
-            "type": "object",
-            "properties": {
-              "kind": {
-                "type": "string",
-                "enum": [
-                  "job"
-                ]
-              },
-              "jobId": {
-                "$ref": "#/components/schemas/Uuid"
-              }
-            },
-            "required": [
-              "kind",
-              "jobId"
-            ]
+            "$ref": "#/components/schemas/JobScope"
           },
           {
-            "type": "object",
-            "properties": {
-              "kind": {
-                "type": "string",
-                "enum": [
-                  "collection"
-                ]
-              },
-              "collectionId": {
-                "$ref": "#/components/schemas/Uuid"
-              }
-            },
-            "required": [
-              "kind",
-              "collectionId"
-            ]
+            "$ref": "#/components/schemas/CollectionScope"
           },
           {
-            "type": "object",
-            "properties": {
-              "kind": {
-                "type": "string",
-                "enum": [
-                  "domains"
-                ]
-              },
-              "domains": {
-                "minItems": 1,
-                "maxItems": 100000,
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            },
-            "required": [
-              "kind",
-              "domains"
-            ]
+            "$ref": "#/components/schemas/DomainsScope"
           },
           {
-            "type": "object",
-            "properties": {
-              "kind": {
-                "type": "string",
-                "enum": [
-                  "all"
-                ]
-              }
-            },
-            "required": [
-              "kind"
-            ]
+            "$ref": "#/components/schemas/AllScope"
           }
         ],
-        "description": "Resolved to stable item and evidence ids when the export is created"
+        "description": "Resolved to stable item and evidence ids when the export is created",
+        "discriminator": {
+          "propertyName": "kind",
+          "mapping": {
+            "selection": "#/components/schemas/SelectionScope",
+            "filter": "#/components/schemas/FilterScopeInput",
+            "job": "#/components/schemas/JobScope",
+            "collection": "#/components/schemas/CollectionScope",
+            "domains": "#/components/schemas/DomainsScope",
+            "all": "#/components/schemas/AllScope"
+          }
+        }
       },
       "ExportField": {
         "type": "string",

@@ -408,7 +408,7 @@ func (s *scopeFlags) build(a *App) (api.ExportScopeInput, error) {
 		if perr != nil {
 			return out, perr
 		}
-		err = out.FromExportScopeInput0(api.ExportScopeInput0{Kind: api.ExportScopeInput0KindSelection, ItemIds: ids})
+		err = out.FromSelectionScope(api.SelectionScope{Kind: api.Selection, ItemIds: ids})
 	case "filter":
 		if s.job == "" {
 			return out, usageErr("--scope filter requires --job and filter flags")
@@ -420,7 +420,7 @@ func (s *scopeFlags) build(a *App) (api.ExportScopeInput, error) {
 		if perr != nil {
 			return out, perr
 		}
-		err = out.FromExportScopeInput1(api.ExportScopeInput1{Kind: api.ExportScopeInput1KindFilter, JobId: id, Filter: s.filter.filter()})
+		err = out.FromFilterScopeInput(api.FilterScopeInput{Kind: api.FilterScopeInputKindFilter, JobId: id, Filter: s.filter.filter()})
 	case "job":
 		if s.job == "" {
 			return out, usageErr("--scope job requires --job")
@@ -429,7 +429,7 @@ func (s *scopeFlags) build(a *App) (api.ExportScopeInput, error) {
 		if perr != nil {
 			return out, perr
 		}
-		err = out.FromExportScopeInput2(api.ExportScopeInput2{Kind: api.ExportScopeInput2KindJob, JobId: id})
+		err = out.FromJobScope(api.JobScope{Kind: api.JobScopeKindJob, JobId: id})
 	case "collection":
 		if s.shortlist == "" {
 			return out, usageErr("--scope collection requires --shortlist")
@@ -438,7 +438,7 @@ func (s *scopeFlags) build(a *App) (api.ExportScopeInput, error) {
 		if perr != nil {
 			return out, perr
 		}
-		err = out.FromExportScopeInput3(api.ExportScopeInput3{Kind: api.ExportScopeInput3KindCollection, CollectionId: id})
+		err = out.FromCollectionScope(api.CollectionScope{Kind: api.CollectionScopeKindCollection, CollectionId: id})
 	case "domains":
 		if len(s.domains) == 0 && s.domainsFile == "" {
 			return out, usageErr("--scope domains requires --domains or --domains-file")
@@ -447,9 +447,9 @@ func (s *scopeFlags) build(a *App) (api.ExportScopeInput, error) {
 		if derr != nil {
 			return out, derr
 		}
-		err = out.FromExportScopeInput4(api.ExportScopeInput4{Kind: api.ExportScopeInput4KindDomains, Domains: ds})
+		err = out.FromDomainsScope(api.DomainsScope{Kind: api.Domains, Domains: ds})
 	case "all":
-		err = out.FromExportScopeInput5(api.ExportScopeInput5{Kind: api.ExportScopeInput5KindAll})
+		err = out.FromAllScope(api.AllScope{Kind: api.All})
 	}
 	if err != nil {
 		return out, failErr("cannot encode the scope: %v", err)

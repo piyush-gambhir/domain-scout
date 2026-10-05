@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -27,6 +28,21 @@ const (
 func (e AftermarketJobRequestType) Valid() bool {
 	switch e {
 	case AftermarketJobRequestTypeAftermarket:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AllScopeKind.
+const (
+	All AllScopeKind = "all"
+)
+
+// Valid indicates whether the value is a known member of the AllScopeKind enum.
+func (e AllScopeKind) Valid() bool {
+	switch e {
+	case All:
 		return true
 	default:
 		return false
@@ -102,6 +118,21 @@ func (e CatalogStateFreshness) Valid() bool {
 	case CatalogStateFreshnessFresh:
 		return true
 	case CatalogStateFreshnessStale:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CollectionScopeKind.
+const (
+	CollectionScopeKindCollection CollectionScopeKind = "collection"
+)
+
+// Valid indicates whether the value is a known member of the CollectionScopeKind enum.
+func (e CollectionScopeKind) Valid() bool {
+	switch e {
+	case CollectionScopeKindCollection:
 		return true
 	default:
 		return false
@@ -468,6 +499,21 @@ func (e DomainEvidenceProvidersSupportsSuffix) Valid() bool {
 	}
 }
 
+// Defines values for DomainsScopeKind.
+const (
+	Domains DomainsScopeKind = "domains"
+)
+
+// Valid indicates whether the value is a known member of the DomainsScopeKind enum.
+func (e DomainsScopeKind) Valid() bool {
+	switch e {
+	case Domains:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for EligibilityStatus.
 const (
 	EligibilityStatusReserved     EligibilityStatus = "reserved"
@@ -753,180 +799,30 @@ func (e ExportField) Valid() bool {
 	}
 }
 
-// Defines values for ExportScope0Kind.
+// Defines values for FilterScopeKind.
 const (
-	ExportScope0KindSelection ExportScope0Kind = "selection"
+	FilterScopeKindFilter FilterScopeKind = "filter"
 )
 
-// Valid indicates whether the value is a known member of the ExportScope0Kind enum.
-func (e ExportScope0Kind) Valid() bool {
+// Valid indicates whether the value is a known member of the FilterScopeKind enum.
+func (e FilterScopeKind) Valid() bool {
 	switch e {
-	case ExportScope0KindSelection:
+	case FilterScopeKindFilter:
 		return true
 	default:
 		return false
 	}
 }
 
-// Defines values for ExportScope1Kind.
+// Defines values for FilterScopeInputKind.
 const (
-	ExportScope1KindFilter ExportScope1Kind = "filter"
+	FilterScopeInputKindFilter FilterScopeInputKind = "filter"
 )
 
-// Valid indicates whether the value is a known member of the ExportScope1Kind enum.
-func (e ExportScope1Kind) Valid() bool {
+// Valid indicates whether the value is a known member of the FilterScopeInputKind enum.
+func (e FilterScopeInputKind) Valid() bool {
 	switch e {
-	case ExportScope1KindFilter:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for ExportScope2Kind.
-const (
-	ExportScope2KindJob ExportScope2Kind = "job"
-)
-
-// Valid indicates whether the value is a known member of the ExportScope2Kind enum.
-func (e ExportScope2Kind) Valid() bool {
-	switch e {
-	case ExportScope2KindJob:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for ExportScope3Kind.
-const (
-	ExportScope3KindCollection ExportScope3Kind = "collection"
-)
-
-// Valid indicates whether the value is a known member of the ExportScope3Kind enum.
-func (e ExportScope3Kind) Valid() bool {
-	switch e {
-	case ExportScope3KindCollection:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for ExportScope4Kind.
-const (
-	ExportScope4KindDomains ExportScope4Kind = "domains"
-)
-
-// Valid indicates whether the value is a known member of the ExportScope4Kind enum.
-func (e ExportScope4Kind) Valid() bool {
-	switch e {
-	case ExportScope4KindDomains:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for ExportScope5Kind.
-const (
-	ExportScope5KindAll ExportScope5Kind = "all"
-)
-
-// Valid indicates whether the value is a known member of the ExportScope5Kind enum.
-func (e ExportScope5Kind) Valid() bool {
-	switch e {
-	case ExportScope5KindAll:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for ExportScopeInput0Kind.
-const (
-	ExportScopeInput0KindSelection ExportScopeInput0Kind = "selection"
-)
-
-// Valid indicates whether the value is a known member of the ExportScopeInput0Kind enum.
-func (e ExportScopeInput0Kind) Valid() bool {
-	switch e {
-	case ExportScopeInput0KindSelection:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for ExportScopeInput1Kind.
-const (
-	ExportScopeInput1KindFilter ExportScopeInput1Kind = "filter"
-)
-
-// Valid indicates whether the value is a known member of the ExportScopeInput1Kind enum.
-func (e ExportScopeInput1Kind) Valid() bool {
-	switch e {
-	case ExportScopeInput1KindFilter:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for ExportScopeInput2Kind.
-const (
-	ExportScopeInput2KindJob ExportScopeInput2Kind = "job"
-)
-
-// Valid indicates whether the value is a known member of the ExportScopeInput2Kind enum.
-func (e ExportScopeInput2Kind) Valid() bool {
-	switch e {
-	case ExportScopeInput2KindJob:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for ExportScopeInput3Kind.
-const (
-	ExportScopeInput3KindCollection ExportScopeInput3Kind = "collection"
-)
-
-// Valid indicates whether the value is a known member of the ExportScopeInput3Kind enum.
-func (e ExportScopeInput3Kind) Valid() bool {
-	switch e {
-	case ExportScopeInput3KindCollection:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for ExportScopeInput4Kind.
-const (
-	ExportScopeInput4KindDomains ExportScopeInput4Kind = "domains"
-)
-
-// Valid indicates whether the value is a known member of the ExportScopeInput4Kind enum.
-func (e ExportScopeInput4Kind) Valid() bool {
-	switch e {
-	case ExportScopeInput4KindDomains:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for ExportScopeInput5Kind.
-const (
-	ExportScopeInput5KindAll ExportScopeInput5Kind = "all"
-)
-
-// Valid indicates whether the value is a known member of the ExportScopeInput5Kind enum.
-func (e ExportScopeInput5Kind) Valid() bool {
-	switch e {
-	case ExportScopeInput5KindAll:
+	case FilterScopeInputKindFilter:
 		return true
 	default:
 		return false
@@ -1185,6 +1081,21 @@ func (e JobOperation) Valid() bool {
 	case JobOperationRegistry:
 		return true
 	case JobOperationTransfer:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for JobScopeKind.
+const (
+	JobScopeKindJob JobScopeKind = "job"
+)
+
+// Valid indicates whether the value is a known member of the JobScopeKind enum.
+func (e JobScopeKind) Valid() bool {
+	switch e {
+	case JobScopeKindJob:
 		return true
 	default:
 		return false
@@ -1857,6 +1768,21 @@ func (e ScanJobRequestInputType) Valid() bool {
 	}
 }
 
+// Defines values for SelectionScopeKind.
+const (
+	Selection SelectionScopeKind = "selection"
+)
+
+// Valid indicates whether the value is a known member of the SelectionScopeKind enum.
+func (e SelectionScopeKind) Valid() bool {
+	switch e {
+	case Selection:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ServiceStopStopping.
 const (
 	ServiceStopStoppingTrue ServiceStopStopping = true
@@ -2212,6 +2138,14 @@ type AftermarketSourceListResponse struct {
 	Total           *int                `json:"total"`
 }
 
+// AllScope defines model for AllScope.
+type AllScope struct {
+	Kind AllScopeKind `json:"kind"`
+}
+
+// AllScopeKind defines model for AllScope.Kind.
+type AllScopeKind string
+
 // ApiError defines model for ApiError.
 type ApiError struct {
 	Code    ErrorCode `json:"code"`
@@ -2427,6 +2361,15 @@ type CollectionResponse struct {
 	ContractVersion string     `json:"contractVersion"`
 	Data            Collection `json:"data"`
 }
+
+// CollectionScope defines model for CollectionScope.
+type CollectionScope struct {
+	CollectionId Uuid                `json:"collectionId"`
+	Kind         CollectionScopeKind `json:"kind"`
+}
+
+// CollectionScopeKind defines model for CollectionScope.Kind.
+type CollectionScopeKind string
 
 // Comparison defines model for Comparison.
 type Comparison struct {
@@ -2816,6 +2759,15 @@ type DomainEvidenceResponse struct {
 	Data            DomainEvidence `json:"data"`
 }
 
+// DomainsScope defines model for DomainsScope.
+type DomainsScope struct {
+	Domains []string         `json:"domains"`
+	Kind    DomainsScopeKind `json:"kind"`
+}
+
+// DomainsScopeKind defines model for DomainsScope.Kind.
+type DomainsScopeKind string
+
 // Eligibility defines model for Eligibility.
 type Eligibility struct {
 	// Scope What the status applies to, e.g. a registry policy
@@ -2963,118 +2915,10 @@ type ExportScope struct {
 	union json.RawMessage
 }
 
-// ExportScope0 defines model for ExportScope.0.
-type ExportScope0 struct {
-	ItemIds []Uuid           `json:"itemIds"`
-	Kind    ExportScope0Kind `json:"kind"`
-}
-
-// ExportScope0Kind defines model for ExportScope.0.Kind.
-type ExportScope0Kind string
-
-// ExportScope1 defines model for ExportScope.1.
-type ExportScope1 struct {
-	Filter ResultFilter     `json:"filter"`
-	JobId  Uuid             `json:"jobId"`
-	Kind   ExportScope1Kind `json:"kind"`
-}
-
-// ExportScope1Kind defines model for ExportScope.1.Kind.
-type ExportScope1Kind string
-
-// ExportScope2 defines model for ExportScope.2.
-type ExportScope2 struct {
-	JobId Uuid             `json:"jobId"`
-	Kind  ExportScope2Kind `json:"kind"`
-}
-
-// ExportScope2Kind defines model for ExportScope.2.Kind.
-type ExportScope2Kind string
-
-// ExportScope3 defines model for ExportScope.3.
-type ExportScope3 struct {
-	CollectionId Uuid             `json:"collectionId"`
-	Kind         ExportScope3Kind `json:"kind"`
-}
-
-// ExportScope3Kind defines model for ExportScope.3.Kind.
-type ExportScope3Kind string
-
-// ExportScope4 defines model for ExportScope.4.
-type ExportScope4 struct {
-	Domains []string         `json:"domains"`
-	Kind    ExportScope4Kind `json:"kind"`
-}
-
-// ExportScope4Kind defines model for ExportScope.4.Kind.
-type ExportScope4Kind string
-
-// ExportScope5 defines model for ExportScope.5.
-type ExportScope5 struct {
-	Kind ExportScope5Kind `json:"kind"`
-}
-
-// ExportScope5Kind defines model for ExportScope.5.Kind.
-type ExportScope5Kind string
-
 // ExportScopeInput Resolved to stable item and evidence ids when the export is created
 type ExportScopeInput struct {
 	union json.RawMessage
 }
-
-// ExportScopeInput0 defines model for ExportScopeInput.0.
-type ExportScopeInput0 struct {
-	ItemIds []Uuid                `json:"itemIds"`
-	Kind    ExportScopeInput0Kind `json:"kind"`
-}
-
-// ExportScopeInput0Kind defines model for ExportScopeInput.0.Kind.
-type ExportScopeInput0Kind string
-
-// ExportScopeInput1 defines model for ExportScopeInput.1.
-type ExportScopeInput1 struct {
-	Filter ResultFilterInput     `json:"filter"`
-	JobId  Uuid                  `json:"jobId"`
-	Kind   ExportScopeInput1Kind `json:"kind"`
-}
-
-// ExportScopeInput1Kind defines model for ExportScopeInput.1.Kind.
-type ExportScopeInput1Kind string
-
-// ExportScopeInput2 defines model for ExportScopeInput.2.
-type ExportScopeInput2 struct {
-	JobId Uuid                  `json:"jobId"`
-	Kind  ExportScopeInput2Kind `json:"kind"`
-}
-
-// ExportScopeInput2Kind defines model for ExportScopeInput.2.Kind.
-type ExportScopeInput2Kind string
-
-// ExportScopeInput3 defines model for ExportScopeInput.3.
-type ExportScopeInput3 struct {
-	CollectionId Uuid                  `json:"collectionId"`
-	Kind         ExportScopeInput3Kind `json:"kind"`
-}
-
-// ExportScopeInput3Kind defines model for ExportScopeInput.3.Kind.
-type ExportScopeInput3Kind string
-
-// ExportScopeInput4 defines model for ExportScopeInput.4.
-type ExportScopeInput4 struct {
-	Domains []string              `json:"domains"`
-	Kind    ExportScopeInput4Kind `json:"kind"`
-}
-
-// ExportScopeInput4Kind defines model for ExportScopeInput.4.Kind.
-type ExportScopeInput4Kind string
-
-// ExportScopeInput5 defines model for ExportScopeInput.5.
-type ExportScopeInput5 struct {
-	Kind ExportScopeInput5Kind `json:"kind"`
-}
-
-// ExportScopeInput5Kind defines model for ExportScopeInput.5.Kind.
-type ExportScopeInput5Kind string
 
 // ExtensionPreset defines model for ExtensionPreset.
 type ExtensionPreset struct {
@@ -3107,6 +2951,26 @@ type ExtensionPresetResponse struct {
 
 // FileBody File contents
 type FileBody = string
+
+// FilterScope defines model for FilterScope.
+type FilterScope struct {
+	Filter ResultFilter    `json:"filter"`
+	JobId  Uuid            `json:"jobId"`
+	Kind   FilterScopeKind `json:"kind"`
+}
+
+// FilterScopeKind defines model for FilterScope.Kind.
+type FilterScopeKind string
+
+// FilterScopeInput defines model for FilterScopeInput.
+type FilterScopeInput struct {
+	Filter ResultFilterInput    `json:"filter"`
+	JobId  Uuid                 `json:"jobId"`
+	Kind   FilterScopeInputKind `json:"kind"`
+}
+
+// FilterScopeInputKind defines model for FilterScopeInput.Kind.
+type FilterScopeInputKind string
 
 // Freshness fresh: inside the freshness window; stale: older than the window; expired: past a provider-supplied quote expiry
 type Freshness string
@@ -3488,6 +3352,15 @@ type JobResponse struct {
 	ContractVersion string `json:"contractVersion"`
 	Data            Job    `json:"data"`
 }
+
+// JobScope defines model for JobScope.
+type JobScope struct {
+	JobId Uuid         `json:"jobId"`
+	Kind  JobScopeKind `json:"kind"`
+}
+
+// JobScopeKind defines model for JobScope.Kind.
+type JobScopeKind string
 
 // JobState defines model for JobState.
 type JobState string
@@ -4328,6 +4201,15 @@ type ScanJobRequestInput struct {
 // ScanJobRequestInputType defines model for ScanJobRequestInput.Type.
 type ScanJobRequestInputType string
 
+// SelectionScope defines model for SelectionScope.
+type SelectionScope struct {
+	ItemIds []Uuid             `json:"itemIds"`
+	Kind    SelectionScopeKind `json:"kind"`
+}
+
+// SelectionScopeKind defines model for SelectionScope.Kind.
+type SelectionScopeKind string
+
 // ServiceStop defines model for ServiceStop.
 type ServiceStop struct {
 	GraceMs  int                 `json:"graceMs"`
@@ -4861,6 +4743,9 @@ type StreamEventsParams struct {
 
 	// Types Comma-separated event types
 	Types *string `form:"types,omitempty" json:"types,omitempty"`
+
+	// LastEventID Resume after this event id (takes precedence over the `after` query parameter)
+	LastEventID *string `json:"Last-Event-ID,omitempty"`
 }
 
 // ListExportsParams defines parameters for ListExports.
@@ -5148,6 +5033,10 @@ func (t CreateJobRequest) AsScanJobRequest() (ScanJobRequest, error) {
 // FromScanJobRequest overwrites any union data inside the CreateJobRequest as the provided ScanJobRequest
 func (t *CreateJobRequest) FromScanJobRequest(v ScanJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"registry_scan"}`))
 	t.union = b
 	return err
 }
@@ -5155,6 +5044,10 @@ func (t *CreateJobRequest) FromScanJobRequest(v ScanJobRequest) error {
 // MergeScanJobRequest performs a merge with any union data inside the CreateJobRequest, using the provided ScanJobRequest
 func (t *CreateJobRequest) MergeScanJobRequest(v ScanJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"registry_scan"}`))
 	if err != nil {
 		return err
 	}
@@ -5174,6 +5067,10 @@ func (t CreateJobRequest) AsProviderCheckJobRequest() (ProviderCheckJobRequest, 
 // FromProviderCheckJobRequest overwrites any union data inside the CreateJobRequest as the provided ProviderCheckJobRequest
 func (t *CreateJobRequest) FromProviderCheckJobRequest(v ProviderCheckJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"provider_check"}`))
 	t.union = b
 	return err
 }
@@ -5181,6 +5078,10 @@ func (t *CreateJobRequest) FromProviderCheckJobRequest(v ProviderCheckJobRequest
 // MergeProviderCheckJobRequest performs a merge with any union data inside the CreateJobRequest, using the provided ProviderCheckJobRequest
 func (t *CreateJobRequest) MergeProviderCheckJobRequest(v ProviderCheckJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"provider_check"}`))
 	if err != nil {
 		return err
 	}
@@ -5200,6 +5101,10 @@ func (t CreateJobRequest) AsQuoteJobRequest() (QuoteJobRequest, error) {
 // FromQuoteJobRequest overwrites any union data inside the CreateJobRequest as the provided QuoteJobRequest
 func (t *CreateJobRequest) FromQuoteJobRequest(v QuoteJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"quote"}`))
 	t.union = b
 	return err
 }
@@ -5207,6 +5112,10 @@ func (t *CreateJobRequest) FromQuoteJobRequest(v QuoteJobRequest) error {
 // MergeQuoteJobRequest performs a merge with any union data inside the CreateJobRequest, using the provided QuoteJobRequest
 func (t *CreateJobRequest) MergeQuoteJobRequest(v QuoteJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"quote"}`))
 	if err != nil {
 		return err
 	}
@@ -5226,6 +5135,10 @@ func (t CreateJobRequest) AsTransferJobRequest() (TransferJobRequest, error) {
 // FromTransferJobRequest overwrites any union data inside the CreateJobRequest as the provided TransferJobRequest
 func (t *CreateJobRequest) FromTransferJobRequest(v TransferJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"transfer"}`))
 	t.union = b
 	return err
 }
@@ -5233,6 +5146,10 @@ func (t *CreateJobRequest) FromTransferJobRequest(v TransferJobRequest) error {
 // MergeTransferJobRequest performs a merge with any union data inside the CreateJobRequest, using the provided TransferJobRequest
 func (t *CreateJobRequest) MergeTransferJobRequest(v TransferJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"transfer"}`))
 	if err != nil {
 		return err
 	}
@@ -5252,6 +5169,10 @@ func (t CreateJobRequest) AsAftermarketJobRequest() (AftermarketJobRequest, erro
 // FromAftermarketJobRequest overwrites any union data inside the CreateJobRequest as the provided AftermarketJobRequest
 func (t *CreateJobRequest) FromAftermarketJobRequest(v AftermarketJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"aftermarket"}`))
 	t.union = b
 	return err
 }
@@ -5259,6 +5180,10 @@ func (t *CreateJobRequest) FromAftermarketJobRequest(v AftermarketJobRequest) er
 // MergeAftermarketJobRequest performs a merge with any union data inside the CreateJobRequest, using the provided AftermarketJobRequest
 func (t *CreateJobRequest) MergeAftermarketJobRequest(v AftermarketJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"aftermarket"}`))
 	if err != nil {
 		return err
 	}
@@ -5278,6 +5203,10 @@ func (t CreateJobRequest) AsNameCheckJobRequest() (NameCheckJobRequest, error) {
 // FromNameCheckJobRequest overwrites any union data inside the CreateJobRequest as the provided NameCheckJobRequest
 func (t *CreateJobRequest) FromNameCheckJobRequest(v NameCheckJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"name_check"}`))
 	t.union = b
 	return err
 }
@@ -5285,6 +5214,10 @@ func (t *CreateJobRequest) FromNameCheckJobRequest(v NameCheckJobRequest) error 
 // MergeNameCheckJobRequest performs a merge with any union data inside the CreateJobRequest, using the provided NameCheckJobRequest
 func (t *CreateJobRequest) MergeNameCheckJobRequest(v NameCheckJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"name_check"}`))
 	if err != nil {
 		return err
 	}
@@ -5304,6 +5237,10 @@ func (t CreateJobRequest) AsDiagnosticsJobRequest() (DiagnosticsJobRequest, erro
 // FromDiagnosticsJobRequest overwrites any union data inside the CreateJobRequest as the provided DiagnosticsJobRequest
 func (t *CreateJobRequest) FromDiagnosticsJobRequest(v DiagnosticsJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"diagnostics"}`))
 	t.union = b
 	return err
 }
@@ -5314,10 +5251,47 @@ func (t *CreateJobRequest) MergeDiagnosticsJobRequest(v DiagnosticsJobRequest) e
 	if err != nil {
 		return err
 	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"diagnostics"}`))
+	if err != nil {
+		return err
+	}
 
 	merged, err := runtime.JSONMerge(t.union, b)
 	t.union = merged
 	return err
+}
+
+func (t CreateJobRequest) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t CreateJobRequest) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "aftermarket":
+		return t.AsAftermarketJobRequest()
+	case "diagnostics":
+		return t.AsDiagnosticsJobRequest()
+	case "name_check":
+		return t.AsNameCheckJobRequest()
+	case "provider_check":
+		return t.AsProviderCheckJobRequest()
+	case "quote":
+		return t.AsQuoteJobRequest()
+	case "registry_scan":
+		return t.AsScanJobRequest()
+	case "transfer":
+		return t.AsTransferJobRequest()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
 }
 
 func (t CreateJobRequest) MarshalJSON() ([]byte, error) {
@@ -5340,6 +5314,10 @@ func (t CreateJobRequestInput) AsScanJobRequestInput() (ScanJobRequestInput, err
 // FromScanJobRequestInput overwrites any union data inside the CreateJobRequestInput as the provided ScanJobRequestInput
 func (t *CreateJobRequestInput) FromScanJobRequestInput(v ScanJobRequestInput) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"registry_scan"}`))
 	t.union = b
 	return err
 }
@@ -5347,6 +5325,10 @@ func (t *CreateJobRequestInput) FromScanJobRequestInput(v ScanJobRequestInput) e
 // MergeScanJobRequestInput performs a merge with any union data inside the CreateJobRequestInput, using the provided ScanJobRequestInput
 func (t *CreateJobRequestInput) MergeScanJobRequestInput(v ScanJobRequestInput) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"registry_scan"}`))
 	if err != nil {
 		return err
 	}
@@ -5366,6 +5348,10 @@ func (t CreateJobRequestInput) AsProviderCheckJobRequest() (ProviderCheckJobRequ
 // FromProviderCheckJobRequest overwrites any union data inside the CreateJobRequestInput as the provided ProviderCheckJobRequest
 func (t *CreateJobRequestInput) FromProviderCheckJobRequest(v ProviderCheckJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"provider_check"}`))
 	t.union = b
 	return err
 }
@@ -5373,6 +5359,10 @@ func (t *CreateJobRequestInput) FromProviderCheckJobRequest(v ProviderCheckJobRe
 // MergeProviderCheckJobRequest performs a merge with any union data inside the CreateJobRequestInput, using the provided ProviderCheckJobRequest
 func (t *CreateJobRequestInput) MergeProviderCheckJobRequest(v ProviderCheckJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"provider_check"}`))
 	if err != nil {
 		return err
 	}
@@ -5392,6 +5382,10 @@ func (t CreateJobRequestInput) AsQuoteJobRequest() (QuoteJobRequest, error) {
 // FromQuoteJobRequest overwrites any union data inside the CreateJobRequestInput as the provided QuoteJobRequest
 func (t *CreateJobRequestInput) FromQuoteJobRequest(v QuoteJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"quote"}`))
 	t.union = b
 	return err
 }
@@ -5399,6 +5393,10 @@ func (t *CreateJobRequestInput) FromQuoteJobRequest(v QuoteJobRequest) error {
 // MergeQuoteJobRequest performs a merge with any union data inside the CreateJobRequestInput, using the provided QuoteJobRequest
 func (t *CreateJobRequestInput) MergeQuoteJobRequest(v QuoteJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"quote"}`))
 	if err != nil {
 		return err
 	}
@@ -5418,6 +5416,10 @@ func (t CreateJobRequestInput) AsTransferJobRequest() (TransferJobRequest, error
 // FromTransferJobRequest overwrites any union data inside the CreateJobRequestInput as the provided TransferJobRequest
 func (t *CreateJobRequestInput) FromTransferJobRequest(v TransferJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"transfer"}`))
 	t.union = b
 	return err
 }
@@ -5425,6 +5427,10 @@ func (t *CreateJobRequestInput) FromTransferJobRequest(v TransferJobRequest) err
 // MergeTransferJobRequest performs a merge with any union data inside the CreateJobRequestInput, using the provided TransferJobRequest
 func (t *CreateJobRequestInput) MergeTransferJobRequest(v TransferJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"transfer"}`))
 	if err != nil {
 		return err
 	}
@@ -5444,6 +5450,10 @@ func (t CreateJobRequestInput) AsAftermarketJobRequest() (AftermarketJobRequest,
 // FromAftermarketJobRequest overwrites any union data inside the CreateJobRequestInput as the provided AftermarketJobRequest
 func (t *CreateJobRequestInput) FromAftermarketJobRequest(v AftermarketJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"aftermarket"}`))
 	t.union = b
 	return err
 }
@@ -5451,6 +5461,10 @@ func (t *CreateJobRequestInput) FromAftermarketJobRequest(v AftermarketJobReques
 // MergeAftermarketJobRequest performs a merge with any union data inside the CreateJobRequestInput, using the provided AftermarketJobRequest
 func (t *CreateJobRequestInput) MergeAftermarketJobRequest(v AftermarketJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"aftermarket"}`))
 	if err != nil {
 		return err
 	}
@@ -5470,6 +5484,10 @@ func (t CreateJobRequestInput) AsNameCheckJobRequest() (NameCheckJobRequest, err
 // FromNameCheckJobRequest overwrites any union data inside the CreateJobRequestInput as the provided NameCheckJobRequest
 func (t *CreateJobRequestInput) FromNameCheckJobRequest(v NameCheckJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"name_check"}`))
 	t.union = b
 	return err
 }
@@ -5477,6 +5495,10 @@ func (t *CreateJobRequestInput) FromNameCheckJobRequest(v NameCheckJobRequest) e
 // MergeNameCheckJobRequest performs a merge with any union data inside the CreateJobRequestInput, using the provided NameCheckJobRequest
 func (t *CreateJobRequestInput) MergeNameCheckJobRequest(v NameCheckJobRequest) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"name_check"}`))
 	if err != nil {
 		return err
 	}
@@ -5496,6 +5518,10 @@ func (t CreateJobRequestInput) AsDiagnosticsJobRequestInput() (DiagnosticsJobReq
 // FromDiagnosticsJobRequestInput overwrites any union data inside the CreateJobRequestInput as the provided DiagnosticsJobRequestInput
 func (t *CreateJobRequestInput) FromDiagnosticsJobRequestInput(v DiagnosticsJobRequestInput) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"diagnostics"}`))
 	t.union = b
 	return err
 }
@@ -5506,10 +5532,47 @@ func (t *CreateJobRequestInput) MergeDiagnosticsJobRequestInput(v DiagnosticsJob
 	if err != nil {
 		return err
 	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"diagnostics"}`))
+	if err != nil {
+		return err
+	}
 
 	merged, err := runtime.JSONMerge(t.union, b)
 	t.union = merged
 	return err
+}
+
+func (t CreateJobRequestInput) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t CreateJobRequestInput) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "aftermarket":
+		return t.AsAftermarketJobRequest()
+	case "diagnostics":
+		return t.AsDiagnosticsJobRequestInput()
+	case "name_check":
+		return t.AsNameCheckJobRequest()
+	case "provider_check":
+		return t.AsProviderCheckJobRequest()
+	case "quote":
+		return t.AsQuoteJobRequest()
+	case "registry_scan":
+		return t.AsScanJobRequestInput()
+	case "transfer":
+		return t.AsTransferJobRequest()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
 }
 
 func (t CreateJobRequestInput) MarshalJSON() ([]byte, error) {
@@ -5522,23 +5585,31 @@ func (t *CreateJobRequestInput) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-// AsExportScope0 returns the union data inside the ExportScope as a ExportScope0
-func (t ExportScope) AsExportScope0() (ExportScope0, error) {
-	var body ExportScope0
+// AsSelectionScope returns the union data inside the ExportScope as a SelectionScope
+func (t ExportScope) AsSelectionScope() (SelectionScope, error) {
+	var body SelectionScope
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromExportScope0 overwrites any union data inside the ExportScope as the provided ExportScope0
-func (t *ExportScope) FromExportScope0(v ExportScope0) error {
+// FromSelectionScope overwrites any union data inside the ExportScope as the provided SelectionScope
+func (t *ExportScope) FromSelectionScope(v SelectionScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"selection"}`))
 	t.union = b
 	return err
 }
 
-// MergeExportScope0 performs a merge with any union data inside the ExportScope, using the provided ExportScope0
-func (t *ExportScope) MergeExportScope0(v ExportScope0) error {
+// MergeSelectionScope performs a merge with any union data inside the ExportScope, using the provided SelectionScope
+func (t *ExportScope) MergeSelectionScope(v SelectionScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"selection"}`))
 	if err != nil {
 		return err
 	}
@@ -5548,23 +5619,31 @@ func (t *ExportScope) MergeExportScope0(v ExportScope0) error {
 	return err
 }
 
-// AsExportScope1 returns the union data inside the ExportScope as a ExportScope1
-func (t ExportScope) AsExportScope1() (ExportScope1, error) {
-	var body ExportScope1
+// AsFilterScope returns the union data inside the ExportScope as a FilterScope
+func (t ExportScope) AsFilterScope() (FilterScope, error) {
+	var body FilterScope
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromExportScope1 overwrites any union data inside the ExportScope as the provided ExportScope1
-func (t *ExportScope) FromExportScope1(v ExportScope1) error {
+// FromFilterScope overwrites any union data inside the ExportScope as the provided FilterScope
+func (t *ExportScope) FromFilterScope(v FilterScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"filter"}`))
 	t.union = b
 	return err
 }
 
-// MergeExportScope1 performs a merge with any union data inside the ExportScope, using the provided ExportScope1
-func (t *ExportScope) MergeExportScope1(v ExportScope1) error {
+// MergeFilterScope performs a merge with any union data inside the ExportScope, using the provided FilterScope
+func (t *ExportScope) MergeFilterScope(v FilterScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"filter"}`))
 	if err != nil {
 		return err
 	}
@@ -5574,23 +5653,31 @@ func (t *ExportScope) MergeExportScope1(v ExportScope1) error {
 	return err
 }
 
-// AsExportScope2 returns the union data inside the ExportScope as a ExportScope2
-func (t ExportScope) AsExportScope2() (ExportScope2, error) {
-	var body ExportScope2
+// AsJobScope returns the union data inside the ExportScope as a JobScope
+func (t ExportScope) AsJobScope() (JobScope, error) {
+	var body JobScope
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromExportScope2 overwrites any union data inside the ExportScope as the provided ExportScope2
-func (t *ExportScope) FromExportScope2(v ExportScope2) error {
+// FromJobScope overwrites any union data inside the ExportScope as the provided JobScope
+func (t *ExportScope) FromJobScope(v JobScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"job"}`))
 	t.union = b
 	return err
 }
 
-// MergeExportScope2 performs a merge with any union data inside the ExportScope, using the provided ExportScope2
-func (t *ExportScope) MergeExportScope2(v ExportScope2) error {
+// MergeJobScope performs a merge with any union data inside the ExportScope, using the provided JobScope
+func (t *ExportScope) MergeJobScope(v JobScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"job"}`))
 	if err != nil {
 		return err
 	}
@@ -5600,23 +5687,31 @@ func (t *ExportScope) MergeExportScope2(v ExportScope2) error {
 	return err
 }
 
-// AsExportScope3 returns the union data inside the ExportScope as a ExportScope3
-func (t ExportScope) AsExportScope3() (ExportScope3, error) {
-	var body ExportScope3
+// AsCollectionScope returns the union data inside the ExportScope as a CollectionScope
+func (t ExportScope) AsCollectionScope() (CollectionScope, error) {
+	var body CollectionScope
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromExportScope3 overwrites any union data inside the ExportScope as the provided ExportScope3
-func (t *ExportScope) FromExportScope3(v ExportScope3) error {
+// FromCollectionScope overwrites any union data inside the ExportScope as the provided CollectionScope
+func (t *ExportScope) FromCollectionScope(v CollectionScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"collection"}`))
 	t.union = b
 	return err
 }
 
-// MergeExportScope3 performs a merge with any union data inside the ExportScope, using the provided ExportScope3
-func (t *ExportScope) MergeExportScope3(v ExportScope3) error {
+// MergeCollectionScope performs a merge with any union data inside the ExportScope, using the provided CollectionScope
+func (t *ExportScope) MergeCollectionScope(v CollectionScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"collection"}`))
 	if err != nil {
 		return err
 	}
@@ -5626,23 +5721,31 @@ func (t *ExportScope) MergeExportScope3(v ExportScope3) error {
 	return err
 }
 
-// AsExportScope4 returns the union data inside the ExportScope as a ExportScope4
-func (t ExportScope) AsExportScope4() (ExportScope4, error) {
-	var body ExportScope4
+// AsDomainsScope returns the union data inside the ExportScope as a DomainsScope
+func (t ExportScope) AsDomainsScope() (DomainsScope, error) {
+	var body DomainsScope
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromExportScope4 overwrites any union data inside the ExportScope as the provided ExportScope4
-func (t *ExportScope) FromExportScope4(v ExportScope4) error {
+// FromDomainsScope overwrites any union data inside the ExportScope as the provided DomainsScope
+func (t *ExportScope) FromDomainsScope(v DomainsScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"domains"}`))
 	t.union = b
 	return err
 }
 
-// MergeExportScope4 performs a merge with any union data inside the ExportScope, using the provided ExportScope4
-func (t *ExportScope) MergeExportScope4(v ExportScope4) error {
+// MergeDomainsScope performs a merge with any union data inside the ExportScope, using the provided DomainsScope
+func (t *ExportScope) MergeDomainsScope(v DomainsScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"domains"}`))
 	if err != nil {
 		return err
 	}
@@ -5652,23 +5755,31 @@ func (t *ExportScope) MergeExportScope4(v ExportScope4) error {
 	return err
 }
 
-// AsExportScope5 returns the union data inside the ExportScope as a ExportScope5
-func (t ExportScope) AsExportScope5() (ExportScope5, error) {
-	var body ExportScope5
+// AsAllScope returns the union data inside the ExportScope as a AllScope
+func (t ExportScope) AsAllScope() (AllScope, error) {
+	var body AllScope
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromExportScope5 overwrites any union data inside the ExportScope as the provided ExportScope5
-func (t *ExportScope) FromExportScope5(v ExportScope5) error {
+// FromAllScope overwrites any union data inside the ExportScope as the provided AllScope
+func (t *ExportScope) FromAllScope(v AllScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"all"}`))
 	t.union = b
 	return err
 }
 
-// MergeExportScope5 performs a merge with any union data inside the ExportScope, using the provided ExportScope5
-func (t *ExportScope) MergeExportScope5(v ExportScope5) error {
+// MergeAllScope performs a merge with any union data inside the ExportScope, using the provided AllScope
+func (t *ExportScope) MergeAllScope(v AllScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"all"}`))
 	if err != nil {
 		return err
 	}
@@ -5676,6 +5787,37 @@ func (t *ExportScope) MergeExportScope5(v ExportScope5) error {
 	merged, err := runtime.JSONMerge(t.union, b)
 	t.union = merged
 	return err
+}
+
+func (t ExportScope) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"kind"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t ExportScope) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "all":
+		return t.AsAllScope()
+	case "collection":
+		return t.AsCollectionScope()
+	case "domains":
+		return t.AsDomainsScope()
+	case "filter":
+		return t.AsFilterScope()
+	case "job":
+		return t.AsJobScope()
+	case "selection":
+		return t.AsSelectionScope()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
 }
 
 func (t ExportScope) MarshalJSON() ([]byte, error) {
@@ -5688,23 +5830,31 @@ func (t *ExportScope) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-// AsExportScopeInput0 returns the union data inside the ExportScopeInput as a ExportScopeInput0
-func (t ExportScopeInput) AsExportScopeInput0() (ExportScopeInput0, error) {
-	var body ExportScopeInput0
+// AsSelectionScope returns the union data inside the ExportScopeInput as a SelectionScope
+func (t ExportScopeInput) AsSelectionScope() (SelectionScope, error) {
+	var body SelectionScope
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromExportScopeInput0 overwrites any union data inside the ExportScopeInput as the provided ExportScopeInput0
-func (t *ExportScopeInput) FromExportScopeInput0(v ExportScopeInput0) error {
+// FromSelectionScope overwrites any union data inside the ExportScopeInput as the provided SelectionScope
+func (t *ExportScopeInput) FromSelectionScope(v SelectionScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"selection"}`))
 	t.union = b
 	return err
 }
 
-// MergeExportScopeInput0 performs a merge with any union data inside the ExportScopeInput, using the provided ExportScopeInput0
-func (t *ExportScopeInput) MergeExportScopeInput0(v ExportScopeInput0) error {
+// MergeSelectionScope performs a merge with any union data inside the ExportScopeInput, using the provided SelectionScope
+func (t *ExportScopeInput) MergeSelectionScope(v SelectionScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"selection"}`))
 	if err != nil {
 		return err
 	}
@@ -5714,23 +5864,31 @@ func (t *ExportScopeInput) MergeExportScopeInput0(v ExportScopeInput0) error {
 	return err
 }
 
-// AsExportScopeInput1 returns the union data inside the ExportScopeInput as a ExportScopeInput1
-func (t ExportScopeInput) AsExportScopeInput1() (ExportScopeInput1, error) {
-	var body ExportScopeInput1
+// AsFilterScopeInput returns the union data inside the ExportScopeInput as a FilterScopeInput
+func (t ExportScopeInput) AsFilterScopeInput() (FilterScopeInput, error) {
+	var body FilterScopeInput
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromExportScopeInput1 overwrites any union data inside the ExportScopeInput as the provided ExportScopeInput1
-func (t *ExportScopeInput) FromExportScopeInput1(v ExportScopeInput1) error {
+// FromFilterScopeInput overwrites any union data inside the ExportScopeInput as the provided FilterScopeInput
+func (t *ExportScopeInput) FromFilterScopeInput(v FilterScopeInput) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"filter"}`))
 	t.union = b
 	return err
 }
 
-// MergeExportScopeInput1 performs a merge with any union data inside the ExportScopeInput, using the provided ExportScopeInput1
-func (t *ExportScopeInput) MergeExportScopeInput1(v ExportScopeInput1) error {
+// MergeFilterScopeInput performs a merge with any union data inside the ExportScopeInput, using the provided FilterScopeInput
+func (t *ExportScopeInput) MergeFilterScopeInput(v FilterScopeInput) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"filter"}`))
 	if err != nil {
 		return err
 	}
@@ -5740,23 +5898,31 @@ func (t *ExportScopeInput) MergeExportScopeInput1(v ExportScopeInput1) error {
 	return err
 }
 
-// AsExportScopeInput2 returns the union data inside the ExportScopeInput as a ExportScopeInput2
-func (t ExportScopeInput) AsExportScopeInput2() (ExportScopeInput2, error) {
-	var body ExportScopeInput2
+// AsJobScope returns the union data inside the ExportScopeInput as a JobScope
+func (t ExportScopeInput) AsJobScope() (JobScope, error) {
+	var body JobScope
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromExportScopeInput2 overwrites any union data inside the ExportScopeInput as the provided ExportScopeInput2
-func (t *ExportScopeInput) FromExportScopeInput2(v ExportScopeInput2) error {
+// FromJobScope overwrites any union data inside the ExportScopeInput as the provided JobScope
+func (t *ExportScopeInput) FromJobScope(v JobScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"job"}`))
 	t.union = b
 	return err
 }
 
-// MergeExportScopeInput2 performs a merge with any union data inside the ExportScopeInput, using the provided ExportScopeInput2
-func (t *ExportScopeInput) MergeExportScopeInput2(v ExportScopeInput2) error {
+// MergeJobScope performs a merge with any union data inside the ExportScopeInput, using the provided JobScope
+func (t *ExportScopeInput) MergeJobScope(v JobScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"job"}`))
 	if err != nil {
 		return err
 	}
@@ -5766,23 +5932,31 @@ func (t *ExportScopeInput) MergeExportScopeInput2(v ExportScopeInput2) error {
 	return err
 }
 
-// AsExportScopeInput3 returns the union data inside the ExportScopeInput as a ExportScopeInput3
-func (t ExportScopeInput) AsExportScopeInput3() (ExportScopeInput3, error) {
-	var body ExportScopeInput3
+// AsCollectionScope returns the union data inside the ExportScopeInput as a CollectionScope
+func (t ExportScopeInput) AsCollectionScope() (CollectionScope, error) {
+	var body CollectionScope
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromExportScopeInput3 overwrites any union data inside the ExportScopeInput as the provided ExportScopeInput3
-func (t *ExportScopeInput) FromExportScopeInput3(v ExportScopeInput3) error {
+// FromCollectionScope overwrites any union data inside the ExportScopeInput as the provided CollectionScope
+func (t *ExportScopeInput) FromCollectionScope(v CollectionScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"collection"}`))
 	t.union = b
 	return err
 }
 
-// MergeExportScopeInput3 performs a merge with any union data inside the ExportScopeInput, using the provided ExportScopeInput3
-func (t *ExportScopeInput) MergeExportScopeInput3(v ExportScopeInput3) error {
+// MergeCollectionScope performs a merge with any union data inside the ExportScopeInput, using the provided CollectionScope
+func (t *ExportScopeInput) MergeCollectionScope(v CollectionScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"collection"}`))
 	if err != nil {
 		return err
 	}
@@ -5792,23 +5966,31 @@ func (t *ExportScopeInput) MergeExportScopeInput3(v ExportScopeInput3) error {
 	return err
 }
 
-// AsExportScopeInput4 returns the union data inside the ExportScopeInput as a ExportScopeInput4
-func (t ExportScopeInput) AsExportScopeInput4() (ExportScopeInput4, error) {
-	var body ExportScopeInput4
+// AsDomainsScope returns the union data inside the ExportScopeInput as a DomainsScope
+func (t ExportScopeInput) AsDomainsScope() (DomainsScope, error) {
+	var body DomainsScope
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromExportScopeInput4 overwrites any union data inside the ExportScopeInput as the provided ExportScopeInput4
-func (t *ExportScopeInput) FromExportScopeInput4(v ExportScopeInput4) error {
+// FromDomainsScope overwrites any union data inside the ExportScopeInput as the provided DomainsScope
+func (t *ExportScopeInput) FromDomainsScope(v DomainsScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"domains"}`))
 	t.union = b
 	return err
 }
 
-// MergeExportScopeInput4 performs a merge with any union data inside the ExportScopeInput, using the provided ExportScopeInput4
-func (t *ExportScopeInput) MergeExportScopeInput4(v ExportScopeInput4) error {
+// MergeDomainsScope performs a merge with any union data inside the ExportScopeInput, using the provided DomainsScope
+func (t *ExportScopeInput) MergeDomainsScope(v DomainsScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"domains"}`))
 	if err != nil {
 		return err
 	}
@@ -5818,23 +6000,31 @@ func (t *ExportScopeInput) MergeExportScopeInput4(v ExportScopeInput4) error {
 	return err
 }
 
-// AsExportScopeInput5 returns the union data inside the ExportScopeInput as a ExportScopeInput5
-func (t ExportScopeInput) AsExportScopeInput5() (ExportScopeInput5, error) {
-	var body ExportScopeInput5
+// AsAllScope returns the union data inside the ExportScopeInput as a AllScope
+func (t ExportScopeInput) AsAllScope() (AllScope, error) {
+	var body AllScope
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromExportScopeInput5 overwrites any union data inside the ExportScopeInput as the provided ExportScopeInput5
-func (t *ExportScopeInput) FromExportScopeInput5(v ExportScopeInput5) error {
+// FromAllScope overwrites any union data inside the ExportScopeInput as the provided AllScope
+func (t *ExportScopeInput) FromAllScope(v AllScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"all"}`))
 	t.union = b
 	return err
 }
 
-// MergeExportScopeInput5 performs a merge with any union data inside the ExportScopeInput, using the provided ExportScopeInput5
-func (t *ExportScopeInput) MergeExportScopeInput5(v ExportScopeInput5) error {
+// MergeAllScope performs a merge with any union data inside the ExportScopeInput, using the provided AllScope
+func (t *ExportScopeInput) MergeAllScope(v AllScope) error {
 	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"kind":"all"}`))
 	if err != nil {
 		return err
 	}
@@ -5842,6 +6032,37 @@ func (t *ExportScopeInput) MergeExportScopeInput5(v ExportScopeInput5) error {
 	merged, err := runtime.JSONMerge(t.union, b)
 	t.union = merged
 	return err
+}
+
+func (t ExportScopeInput) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"kind"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t ExportScopeInput) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "all":
+		return t.AsAllScope()
+	case "collection":
+		return t.AsCollectionScope()
+	case "domains":
+		return t.AsDomainsScope()
+	case "filter":
+		return t.AsFilterScopeInput()
+	case "job":
+		return t.AsJobScope()
+	case "selection":
+		return t.AsSelectionScope()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
 }
 
 func (t ExportScopeInput) MarshalJSON() ([]byte, error) {
@@ -10249,6 +10470,21 @@ func NewStreamEventsRequest(server string, params *StreamEventsParams) (*http.Re
 	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+
+		if params.LastEventID != nil {
+			var headerParam0 string
+
+			headerParam0, err = runtime.StyleParamWithOptions("simple", false, "Last-Event-ID", *params.LastEventID, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "string", Format: ""})
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("Last-Event-ID", headerParam0)
+		}
+
 	}
 
 	return req, nil
