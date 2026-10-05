@@ -1,0 +1,25 @@
+{
+  "provenance": "reconstructed from official documentation https://developers.cloudflare.com/api/resources/registrar/methods/transfer_check/, 2026-10-05 (TransferableResult)",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "errors": [],
+      "messages": [],
+      "success": true,
+      "result": {
+        "domains": {
+          "{domain}": {
+            "transferable": true,
+            "reasons": [],
+            "pricing": {
+              "currency": "USD",
+              "transfer_cost": "8.57",
+              "renewal_cost": "10.11"
+            }
+          }
+        }
+      }
+    }
+  }
+}

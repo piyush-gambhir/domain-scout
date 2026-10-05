@@ -1,0 +1,16 @@
+{
+  "provenance": "reconstructed from official documentation https://porkbun.com/api/json/v3/spec, 2026-10-05",
+  "request": {
+    "method": "GET",
+    "url": "https://api.porkbun.com/api/json/v3/ping"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "status": "SUCCESS",
+      "yourIp": "198.51.100.7",
+      "credentialsValid": true
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "provenance": "reconstructed from official documentation https://developers.cloudflare.com/api/resources/registrar/methods/check/, 2026-10-05 (reason extension_not_supported)",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "errors": [],
+      "messages": [],
+      "success": true,
+      "result": {
+        "domains": [
+          {
+            "name": "{domain}",
+            "registrable": false,
+            "reason": "extension_not_supported"
+          }
+        ]
+      }
+    }
+  }
+}

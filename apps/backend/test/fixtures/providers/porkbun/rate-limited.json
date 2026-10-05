@@ -1,0 +1,15 @@
+{
+  "provenance": "reconstructed from official documentation https://porkbun.com/api/json/v3/spec, 2026-10-05 (RateLimitExceeded with Retry-After)",
+  "response": {
+    "status": 429,
+    "headers": {
+      "retry-after": "7"
+    },
+    "json": {
+      "status": "ERROR",
+      "code": "RATE_LIMIT_EXCEEDED",
+      "message": "Rate limit exceeded. Please try again later.",
+      "ttlRemaining": 7
+    }
+  }
+}

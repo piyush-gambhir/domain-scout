@@ -1,0 +1,8 @@
+{
+  "provenance": "reconstructed from official documentation https://www.namecheap.com/support/api/methods/users/get-pricing/, 2026-10-05 (Price attributes Duration, DurationType, Price, RegularPrice, YourPrice, CouponPrice, Currency)",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<ApiResponse Status=\"OK\" xmlns=\"http://api.namecheap.com/xml.response\">\n  <Errors />\n  <RequestedCommand>namecheap.users.getPricing</RequestedCommand>\n  <CommandResponse Type=\"namecheap.users.getPricing\">\n    <UserGetPricingResult>\n      <ProductType Name=\"domains\">\n        <ProductCategory Name=\"register\">\n          <Product Name=\"com\">\n            <Price Duration=\"1\" DurationType=\"YEAR\" Price=\"11.28\" RegularPrice=\"13.98\" YourPrice=\"11.28\" CouponPrice=\"\" Currency=\"USD\" />\n            <Price Duration=\"2\" DurationType=\"YEAR\" Price=\"25.26\" RegularPrice=\"27.96\" YourPrice=\"25.26\" CouponPrice=\"\" Currency=\"USD\" />\n          </Product>\n        </ProductCategory>\n        <ProductCategory Name=\"renew\">\n          <Product Name=\"com\">\n            <Price Duration=\"1\" DurationType=\"YEAR\" Price=\"15.88\" RegularPrice=\"15.88\" YourPrice=\"15.88\" CouponPrice=\"\" Currency=\"USD\" />\n          </Product>\n        </ProductCategory>\n        <ProductCategory Name=\"transfer\">\n          <Product Name=\"com\">\n            <Price Duration=\"1\" DurationType=\"YEAR\" Price=\"11.28\" RegularPrice=\"11.28\" YourPrice=\"11.28\" CouponPrice=\"\" Currency=\"USD\" />\n          </Product>\n        </ProductCategory>\n      </ProductType>\n    </UserGetPricingResult>\n  </CommandResponse>\n</ApiResponse>\n"
+  }
+}

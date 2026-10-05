@@ -1,0 +1,561 @@
+{
+  "source": "https://www.register.si/en/registrars/",
+  "publisher": "Register.si, the registry for .si",
+  "fetchedAt": "2026-10-05T13:28:43Z",
+  "suffixes": [
+    "si"
+  ],
+  "notes": "Registry-published list of accredited .si registrars, captured once without any candidate names. Website links are as published by the registry and were not opened. \"onlinePayment\" mirrors the registry filter label. Entries with providerId are one of the nine named providers.",
+  "registrars": [
+    {
+      "id": "register-si-123domain-eu",
+      "name": "123domain.eu",
+      "website": "https://www.123domain.eu",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-3lan-si",
+      "name": "3 LAN, d.o.o. M.Sobota",
+      "website": "https://www.3lan.si/domene/",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-webicom-net",
+      "name": "Webicom",
+      "website": "https://www.webicom.net",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-hitrost-com",
+      "name": "HITROST.COM domene in gostovanje",
+      "website": "https://www.hitrost.com",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-name-com",
+      "name": "Name.com, Inc.",
+      "website": "https://www.name.com/",
+      "onlinePayment": false,
+      "providerId": "namecom"
+    },
+    {
+      "id": "register-si-1ainternet-net",
+      "name": "1A INTERNET d.o.o.",
+      "website": "http://www.1ainternet.net/",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-openprovider-com",
+      "name": "Openprovider",
+      "website": "https://www.openprovider.com",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-optimus-si",
+      "name": "OPTIMUS IT d.o.o.",
+      "website": "http://www.optimus.si",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-gostovanje-hal-si",
+      "name": "Hal interactive",
+      "website": "https://gostovanje.hal.si",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-domene-neo-si",
+      "name": "NEO",
+      "website": "https://domene.neo.si/",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-hehe-si",
+      "name": "Hehe d.o.o.",
+      "website": "http://www.hehe.si/",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-arnes-si",
+      "name": "Arnes",
+      "website": "https://www.arnes.si/organizacije/#domene-si",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-neoserv-si",
+      "name": "Gostovanje in domene NEOSERV.si",
+      "website": "https://www.neoserv.si",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-backorder-com",
+      "name": "Backorder.com",
+      "website": "https://backorder.com/en",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-gransy-com",
+      "name": "Gransy s.r.o.",
+      "website": "https://gransy.com",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-siel-si",
+      "name": "SIEL, d.o.o.",
+      "website": "https://siel.si/sl/upravljanje-domen/",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-a1-si",
+      "name": "A1 Slovenija, d. d.",
+      "website": "https://www.a1.si/poslovni/poslovne-resitve/pisarniske-resitve/spletna-domena",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-domene-comma-it-com",
+      "name": "comma",
+      "website": "https://domene.comma-it.com",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-rolan-si",
+      "name": "ROLAN d.o.o.",
+      "website": "https://www.rolan.si",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-spaceship-com",
+      "name": "Spaceship, Inc.",
+      "website": "https://spaceship.com/",
+      "onlinePayment": true,
+      "providerId": "spaceship"
+    },
+    {
+      "id": "register-si-editor-si",
+      "name": "Editor d.o.o.",
+      "website": "http://www.editor.si/",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-ngn-si",
+      "name": "NGN MEDIA d.o.o.",
+      "website": "http://www.ngn.si",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-domdesign-si",
+      "name": "Domdesign",
+      "website": "https://www.domdesign.si",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-zabec-net",
+      "name": "Zabec.net",
+      "website": "https://www.zabec.net",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-domene-telekom-si",
+      "name": "Telekom Slovenije, d.d.",
+      "website": "https://domene.telekom.si",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-lexsynergy-com",
+      "name": "Lexsynergy Limited",
+      "website": "https://www.lexsynergy.com/",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-plus-hr",
+      "name": "Plus Hosting Grupa d.o.o.",
+      "website": "https://www.plus.hr",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-g-server-com",
+      "name": "G-Server d.o.o.",
+      "website": "https://www.g-server.com/",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-brandshelter-com",
+      "name": "SafeBrands",
+      "website": "https://www.brandshelter.com",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-namecheap-com",
+      "name": "Namecheap, Inc.",
+      "website": "https://www.namecheap.com/",
+      "onlinePayment": false,
+      "providerId": "namecheap"
+    },
+    {
+      "id": "register-si-dspotsys-si",
+      "name": "Dspot",
+      "website": "https://www.dspotsys.si/sistemske-resitve/spletna-infrastruktura",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-domene-formias-si",
+      "name": "Help",
+      "website": "http://domene.formias.si",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-spletna-postaja-com",
+      "name": "spletnaPOSTAJA",
+      "website": "https://spletna-postaja.com/#services",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-hostko-si",
+      "name": "Hostko.si | Domenko.si",
+      "website": "https://www.hostko.si",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-globaldomaingroup-com",
+      "name": "Global Domain Group LLC",
+      "website": "https://www.globaldomaingroup.com",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-dig-si",
+      "name": "Dig.SI",
+      "website": "https://dig.si",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-dynadot-com",
+      "name": "Dynadot Inc",
+      "website": "https://www.dynadot.com",
+      "onlinePayment": false,
+      "providerId": "dynadot"
+    },
+    {
+      "id": "register-si-mojhost-si",
+      "name": "Mojhost",
+      "website": "http://www.mojhost.si",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-3net-si",
+      "name": "3Net",
+      "website": "https://3net.si/registracija-domen/",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-markmonitor-com",
+      "name": "Markmonitor Inc.",
+      "website": "http://www.markmonitor.com",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-spletnik-si",
+      "name": "Spletnik d.o.o.",
+      "website": "http://www.spletnik.si",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-domainnamecom-xyz",
+      "name": "DomainName.com, Inc.",
+      "website": "https://domainnamecom.xyz/",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-modronebo-net",
+      "name": "MODRO NEBO",
+      "website": "https://modronebo.net",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-domenca-com",
+      "name": "Domenca",
+      "website": "https://www.domenca.com/",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-domene-fcbljubljana-si",
+      "name": "FCB d.o.o.",
+      "website": "https://domene.fcbljubljana.si",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-alpoart-si",
+      "name": "ALPO ART d.o.o.",
+      "website": "http://www.alpoart.si/",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-gorec-si",
+      "name": "Gorec d.o.o., registracija domen",
+      "website": "http://www.gorec.si",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-101domain-com",
+      "name": "101domain GRS Ltd.",
+      "website": "https://101domain.com/si.htm",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-simetric-si",
+      "name": "Simetric d.o.o.",
+      "website": "http://www.simetric.si/registracija_domen/",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-t-2-net",
+      "name": "T-2 d.o.o.",
+      "website": "https://www.t-2.net/registracija-domen",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-edoms-com",
+      "name": "Tool Domains EOOD",
+      "website": "https://edoms.com",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-slohost-net",
+      "name": "SLOHOST registracija domen",
+      "website": "http://www.slohost.net/registrar_domene/registracija-domen.shtml",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-slonic-net",
+      "name": "INFOBIA",
+      "website": "http://www.slonic.net/",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-tmedia-si",
+      "name": "T-media d.o.o.",
+      "website": "http://www.tmedia.si/si/storitve/registracija_domen/",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-netim-com",
+      "name": "NETIM SAS",
+      "website": "https://www.netim.com",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-angelis-agency",
+      "name": "ANGELIS d.o.o.",
+      "website": "https://angelis.agency",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-redox-si",
+      "name": "REDOX d.o.o. Portoroz",
+      "website": "http://www.redox.si",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-gov-si",
+      "name": "Ministrstvo za notranje zadeve in javno upravo",
+      "website": "https://www.gov.si/drzavni-organi/ministrstva/ministrstvo-za-notranje-zadeve-in-javno-upravo/",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-metaling-si",
+      "name": "METALING d.o.o. - MEGASPLET.net",
+      "website": "http://www.metaling.si",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-atom-com",
+      "name": "Atom.com Domains LLC",
+      "website": "https://www.atom.com/register",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-nicnames-com",
+      "name": "NicNames, Inc.",
+      "website": "https://nicnames.com",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-internetstoritve-com",
+      "name": "CARPEDIEM d.o.o.",
+      "website": "http://www.internetstoritve.com",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-aoi-eu",
+      "name": "AOI d.o.o.",
+      "website": "http://www.aoi.eu/arneswhois",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-nameweb-biz",
+      "name": "NameWeb BVBA",
+      "website": "http://www.nameweb.biz",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-powercom-si",
+      "name": "PowerCom d.o.o.",
+      "website": "http://www.powercom.si/",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-arctur-si",
+      "name": "ARCTUR d.o.o.",
+      "website": "https://www.arctur.si",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-truecad-si",
+      "name": "TrueCAD d.o.o.",
+      "website": "http://www.truecad.si",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-backorders-domains",
+      "name": "Tremplin Numerique",
+      "website": "https://backorders.domains/",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-utrdba-eu",
+      "name": "Utrdba d.o.o.",
+      "website": "https://www.utrdba.eu/storitve/registracija-domen-si/",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-memento-si",
+      "name": "MEMENTO",
+      "website": "https://memento.si",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-softnet-si",
+      "name": "Softnet d.o.o.",
+      "website": "https://www.softnet.si/",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-domene-si",
+      "name": "domene.si",
+      "website": "http://www.domene.si",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-plan-e-si",
+      "name": "PLAN e d.o.o.",
+      "website": "http://www.plan-e.si",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-domene-infonetmedia-si",
+      "name": "Infonet Media d.o.o.",
+      "website": "http://domene.infonetmedia.si",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-seodomainsnow-com",
+      "name": "SEO DOMAINS",
+      "website": "https://seodomainsnow.com",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-mrdomain-com",
+      "name": "MrDomain",
+      "website": "https://www.mrdomain.com",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-easydomena-com",
+      "name": "EASYDOMENA",
+      "website": "http://www.easydomena.com",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-tld-registrar-com",
+      "name": "JASICO d.o.o.",
+      "website": "http://www.tld-registrar.com/",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-domene-kabi-si",
+      "name": "KABI d.o.o.",
+      "website": "https://domene.kabi.si/",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-inwx-de",
+      "name": "INWX GmbH",
+      "website": "https://www.inwx.de/en/si-domain",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-domains-si",
+      "name": "Infonova DOMAINS.si REGISTRIRAJ.si",
+      "website": "https://www.domains.si",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-domene-telemach-si",
+      "name": "TELEMACH d.o.o.",
+      "website": "http://domene.telemach.si",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-epag-de",
+      "name": "EPAG Domainservices GmbH",
+      "website": "https://www.epag.de",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-domena-zupo-si",
+      "name": "Zupo d.o.o.",
+      "website": "http://domena.zupo.si/",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-opusdns-com",
+      "name": "OpusDNS",
+      "website": "https://www.opusdns.com/",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-infosplet-com",
+      "name": "InfoSplet d.o.o.",
+      "website": "http://www.infosplet.com",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-united-domains-de",
+      "name": "united-domains GmbH",
+      "website": "https://www.united-domains.de",
+      "onlinePayment": true
+    },
+    {
+      "id": "register-si-marcaria-com",
+      "name": "Marcaria.com",
+      "website": "https://www.marcaria.com/ws/en/domains/slovenia-domain-registration-si",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-ovh-com",
+      "name": "OVH",
+      "website": "http://www.ovh.com",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-center-erm-si",
+      "name": "Dom domen",
+      "website": "http://www.center-erm.si/S40200/registracija-domen",
+      "onlinePayment": false
+    },
+    {
+      "id": "register-si-nameshield-net",
+      "name": "NAMESHIELD",
+      "website": "http://www.nameshield.net",
+      "onlinePayment": false
+    }
+  ]
+}

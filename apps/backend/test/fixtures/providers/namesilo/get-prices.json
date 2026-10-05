@@ -1,0 +1,8 @@
+{
+  "provenance": "inner elements reconstructed from official documentation https://www.namesilo.com/blog/en/building-a-domain-search-tool-with-a-registrar-api, 2026-10-05; the <namesilo>/<reply> envelope and code are illustrative and unconfirmed",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": "<?xml version=\"1.0\"?>\n<namesilo>\n  <request><operation>getPrices</operation><ip>198.51.100.7</ip></request>\n  <reply>\n    <code>300</code>\n    <detail>success</detail>\n    <com>\n      <registration>12.00</registration>\n      <transfer>10.40</transfer>\n      <renew>11.95</renew>\n    </com>\n    <io>\n      <registration>34.95</registration>\n      <transfer>34.95</transfer>\n      <renew>39.95</renew>\n    </io>\n  </reply>\n</namesilo>\n"
+  }
+}

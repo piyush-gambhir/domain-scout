@@ -1,0 +1,8 @@
+{
+  "provenance": "reconstructed from official documentation https://www.namecheap.com/support/api/methods/domains/check/, 2026-10-05",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<ApiResponse Status=\"OK\" xmlns=\"http://api.namecheap.com/xml.response\">\n  <Errors />\n  <RequestedCommand>namecheap.domains.check</RequestedCommand>\n  <CommandResponse Type=\"namecheap.domains.check\">\n    <DomainCheckResult Domain=\"{domain}\" Available=\"false\" ErrorNo=\"0\" Description=\"\" IsPremiumName=\"false\" PremiumRegistrationPrice=\"0\" PremiumRenewalPrice=\"0\" PremiumRestorePrice=\"0\" PremiumTransferPrice=\"0\" IcannFee=\"0\" EapFee=\"0\" />\n  </CommandResponse>\n</ApiResponse>\n"
+  }
+}

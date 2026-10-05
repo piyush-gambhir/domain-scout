@@ -1,0 +1,36 @@
+{
+  "provenance": "reconstructed from official documentation https://developer.godaddy.com/openapi/domains-v3.json, 2026-10-05 (Availability schema with REGISTRY_PREMIUM inventory and a fee)",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "domain": "{domain}",
+      "available": true,
+      "definitive": true,
+      "inventory": "REGISTRY_PREMIUM",
+      "prices": [
+        {
+          "term": "YEAR",
+          "period": 1,
+          "price": {
+            "currencyCode": "USD",
+            "value": 250000
+          },
+          "renewalPrice": {
+            "currencyCode": "USD",
+            "value": 6000
+          },
+          "fees": [
+            {
+              "type": "ONE_TIME_PREMIUM_DOMAIN_PURCHASE",
+              "fee": {
+                "currencyCode": "USD",
+                "value": 1500
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

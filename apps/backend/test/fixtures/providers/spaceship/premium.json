@@ -1,0 +1,23 @@
+{
+  "provenance": "reconstructed from official documentation https://docs.spaceship.dev/, 2026-10-05 (premiumPricing items)",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "domain": "{domain}",
+      "result": "available",
+      "premiumPricing": [
+        {
+          "operation": "register",
+          "price": 10.99,
+          "currency": "USD"
+        },
+        {
+          "operation": "renew",
+          "price": 10.99,
+          "currency": "USD"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "provenance": "reconstructed from official documentation https://docs.name.com/api/v1/reference/tld-pricing/tld-price-list, 2026-10-05",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "pricing": [
+        {
+          "tld": "si",
+          "duration": 1,
+          "registrationPrice": 19.99,
+          "registrationOriginalPrice": 19.99,
+          "renewalPrice": 19.99,
+          "transferInPrice": 19.99
+        }
+      ],
+      "lastPage": 2,
+      "nextPage": null,
+      "totalCount": 3,
+      "from": 3,
+      "to": 3
+    }
+  }
+}

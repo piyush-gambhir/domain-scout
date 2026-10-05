@@ -1,0 +1,8 @@
+{
+  "provenance": "reconstructed from official documentation https://www.namecheap.com/support/api/methods/users/get-balances/, 2026-10-05",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<ApiResponse Status=\"OK\" xmlns=\"http://api.namecheap.com/xml.response\">\n  <Errors />\n  <RequestedCommand>namecheap.users.getBalances</RequestedCommand>\n  <CommandResponse Type=\"namecheap.users.getBalances\">\n    <UserGetBalancesResult Currency=\"USD\" AvailableBalance=\"50.00\" AccountBalance=\"50.00\" EarnedAmount=\"0.00\" WithdrawableAmount=\"0.00\" FundsRequiredForAutoRenew=\"0.00\" />\n  </CommandResponse>\n</ApiResponse>\n"
+  }
+}

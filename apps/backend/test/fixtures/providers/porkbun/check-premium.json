@@ -1,0 +1,31 @@
+{
+  "provenance": "reconstructed from official documentation https://porkbun.com/api/json/v3/spec, 2026-10-05 (CheckDomainResponse schema)",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "status": "SUCCESS",
+      "response": {
+        "avail": "yes",
+        "type": "registration",
+        "price": "2450.00",
+        "firstYearPromo": "no",
+        "regularPrice": "2450.00",
+        "premium": "yes",
+        "minDuration": 2,
+        "additional": {
+          "renewal": {
+            "type": "renewal",
+            "price": "61.25",
+            "regularPrice": "61.25"
+          },
+          "transfer": {
+            "type": "transfer",
+            "price": "61.25",
+            "regularPrice": "61.25"
+          }
+        }
+      }
+    }
+  }
+}

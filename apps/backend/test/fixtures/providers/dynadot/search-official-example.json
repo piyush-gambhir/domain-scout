@@ -1,0 +1,32 @@
+{
+  "provenance": "official example from the machine-readable command documentation at https://www.dynadot.com/domain/api-document?getCommandInfoData=1&apiVersion=2.0.0, 2026-10-05 (search responseDemoJson, verbatim)",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "code": 200,
+      "message": "Success",
+      "data": {
+        "domain_name": "domain1.com",
+        "available": "No",
+        "premium": "yes",
+        "price_list": [
+          {
+            "currency": "USD",
+            "unit": "(price/1 year)",
+            "registration_price": "201",
+            "renewal_price": "202",
+            "transfer_price": "203",
+            "restore_price": "204"
+          },
+          {
+            "currency": "USD",
+            "unit": "(price/2 year)",
+            "registration_price": "402",
+            "renewal_price": "404"
+          }
+        ]
+      }
+    }
+  }
+}

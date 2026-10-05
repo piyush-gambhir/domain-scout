@@ -1,0 +1,24 @@
+{
+  "provenance": "reconstructed from official documentation https://developers.cloudflare.com/api/resources/registrar/methods/transfer_check/, 2026-10-05 (NonTransferableResult without pricing)",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "errors": [],
+      "messages": [],
+      "success": true,
+      "result": {
+        "domains": {
+          "{domain}": {
+            "transferable": false,
+            "reasons": [
+              {
+                "code": "invalid_auth_code"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

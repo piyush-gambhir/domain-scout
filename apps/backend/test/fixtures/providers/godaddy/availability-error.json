@@ -1,0 +1,14 @@
+{
+  "provenance": "reconstructed from official documentation https://developer.godaddy.com/openapi/domains-v3.json, 2026-10-05 (per-item error object)",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "domain": "{domain}",
+      "error": {
+        "name": "UNSUPPORTED_TLD",
+        "message": "The TLD is not supported"
+      }
+    }
+  }
+}

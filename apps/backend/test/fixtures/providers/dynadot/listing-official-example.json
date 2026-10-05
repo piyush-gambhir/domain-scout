@@ -1,0 +1,24 @@
+{
+  "provenance": "official example from the machine-readable command documentation at https://www.dynadot.com/domain/api-document?getCommandInfoData=1&apiVersion=2.0.0, 2026-10-05 (get_listing_item responseDemoJson, verbatim)",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "code": 200,
+      "message": "Success",
+      "data": {
+        "listing_item": {
+          "listing_id": 1,
+          "domain": "example.com",
+          "price": "$19.99",
+          "in_bound_links": 3,
+          "age": 6,
+          "is_pending_sale_locked": "Yes",
+          "type": "BIN",
+          "registration_date": 1791207002632,
+          "expiration_date": 1791207002632
+        }
+      }
+    }
+  }
+}

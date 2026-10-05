@@ -1,0 +1,36 @@
+{
+  "provenance": "reconstructed from official documentation https://developer.godaddy.com/openapi/domains-v3.json, 2026-10-05 (DomainCollection \"paginated\" example, trimmed to one item)",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "items": [
+        {
+          "domain": "example.com",
+          "status": "ACTIVE",
+          "expiresAt": "2027-06-12T10:02:10Z",
+          "createdAt": "2026-06-12T10:02:10Z",
+          "autoRenew": true,
+          "privacy": false,
+          "transferLock": true,
+          "nameServers": [
+            "ns01.domaincontrol.com",
+            "ns02.domaincontrol.com"
+          ],
+          "links": [
+            {
+              "rel": "self",
+              "href": "/v3/domains/domain-names/example.com"
+            }
+          ]
+        }
+      ],
+      "links": [
+        {
+          "rel": "self",
+          "href": "/v3/domains/domain-names?pageSize=1"
+        }
+      ]
+    }
+  }
+}

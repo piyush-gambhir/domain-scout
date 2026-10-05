@@ -1,0 +1,14 @@
+{
+  "provenance": "official example from the machine-readable command documentation at https://www.dynadot.com/domain/api-document?getCommandInfoData=1&apiVersion=2.0.0, 2026-10-05 (429 example)",
+  "response": {
+    "status": 429,
+    "headers": {},
+    "json": {
+      "code": 429,
+      "message": "Too Many Requests",
+      "error": {
+        "description": "Too many requests. Rate limit exceeded. Please try again after 60 seconds."
+      }
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "provenance": "inner elements reconstructed from official documentation https://www.namesilo.com/blog/en/building-a-domain-search-tool-with-a-registrar-api, 2026-10-05; the <namesilo>/<reply> envelope and code are illustrative and unconfirmed",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": "<?xml version=\"1.0\"?>\n<namesilo>\n  <request><operation>checkRegisterAvailability</operation><ip>198.51.100.7</ip></request>\n  <reply>\n    <code>300</code>\n    <detail>success</detail>\n    <available>\n      <domain price=\"11.05\">{domain}</domain>\n    </available>\n    <unavailable>\n      <domain>example.com</domain>\n    </unavailable>\n    <invalid>\n      <domain>bad#name.com</domain>\n    </invalid>\n  </reply>\n</namesilo>\n"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "provenance": "reconstructed from official documentation https://docs.spaceship.dev/, 2026-10-05",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "domain": "{domain}",
+      "result": "available",
+      "premiumPricing": []
+    }
+  }
+}

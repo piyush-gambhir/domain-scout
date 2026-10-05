@@ -1,0 +1,28 @@
+{
+  "provenance": "reconstructed from official documentation https://porkbun.com/api/json/v3/spec, 2026-10-05 (filtered /marketplace/getAll)",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "status": "SUCCESS",
+      "count": 2,
+      "filtered": true,
+      "domains": [
+        {
+          "create_date": "2026-08-01 10:00:00",
+          "domain": "example-listing.com",
+          "tld": "com",
+          "sld_length": 15,
+          "price": 1250
+        },
+        {
+          "create_date": "2026-07-01 10:00:00",
+          "domain": "example-listing.net",
+          "tld": "net",
+          "sld_length": 15,
+          "price": 400
+        }
+      ]
+    }
+  }
+}

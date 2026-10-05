@@ -1,0 +1,12 @@
+{
+  "provenance": "reconstructed from official documentation https://porkbun.com/api/json/v3/spec, 2026-10-05 (ErrorResponse with code INVALID_API_KEYS_001)",
+  "response": {
+    "status": 400,
+    "headers": {},
+    "json": {
+      "status": "ERROR",
+      "code": "INVALID_API_KEYS_001",
+      "message": "Invalid API key. (001)"
+    }
+  }
+}

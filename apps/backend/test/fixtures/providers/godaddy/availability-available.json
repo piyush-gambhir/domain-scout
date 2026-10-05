@@ -1,0 +1,64 @@
+{
+  "provenance": "reconstructed from official documentation https://developer.godaddy.com/openapi/domains-v3.json, 2026-10-05 (verbatim \"available\" example from getDomainAvailability)",
+  "request": {
+    "method": "GET",
+    "url": "https://api.godaddy.com/v3/domains/check-availability?domain={domain}&optimizeFor=ACCURACY"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "domain": "{domain}",
+      "available": true,
+      "definitive": false,
+      "inventory": "REGISTRY",
+      "prices": [
+        {
+          "term": "YEAR",
+          "period": 1,
+          "price": {
+            "currencyCode": "USD",
+            "value": 1199
+          },
+          "renewalPrice": {
+            "currencyCode": "USD",
+            "value": 2299
+          }
+        },
+        {
+          "term": "YEAR",
+          "period": 2,
+          "price": {
+            "currencyCode": "USD",
+            "value": 3098
+          },
+          "renewalPrice": {
+            "currencyCode": "USD",
+            "value": 4598
+          },
+          "firstTermPrice": {
+            "currencyCode": "USD",
+            "value": 799
+          }
+        },
+        {
+          "term": "YEAR",
+          "period": 3,
+          "price": {
+            "currencyCode": "USD",
+            "value": 4599
+          },
+          "renewalPrice": {
+            "currencyCode": "USD",
+            "value": 6897
+          },
+          "firstTermPrice": {
+            "currencyCode": "USD",
+            "value": 499
+          },
+          "recommended": true
+        }
+      ]
+    }
+  }
+}

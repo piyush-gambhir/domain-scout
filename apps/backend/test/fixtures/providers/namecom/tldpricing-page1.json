@@ -1,0 +1,35 @@
+{
+  "provenance": "reconstructed from official documentation https://docs.name.com/api/v1/reference/tld-pricing/tld-price-list, 2026-10-05",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "pricing": [
+        {
+          "tld": "com",
+          "duration": 1,
+          "registrationPrice": 10.99,
+          "registrationRetailPrice": 10.99,
+          "registrationOriginalPrice": 11.99,
+          "renewalPrice": 12.99,
+          "renewalRetailPrice": 12.99,
+          "renewalOriginalPrice": 12.99,
+          "transferInPrice": 10.99,
+          "domainRestorationPrice": 120.99
+        },
+        {
+          "tld": "app",
+          "duration": 1,
+          "registrationPrice": null,
+          "renewalPrice": 16.99,
+          "transferInPrice": 16.99
+        }
+      ],
+      "lastPage": 2,
+      "nextPage": 2,
+      "totalCount": 3,
+      "from": 1,
+      "to": 2
+    }
+  }
+}

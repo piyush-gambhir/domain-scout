@@ -1,0 +1,20 @@
+{
+  "provenance": "reconstructed from official documentation https://developers.cloudflare.com/fundamentals/api/reference/limits/, 2026-10-05 (429 with retry-after)",
+  "response": {
+    "status": 429,
+    "headers": {
+      "retry-after": "120"
+    },
+    "json": {
+      "success": false,
+      "errors": [
+        {
+          "code": 971,
+          "message": "Please wait and consider throttling your request speed"
+        }
+      ],
+      "messages": [],
+      "result": null
+    }
+  }
+}

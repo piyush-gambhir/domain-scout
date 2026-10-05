@@ -1,0 +1,52 @@
+{
+  "provenance": "reconstructed from official documentation https://github.com/hostinger/api-python-sdk/blob/main/docs/BillingCatalogApi.md, 2026-10-05 (CatalogItemResource and CatalogItemPriceResource fields; item names follow the documented \".COM*\" filter example; values illustrative)",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": [
+      {
+        "id": "hostingercom-domain-com",
+        "name": ".COM Domain",
+        "category": "DOMAIN",
+        "metadata": {},
+        "prices": [
+          {
+            "id": "hostingercom-domain-com-usd-1y",
+            "name": ".COM Domain (1 year)",
+            "currency": "USD",
+            "price": 1799,
+            "first_period_price": 999,
+            "period": 1,
+            "period_unit": "year"
+          },
+          {
+            "id": "hostingercom-domain-com-usd-2y",
+            "name": ".COM Domain (2 years)",
+            "currency": "USD",
+            "price": 3598,
+            "first_period_price": 2798,
+            "period": 2,
+            "period_unit": "year"
+          }
+        ]
+      },
+      {
+        "id": "hostingercom-vps-kvm1",
+        "name": "KVM 1",
+        "category": "VPS",
+        "metadata": {},
+        "prices": [
+          {
+            "id": "x",
+            "name": "KVM 1",
+            "currency": "USD",
+            "price": 999,
+            "first_period_price": 499,
+            "period": 1,
+            "period_unit": "month"
+          }
+        ]
+      }
+    ]
+  }
+}

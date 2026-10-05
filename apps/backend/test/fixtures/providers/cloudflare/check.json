@@ -1,0 +1,30 @@
+{
+  "provenance": "reconstructed from official documentation https://developers.cloudflare.com/api/resources/registrar/methods/check/, 2026-10-05 (200 example shape; names replaced)",
+  "request": {
+    "method": "POST",
+    "url": "https://api.cloudflare.com/client/v4/accounts/{account_id}/registrar/domain-check"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "errors": [],
+      "messages": [],
+      "success": true,
+      "result": {
+        "domains": [
+          {
+            "name": "{domain}",
+            "registrable": true,
+            "tier": "standard",
+            "pricing": {
+              "currency": "USD",
+              "registration_cost": "8.57",
+              "renewal_cost": "8.57"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

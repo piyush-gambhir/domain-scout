@@ -1,0 +1,11 @@
+{
+  "provenance": "reconstructed from official documentation https://docs.name.com/api/v1/reference/domains/check-availability, 2026-10-05 (422 UnprocessableEntity)",
+  "response": {
+    "status": 422,
+    "headers": {},
+    "json": {
+      "message": "Unprocessable Entity",
+      "details": "No valid domains to check"
+    }
+  }
+}

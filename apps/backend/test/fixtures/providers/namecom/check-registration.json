@@ -1,0 +1,21 @@
+{
+  "provenance": "reconstructed from official documentation https://docs.name.com/api/v1/reference/domains/check-availability, 2026-10-05 (SearchResult)",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "results": [
+        {
+          "domainName": "{domain}",
+          "sld": "x",
+          "tld": "com",
+          "purchasable": true,
+          "premium": false,
+          "purchaseType": "registration",
+          "purchasePrice": 10.99,
+          "renewalPrice": 12.99
+        }
+      ]
+    }
+  }
+}

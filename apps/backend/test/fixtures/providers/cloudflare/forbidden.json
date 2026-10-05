@@ -1,0 +1,18 @@
+{
+  "provenance": "reconstructed from official documentation https://developers.cloudflare.com/fundamentals/api/reference/limits/, 2026-10-05; error envelope shape documented, error code illustrative",
+  "response": {
+    "status": 403,
+    "headers": {},
+    "json": {
+      "success": false,
+      "errors": [
+        {
+          "code": 10000,
+          "message": "Authentication error"
+        }
+      ],
+      "messages": [],
+      "result": null
+    }
+  }
+}

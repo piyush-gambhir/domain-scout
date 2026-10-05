@@ -1,0 +1,30 @@
+{
+  "provenance": "reconstructed from official documentation https://www.dynadot.com/domain/api-document, 2026-10-05 (search fields; available name)",
+  "request": {
+    "method": "GET",
+    "url": "https://api.dynadot.com/restful/v2/domains/{domain}/search?show_price=true&currency=usd"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "code": 200,
+      "message": "Success",
+      "data": {
+        "domain_name": "{domain}",
+        "available": "Yes",
+        "premium": "no",
+        "price_list": [
+          {
+            "currency": "USD",
+            "unit": "(price/1 year)",
+            "registration_price": "9.99",
+            "renewal_price": "11.99",
+            "transfer_price": "9.99",
+            "restore_price": "25.00"
+          }
+        ]
+      }
+    }
+  }
+}

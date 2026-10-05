@@ -1,0 +1,13 @@
+{
+  "provenance": "reconstructed from official documentation https://docs.name.com/api/v1/reference/hello/hello, 2026-10-05",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "motd": "Welcome",
+      "serverName": "api01",
+      "serverTime": "2026-10-05T12:00:00Z",
+      "username": "example-user"
+    }
+  }
+}

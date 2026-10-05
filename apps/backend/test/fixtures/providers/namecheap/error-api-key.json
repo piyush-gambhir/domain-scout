@@ -1,0 +1,8 @@
+{
+  "provenance": "reconstructed from official documentation https://www.namecheap.com/support/api/intro/, 2026-10-05; ERROR envelope shape documented, error number and text illustrative",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<ApiResponse Status=\"ERROR\" xmlns=\"http://api.namecheap.com/xml.response\">\n  <Errors>\n    <Error Number=\"1011102\">API Key is invalid or API access has not been enabled</Error>\n  </Errors>\n  <CommandResponse />\n</ApiResponse>\n"
+  }
+}

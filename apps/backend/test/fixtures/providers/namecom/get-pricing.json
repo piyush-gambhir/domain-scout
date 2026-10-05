@@ -1,0 +1,13 @@
+{
+  "provenance": "reconstructed from official documentation https://docs.name.com/api/v1/reference/domains/get-pricing-for-domain, 2026-10-05 (PricingResponse)",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "premium": false,
+      "purchasePrice": 10.99,
+      "renewalPrice": 12.99,
+      "transferPrice": 10.99
+    }
+  }
+}

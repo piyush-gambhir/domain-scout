@@ -5,6 +5,10 @@
  * Conventions: TEXT ids (UUID), UTC ISO timestamps as TEXT, money as decimal TEXT, JSON as TEXT.
  * Evidence tables are append-only; current views are derived by querying the latest row.
  */
+import { JOBS_MIGRATION } from '../jobs/schema.js';
+import { MONITORING_MIGRATION } from '../monitoring/schema.js';
+import { PROVIDERS_MIGRATION } from '../providers/schema.js';
+
 export interface Migration {
   version: number;
   name: string;
@@ -340,4 +344,9 @@ CREATE TABLE artifacts (
 );
 `;
 
-export const MIGRATIONS: Migration[] = [{ version: 1, name: 'initial', sql: INITIAL }];
+export const MIGRATIONS: Migration[] = [
+  { version: 1, name: 'initial', sql: INITIAL },
+  JOBS_MIGRATION,
+  MONITORING_MIGRATION,
+  PROVIDERS_MIGRATION,
+];

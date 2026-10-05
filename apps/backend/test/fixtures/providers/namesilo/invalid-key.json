@@ -1,0 +1,8 @@
+{
+  "provenance": "illustrative reply for an invalid key; NameSilo reply codes are unconfirmed in the readable documentation, 2026-10-05",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": "<?xml version=\"1.0\"?>\n<namesilo>\n  <request><operation>getPrices</operation><ip>198.51.100.7</ip></request>\n  <reply>\n    <code>110</code>\n    <detail>Invalid API Key</detail>\n  </reply>\n</namesilo>\n"
+  }
+}

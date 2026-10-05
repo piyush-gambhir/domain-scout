@@ -1,0 +1,84 @@
+{
+  "provenance": "captured live response from https://api.porkbun.com/api/json/v3/pricing/get (keyless, no names), 2026-10-05T14:07:00.133Z; trimmed to 11 of 911 TLDs",
+  "request": {
+    "method": "GET",
+    "url": "https://api.porkbun.com/api/json/v3/pricing/get"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json"
+    },
+    "json": {
+      "status": "SUCCESS",
+      "pricing": {
+        "com": {
+          "registration": "11.08",
+          "renewal": "11.08",
+          "transfer": "11.08",
+          "coupons": []
+        },
+        "net": {
+          "registration": "12.52",
+          "renewal": "12.52",
+          "transfer": "12.52",
+          "coupons": []
+        },
+        "org": {
+          "registration": "7.98",
+          "renewal": "11.84",
+          "transfer": "11.84",
+          "coupons": []
+        },
+        "io": {
+          "registration": "28.12",
+          "renewal": "51.80",
+          "transfer": "51.80",
+          "coupons": []
+        },
+        "dev": {
+          "registration": "8.75",
+          "renewal": "12.87",
+          "transfer": "12.87",
+          "coupons": []
+        },
+        "si": {
+          "registration": "20.42",
+          "renewal": "17.53",
+          "transfer": "0.00",
+          "coupons": []
+        },
+        "de": {
+          "registration": "2.90",
+          "renewal": "4.07",
+          "transfer": "5.10",
+          "coupons": []
+        },
+        "uk": {
+          "registration": "5.66",
+          "renewal": "5.66",
+          "transfer": "0.00",
+          "coupons": []
+        },
+        "co.uk": {
+          "registration": "5.66",
+          "renewal": "5.66",
+          "transfer": "0.00",
+          "coupons": []
+        },
+        "app": {
+          "registration": "8.75",
+          "renewal": "14.93",
+          "transfer": "14.93",
+          "coupons": []
+        },
+        "ai": {
+          "registration": "82.70",
+          "renewal": "82.70",
+          "transfer": "165.09",
+          "coupons": []
+        }
+      }
+    }
+  }
+}

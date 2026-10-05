@@ -1,0 +1,19 @@
+{
+  "provenance": "reconstructed from official documentation https://docs.name.com/api/v1/reference/domains/check-availability, 2026-10-05 (SearchResult with aftermarket_s)",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "results": [
+        {
+          "domainName": "{domain}",
+          "purchasable": true,
+          "premium": true,
+          "purchaseType": "aftermarket_s",
+          "purchasePrice": 2500,
+          "renewalPrice": 12.99
+        }
+      ]
+    }
+  }
+}

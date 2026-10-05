@@ -1,0 +1,41 @@
+{
+  "provenance": "reconstructed from official documentation https://porkbun.com/api/json/v3/spec, 2026-10-05 (CheckDomainResponse schema)",
+  "request": {
+    "method": "POST",
+    "url": "https://api.porkbun.com/api/json/v3/domain/checkDomain/{domain}"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "status": "SUCCESS",
+      "response": {
+        "avail": "yes",
+        "type": "registration",
+        "price": "9.73",
+        "firstYearPromo": "yes",
+        "regularPrice": "11.08",
+        "premium": "no",
+        "minDuration": 1,
+        "additional": {
+          "renewal": {
+            "type": "renewal",
+            "price": "11.08",
+            "regularPrice": "11.08"
+          },
+          "transfer": {
+            "type": "transfer",
+            "price": "11.08",
+            "regularPrice": "11.08"
+          }
+        }
+      },
+      "limits": {
+        "TTL": 10,
+        "limit": 10,
+        "used": 1,
+        "naturalLanguage": "1 out of 10 checks within 10 seconds used."
+      }
+    }
+  }
+}

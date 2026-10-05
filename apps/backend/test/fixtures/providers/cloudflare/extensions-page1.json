@@ -1,0 +1,35 @@
+{
+  "provenance": "reconstructed from official documentation https://developers.cloudflare.com/api/resources/registrar/subresources/extensions/methods/list/, 2026-10-05",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "errors": [],
+      "messages": [],
+      "success": true,
+      "result": [
+        {
+          "metadata": {
+            "name": "com",
+            "tld": "com"
+          },
+          "registration_schema": {},
+          "transfer_schema": {}
+        },
+        {
+          "metadata": {
+            "name": "co.uk",
+            "tld": "uk"
+          },
+          "registration_schema": {},
+          "transfer_schema": {}
+        }
+      ],
+      "result_info": {
+        "count": 2,
+        "cursor": "c2",
+        "per_page": 50
+      }
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "provenance": "official example from the machine-readable command documentation at https://www.dynadot.com/domain/api-document?getCommandInfoData=1&apiVersion=2.0.0, 2026-10-05 (domain_get_tld_price responseDemoJson, verbatim)",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "code": 200,
+      "message": "Success",
+      "data": {
+        "page": 1,
+        "page_size": 10,
+        "sort": "name_asc",
+        "price_level": "Bulk",
+        "currency": "USD",
+        "show_multi_year_price": "Yes",
+        "tld_price_list": [
+          {
+            "tld": "com",
+            "usage": "COM",
+            "price_unit": "(Price/1 year)",
+            "all_years_register_price": [],
+            "all_years_renew_price": [],
+            "transfer_price": "--",
+            "restore_price": "--",
+            "grace_fee_price": "--",
+            "support_privacy": "Yes",
+            "grace_period_unit": "(Grace Period/days)",
+            "renew_grace_period": "0-20 (variable)",
+            "restore_period": "0-20 (variable)",
+            "delete_grace_period": "0-20 (variable)",
+            "is_idn": "Yes",
+            "restriction": "--",
+            "on_sale": "Yes",
+            "delete_grace_fee": "$3.00",
+            "delete_grace_max_rate": "10%",
+            "delete_grace_current_rate": "10%",
+            "max_duration": 10,
+            "min_duration": 1
+          }
+        ]
+      }
+    }
+  }
+}

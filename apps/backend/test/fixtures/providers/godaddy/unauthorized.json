@@ -1,0 +1,11 @@
+{
+  "provenance": "reconstructed from official documentation https://developer.godaddy.com/openapi/domains-v3.json, 2026-10-05 (401 Error schema)",
+  "response": {
+    "status": 401,
+    "headers": {},
+    "json": {
+      "name": "UNAUTHORIZED",
+      "message": "Authentication credentials are missing or invalid."
+    }
+  }
+}

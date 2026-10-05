@@ -1,0 +1,46 @@
+{
+  "provenance": "reconstructed from official documentation https://porkbun.com/api/json/v3/spec, 2026-10-05; trimmed to three TLDs plus one special TLD",
+  "request": {
+    "method": "GET",
+    "url": "https://api.porkbun.com/api/json/v3/pricing/get"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "status": "SUCCESS",
+      "pricing": {
+        "com": {
+          "registration": "11.08",
+          "renewal": "11.08",
+          "transfer": "11.08",
+          "coupons": {
+            "registration": {
+              "code": "AWESOMENESS",
+              "max_per_user": 1,
+              "first_year_only": "yes",
+              "type": "amount",
+              "amount": 1
+            }
+          }
+        },
+        "co.uk": {
+          "registration": "5.98",
+          "renewal": "5.98",
+          "transfer": "5.98"
+        },
+        "si": {
+          "registration": "15.53",
+          "renewal": "15.53",
+          "transfer": "15.53"
+        },
+        "hns": {
+          "registration": "1.00",
+          "renewal": "1.00",
+          "transfer": "1.00",
+          "specialType": "handshake"
+        }
+      }
+    }
+  }
+}

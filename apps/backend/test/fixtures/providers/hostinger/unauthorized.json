@@ -1,0 +1,10 @@
+{
+  "provenance": "reconstructed from official documentation https://github.com/hostinger/api-python-sdk/blob/main/docs/BillingCatalogApi.md, 2026-10-05 (401 Unauthenticated response)",
+  "response": {
+    "status": 401,
+    "headers": {},
+    "json": {
+      "message": "Unauthenticated."
+    }
+  }
+}

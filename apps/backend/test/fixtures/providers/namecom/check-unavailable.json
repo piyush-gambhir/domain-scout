@@ -1,0 +1,16 @@
+{
+  "provenance": "reconstructed from official documentation https://docs.name.com/api/v1/reference/domains/check-availability, 2026-10-05",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "results": [
+        {
+          "domainName": "{domain}",
+          "purchasable": false,
+          "reason": "Domain is registered"
+        }
+      ]
+    }
+  }
+}

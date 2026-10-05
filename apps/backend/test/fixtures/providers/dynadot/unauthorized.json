@@ -1,0 +1,14 @@
+{
+  "provenance": "official example from the machine-readable command documentation at https://www.dynadot.com/domain/api-document?getCommandInfoData=1&apiVersion=2.0.0, 2026-10-05 (401 error text)",
+  "response": {
+    "status": 401,
+    "headers": {},
+    "json": {
+      "code": 401,
+      "message": "Unauthorized",
+      "error": {
+        "description": "The provided API key is invalid, expired, or missing. Please verify your key is correct and active."
+      }
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "provenance": "reconstructed from official documentation https://developers.cloudflare.com/api/resources/registrar/subresources/extensions/methods/list/, 2026-10-05",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": {
+      "errors": [],
+      "messages": [],
+      "success": true,
+      "result": [
+        {
+          "metadata": {
+            "name": "dev",
+            "tld": "dev"
+          },
+          "registration_schema": {},
+          "transfer_schema": {}
+        }
+      ],
+      "result_info": {
+        "count": 1,
+        "cursor": "",
+        "per_page": 50
+      }
+    }
+  }
+}

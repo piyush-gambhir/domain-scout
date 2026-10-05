@@ -1,0 +1,15 @@
+{
+  "provenance": "reconstructed from official documentation https://github.com/hostinger/api-python-sdk/blob/main/docs/DomainsAvailabilityApi.md, 2026-10-05",
+  "response": {
+    "status": 200,
+    "headers": {},
+    "json": [
+      {
+        "domain": "{domain}",
+        "is_available": false,
+        "is_alternative": false,
+        "restriction": null
+      }
+    ]
+  }
+}
