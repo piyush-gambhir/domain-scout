@@ -37,7 +37,7 @@ function directoryManifest(snapshot: DirectorySnapshot, entry: DirectorySnapshot
     credentialFields: [],
     accountRequirements: [],
     rateLimits: null,
-    purchaseLink: { template: entry.website, kind: 'search', source: snapshot.source, verifiedAt: null },
+    purchaseLink: { template: entry.website, kind: 'website', source: snapshot.source, verifiedAt: null },
     knownSuffixes: { suffixes: snapshot.suffixes, source: snapshot.source },
     capabilities: {
       purchaseLink: cap('documented', false, snapshot.source, linkNote, null),

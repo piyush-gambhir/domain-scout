@@ -97,7 +97,7 @@ export const Offer = z
     freshness: Freshness,
     source: z.object({ label: z.string(), url: z.string().nullable() }),
     destination: z
-      .object({ url: z.string(), kind: z.enum(['search', 'dashboard', 'checkout', 'listing']) })
+      .object({ url: z.string(), kind: z.enum(['search', 'dashboard', 'website', 'checkout', 'listing']) })
       .nullable()
       .meta({ description: 'Purchase handoff for the same provider and purchase path' }),
   })

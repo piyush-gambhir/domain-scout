@@ -464,6 +464,7 @@ func (e DiagnosticsJobRequestInputType) Valid() bool {
 const (
 	DomainEvidenceProvidersPurchaseKindDashboard DomainEvidenceProvidersPurchaseKind = "dashboard"
 	DomainEvidenceProvidersPurchaseKindSearch    DomainEvidenceProvidersPurchaseKind = "search"
+	DomainEvidenceProvidersPurchaseKindWebsite   DomainEvidenceProvidersPurchaseKind = "website"
 )
 
 // Valid indicates whether the value is a known member of the DomainEvidenceProvidersPurchaseKind enum.
@@ -472,6 +473,8 @@ func (e DomainEvidenceProvidersPurchaseKind) Valid() bool {
 	case DomainEvidenceProvidersPurchaseKindDashboard:
 		return true
 	case DomainEvidenceProvidersPurchaseKindSearch:
+		return true
+	case DomainEvidenceProvidersPurchaseKindWebsite:
 		return true
 	default:
 		return false
@@ -1351,6 +1354,7 @@ const (
 	OfferDestinationKindDashboard OfferDestinationKind = "dashboard"
 	OfferDestinationKindListing   OfferDestinationKind = "listing"
 	OfferDestinationKindSearch    OfferDestinationKind = "search"
+	OfferDestinationKindWebsite   OfferDestinationKind = "website"
 )
 
 // Valid indicates whether the value is a known member of the OfferDestinationKind enum.
@@ -1363,6 +1367,8 @@ func (e OfferDestinationKind) Valid() bool {
 	case OfferDestinationKindListing:
 		return true
 	case OfferDestinationKindSearch:
+		return true
+	case OfferDestinationKindWebsite:
 		return true
 	default:
 		return false
@@ -1526,6 +1532,7 @@ func (e ProviderReadiness) Valid() bool {
 const (
 	PurchaseLinkInfoKindDashboard PurchaseLinkInfoKind = "dashboard"
 	PurchaseLinkInfoKindSearch    PurchaseLinkInfoKind = "search"
+	PurchaseLinkInfoKindWebsite   PurchaseLinkInfoKind = "website"
 )
 
 // Valid indicates whether the value is a known member of the PurchaseLinkInfoKind enum.
@@ -1534,6 +1541,8 @@ func (e PurchaseLinkInfoKind) Valid() bool {
 	case PurchaseLinkInfoKindDashboard:
 		return true
 	case PurchaseLinkInfoKindSearch:
+		return true
+	case PurchaseLinkInfoKindWebsite:
 		return true
 	default:
 		return false
@@ -3902,7 +3911,7 @@ type ProviderResponse struct {
 
 // PurchaseLinkInfo defines model for PurchaseLinkInfo.
 type PurchaseLinkInfo struct {
-	// Kind dashboard links need an account login
+	// Kind search: name prefilled; dashboard: needs an account login; website: provider home page only
 	Kind   PurchaseLinkInfoKind `json:"kind"`
 	Source string               `json:"source"`
 
@@ -3911,7 +3920,7 @@ type PurchaseLinkInfo struct {
 	VerifiedAt *time.Time `json:"verifiedAt"`
 }
 
-// PurchaseLinkInfoKind dashboard links need an account login
+// PurchaseLinkInfoKind search: name prefilled; dashboard: needs an account login; website: provider home page only
 type PurchaseLinkInfoKind string
 
 // PurchasePath defines model for PurchasePath.

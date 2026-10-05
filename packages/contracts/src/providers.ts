@@ -96,7 +96,9 @@ export type ProviderReadiness = z.infer<typeof ProviderReadiness>;
 export const PurchaseLinkInfo = z
   .object({
     template: z.string().meta({ description: 'URL template with {domain} placeholder' }),
-    kind: z.enum(['search', 'dashboard']).meta({ description: 'dashboard links need an account login' }),
+    kind: z
+      .enum(['search', 'dashboard', 'website'])
+      .meta({ description: 'search: name prefilled; dashboard: needs an account login; website: provider home page only' }),
     source: z.string(),
     verifiedAt: Timestamp.nullable(),
   })

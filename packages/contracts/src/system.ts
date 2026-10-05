@@ -126,7 +126,7 @@ export const DomainEvidence = z
           name: z.string(),
           supportsSuffix: z.enum(['yes', 'no', 'unknown']),
           purchaseUrl: z.string().nullable(),
-          purchaseKind: z.enum(['search', 'dashboard']).nullable(),
+          purchaseKind: z.enum(['search', 'dashboard', 'website']).nullable(),
           enabled: z.boolean(),
           preferred: z.boolean(),
         }),

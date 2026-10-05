@@ -16,7 +16,7 @@ export const DOMAIN_HUNTER_REGISTRARS =
 export interface LinkTemplate {
   /** URL template; `{domain}` is replaced with the percent-encoded ASCII domain. */
   template: string;
-  kind: 'search' | 'dashboard';
+  kind: 'search' | 'dashboard' | 'website';
   source: string;
   verifiedAt: string | null;
 }

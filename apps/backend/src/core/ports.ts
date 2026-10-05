@@ -86,7 +86,7 @@ export interface SuffixProvider {
   name: string;
   supportsSuffix: 'yes' | 'no' | 'unknown';
   purchaseUrl: string | null;
-  purchaseKind: 'search' | 'dashboard' | null;
+  purchaseKind: 'search' | 'dashboard' | 'website' | null;
   enabled: boolean;
   preferred: boolean;
 }

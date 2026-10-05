@@ -66,4 +66,6 @@ export interface OperationHandler {
   /** Destination the subject is disclosed to (host or URL), for job.destinations and audits. */
   destination(item: JobItemRecord): string | null;
   execute(item: JobItemRecord, ctx: OperationContext): Promise<OperationResult>;
+  /** Optional per-item time limit in ms; defaults to settings.retries.timeoutMs (e.g. large catalogs need longer). */
+  timeoutMs?(item: JobItemRecord, settings: Settings): number | undefined;
 }

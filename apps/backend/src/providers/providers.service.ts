@@ -51,7 +51,7 @@ interface FetchRow {
 
 export interface Destination {
   url: string;
-  kind: 'search' | 'dashboard';
+  kind: 'search' | 'dashboard' | 'website';
 }
 
 /**

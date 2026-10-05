@@ -67,7 +67,7 @@ describe('provider directory', () => {
     const si = t.app.get(ProviderDirectory).forDomain('xq7mz9brandtest.si', 'si');
     const arnes = si.find((p) => p.providerId === 'register-si-arnes-si')!;
     const website = snapshot.registrars.find((r) => r.id === 'register-si-arnes-si')!.website;
-    expect(arnes).toMatchObject({ supportsSuffix: 'yes', purchaseUrl: website, purchaseKind: 'search' });
+    expect(arnes).toMatchObject({ supportsSuffix: 'yes', purchaseUrl: website, purchaseKind: 'website' });
     expect(si.find((p) => p.providerId === 'namecom')?.supportsSuffix).toBe('yes');
   });
 

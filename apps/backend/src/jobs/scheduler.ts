@@ -79,6 +79,7 @@ interface InFlight {
   sourceKey: string;
   controller: AbortController;
   done: Promise<void>;
+  timeoutMs?: number;
 }
 
 class JobRun {
@@ -564,7 +565,14 @@ export class JobScheduler {
   private async execute(entry: InFlight, handler: OperationHandler | undefined, attempt: number): Promise<void> {
     const { run, item, controller } = entry;
     const settings = this.settings.get();
-    const timer = setTimeout(() => controller.abort(new ItemAbort('timeout')), settings.retries.timeoutMs);
+    let limit = settings.retries.timeoutMs;
+    try {
+      limit = handler?.timeoutMs?.(this.record(run, item), settings) ?? limit;
+    } catch {
+      // A failing hook keeps the default limit; execution errors surface below.
+    }
+    entry.timeoutMs = limit;
+    const timer = setTimeout(() => controller.abort(new ItemAbort('timeout')), limit);
     let settled: { result: unknown } | { error: unknown };
     try {
       if (!handler) throw new Error(`No handler is registered for the ${item.operation} operation`);
@@ -615,7 +623,7 @@ export class JobScheduler {
       kind === 'cancel' || kind === 'shutdown'
         ? () => this.interruptItem(run, item, attempt)
         : (() => {
-            const result = this.normalize(item, settled, kind, settings);
+            const result = this.normalize(item, settled, kind, settings, entry.timeoutMs);
             return () => this.applyResult(run, entry, attempt, result, receivedAt);
           })();
     try {
@@ -669,6 +677,7 @@ export class JobScheduler {
     settled: { result: unknown } | { error: unknown },
     kind: AbortKind | null,
     settings: Settings,
+    timeoutMs = settings.retries.timeoutMs,
   ): OperationResult {
     if ('result' in settled) {
       if (isResult(settled.result)) return { ...settled.result, evidence: settled.result.evidence ?? [] };
@@ -686,7 +695,7 @@ export class JobScheduler {
         outcome: 'timeout',
         resolved: false,
         evidence: [],
-        error: { code: 'timeout', message: `No response within ${settings.retries.timeoutMs} ms`, retryable: true },
+        error: { code: 'timeout', message: `No response within ${timeoutMs} ms`, retryable: true },
         retryable: true,
       };
     }

@@ -9563,9 +9563,10 @@
             "type": "string",
             "enum": [
               "search",
-              "dashboard"
+              "dashboard",
+              "website"
             ],
-            "description": "dashboard links need an account login"
+            "description": "search: name prefilled; dashboard: needs an account login; website: provider home page only"
           },
           "source": {
             "type": "string"
@@ -10205,6 +10206,7 @@
                 "enum": [
                   "search",
                   "dashboard",
+                  "website",
                   "checkout",
                   "listing"
                 ]
@@ -16336,7 +16338,8 @@
                   "type": "string",
                   "enum": [
                     "search",
-                    "dashboard"
+                    "dashboard",
+                    "website"
                   ]
                 },
                 "enabled": {

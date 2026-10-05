@@ -338,6 +338,11 @@ export class CatalogHandler implements OperationHandler {
     return manifest ? (manifest.catalogHost ?? manifest.apiHost) : null;
   }
 
+  /** Full price lists are large (Porkbun's took about 10 s live); allow two minutes. */
+  timeoutMs(): number {
+    return 120_000;
+  }
+
   async execute(item: JobItemRecord, ctx: OperationContext): Promise<OperationResult> {
     if (!this.providers.manifest(this.providerId(item))) {
       return finish('catalog', 'unsupported', { error: { code: 'unknown_provider', message: `Unknown provider ${this.providerId(item)}`, retryable: false } });
