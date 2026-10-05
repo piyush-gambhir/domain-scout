@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reference capture whoeasy test fixture whois.gg/nxdomain.txt (MIT, commit a8347b8011, captured 2026-03-16): the whole reply is \"NOT FOUND\" (CRLF). Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
+  },
+  "domain": "ddgxiyjvavkajtdghtztbnva.gg",
+  "suffix": "gg",
+  "protocol": "whois",
+  "route": "whois.gg:43",
+  "query": "ddgxiyjvavkajtdghtztbnva.gg",
+  "response": {
+    "text": "NOT FOUND\r\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": null,
+    "eligibility": "unknown"
+  }
+}

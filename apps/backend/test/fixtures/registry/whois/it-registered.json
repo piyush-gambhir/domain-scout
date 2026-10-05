@@ -1,0 +1,26 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from whoeasy test fixture whois.nic.it/subito.it.txt (MIT, commit a8347b8011, captured 2026-03-16) and the sample in the Registro .it WHOIS policy v2.2, section 5.1: layout, banner and wording kept; the name, registrar, nameservers and dates are synthetic and contact data is removed. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
+  },
+  "domain": "fixture-registered.it",
+  "suffix": "it",
+  "protocol": "whois",
+  "route": "whois.nic.it:43",
+  "query": "fixture-registered.it",
+  "response": {
+    "text": "\n*********************************************************************\n* Please note that the following result could be a subgroup of      *\n* the data contained in the database.                               *\n*                                                                   *\n* Additional information can be visualized at:                      *\n* http://web-whois.nic.it                                           *\n*********************************************************************\n\nDomain:             fixture-registered.it\nStatus:             ok\nSigned:             no\nCreated:            1999-07-30 00:00:00\nLast Update:        2026-03-07 00:48:15\nExpire Date:        2027-02-19\n\nRegistrant\n  Organization:     Example Holder Srl\n  Created:          2008-02-19 18:23:42\n\nTechnical Contacts\n  Name:             Technical Support\n  Organization:     Example Registrar S.p.A.\n\nRegistrar\n  Organization:     Example Registrar S.p.A.\n  Name:             EXAMPLE-REG\n  Web:              https://registrar.example.test\n  DNSSEC:           yes\n\n\nNameservers\n  ns1.example-dns.test\n  ns2.example-dns.test\n\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.it",
+    "eligibility": "unknown",
+    "registrar": "Example Registrar S.p.A.",
+    "expiresAt": "2027-02-19T00:00:00.000Z",
+    "dnssec": false
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from whoeasy test fixture whois.nic.at/ait.ac.at.txt (MIT, commit a8347b8011, captured 2026-03-16): layout, banner and wording kept; the name, registrar, nameservers and dates are synthetic and contact data is removed. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "fixture-registered.at",
+  "suffix": "at",
+  "protocol": "whois",
+  "route": "whois.nic.at:43",
+  "query": "fixture-registered.at",
+  "response": {
+    "text": "% Registry terms of use omitted from this fixture.\n\ndomain:         fixture-registered.at\nregistrar:      Example Registrar ( https://nic.at/registrar/9999 )\nregistrant:     EXAM0000001-NICAT\ntech-c:         EXAM0000001-NICAT\nnserver:        ns1.example-dns.test\nnserver:        ns2.example-dns.test\nchanged:        20250307 14:32:33\nsource:         AT-DOM\n\npersonname:     <data not disclosed>\norganization:   Example Holder GmbH\nnic-hdl:        EXAM0000001-NICAT\nchanged:        20180608 09:31:46\nsource:         AT-DOM\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.at",
+    "eligibility": "unknown",
+    "registrar": "Example Registrar"
+  }
+}

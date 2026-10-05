@@ -1,0 +1,25 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from titlesearch test fixture fixtures/whois/us-registered.txt (Apache-2.0, commit e87bb1a596, captured 2026-09-30): layout, banner and wording kept; the name, registrar, nameservers and dates are synthetic and contact data is removed. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
+  },
+  "domain": "fixture-registered.us",
+  "suffix": "us",
+  "protocol": "whois",
+  "route": "whois.nic.us:43",
+  "query": "fixture-registered.us",
+  "response": {
+    "text": "Domain Name: fixture-registered.us\r\nRegistry Domain ID: D775573-US\r\nRegistrar WHOIS Server: whois.example-registrar.test\r\nRegistrar URL: https://registrar.example.test\r\nUpdated Date: 2026-02-24T23:36:31Z\r\nCreation Date: 2002-04-19T23:16:01Z\r\nRegistry Expiry Date: 2027-04-18T23:59:59Z\r\nRegistrar: Example Registrar\r\nDomain Status: clientTransferProhibited https://icann.org/epp#clientTransferProhibited\r\nName Server: ns1.example-dns.test\r\nName Server: ns2.example-dns.test\r\nDNSSEC: unsigned\r\nRegistrant Nexus Category: C21\r\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.us",
+    "eligibility": "unknown",
+    "registrar": "Example Registrar",
+    "expiresAt": "2027-04-18T23:59:59.000Z"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from whoeasy test fixture whois.trabis.gov.tr/sephora.com.tr.txt (MIT, commit a8347b8011, captured 2026-03-16): layout, banner and wording kept; the name, registrar, nameservers and dates are synthetic and contact data is removed. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
+  },
+  "domain": "fixture-registered.com.tr",
+  "suffix": "com.tr",
+  "protocol": "whois",
+  "route": "whois.trabis.gov.tr:43",
+  "query": "fixture-registered.com.tr",
+  "response": {
+    "text": "** Domain Name: fixture-registered.com.tr\nDomain Status: Active\nFrozen Status: -\nTransfer Status: The domain is LOCKED to transfer. \n\n** Registrant:\n   Example Holder\n   Hidden upon user request\n\n** Registrar:\nNIC Handle\t\t: exm00\nOrganization Name\t: Example Registrar A.S.\n\n** Domain Servers:\nns1.example-dns.test\nns2.example-dns.test\n\n** Additional Info:\nCreated on..............: 2004-Nov-09.\nExpires on..............: 2027-Nov-08.\n\n** Whois Server:\nLast Update Time: 2026-03-16T19:19:15+03:00\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.com.tr",
+    "eligibility": "unknown",
+    "registrar": "Example Registrar A.S.",
+    "expiresAt": "2027-11-08T00:00:00.000Z"
+  }
+}

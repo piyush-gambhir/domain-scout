@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reference capture whoeasy test fixture whois.amnic.net/nxdomain.txt (MIT, commit a8347b8011, captured 2026-03-16), verbatim; the reply does not echo the name. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
+  },
+  "domain": "fjlofmbggwbyyoyrlggaqvys.am",
+  "suffix": "am",
+  "protocol": "whois",
+  "route": "whois.amnic.net:43",
+  "query": "fjlofmbggwbyyoyrlggaqvys.am",
+  "response": {
+    "text": "%\n%AM TLD whois server #2\n% Please see 'whois -h whois.amnic.net help' for usage.\n%\n\nNo match\n\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": null,
+    "eligibility": "unknown"
+  }
+}

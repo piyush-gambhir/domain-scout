@@ -231,6 +231,629 @@
       "protocol": "whois",
       "kind": "reconstructed",
       "expected": "rate_limited"
+    },
+    {
+      "file": "whois/be-registered.json",
+      "suffix": "be",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/be-free.json",
+      "suffix": "be",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/be-rate-limited.json",
+      "suffix": "be",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "rate_limited"
+    },
+    {
+      "file": "whois/be-blocked.json",
+      "suffix": "be",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "blocked"
+    },
+    {
+      "file": "whois/be-not-allowed.json",
+      "suffix": "be",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "invalid"
+    },
+    {
+      "file": "whois/se-registered.json",
+      "suffix": "se",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/se-free.json",
+      "suffix": "se",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/se-system.json",
+      "suffix": "se",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/dk-registered.json",
+      "suffix": "dk",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/dk-free.json",
+      "suffix": "dk",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/dk-waiting-list.json",
+      "suffix": "dk",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/pt-registered.json",
+      "suffix": "pt",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/pt-free.json",
+      "suffix": "pt",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/ie-registered.json",
+      "suffix": "ie",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/ie-free.json",
+      "suffix": "ie",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/nz-registered.json",
+      "suffix": "nz",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/nz-free.json",
+      "suffix": "nz",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/us-registered.json",
+      "suffix": "us",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/us-free.json",
+      "suffix": "us",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/sh-registered.json",
+      "suffix": "sh",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/sh-free.json",
+      "suffix": "sh",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/me-registered.json",
+      "suffix": "me",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/me-free.json",
+      "suffix": "me",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/vc-registered.json",
+      "suffix": "vc",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/vc-free.json",
+      "suffix": "vc",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/la-registered.json",
+      "suffix": "la",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/la-free.json",
+      "suffix": "la",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/gl-registered.json",
+      "suffix": "gl",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/gl-free.json",
+      "suffix": "gl",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/ws-registered.json",
+      "suffix": "ws",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/ws-free.json",
+      "suffix": "ws",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/hr-registered.json",
+      "suffix": "hr",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/hr-free.json",
+      "suffix": "hr",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/co-za-registered.json",
+      "suffix": "co.za",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/co-za-free.json",
+      "suffix": "co.za",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/mx-registered.json",
+      "suffix": "mx",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/mx-free.json",
+      "suffix": "mx",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/gg-registered.json",
+      "suffix": "gg",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/gg-free.json",
+      "suffix": "gg",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/je-registered.json",
+      "suffix": "je",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/je-free.json",
+      "suffix": "je",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/am-registered.json",
+      "suffix": "am",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/am-free.json",
+      "suffix": "am",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/im-registered.json",
+      "suffix": "im",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/im-free.json",
+      "suffix": "im",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/lu-registered.json",
+      "suffix": "lu",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/lu-free.json",
+      "suffix": "lu",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/lu-rate-limited.json",
+      "suffix": "lu",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "rate_limited"
+    },
+    {
+      "file": "whois/ee-registered.json",
+      "suffix": "ee",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/ee-free.json",
+      "suffix": "ee",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/ee-reserved.json",
+      "suffix": "ee",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/lv-registered.json",
+      "suffix": "lv",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/lv-free.json",
+      "suffix": "lv",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/lt-registered.json",
+      "suffix": "lt",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/lt-free.json",
+      "suffix": "lt",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/sk-registered.json",
+      "suffix": "sk",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/sk-free.json",
+      "suffix": "sk",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/rs-registered.json",
+      "suffix": "rs",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/rs-free.json",
+      "suffix": "rs",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/bg-registered.json",
+      "suffix": "bg",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/bg-free.json",
+      "suffix": "bg",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/hu-registered.json",
+      "suffix": "hu",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/hu-free.json",
+      "suffix": "hu",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/it-registered.json",
+      "suffix": "it",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/it-free.json",
+      "suffix": "it",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/it-unassignable.json",
+      "suffix": "it",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/at-registered.json",
+      "suffix": "at",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/at-free.json",
+      "suffix": "at",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/com-hk-registered.json",
+      "suffix": "com.hk",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/hk-free.json",
+      "suffix": "hk",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/hk-rate-limited.json",
+      "suffix": "hk",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "rate_limited"
+    },
+    {
+      "file": "whois/ru-registered.json",
+      "suffix": "ru",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/ru-free.json",
+      "suffix": "ru",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/com-tr-registered.json",
+      "suffix": "com.tr",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/tr-free.json",
+      "suffix": "tr",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/co-il-registered.json",
+      "suffix": "co.il",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/co-il-free.json",
+      "suffix": "co.il",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/ae-registered.json",
+      "suffix": "ae",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/ae-free.json",
+      "suffix": "ae",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/com-sa-registered.json",
+      "suffix": "com.sa",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/sa-free.json",
+      "suffix": "sa",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/so-registered.json",
+      "suffix": "so",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/so-free.json",
+      "suffix": "so",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "rdap/ch-gibberish-not-found.json",
+      "suffix": "ch",
+      "protocol": "rdap",
+      "kind": "captured_live",
+      "expected": "no_record"
+    },
+    {
+      "file": "rdap/li-gibberish-not-found.json",
+      "suffix": "li",
+      "protocol": "rdap",
+      "kind": "captured_live",
+      "expected": "no_record"
+    },
+    {
+      "file": "rdap/co-gibberish-not-found.json",
+      "suffix": "co",
+      "protocol": "rdap",
+      "kind": "captured_live",
+      "expected": "no_record"
+    },
+    {
+      "file": "rdap/ch-registered.json",
+      "suffix": "ch",
+      "protocol": "rdap",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "rdap/li-registered.json",
+      "suffix": "li",
+      "protocol": "rdap",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "rdap/co-registered.json",
+      "suffix": "co",
+      "protocol": "rdap",
+      "kind": "reconstructed",
+      "expected": "registered"
     }
   ]
 }

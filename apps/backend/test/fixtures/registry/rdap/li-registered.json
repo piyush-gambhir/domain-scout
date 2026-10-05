@@ -1,0 +1,29 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from the RFC 9083 domain object shape and the SWITCH RDAP documentation (https://www.nic.li/whois/rdap/). No registered .li name is in the authorized live set, so positive classification is not live-validated."
+  },
+  "domain": "fixture-registered.li",
+  "suffix": "li",
+  "protocol": "rdap",
+  "route": "https://rdap.nic.li/",
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/rdap+json"
+    },
+    "body": "{\"objectClassName\":\"domain\",\"handle\":\"D000000000-NIC\",\"ldhName\":\"fixture-registered.li\",\"links\":[{\"value\":\"https://rdap.nic.li/domain/fixture-registered.li\",\"rel\":\"self\",\"href\":\"https://rdap.nic.li/domain/fixture-registered.li\",\"type\":\"application/rdap+json\"}],\"status\":[\"client transfer prohibited\"],\"entities\":[{\"objectClassName\":\"entity\",\"handle\":\"9999\",\"roles\":[\"registrar\"],\"publicIds\":[{\"type\":\"IANA Registrar ID\",\"identifier\":\"9999\"}],\"vcardArray\":[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Example Registrar AG\"]]]}],\"events\":[{\"eventAction\":\"registration\",\"eventDate\":\"2015-03-01T10:00:00Z\"},{\"eventAction\":\"expiration\",\"eventDate\":\"2027-03-01T10:00:00Z\"},{\"eventAction\":\"last changed\",\"eventDate\":\"2026-03-01T10:00:00Z\"}],\"nameservers\":[{\"objectClassName\":\"nameserver\",\"ldhName\":\"ns1.example-dns.test\"},{\"objectClassName\":\"nameserver\",\"ldhName\":\"ns2.example-dns.test\"}],\"secureDNS\":{\"delegationSigned\":false},\"rdapConformance\":[\"rdap_level_0\"],\"notices\":[]}",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.li",
+    "eligibility": "unknown",
+    "registrar": "Example Registrar AG",
+    "expiresAt": "2027-03-01T10:00:00.000Z",
+    "dnssec": false
+  }
+}

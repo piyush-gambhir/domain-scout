@@ -1,0 +1,24 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from whoeasy test fixture whois.dns.lu/luxair.lu.txt (MIT, commit a8347b8011, captured 2026-03-16): layout, banner and wording kept; the name, registrar, nameservers and dates are synthetic and contact data is removed. domaintype values from https://dns.lu/en/domains/apiprotocols. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "fixture-registered.lu",
+  "suffix": "lu",
+  "protocol": "whois",
+  "route": "whois.dns.lu:43",
+  "query": "fixture-registered.lu",
+  "response": {
+    "text": "% Registry terms of use omitted from this fixture.\ndomainname:     fixture-registered.lu\ndomaintype:     ACTIVE\nnserver:        ns1.example-dns.test\nnserver:        ns2.example-dns.test\nownertype:      ORGANISATION\norg-country:    LU\nregistrar-name:         Example Registrar\nregistrar-url:          https://registrar.example.test/\nregistrar-country:      LU\n%\nwhois-web:         https://www.dns.lu/en/support/domainname-availability/whois-gateway/\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.lu",
+    "eligibility": "unknown",
+    "registrar": "Example Registrar"
+  }
+}

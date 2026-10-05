@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from whoeasy test fixture whois.nic.lv/nxdomain.txt (MIT, commit a8347b8011, captured 2026-03-16): reply kept verbatim except the queried name, replaced with a random 24-character label. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
+  },
+  "domain": "nueibbmizhrpqijzldxeoots.lv",
+  "suffix": "lv",
+  "protocol": "whois",
+  "route": "whois.nic.lv:43",
+  "query": "nueibbmizhrpqijzldxeoots.lv",
+  "response": {
+    "text": "[Domain]\nDomain: nueibbmizhrpqijzldxeoots.lv\nStatus: free\n\n[Whois]\nUpdated: 2026-03-16T12:12:32.982913+00:00\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": "nueibbmizhrpqijzldxeoots.lv",
+    "eligibility": "unknown"
+  }
+}

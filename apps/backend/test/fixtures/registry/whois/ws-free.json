@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from flipbit/whois sample whois.website.ws/ws/not-found/u34jedzcq.ws.txt (MIT, commit 5f24f6b754, captured 2026-07-12): reply kept verbatim except the queried name, replaced with a random 24-character label. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
+  },
+  "domain": "nyyicmdjkyyimyyhjliydxeg.ws",
+  "suffix": "ws",
+  "protocol": "whois",
+  "route": "whois.website.ws:43",
+  "query": "nyyicmdjkyyimyyhjliydxeg.ws",
+  "response": {
+    "text": "The queried object does not exist: nyyicmdjkyyimyyhjliydxeg.ws.\nURL of the ICANN WHOIS Data Problem Reporting System: http://wdprs.internic.net/\n>>> Last update of WHOIS database: 2026-07-12T12:34:25Z <<<\n\nFor more information on Whois status codes, please visit https://icann.org/epp\n\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": "nyyicmdjkyyimyyhjliydxeg.ws",
+    "eligibility": "unknown"
+  }
+}

@@ -2,6 +2,28 @@
   "description": "Authorized live validation results (fixed test set only: example.com, google.com, nic.si, bbc.co.uk and random 24-character lowercase labels), written by test/live/registry.live.spec.ts with DOMAIN_SCOUT_LIVE_TESTS=1 and DOMAIN_SCOUT_LIVE_RECORD=1.",
   "results": [
     {
+      "domain": "yroddmwtccbjcvjeprlsalan.ch",
+      "suffix": "ch",
+      "protocol": "rdap",
+      "destination": "https://rdap.nic.ch/",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-05T15:34:07.047Z",
+      "httpStatus": 404,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "hevwoetqzbdteskdmfmnyhzt.co",
+      "suffix": "co",
+      "protocol": "rdap",
+      "destination": "https://rdap.registry.co/co/",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-05T15:34:07.318Z",
+      "httpStatus": 404,
+      "reason": "registry_not_found"
+    },
+    {
       "domain": "bbc.co.uk",
       "suffix": "co.uk",
       "protocol": "rdap",
@@ -64,6 +86,17 @@
       "expected": "no_record",
       "observed": "no_record",
       "at": "2026-10-05T13:57:15.116Z",
+      "httpStatus": 404,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "kuubiujfzsmgxmzbemsvqjkj.li",
+      "suffix": "li",
+      "protocol": "rdap",
+      "destination": "https://rdap.nic.li/",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-05T15:34:10.125Z",
       "httpStatus": 404,
       "reason": "registry_not_found"
     },
@@ -131,6 +164,270 @@
       "destination": "whois.nic.io:43",
       "reason": "timeout: whois.nic.io did not answer within 15000 ms",
       "at": "2026-10-05T13:57:29.626Z"
+    },
+    {
+      "suffix": "be",
+      "destination": "whois.dns.be:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "se",
+      "destination": "whois.iis.se:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "dk",
+      "destination": "whois.punktum.dk:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "pt",
+      "destination": "whois.dns.pt:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "ie",
+      "destination": "whois.weare.ie:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "nz",
+      "destination": "whois.irs.net.nz:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "mx",
+      "destination": "whois.mx:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "gg",
+      "destination": "whois.gg:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "je",
+      "destination": "whois.je:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "sh",
+      "destination": "whois.nic.sh:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "vc",
+      "destination": "whois.identitydigital.services:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "me",
+      "destination": "whois.nic.me:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "am",
+      "destination": "whois.amnic.net:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "ws",
+      "destination": "whois.website.ws:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "la",
+      "destination": "whois.nic.la:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "gl",
+      "destination": "whois.nic.gl:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "im",
+      "destination": "whois.nic.im:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "lu",
+      "destination": "whois.dns.lu:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "ee",
+      "destination": "whois.tld.ee:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "lv",
+      "destination": "whois.nic.lv:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "lt",
+      "destination": "das.domreg.lt:4343",
+      "reason": "live checks in this pass covered only curated RDAP routes; DOMREG DAS on port 4343 was not tested from the development network",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "sk",
+      "destination": "whois.sk-nic.sk:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "hr",
+      "destination": "whois.dns.hr:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "rs",
+      "destination": "whois.rnids.rs:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "bg",
+      "destination": "whois.register.bg:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "hu",
+      "destination": "whois.nic.hu:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "us",
+      "destination": "whois.nic.us:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "it",
+      "destination": "whois.nic.it:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "at",
+      "destination": "whois.nic.at:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "hk",
+      "destination": "whois.hkirc.hk:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "ru",
+      "destination": "whois.tcinet.ru:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "tr",
+      "destination": "whois.trabis.gov.tr:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "il",
+      "destination": "whois.isoc.org.il:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "ae",
+      "destination": "whois.aeda.net.ae:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "sa",
+      "destination": "whois.nic.net.sa:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "so",
+      "destination": "whois.nic.so:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "co.za",
+      "destination": "coza-whois.registry.net.za:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "org.za",
+      "destination": "org-whois.registry.net.za:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "net.za",
+      "destination": "net-whois.registry.net.za:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "web.za",
+      "destination": "web-whois.registry.net.za:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "com.hk",
+      "destination": "whois.hkirc.hk:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "com.tr",
+      "destination": "whois.trabis.gov.tr:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "co.il",
+      "destination": "whois.isoc.org.il:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "com.sa",
+      "destination": "whois.nic.net.sa:43",
+      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
+      "at": "2026-10-05T18:00:00Z"
     }
   ]
 }

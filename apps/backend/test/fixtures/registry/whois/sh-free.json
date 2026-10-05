@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reference capture whoeasy test fixture whois.nic.sh/nxdomain.txt (MIT, commit a8347b8011, captured 2026-03-16), verbatim; the reply does not echo the name and its terms mention throttling. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "qmoorpretxuonxskacgasjxc.sh",
+  "suffix": "sh",
+  "protocol": "whois",
+  "route": "whois.nic.sh:43",
+  "query": "qmoorpretxuonxskacgasjxc.sh",
+  "response": {
+    "text": "Domain not found.\r\n>>> Last update of WHOIS database: 2026-03-16T16:21:18Z <<<\r\n\r\nRegistry terms of use omitted from this fixture.\r\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": null,
+    "eligibility": "unknown"
+  }
+}

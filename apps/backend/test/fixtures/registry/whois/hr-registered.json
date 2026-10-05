@@ -1,0 +1,25 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from whoeasy test fixture whois.dns.hr/direktno.hr.txt (MIT, commit a8347b8011, captured 2026-03-16) and the sample in the CARNET WHOIS documentation (https://domene.hr/en/portal/about/whois): layout, banner and wording kept; the name, registrar, nameservers and dates are synthetic and contact data is removed. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "fixture-registered.hr",
+  "suffix": "hr",
+  "protocol": "whois",
+  "route": "whois.dns.hr:43",
+  "query": "fixture-registered.hr",
+  "response": {
+    "text": "%\n% Registry terms of use omitted from this fixture.\n%\n% If you believe that there is a legitimate reason for which you need to\n% be provided with the data about the domain  holder please fill  in the\n% Request form for personal data disclosure :\n% https://domene.hr/portal/files/Request_personal_data_disclosure.pdf\n%\n\nDomain Name: fixture-registered.hr\nRegistrar WHOIS Server: whois.dns.hr\nRegistrar URL: http://whois.dns.hr\nUpdated Date: 2026-03-16T16:17:13Z\nCreation Date: 2016-05-29T22:00:00Z\nRegistrar Registration Expiration Date: 2027-05-29T22:00:00Z\nRegistrar: Example Registrar\nRegistrant Name: Example Holder\nName Server: ns1.example-dns.test\nName Server: ns2.example-dns.test\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.hr",
+    "eligibility": "unknown",
+    "registrar": "Example Registrar",
+    "expiresAt": "2027-05-29T22:00:00.000Z"
+  }
+}

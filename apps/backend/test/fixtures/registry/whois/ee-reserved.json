@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Rendered from the registry template app/views/whois_record/inactive.erb and the Reserved status in app/models/whois_record.rb (https://github.com/internetee/whois, commit 1c657ad092) without a disclaimer. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
+  },
+  "domain": "fixture-reserved.ee",
+  "suffix": "ee",
+  "protocol": "whois",
+  "route": "whois.tld.ee:43",
+  "query": "fixture-reserved.ee",
+  "response": {
+    "text": "\nEstonia .ee Top Level Domain WHOIS server\n\nDomain:\nname:                  fixture-reserved.ee\nstatus:                Reserved\n\n\nEstonia .ee Top Level Domain WHOIS server\nMore information at http://internet.ee\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": "fixture-reserved.ee",
+    "eligibility": "reserved"
+  }
+}

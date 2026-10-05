@@ -1,0 +1,35 @@
+{
+  "description": "Registry-published RDAP services for TLDs missing from the IANA RDAP bootstrap. Each base URL is checked live with one random 24-character label (see live-validation.json); source names the registry documentation. The IANA bootstrap wins when it lists the TLD.",
+  "updatedAt": "2026-10-05T18:00:00Z",
+  "routes": [
+    {
+      "tld": "ch",
+      "baseUrl": "https://rdap.nic.ch/",
+      "registryId": "switch",
+      "source": "https://www.nic.ch/whois/rdap/",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "notes": "SWITCH documents 404 as \"usually\" not registered but \"that doesn't always mean that the domain name can be registered\", 200 as \"registered and/or cannot be registered at this time\", and 429 as access restricted. Port-43 WHOIS refuses many clients and is not used."
+    },
+    {
+      "tld": "li",
+      "baseUrl": "https://rdap.nic.li/",
+      "registryId": "switch",
+      "source": "https://www.nic.li/whois/rdap/",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "notes": "Same SWITCH service and status semantics as .ch: a 404 is usually, not always, a registrable name; a 200 can also mean the name cannot be registered now."
+    },
+    {
+      "tld": "co",
+      "baseUrl": "https://rdap.registry.co/co/",
+      "registryId": "registry-co",
+      "source": "https://registry.co/registrar-guide",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "notes": "The .CO Registrar Guide (January 2026) documents RDAP (429 rate limiting, HEAD checks) but prints no base URL. This base URL is on the registry's own domain; it was posted by a forum member on 2025-10-18, and a CentralNic reply relayed in the same thread on 2025-10-20 said adding the server to the IANA bootstrap was still to be done after the migration (https://www.namepros.com/threads/the-queried-object-does-not-exist-domain-not-found-for-co-warning.1366138/). The guide advises against WHOIS for availability checks, so WHOIS is not used.",
+      "unservedSecondLevel": [
+        "edu.co",
+        "gov.co",
+        "mil.co"
+      ]
+    }
+  ]
+}

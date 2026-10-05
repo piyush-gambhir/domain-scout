@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from the official DNS Belgium documentation (https://docs.dnsbelgium.be/be/general/whoisanddas.html): fields returned for NOT ALLOWED names (domain, A-label for IDNs, status) and one of its documented messages. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
+  },
+  "domain": "xn--4ca.be",
+  "suffix": "be",
+  "protocol": "whois",
+  "route": "whois.dns.be:43",
+  "query": "xn--4ca.be",
+  "response": {
+    "text": "% .be Whois Server 6.1\r\n%\r\n\r\nDomain:\tä.be\r\nA-label:\txn--4ca.be\r\nStatus:\tNOT ALLOWED\r\nMessage:\tThis domain name is too short.\r\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "invalid",
+    "reasonCode": "registry_reports_invalid",
+    "matchedName": "xn--4ca.be",
+    "eligibility": "restricted"
+  }
+}

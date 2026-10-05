@@ -1,0 +1,25 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from whoeasy test fixture whois.nic.la/gaoqing.la.txt (MIT, commit a8347b8011, captured 2026-03-16): layout, banner and wording kept; the name, registrar, nameservers and dates are synthetic and contact data is removed. Names are upper case as in the capture. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "fixture-registered.la",
+  "suffix": "la",
+  "protocol": "whois",
+  "route": "whois.nic.la:43",
+  "query": "fixture-registered.la",
+  "response": {
+    "text": "Domain Name: FIXTURE-REGISTERED.LA\r\nRegistry Domain ID: D1598395-LANIC\r\nRegistrar WHOIS Server: whois.example-registrar.test\r\nRegistrar URL: https://registrar.example.test\r\nUpdated Date: 2026-02-24T23:36:31Z\r\nCreation Date: 2013-11-06T11:40:40.0Z\r\nRegistry Expiry Date: 2026-11-06T23:59:59.0Z\r\nRegistrar: Example Registrar\r\nDomain Status: ok https://icann.org/epp#ok\r\nName Server: NS1.EXAMPLE-DNS.TEST\r\nName Server: NS2.EXAMPLE-DNS.TEST\r\nDNSSEC: unsigned\r\nURL of the ICANN Whois Inaccuracy Complaint Form: https://www.icann.org/wicf/\r\n>>> Last update of WHOIS database: 2026-03-16T16:18:04.0Z <<<\r\n\r\nFor more information on Whois status codes, please visit https://icann.org/epp\r\n\r\nRegistry terms of use omitted from this fixture.\r\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.la",
+    "eligibility": "unknown",
+    "registrar": "Example Registrar",
+    "expiresAt": "2026-11-06T23:59:59.000Z"
+  }
+}

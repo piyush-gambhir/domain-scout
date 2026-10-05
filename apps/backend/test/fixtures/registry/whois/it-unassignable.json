@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from section 16.4 of the Registro .it Synchronous Technical Guidelines v3.2 (https://www.nic.it/sites/default/files/documenti/2024/Synchronous_Technical_Guidelines_v3.2_0.pdf), which documents \"Status: UNASSIGNABLE\" for geographical or reserved names, in the layout of the AVAILABLE reply. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
+  },
+  "domain": "fixture-unassignable.it",
+  "suffix": "it",
+  "protocol": "whois",
+  "route": "whois.nic.it:43",
+  "query": "fixture-unassignable.it",
+  "response": {
+    "text": "Domain:             fixture-unassignable.it\nStatus:             UNASSIGNABLE\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": "fixture-unassignable.it",
+    "eligibility": "reserved"
+  }
+}

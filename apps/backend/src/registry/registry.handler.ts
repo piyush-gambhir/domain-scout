@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { AsciiDomain, RESOLVED_ITEM_OUTCOMES, Suffix, type NormalizedDomain, type RegistryObservation } from '@domain-scout/contracts';
+import { AsciiDomain, RESOLVED_ITEM_OUTCOMES, Suffix, type NormalizedDomain, type RegistryObservation, type Settings } from '@domain-scout/contracts';
 import { randomUUID } from 'node:crypto';
 import { EvidenceRepository } from '../storage/evidence.js';
 import type { JobItemRecord, OperationContext, OperationHandler, OperationResult } from '../jobs/operation.js';
 import { UNKNOWN_ELIGIBILITY, type Classification } from './classification.js';
 import { InputPreviewService } from './input/input-preview.service.js';
+import { MAX_PACING_WAIT_MS, PublishedLimits } from './published-limits.js';
 import { RegistryChecker, type CheckResult } from './registry-checker.js';
 import { RoutesService, type RegistryRoute } from './routes.service.js';
 
@@ -13,6 +14,21 @@ type RegistryPayload = Omit<RegistryObservation, 'freshness' | 'reused'>;
 
 const LOCAL_PARSER_VERSION = 'local/1';
 const REUSABLE_OUTCOMES = new Set(['registered', 'no_record']);
+
+function aborted(): OperationResult {
+  return {
+    outcome: 'inconclusive',
+    resolved: false,
+    evidence: [],
+    error: { code: 'aborted', message: 'The check was cancelled before the registry answered', retryable: false },
+    retryable: false,
+  };
+}
+
+function publishedLimits(route: RegistryRoute) {
+  const limits = route.whois?.publishedLimits ?? route.curatedRdap?.publishedLimits;
+  return limits && limits.length > 0 ? limits : null;
+}
 
 export function isResolvedRegistryOutcome(outcome: string): boolean {
   return RESOLVED_ITEM_OUTCOMES.registry.includes(outcome);
@@ -32,6 +48,7 @@ export class RegistryOperationHandler implements OperationHandler {
     private readonly routes: RoutesService,
     private readonly checker: RegistryChecker,
     private readonly evidence: EvidenceRepository,
+    private readonly limits: PublishedLimits,
   ) {}
 
   private resolve(item: JobItemRecord): { domain: NormalizedDomain | null; route: RegistryRoute | null } {
@@ -46,6 +63,12 @@ export class RegistryOperationHandler implements OperationHandler {
 
   destination(item: JobItemRecord): string | null {
     return this.resolve(item).route?.endpoint ?? null;
+  }
+
+  /** Items routed to a registry with published limits may first wait for a slot (PublishedLimits). */
+  timeoutMs(item: JobItemRecord, settings: Settings): number | undefined {
+    const { route } = this.resolve(item);
+    return route && publishedLimits(route) ? settings.retries.timeoutMs + MAX_PACING_WAIT_MS : undefined;
   }
 
   async execute(item: JobItemRecord, ctx: OperationContext): Promise<OperationResult> {
@@ -70,7 +93,7 @@ export class RegistryOperationHandler implements OperationHandler {
         ctx,
         'unsupported',
         'no_registry_route',
-        `No verified registry lookup for .${domain.suffix}: no RDAP service in the IANA bootstrap and no registry-specific WHOIS classifier. DNS is not used as a substitute.`,
+        `No verified registry lookup for .${domain.suffix}: ${this.routes.unsupportedReason(domain.suffix)}. DNS is not used as a substitute.`,
       );
     }
 
@@ -81,16 +104,32 @@ export class RegistryOperationHandler implements OperationHandler {
       }
     }
 
-    const result = await this.checker.check(domain, route, { signal: ctx.signal, timeoutMs: ctx.settings.retries.timeoutMs, now: ctx.now });
-    if (result.aborted) {
-      return {
-        outcome: 'inconclusive',
-        resolved: false,
-        evidence: [],
-        error: { code: 'aborted', message: 'The check was cancelled before the registry answered', retryable: false },
-        retryable: false,
-      };
+    const limits = publishedLimits(route);
+    if (limits) {
+      const slot = this.limits.reserve(route.registryId, limits, ctx.now());
+      if ('retryAt' in slot) {
+        // Nothing is sent: the registry's own published limit would be exceeded.
+        const stated = limits.map((limit) => `${limit.queries} queries per ${limit.windowSeconds} s (${limit.source})`).join(' and ');
+        const message = `Not sent to ${route.host}: the .${route.tld} registry publishes a per-IP limit of ${stated}. Next query allowed at ${slot.retryAt}.`;
+        return {
+          outcome: 'rate_limited',
+          resolved: false,
+          evidence: [],
+          error: { code: 'published_rate_limit', message, retryable: true },
+          retryable: true,
+          cooldownUntil: slot.retryAt,
+          retryAt: slot.retryAt,
+        };
+      }
+      try {
+        await this.limits.wait(slot.waitMs, ctx.signal);
+      } catch {
+        return aborted();
+      }
     }
+
+    const result = await this.checker.check(domain, route, { signal: ctx.signal, timeoutMs: ctx.settings.retries.timeoutMs, now: ctx.now });
+    if (result.aborted) return aborted();
     return this.observed(domain, route, ctx, result);
   }
 

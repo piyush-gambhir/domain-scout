@@ -1,0 +1,25 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from whoeasy test fixture whois.mx/shopee.com.mx.txt (MIT, commit a8347b8011, captured 2026-03-16): layout, banner and wording kept; the name, registrar, nameservers and dates are synthetic and contact data is removed. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "fixture-registered.mx",
+  "suffix": "mx",
+  "protocol": "whois",
+  "route": "whois.mx:43",
+  "query": "fixture-registered.mx",
+  "response": {
+    "text": "Domain Name:       fixture-registered.mx\r\n\r\nCreated On:        2015-09-11\r\nExpiration Date:   2027-09-11\r\nLast Updated On:   2025-05-15\r\nRegistrar:         Example Registrar\r\nURL:               https://registrar.example.test\r\n\r\nName Servers:\r\n   DNS:            ns1.example-dns.test       \r\n   DNS:            ns2.example-dns.test       \r\n\r\nDNSSEC DS Records:\r\n\r\n\r\n% NOTICE: The expiration date displayed in this record is the date the\r\n% registrar's sponsorship of the domain name registration in the registry is\r\n% currently set to expire. This date does not necessarily reflect the\r\n% expiration date of the domain name registrant's agreement with the sponsoring\r\n% registrar. Users may consult the sponsoring registrar's Whois database to\r\n% view the registrar's reported date of expiration for this registration.\r\n\r\n% The requested information (\"Information\") is provided only for the delegation\r\n% of domain names and the operation of the DNS administered by NIC Mexico.\r\n\r\n% Registry terms of use omitted from this fixture.\r\n\r\n% The database generated from the delegation system is protected by the\r\n% intellectual property laws and all international treaties on the matter.\r\n\r\n% If you need more information on the records displayed here, please contact us\r\n% by email at contact@example.invalid .\r\n\r\n% If you want notify the receipt of SPAM or unauthorized access, please send a\r\n% email to contact@example.invalid .\r\n\r\n% NOTA: La fecha de expiracion mostrada en esta consulta es la fecha que el\r\n% registrar tiene contratada para el nombre de dominio en el registry. Esta\r\n% fecha no necesariamente refleja la fecha de expiracion del nombre de dominio\r\n% que el registrante tiene contratada con el registrar. Puede consultar la base\r\n% de datos de Whois del registrar para ver la fecha de expiracion reportada por\r\n% el registrar para este nombre de dominio.\r\n\r\n% La informacion que ha solicitado se provee exclusivamente para fines\r\n% relacionados con la delegacion de nombres de dominio y la operacion del DNS\r\n% administrado por NIC Mexico.\r\n\r\n% Queda absolutamente prohibido su uso para otros propositos, incluyendo el\r\n% envio de Correos Electronicos no solicitados con fines publicitarios o de\r\n% promocion de productos y servicios (SPAM) sin mediar la autorizacion de los\r\n% afectados y de NIC Mexico.\r\n\r\n% La base de datos generada a partir del sistema de delegacion, esta protegida\r\n% por las leyes de Propiedad Intelectual y todos los tratados internacionales\r\n% sobre la materia.\r\n\r\n% Si necesita mayor informacion sobre los registros aqui mostrados, favor de\r\n% comunicarse a contact@example.invalid.\r\n\r\n% Si desea notificar sobre correo no solicitado o accesos no autorizados, favor\r\n% de enviar su mensaje a contact@example.invalid.\r\n\r\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.mx",
+    "eligibility": "unknown",
+    "registrar": "Example Registrar",
+    "expiresAt": "2027-09-11T00:00:00.000Z"
+  }
+}

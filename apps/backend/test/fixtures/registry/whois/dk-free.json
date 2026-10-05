@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reference capture whoeasy test fixture whois.punktum.dk/nxdomain.txt (MIT, commit a8347b8011, captured 2026-03-16, server version 6.1.1) with the session IP masked; the reply does not echo the name. The official specification does not document this text. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "aayirlaiflbhxohgiljvvtuk.dk",
+  "suffix": "dk",
+  "protocol": "whois",
+  "route": "whois.punktum.dk:43",
+  "query": "aayirlaiflbhxohgiljvvtuk.dk",
+  "response": {
+    "text": "# Hello xx.xx.xx.xx. Your session has been logged.\n#\n# Registry terms of use omitted from this fixture.\n#\n# Version: 6.1.1\n#\n# Registry terms of use omitted from this fixture.\n\nNo entries found for the selected source.\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": null,
+    "eligibility": "unknown"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from whoeasy test fixture whois.dns.pt/nxdomain.txt (MIT, commit a8347b8011, captured 2026-03-16): reply kept verbatim except the queried name, replaced with a random 24-character label. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
+  },
+  "domain": "wzssvtbtdvnejjktgersztmu.pt",
+  "suffix": "pt",
+  "protocol": "whois",
+  "route": "whois.dns.pt:43",
+  "query": "wzssvtbtdvnejjktgersztmu.pt",
+  "response": {
+    "text": "wzssvtbtdvnejjktgersztmu.pt - No Match\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": "wzssvtbtdvnejjktgersztmu.pt",
+    "eligibility": "unknown"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed: RFC 9083 domain object for a synthetic name with the rdapConformance and notices of the live 404 captured from this server on 2026-10-05. No registered .co name is in the authorized live set, so positive classification is not live-validated. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "fixture-registered.co",
+  "suffix": "co",
+  "protocol": "rdap",
+  "route": "https://rdap.registry.co/co/",
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/rdap+json"
+    },
+    "body": "{\"objectClassName\":\"domain\",\"handle\":\"D000000000-REGISTRY\",\"ldhName\":\"fixture-registered.co\",\"links\":[{\"value\":\"https://rdap.registry.co/co/domain/fixture-registered.co\",\"rel\":\"self\",\"href\":\"https://rdap.registry.co/co/domain/fixture-registered.co\",\"type\":\"application/rdap+json\"}],\"status\":[\"client transfer prohibited\"],\"entities\":[{\"objectClassName\":\"entity\",\"handle\":\"9999\",\"roles\":[\"registrar\"],\"publicIds\":[{\"type\":\"IANA Registrar ID\",\"identifier\":\"9999\"}],\"vcardArray\":[\"vcard\",[[\"version\",{},\"text\",\"4.0\"],[\"fn\",{},\"text\",\"Example Registrar LLC\"]]]}],\"events\":[{\"eventAction\":\"registration\",\"eventDate\":\"2015-03-01T10:00:00Z\"},{\"eventAction\":\"expiration\",\"eventDate\":\"2027-03-01T10:00:00Z\"},{\"eventAction\":\"last changed\",\"eventDate\":\"2026-03-01T10:00:00Z\"}],\"nameservers\":[{\"objectClassName\":\"nameserver\",\"ldhName\":\"ns1.example-dns.test\"},{\"objectClassName\":\"nameserver\",\"ldhName\":\"ns2.example-dns.test\"}],\"secureDNS\":{\"delegationSigned\":false},\"rdapConformance\":[\"rdap_level_0\",\"icann_rdap_response_profile_1\",\"icann_rdap_technical_implementation_guide_1\"],\"notices\":[{\"title\":\"Status Codes\",\"description\":[\"For more information on domain status codes, please visit https://icann.org/epp\"],\"links\":[{\"title\":\"More information on domain status codes\",\"rel\":\"glossary\",\"value\":\"https://rdap.registry.co/co/domain/hevwoetqzbdteskdmfmnyhzt.co\",\"href\":\"https://icann.org/epp\"}]},{\"title\":\"Terms of Use\",\"description\":[\"Registry terms of use omitted from this fixture.\"],\"links\":[{\"title\":\"Terms of Use\",\"rel\":\"terms-of-service\",\"value\":\"https://rdap.registry.co/co/domain/hevwoetqzbdteskdmfmnyhzt.co\",\"href\":\"https://www.registry.co/\"}]}]}",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.co",
+    "eligibility": "unknown",
+    "registrar": "Example Registrar LLC",
+    "expiresAt": "2027-03-01T10:00:00.000Z",
+    "dnssec": false
+  }
+}

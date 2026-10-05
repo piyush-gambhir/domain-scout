@@ -1,0 +1,26 @@
+{
+  "provenance": {
+    "kind": "captured_live",
+    "capturedAt": "2026-10-05T15:34:07.318Z",
+    "request": "GET https://rdap.registry.co/co/domain/hevwoetqzbdteskdmfmnyhzt.co",
+    "notes": "Captured live from the fixed authorized test set (one random 24-character label); body unmodified except registry notices and contact details, replaced for publication, response headers reduced to content-type."
+  },
+  "domain": "hevwoetqzbdteskdmfmnyhzt.co",
+  "suffix": "co",
+  "protocol": "rdap",
+  "route": "https://rdap.registry.co/co/",
+  "response": {
+    "status": 404,
+    "headers": {
+      "content-type": "application/rdap+json"
+    },
+    "body": "{\"rdapConformance\":[\"icann_rdap_response_profile_1\",\"icann_rdap_technical_implementation_guide_1\",\"rdap_level_0\"],\"lang\":\"en\",\"objectClassName\":\"error\",\"notices\":[{\"title\":\"Status Codes\",\"description\":[\"For more information on domain status codes, please visit https:\\/\\/icann.org\\/epp\"],\"links\":[{\"title\":\"More information on domain status codes\",\"rel\":\"glossary\",\"value\":\"https:\\/\\/rdap.registry.co\\/co\\/domain\\/hevwoetqzbdteskdmfmnyhzt.co\",\"href\":\"https:\\/\\/icann.org\\/epp\"}]},{\"title\":\"Terms of Use\",\"description\":[\"Registry terms of use omitted from this fixture.\"],\"links\":[{\"title\":\"Terms of Use\",\"rel\":\"terms-of-service\",\"value\":\"https:\\/\\/rdap.registry.co\\/co\\/domain\\/hevwoetqzbdteskdmfmnyhzt.co\",\"href\":\"https:\\/\\/www.registry.co\\/\"}]}],\"errorCode\":404,\"title\":\"Object not found\",\"description\":[\"Object not found\"]}",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": null,
+    "eligibility": "unknown"
+  }
+}

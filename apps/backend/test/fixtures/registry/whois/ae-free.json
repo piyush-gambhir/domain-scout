@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reference capture whoeasy test fixture whois.aeda.net.ae/nxdomain.txt (MIT, commit a8347b8011, captured 2026-03-16): the whole reply is \"No Data Found\" (CRLF). Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
+  },
+  "domain": "tkmpplfwakmbrgbnhfcwrxsb.ae",
+  "suffix": "ae",
+  "protocol": "whois",
+  "route": "whois.aeda.net.ae:43",
+  "query": "tkmpplfwakmbrgbnhfcwrxsb.ae",
+  "response": {
+    "text": "No Data Found\r\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": null,
+    "eligibility": "unknown"
+  }
+}

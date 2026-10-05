@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from whoeasy test fixture whois.nic.so/nxdomain.txt (MIT, commit a8347b8011, captured 2026-03-16): reply kept verbatim except the queried name, replaced with a random 24-character label. The reply also carries a \"Domain Name:\" line. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "zxbkfhwbxgzzezgxgxoxkrrv.so",
+  "suffix": "so",
+  "protocol": "whois",
+  "route": "whois.nic.so:43",
+  "query": "zxbkfhwbxgzzezgxgxoxkrrv.so",
+  "response": {
+    "text": "Domain Name: zxbkfhwbxgzzezgxgxoxkrrv.so\r\nThe queried object does not exist: No Object Found\r\n>>> Last update of WHOIS database: 2026-03-16T16:21:27.596Z <<<\r\n\r\nRegistry terms of use omitted from this fixture.\r\n\r\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": "zxbkfhwbxgzzezgxgxoxkrrv.so",
+    "eligibility": "unknown"
+  }
+}

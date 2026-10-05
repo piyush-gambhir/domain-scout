@@ -1,0 +1,24 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from whoeasy test fixture whois.dns.pt/apat.pt.txt (MIT, commit a8347b8011, captured 2026-03-16): layout, banner and wording kept; the name, registrar, nameservers and dates are synthetic and contact data is removed. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
+  },
+  "domain": "fixture-registered.pt",
+  "suffix": "pt",
+  "protocol": "whois",
+  "route": "whois.dns.pt:43",
+  "query": "fixture-registered.pt",
+  "response": {
+    "text": "Domain: fixture-registered.pt\nDomain Status: Registered\nCreation Date: 28/04/1997 00:00:00\nExpiration Date: 02/07/2027 23:59:00\nOwner Name: Example Owner\nOwner Country Code: PT\nName Server: ns1.example-dns.test | IPv4:  and IPv6: \nName Server: ns2.example-dns.test | IPv4:  and IPv6: \n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.pt",
+    "eligibility": "unknown",
+    "expiresAt": "2027-07-02T00:00:00.000Z"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from the error example in the official DNS Belgium documentation (https://docs.dnsbelgium.be/be/general/whoisanddas.html, return code -2), with the example name replaced. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
+  },
+  "domain": "elmljmijebygyfijtwyqwyph.be",
+  "suffix": "be",
+  "protocol": "whois",
+  "route": "whois.dns.be:43",
+  "query": "elmljmijebygyfijtwyqwyph.be",
+  "response": {
+    "text": "% .be Whois Server 6.1\r\n% -2: Excessive querying\r\nDomain:  elmljmijebygyfijtwyqwyph.be\r\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "rate_limited",
+    "reasonCode": "rate_limited",
+    "matchedName": null,
+    "eligibility": "unknown",
+    "cooldownSeconds": 3600
+  }
+}

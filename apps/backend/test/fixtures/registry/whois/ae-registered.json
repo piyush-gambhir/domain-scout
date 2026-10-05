@@ -1,0 +1,24 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from whoeasy test fixture whois.aeda.net.ae/uasdubai.ae.txt (MIT, commit a8347b8011, captured 2026-03-16): layout, banner and wording kept; the name, registrar, nameservers and dates are synthetic and contact data is removed. Port-43 records carry no dates. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
+  },
+  "domain": "fixture-registered.ae",
+  "suffix": "ae",
+  "protocol": "whois",
+  "route": "whois.aeda.net.ae:43",
+  "query": "fixture-registered.ae",
+  "response": {
+    "text": "Domain Name:                     fixture-registered.ae\r\nRegistrar ID:                    Example\r\nRegistrar Name:                  Example Registrar\r\nStatus:                          ok\r\nRegistrant Contact ID:           CX000001T\r\nRegistrant Contact Name:         Example Holder\r\nName Server:                     ns1.example-dns.test\r\nName Server:                     ns2.example-dns.test\r\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.ae",
+    "eligibility": "unknown",
+    "registrar": "Example Registrar"
+  }
+}

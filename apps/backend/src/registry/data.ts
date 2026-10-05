@@ -42,7 +42,16 @@ export const RootTldList = z.object({
 });
 export type RootTldList = z.infer<typeof RootTldList>;
 
+/** A registry's published per-IP query limit, kept before sending (see PublishedLimits). */
+export const PublishedLimit = z.object({
+  queries: z.number().int().min(1),
+  windowSeconds: z.number().int().min(1),
+  source: z.string(),
+});
+export type PublishedLimit = z.infer<typeof PublishedLimit>;
+
 export const WhoisRouteSpec = z.object({
+  /** TLD, or a second-level suffix run by its own registry (e.g. co.za). */
   tld: z.string(),
   host: z.string(),
   port: z.number().int().default(43),
@@ -52,6 +61,11 @@ export const WhoisRouteSpec = z.object({
   source: z.string(),
   verifiedAt: z.string(),
   rateLimitCooldownSeconds: z.number().int().min(1),
+  publishedLimits: z.array(PublishedLimit).min(1).optional(),
+  /** Second-level suffixes under this TLD that the registry does not serve (or not verifiably); '*' means all. */
+  unservedSecondLevel: z.array(z.string()).optional(),
+  /** Where the classifier's reply patterns come from (documentation first, then dated captures). */
+  formatSources: z.array(z.string()).optional(),
   notes: z.string().optional(),
 });
 export type WhoisRouteSpec = z.infer<typeof WhoisRouteSpec>;
@@ -59,11 +73,40 @@ export type WhoisRouteSpec = z.infer<typeof WhoisRouteSpec>;
 export const WhoisRouting = z.object({
   updatedAt: z.string(),
   routes: z.array(WhoisRouteSpec),
+  /** Researched TLDs left unsupported, with the reason shown in coverage. */
   withoutClassifier: z.array(
-    z.object({ tld: z.string(), host: z.string().nullable(), source: z.string(), reason: z.string() }),
+    z.object({
+      tld: z.string(),
+      host: z.string().nullable(),
+      source: z.string(),
+      reason: z.string(),
+      checkedAt: z.string().optional(),
+    }),
   ),
 });
 export type WhoisRouting = z.infer<typeof WhoisRouting>;
+
+/** Registry-published RDAP service for a TLD missing from the IANA bootstrap. */
+export const CuratedRdapSpec = z.object({
+  tld: z.string(),
+  /** Base URL ending in `/`; queries are `<baseUrl>domain/<name>`. */
+  baseUrl: z.url({ protocol: /^https$/ }).endsWith('/'),
+  registryId: z.string(),
+  /** Registry documentation naming the service. */
+  source: z.string(),
+  verifiedAt: z.string(),
+  publishedLimits: z.array(PublishedLimit).min(1).optional(),
+  unservedSecondLevel: z.array(z.string()).optional(),
+  notes: z.string().optional(),
+});
+export type CuratedRdapSpec = z.infer<typeof CuratedRdapSpec>;
+
+export const CuratedRdap = z.object({
+  description: z.string().optional(),
+  updatedAt: z.string(),
+  routes: z.array(CuratedRdapSpec),
+});
+export type CuratedRdap = z.infer<typeof CuratedRdap>;
 
 export const RegistryOperators = z.object({
   registries: z.array(
@@ -122,6 +165,7 @@ export interface RegistryData {
   bootstrap: BootstrapSnapshot;
   rootTlds: RootTldList;
   whois: WhoisRouting;
+  curatedRdap: CuratedRdap;
   operators: RegistryOperators;
   presets: z.infer<typeof BuiltInPresets>['presets'];
   fixtures: FixtureManifest;
@@ -136,6 +180,7 @@ export function loadRegistryData(): RegistryData {
     bootstrap: load('rdap-bootstrap.json', BootstrapSnapshot),
     rootTlds: load('iana-tlds.json', RootTldList),
     whois: load('whois-routing.json', WhoisRouting),
+    curatedRdap: load('curated-rdap.json', CuratedRdap),
     operators: load('registries.json', RegistryOperators),
     presets: load('presets.json', BuiltInPresets).presets,
     fixtures: load('fixture-manifest.json', FixtureManifest),

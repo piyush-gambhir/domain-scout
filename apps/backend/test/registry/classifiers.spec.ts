@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import type { NormalizedDomain } from '@domain-scout/contracts';
 import { domainToUnicode } from 'node:url';
+import { parse as parseHost } from 'tldts';
 import { loadRegistryData } from '../../src/registry/data.js';
 import { classifyRdap } from '../../src/registry/rdap/rdap-classifier.js';
 import { parseRetryAfter } from '../../src/registry/retry-after.js';
@@ -12,7 +13,7 @@ import { loadFixture, type RegistryFixture } from './harness.js';
 const NOW = new Date('2026-10-05T12:00:00.000Z');
 
 function normalized(ascii: string): NormalizedDomain {
-  const suffix = ascii.endsWith('.co.uk') ? 'co.uk' : ascii.slice(ascii.lastIndexOf('.') + 1);
+  const suffix = parseHost(ascii, { allowPrivateDomains: false }).publicSuffix ?? ascii.slice(ascii.lastIndexOf('.') + 1);
   return {
     ascii,
     unicode: domainToUnicode(ascii),
@@ -207,23 +208,35 @@ describe('WHOIS classifier rules', () => {
 
   it('does not read the .io terms of use as throttling', () => {
     const text = 'Queries to the Whois services are throttled. If too many queries are received from a single IP address the service will reject further queries.\n';
-    expect(run('nic-io', 'acme.io', text).reason.code).toBe('unrecognized_response');
+    expect(run('identity-digital', 'acme.io', text).reason.code).toBe('unrecognized_response');
   });
 
   it('requires the full record shape before reporting registered', () => {
     for (const [parser, ascii, text] of [
-      ['nic-io', 'acme.io', 'Domain Name: acme.io\n'],
+      ['identity-digital', 'acme.io', 'Domain Name: acme.io\n'],
       ['jprs', 'acme.jp', 'Domain Information:\n[Domain Name]                   ACME.JP\n'],
       ['cnnic', 'acme.cn', 'Domain Name: acme.cn\nROID: 1-cn\n'],
       ['eurid', 'acme.eu', 'Domain: acme.eu\nScript: LATIN\n'],
       ['denic', 'acme.de', 'Domain: acme.de\n'],
       ['denic', 'acme.de', 'Domain: acme.de\nStatus:\nconnect\n'],
-      ['nic-io', 'acme.io', 'Domain Name: acme.io\nCreation Date:\nRegistrar: Example\n'],
+      ['identity-digital', 'acme.io', 'Domain Name: acme.io\nCreation Date:\nRegistrar: Example\n'],
       ['jprs', 'acme.jp', '[Domain Name]                   ACME.JP\n[Status]\n[Name Server]                   ns1.example.test\n'],
       ['cnnic', 'acme.cn', 'Domain Name: acme.cn\nRegistration Time:\nExpiration Time:\n'],
     ] as const) {
       const result = run(parser, ascii, text);
       expect([parser, result.outcome], text).toEqual([parser, 'inconclusive']);
+    }
+  });
+
+  it('treats replies that mix records or add a not-found line as conflicting', () => {
+    for (const [parser, ascii, text] of [
+      ['denic', 'acme.de', 'Domain: acme.de\nStatus: free\nDomain: other.de\nStatus: connect\n'],
+      ['denic', 'acme.de', 'Domain: acme.de\nStatus: free\nStatus: connect\n'],
+      ['jprs', 'acme.jp', '[Domain Name]                   ACME.JP\n[State]                         Connected (2027/01/31)\nNo match!!\n'],
+      ['cnnic', 'acme.cn', 'Domain Name: acme.cn\nRegistration Time: 2020-01-01 00:00:00\nExpiration Time: 2027-01-01 00:00:00\nNo matching record.\n'],
+      ['eurid', 'acme.eu', 'Domain: acme.eu\nStatus: AVAILABLE\nDomain: other.eu\n'],
+    ] as const) {
+      expect([parser, run(parser, ascii, text).reason.code], text).toEqual([parser, 'conflicting_reply']);
     }
   });
 
@@ -234,6 +247,222 @@ describe('WHOIS classifier rules', () => {
   it('caps the EURid grace period at one day', () => {
     const result = run('eurid', 'acme.eu', '% Excessive querying, grace period of 7777777 seconds.\n');
     expect(result.cooldownUntil).toBe('2026-10-06T12:00:00.000Z');
+  });
+});
+
+describe('ccTLD WHOIS classifier rules', () => {
+  const spec = (parser: string) => loadRegistryData().whois.routes.find((route) => route.parser === parser)!;
+  const run = (parser: string, ascii: string, text: string) =>
+    classifyWhois(WHOIS_PARSERS[parser]!, { text, truncated: false }, { domain: normalized(ascii), spec: spec(parser), now: NOW });
+
+  it('has a classifier for every curated route and no unused one', () => {
+    const routed = new Set(loadRegistryData().whois.routes.map((route) => route.parser));
+    expect([...routed].filter((parser) => !WHOIS_PARSERS[parser])).toEqual([]);
+    expect(Object.keys(WHOIS_PARSERS).filter((parser) => !routed.has(parser))).toEqual([]);
+  });
+
+  it('reports a record without its registry-specific shape as inconclusive', () => {
+    for (const [parser, ascii, text] of [
+      ['dns-belgium', 'acme.be', 'Domain:\tacme.be\n'],
+      ['internetstiftelsen', 'acme.se', 'state:            active\ndomain:           acme.se\n'],
+      ['punktum', 'acme.dk', 'Domain:               acme.dk\nStatus:               Active\n'],
+      ['dns-pt', 'acme.pt', 'Domain: acme.pt\nDomain Status: Registered\n'],
+      ['nic-mexico', 'acme.mx', 'Domain Name:       acme.mx\n'],
+      ['channel-isles', 'acme.gg', 'Domain:\n     acme.gg\n'],
+      ['amnic', 'acme.am', '   Domain name: acme.am\n'],
+      ['nic-im', 'acme.im', 'Domain Name:\tacme.im\n'],
+      ['eis', 'acme.ee', 'Domain:\nname:       acme.ee\n\nEstonia .ee Top Level Domain WHOIS server\n'],
+      ['sk-nic', 'acme.sk', 'Domain:                       acme.sk\n'],
+      ['rnids', 'acme.rs', 'Domain name: acme.rs\n'],
+      ['nic-hu', 'acme.hu', 'domain:         acme.hu\n'],
+      ['registro-it', 'acme.it', 'Domain:             acme.it\nStatus:             ok\n'],
+      ['nic-at', 'acme.at', 'domain:         acme.at\n'],
+      ['hkirc', 'acme.hk', 'Domain Name:  ACME.HK \n'],
+      ['tci', 'acme.ru', '% TCI Whois Service. Terms of use:\n\ndomain:        ACME.RU\n'],
+      ['trabis', 'acme.tr', '** Domain Name: acme.tr\n'],
+      ['isoc-il', 'acme.co.il', 'domain:       acme.co.il\n'],
+      ['aeda', 'acme.ae', 'Domain Name:                     acme.ae\n'],
+      ['saudinic', 'acme.sa', 'Domain Name: ACME.SA\n'],
+      ['nic-so', 'acme.so', 'Domain Name: acme.so\n'],
+      ['centralnic', 'acme.la', 'Domain Name: ACME.LA\nCreation Date: 2020-01-01T00:00:00.0Z\n'],
+      ['zarc', 'acme.co.za', 'Domain Name: acme.co.za\n'],
+      ['us-registry', 'acme.us', 'Domain Name: acme.us\nRegistrar: Example\n'],
+    ] as const) {
+      const result = run(parser, ascii, text);
+      expect([parser, result.outcome, result.registration], text).toEqual([parser, 'inconclusive', null]);
+    }
+  });
+
+  it('rejects negative replies that name another domain', () => {
+    for (const [parser, ascii, text] of [
+      ['website-ws', 'acme.ws', 'The queried object does not exist: other.ws.\n'],
+      ['weare-ie', 'acme.ie', 'Not found: other.ie\n'],
+      ['internetnz', 'acme.nz', 'Not found: other.nz\n'],
+      ['dns-pt', 'acme.pt', 'other.pt - No Match\n'],
+      ['internetstiftelsen', 'acme.se', 'domain "other.se" not found.\n'],
+      ['trabis', 'acme.tr', 'No match found for other.tr\n'],
+      ['saudinic', 'acme.sa', 'No Match for domain: other.sa\n'],
+      ['nic-so', 'acme.so', 'Domain Name: other.so\nThe queried object does not exist: No Object Found\n'],
+      ['nic-im', 'acme.im', 'Domain Name:\tother.im\nThe domain other.im was not found.\n'],
+      ['dns-lu', 'acme.lu', '% WHOIS other.lu\n% No such domain\n'],
+      ['dns-belgium', 'acme.be', 'Domain:\tother.be\nStatus:\tAVAILABLE\n'],
+      ['register-bg', 'acme.bg', 'DOMAIN NAME: other.bg (other.bg)\nregistration status: available\n'],
+      ['nic-lv', 'acme.lv', '[Domain]\nDomain: other.lv\nStatus: free\n'],
+      ['domreg-das', 'acme.lt', '% .lt registry DAS service\nDomain: other.lt\nStatus: available\n'],
+      ['registro-it', 'acme.it', 'Domain:             other.it\nStatus:             AVAILABLE\n'],
+    ] as const) {
+      const result = run(parser, ascii, text);
+      expect([parser, result.outcome, result.reason.code], text).toEqual([parser, 'inconclusive', 'identity_mismatch']);
+    }
+  });
+
+  it('treats a reply carrying both a record and the negative text as inconclusive', () => {
+    for (const [parser, ascii, text] of [
+      ['identity-digital', 'acme.io', 'Domain Name: acme.io\nDomain not found.\n'],
+      ['nic-mexico', 'acme.mx', 'Domain Name:       acme.mx\nNo_Se_Encontro_El_Objeto/Object_Not_Found\n'],
+      ['sk-nic', 'acme.sk', 'Domain:                       acme.sk\nDomain not found.\n'],
+      ['nic-hu', 'acme.hu', 'domain:         acme.hu\nNincs talalat / No match\n'],
+      ['nic-at', 'acme.at', 'domain:         acme.at\n% nothing found\n'],
+      ['tci', 'acme.ru', '% TCI Whois Service\ndomain:        ACME.RU\nNo entries found for the selected source(s).\n'],
+      ['isoc-il', 'acme.co.il', 'domain:       acme.co.il\n% No data was found to match the request criteria.\n'],
+    ] as const) {
+      expect([parser, run(parser, ascii, text).outcome], text).toEqual([parser, 'inconclusive']);
+    }
+  });
+
+  it('treats a negative plus record lines, or two statuses, as conflicting', () => {
+    for (const [parser, ascii, text] of [
+      ['internetstiftelsen', 'acme.se', 'domain "acme.se" not found.\ndomain:           acme.se\nstate:            active\ncreated:          2020-01-01\n'],
+      ['punktum', 'acme.dk', 'No entries found for the selected source.\nDomain:               acme.dk\nRegistered:           2001-01-01\nStatus:               Active\n'],
+      ['dns-pt', 'acme.pt', 'acme.pt - No Match\nDomain: acme.pt\nDomain Status: Registered\nCreation Date: 01/01/2001 00:00:00\n'],
+      ['dns-lu', 'acme.lu', '% WHOIS acme.lu\n% No such domain\ndomainname:     acme.lu\ndomaintype:     ACTIVE\n'],
+      ['eis', 'acme.ee', '\nDomain not found\nDomain:\nname:       acme.ee\nstatus:     ok\nregistered: 2010-07-04\n\nEstonia .ee Top Level Domain WHOIS server\n'],
+      ['rnids', 'acme.rs', '%ERROR:103: Domain is not registered\nDomain name: acme.rs\nDomain status: Active\nRegistration date: 07.09.2020 10:06:53\n'],
+      ['nic-so', 'acme.so', 'Domain Name: acme.so\nThe queried object does not exist: No Object Found\nRegistry Domain ID: 1-sonic\nCreation Date: 2020-01-01T00:00:00Z\n'],
+      ['dns-belgium', 'acme.be', 'Domain:\tacme.be\nStatus:\tAVAILABLE\nStatus:\tREGISTERED\n'],
+      ['trabis', 'acme.tr', 'No match found for acme.tr\n** Domain Name: acme.tr\nDomain Status: Active\nCreated on..............: 2004-Nov-09.\n'],
+      ['saudinic', 'acme.sa', 'No Match for domain: acme.sa\nDomain Name: acme.sa\nName Server: ns1.example.test\n'],
+      ['registro-it', 'acme.it', 'Domain:             acme.it\nStatus:             AVAILABLE\nStatus:             ok\nCreated:            2020-01-01 00:00:00\n'],
+    ] as const) {
+      const result = run(parser, ascii, text);
+      expect([parser, result.outcome, result.reason.code], text).toEqual([parser, 'inconclusive', 'conflicting_reply']);
+    }
+  });
+
+  it('does not let a second record supply identity or required fields', () => {
+    for (const [parser, ascii, text] of [
+      ['weare-ie', 'acme.ie', 'Domain Name: acme.ie\nDomain Name: other.ie\nRegistry Domain ID: 1-IEDR\nCreation Date: 2020-01-01T00:00:00Z\nRegistrar: Other Registrar\n'],
+      ['nic-im', 'acme.im', 'Domain Name:\tother.im\nThe domain acme.im was not found.\n'],
+      ['dns-belgium', 'acme.be', 'Domain:\tacme.be\nA-label:\tother.be\nStatus:\tNOT AVAILABLE\n'],
+      ['punktum', 'acme.dk', 'Domain:               acme.dk\nDNS:                  other.dk\nRegistered:           2001-01-01\nStatus:               Active\n'],
+      ['register-bg', 'acme.bg', 'DOMAIN NAME: acme.bg (other.bg)\nregistration status: busy, active\n'],
+      ['hkirc', 'acme.hk', 'Domain Name:  ACME.HK\nDomain Name:  OTHER.HK\nDomain Status: Active\nDomain Name Commencement Date: 14-07-2001\n'],
+      ['nic-lv', 'acme.lv', '[Domain]\nDomain: acme.lv\nStatus: free\n[Domain]\nDomain: acme.lv\nStatus: active\n'],
+    ] as const) {
+      const result = run(parser, ascii, text);
+      expect([parser, result.outcome, result.registration], text).toEqual([parser, 'inconclusive', null]);
+    }
+  });
+
+  it('does not let malformed, partial or extra lines slip past the strict patterns', () => {
+    const conflicts: [string, string, string][] = [
+      ['domreg-das', 'acme.lt', '% .lt registry DAS service\nDomain: acme.lt\nStatus: available\nStatus: pending delete\n'],
+      ['internetstiftelsen', 'acme.se', 'state:            quarantine\nstate:            active pending\ndomain:           acme.se\n'],
+      ['weare-ie', 'acme.ie', 'Domain Name: acme.ie\nDomain Name: other.ie extra\nRegistry Domain ID: 1-IEDR\nCreation Date: 2020-01-01T00:00:00Z\nRegistrar: Example\n'],
+      ['nic-so', 'acme.so', 'Domain Name: acme.so\nThe queried object does not exist: No Object Found\nRegistry Expiry Date: 2030-01-01T00:00:00Z\nName Server: ns1.example.test\n'],
+      ['nic-im', 'acme.im', 'Domain Name:\tacme.im\nThe domain acme.im was not found.\nName Server:ns1.example.test.\n'],
+      ['identity-digital', 'acme.io', 'Domain not found.\nCreation Date: 2020-01-01T00:00:00Z\nRegistrar: Example\n'],
+      ['eis', 'acme.ee', 'Domain:\nname: acme.ee\nstatus: Reserved\nstatus: ok\n\nEstonia .ee Top Level Domain WHOIS server\n'],
+      ['eis', 'acme.ee', 'Domain:\nname: acme.ee\nstatus: Reserved\nregistered: 2020-01-01\n\nEstonia .ee Top Level Domain WHOIS server\n'],
+      ['rnids', 'acme.rs', '%ERROR:103: Domain is not registered\n%ERROR:101: Invalid query\n'],
+      ['registro-it', 'acme.it', 'Domain:             acme.it\nStatus:             AVAILABLE\nCreated:            2020-01-01 00:00:00\n'],
+      ['nic-lv', 'acme.lv', '[Domain]\nDomain: acme.lv\nStatus: free\n\n[Nservers]\nNserver: ns1.example.test\n'],
+      ['dns-belgium', 'acme.be', 'Domain:\tacme.be\nStatus:\tAVAILABLE\nRegistered:\tMon Jan 12 2015\n'],
+    ];
+    for (const [parser, ascii, text] of conflicts) {
+      expect([parser, run(parser, ascii, text).reason.code], text).toEqual([parser, 'conflicting_reply']);
+    }
+    expect(run('isoc-il', 'acme.co.il', 'query:        other.co.il\n% No data was found to match the request criteria.\n').reason.code).toBe('identity_mismatch');
+    expect(run('weare-ie', 'acme.ie', 'Domain Name: acme.ie/path\nRegistry Domain ID: 1-IEDR\nCreation Date: 2020-01-01T00:00:00Z\nRegistrar: Example\n').outcome).toBe('inconclusive');
+    expect(run('channel-isles', 'acme.gg', 'Domain:\n     acme.gg\n\nDomain Status:\n     Active\n\nRegistration status:\n').outcome).toBe('inconclusive');
+  });
+
+  it('applies the same checks to malformed duplicates in the remaining special layouts', () => {
+    for (const [parser, ascii, text] of [
+      ['denic', 'acme.de', 'Domain: acme.de\nStatus: free\nStatus: connect pending\n'],
+      ['denic', 'acme.de', 'Domain: acme.de\nStatus: free\nNserver: ns1.example.test\n'],
+      ['cnnic', 'acme.cn', 'No matching record.\nRegistration Time: 2020-01-01 00:00:00\nExpiration Time: 2030-01-01 00:00:00\n'],
+      ['jprs', 'acme.jp', 'No match!!\n[Name Server]                   ns1.example.test\n'],
+      ['eurid', 'acme.eu', 'Domain: acme.eu\nStatus: AVAILABLE\nRegistrar:\n    Name: Example Registrar\n'],
+      ['register-bg', 'acme.bg', 'DOMAIN NAME: acme.bg\nDOMAIN NAME: other.bg extra\nregistration status: available\n'],
+      ['nic-lv', 'acme.lv', '[Domain]\nDomain: acme.lv\nStatus: free\nStatus:\n'],
+      ['dns-lu', 'acme.lu', 'domainname:     acme.lu\ndomaintype:     FREE\nregistered:     2020-01-01\n'],
+    ] as const) {
+      expect([parser, run(parser, ascii, text).reason.code], text).toEqual([parser, 'conflicting_reply']);
+    }
+    const lu = run('dns-lu', 'acme.lu', '% WHOIS other.lu extra\n% No such domain\n');
+    expect(lu.outcome).toBe('inconclusive');
+    expect(run('dns-lu', 'acme.lu', '% WHOIS database in its entirety is protected\n% WHOIS acme.lu\n% No such domain\n').outcome).toBe('no_record');
+  });
+
+  it('matches only documented DNS-LU domaintype values', () => {
+    expect(run('dns-lu', 'acme.lu', 'domainname:     acme.lu\ndomaintype:     FREE UNKNOWN STATE\n').reason.code).toBe('unknown_status');
+    expect(run('dns-lu', 'acme.lu', 'domainname:     acme.lu\ndomaintype:     ACTIVE SOMETHING\n').reason.code).toBe('unknown_status');
+    expect(run('dns-lu', 'acme.lu', 'domainname:     acme.lu\ndomaintype:     FREE ON HOLD\n').reason.code).toBe('unknown_status');
+    expect(run('dns-lu', 'acme.lu', 'domainname:     acme.lu\ndomaintype:     ACTIVE ON HOLD\n').outcome).toBe('registered');
+    expect(run('dns-lu', 'acme.lu', 'domainname:     acme.lu\ndomaintype:     RESERVED PENDING_DELETE\n').eligibility.status).toBe('reserved');
+  });
+
+  it('accepts the TRABIS negative only unquoted or with paired quotes', () => {
+    expect(run('trabis', 'acme.tr', 'No match found for "acme.tr\n').outcome).toBe('inconclusive');
+    expect(run('trabis', 'acme.tr', 'No match found for acme.tr"\n').outcome).toBe('inconclusive');
+    expect(run('trabis', 'acme.tr', 'No match found for "acme.tr"\n').outcome).toBe('no_record');
+    expect(run('trabis', 'acme.tr', 'No match found for acme.tr\n').outcome).toBe('no_record');
+  });
+
+  it('accepts whole-reply negatives only when nothing else is in the reply', () => {
+    expect(run('channel-isles', 'acme.gg', 'NOT FOUND\r\nPlease try later\r\n').outcome).toBe('inconclusive');
+    expect(run('aeda', 'acme.ae', 'No Data Found\nService note\n').outcome).toBe('inconclusive');
+    expect(run('hkirc', 'acme.hk', 'The domain has not been registered. Try again\n').outcome).toBe('inconclusive');
+    expect(run('amnic', 'acme.am', 'No match\n').outcome).toBe('inconclusive');
+    expect(run('eis', 'acme.ee', '\nDomain not found\n').outcome).toBe('inconclusive');
+    expect(run('tci', 'acme.ru', 'No entries found for the selected source(s).\n').outcome).toBe('inconclusive');
+  });
+
+  it('reports registry-stated reservations and restrictions on names without a registration', () => {
+    const cases: [string, string, string, string, string][] = [
+      ['internetstiftelsen', 'acme.se', 'state:            quarantine\ndomain:           acme.se\n', 'no_record', 'restricted'],
+      ['dns-lu', 'acme.lu', 'domainname:     acme.lu\ndomaintype:     RESERVED\n', 'no_record', 'reserved'],
+      ['eis', 'acme.ee', 'Domain:\nname:                  acme.ee\nstatus:                Blocked\n\nEstonia .ee Top Level Domain WHOIS server\n', 'no_record', 'restricted'],
+      ['eis', 'acme.ee', 'Domain:\nname:                  acme.ee\nstatus:                AtAuction\n\nEstonia .ee Top Level Domain WHOIS server\n', 'no_record', 'restricted'],
+      ['domreg-das', 'acme.lt', '% .lt registry DAS service\nDomain: acme.lt\nStatus: reserved\n', 'no_record', 'reserved'],
+      ['registro-it', 'acme.it', 'Domain:             acme.it\nStatus:             UNASSIGNABLE\n', 'no_record', 'reserved'],
+    ];
+    for (const [parser, ascii, text, outcome, eligibility] of cases) {
+      const result = run(parser, ascii, text);
+      expect([parser, result.outcome, result.eligibility.status, result.registration], text).toEqual([parser, outcome, eligibility, null]);
+      expect(result.eligibility.source, text).toBeTruthy();
+    }
+  });
+
+  it('maps only documented states and leaves the rest inconclusive', () => {
+    expect(run('eis', 'acme.ee', 'Domain:\nname:                  acme.ee\nstatus:                deleteCandidate\n\nEstonia .ee Top Level Domain WHOIS server\n').reason.code).toBe('unknown_status');
+    expect(run('eis', 'acme.ee', '\nPolicy error: please study "Requirements for the registration of a Domain Name" of .ee domain regulations.\n\nEstonia .ee Top Level Domain WHOIS server\n').outcome).toBe('invalid');
+    expect(run('domreg-das', 'acme.lt', '% .lt registry DAS service\nDomain: acme.lt\nStatus: pendingDelete\n').reason.code).toBe('unknown_status');
+    expect(run('domreg-das', 'acme.lt', '% .lt registry DAS service\nDomain: acme.lt\nStatus: stopped\n').outcome).toBe('registered');
+    expect(run('registro-it', 'acme.it', 'Domain:             acme.it\nStatus:             pendingDelete / redemptionPeriod\nCreated:            2020-01-01 00:00:00\n').outcome).toBe('registered');
+    expect(run('registro-it', 'acme.it', 'Domain:             acme.it\nStatus:             deleted\n').reason.code).toBe('unknown_status');
+    expect(run('dns-belgium', 'acme.be', 'Domain:\tacme.be\nStatus:\tQUARANTINE\n').reason.code).toBe('unknown_status');
+    expect(run('dns-belgium', 'acme.be', 'Domain:\tacme.be\nStatus:\tREGISTERED\n').outcome).toBe('registered');
+    expect(run('punktum', 'acme.dk', 'Domain:               acme.dk\nRegistered:           2001-01-01\nStatus:               Deactivated\n').outcome).toBe('registered');
+    expect(run('register-bg', 'acme.bg', 'DOMAIN NAME: acme.bg (acme.bg)\nregistration status: on hold\n').reason.code).toBe('unknown_status');
+    expect(run('nic-lv', 'acme.lv', '[Domain]\nDomain: acme.lv\nStatus: blocked\n').reason.code).toBe('unknown_status');
+    expect(run('dns-belgium', 'acme.be', '% .be Whois Server 6.1\n% -1: Internal server error\n')).toMatchObject({ outcome: 'inconclusive', reason: { code: 'registry_error' }, retryable: true });
+  });
+
+  it('honors the pause HKIRC asks for', () => {
+    const result = run('hkirc', 'acme.hk', 'Please maintain at least 30-second time before starting another enquiry.\n');
+    expect([result.outcome, result.cooldownUntil]).toEqual(['rate_limited', '2026-10-05T12:00:30.000Z']);
   });
 });
 

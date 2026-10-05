@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reference capture quoted as a real TCI reply in nmetluk/whois-watcher tests/unit/test_free_verification.py (commit d717eb366a, captured 2026-06-04), verbatim; the reply does not echo the name. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
+  },
+  "domain": "xlszhumgojasclnuttnxaniq.ru",
+  "suffix": "ru",
+  "protocol": "whois",
+  "route": "whois.tcinet.ru:43",
+  "query": "xlszhumgojasclnuttnxaniq.ru",
+  "response": {
+    "text": "% TCI Whois Service. Terms of use:\n% https://tcinet.ru/documents/whois_ru_rf.pdf (in Russian)\n\nNo entries found for the selected source(s).\n\nLast updated on 2026-06-04T22:28:01Z\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": null,
+    "eligibility": "unknown"
+  }
+}

@@ -18,16 +18,41 @@ beforeEach(async () => {
 afterEach(() => t.close());
 
 const data = loadRegistryData();
-const bootstrapTlds = new Set(data.bootstrap.bootstrap.services.flatMap(([tlds]) => tlds));
+const httpsBootstrapTlds = new Set(
+  data.bootstrap.bootstrap.services.filter(([, urls]) => urls.some((u) => u.startsWith('https://'))).flatMap(([tlds]) => tlds),
+);
+
+const TESTED = [
+  'ae', 'am', 'at', 'be', 'bg', 'ch', 'cn', 'co', 'co.il', 'co.uk', 'co.za', 'com', 'com.hk', 'com.sa', 'com.tr', 'de', 'dev', 'dk', 'ee', 'eu', 'gg', 'gl',
+  'hk', 'hr', 'hu', 'ie', 'im', 'io', 'it', 'je', 'jp', 'la', 'li', 'lt', 'lu', 'lv', 'me', 'mx', 'nz', 'pt', 'rs', 'ru', 'sa', 'se', 'sh', 'si', 'sk', 'so',
+  'tr', 'uk', 'us', 'vc', 'ws',
+];
 
 describe('coverage counts', () => {
-  it('classifies every root TLD plus tested second-level suffixes', async () => {
+  it('classifies every root TLD plus routed or tested second-level suffixes', async () => {
     const counts = t.app.get(CoverageReader).counts();
-    const whoisOnly = data.whois.routes.filter((r) => !bootstrapTlds.has(r.tld)).length;
-    const httpOnly = data.bootstrap.bootstrap.services.filter(([, urls]) => !urls.some((u) => u.startsWith('https://'))).flatMap(([tlds]) => tlds).length;
-    expect(counts.tested + counts.discovered + counts.unsupported).toBe(data.rootTlds.count + 1); // + co.uk
-    expect(counts.unsupported).toBe(data.rootTlds.count - bootstrapTlds.size - whoisOnly + httpOnly);
-    expect(counts.tested).toBe(10);
+    const routed = new Set([...httpsBootstrapTlds, ...data.curatedRdap.routes.map((r) => r.tld), ...data.whois.routes.map((r) => r.tld)]);
+    const root = new Set(data.rootTlds.tlds);
+    const extra = new Set(
+      [...data.whois.routes.map((r) => r.tld), ...data.fixtures.fixtures.map((f) => f.suffix), ...data.liveValidation.results.map((r) => r.suffix)].filter(
+        (suffix): suffix is string => suffix !== null && !root.has(suffix),
+      ),
+    );
+    expect(counts.tested + counts.discovered + counts.unsupported).toBe(data.rootTlds.count + extra.size);
+    expect(counts.unsupported).toBe(data.rootTlds.tlds.filter((tld) => !routed.has(tld)).length);
+    expect(counts.tested).toBe(TESTED.length);
+  });
+
+  it('routes every TLD in the original unsupported list except those left unsupported with a reason', () => {
+    const routes = t.app.get(RoutesService);
+    const requested = 'be se dk pt ie nz mx hk ru tr il ae sa gg so sh am ws la vc gl je im li lu ee lv lt sk hr rs gr ro bg hu co me us es it ch at za'.split(' ');
+    const unsupported = requested.filter((tld) => routes.route(tld) === null);
+    expect(unsupported).toEqual(['gr', 'ro', 'es', 'za']);
+    const reasons = new Map(data.whois.withoutClassifier.map((entry) => [entry.tld, entry]));
+    for (const tld of unsupported) {
+      expect(reasons.get(tld)?.reason, tld).toBeTruthy();
+      expect(reasons.get(tld)?.checkedAt, tld).toMatch(/^2026-10-05T/);
+    }
   });
 
   it('serves the summary with dated bootstrap metadata and explicit limits', async () => {
@@ -42,8 +67,8 @@ describe('coverage counts', () => {
 describe('coverage list and detail', () => {
   it('filters by status and pages with an opaque cursor', async () => {
     const tested = CoverageListResponse.parse((await t.api.get('/coverage?status=tested').expect(200)).body);
-    expect(tested.data.map((c) => c.suffix)).toEqual(['cn', 'co.uk', 'com', 'de', 'dev', 'eu', 'io', 'jp', 'si', 'uk']);
-    expect(tested.total).toBe(10);
+    expect(tested.data.map((c) => c.suffix)).toEqual(TESTED);
+    expect(tested.total).toBe(TESTED.length);
 
     const first = CoverageListResponse.parse((await t.api.get('/coverage?limit=2&q=co').expect(200)).body);
     expect(first.data).toHaveLength(2);
@@ -70,10 +95,64 @@ describe('coverage list and detail', () => {
     expect(de.eligibilityNotes[0]!.source).toContain('denic.de');
   });
 
+  it('describes a live-validated curated RDAP suffix', async () => {
+    const ch = SuffixCoverageResponse.parse((await t.api.get('/coverage/ch').expect(200)).body).data;
+    expect(ch).toMatchObject({
+      status: 'tested',
+      protocol: 'rdap',
+      endpoint: 'https://rdap.nic.ch/',
+      registryId: 'switch',
+      routing: 'curated',
+      fixtureTested: true,
+    });
+    expect(ch.liveValidatedAt).toMatch(/^2026-10-05T/);
+    expect(ch.liveValidation).toEqual([expect.objectContaining({ expected: 'no_record', observed: 'no_record' })]);
+    expect(ch.notes).toContain('not listed in the IANA bootstrap');
+    expect(ch.notes).toContain('https://www.nic.ch/whois/rdap/');
+  });
+
+  it('describes a fixture-only ccTLD WHOIS suffix and its second-level registry routes honestly', async () => {
+    const be = SuffixCoverageResponse.parse((await t.api.get('/coverage/be').expect(200)).body).data;
+    expect(be).toMatchObject({ status: 'tested', protocol: 'whois', endpoint: 'whois.dns.be:43', registryId: 'dns-belgium', routing: 'curated', liveValidatedAt: null });
+    expect(be.notes).toContain('reconstructed');
+    expect(be.notes).toContain('port 43 was blocked');
+    expect(be.notes).toContain('Second-level zones not routed: .ac.be');
+
+    const coza = SuffixCoverageResponse.parse((await t.api.get('/coverage/co.za').expect(200)).body).data;
+    expect(coza).toMatchObject({ tld: 'za', status: 'tested', endpoint: 'coza-whois.registry.net.za:43', registryId: 'zarc' });
+    expect(coza.notes).not.toContain('Routed through');
+    const orgza = SuffixCoverageResponse.parse((await t.api.get('/coverage/org.za').expect(200)).body).data;
+    expect(orgza).toMatchObject({ status: 'discovered', endpoint: 'org-whois.registry.net.za:43', fixtureTested: false });
+
+    const coil = SuffixCoverageResponse.parse((await t.api.get('/coverage/co.il').expect(200)).body).data;
+    expect(coil).toMatchObject({ status: 'tested', endpoint: 'whois.isoc.org.il:43' });
+    expect(coil.notes).toContain('Routed through the .il registry');
+  });
+
+  it('marks second-level zones a curated registry does not serve as unsupported', async () => {
+    for (const suffix of ['gov.ie', 'ny.us', 'k12.ny.us', 'org.se', 'ac.za', 'gov.co']) {
+      const row = SuffixCoverageResponse.parse((await t.api.get(`/coverage/${suffix}`).expect(200)).body).data;
+      expect([suffix, row.status, row.endpoint]).toEqual([suffix, 'unsupported', null]);
+    }
+    const govie = SuffixCoverageResponse.parse((await t.api.get('/coverage/gov.ie').expect(200)).body).data;
+    expect(govie.notes).toContain('does not cover the .gov.ie zone');
+    const commx = SuffixCoverageResponse.parse((await t.api.get('/coverage/com.mx').expect(200)).body).data;
+    expect(commx).toMatchObject({ status: 'discovered', endpoint: 'whois.mx:43' });
+  });
+
   it('keeps unsupported suffixes explicit, with the reason', async () => {
     const za = SuffixCoverageResponse.parse((await t.api.get('/coverage/za').expect(200)).body).data;
     expect(za).toMatchObject({ status: 'unsupported', protocol: null, endpoint: null });
     expect(za.notes).toContain('IANA lists neither RDAP nor WHOIS');
+    for (const [tld, text] of [
+      ['es', 'authorized IP addresses'],
+      ['gr', 'no port-43 WHOIS or RDAP service'],
+      ['ro', 'domain hunting'],
+    ]) {
+      const row = SuffixCoverageResponse.parse((await t.api.get(`/coverage/${tld}`).expect(200)).body).data;
+      expect([tld, row.status]).toEqual([tld, 'unsupported']);
+      expect(row.notes, tld).toContain(text);
+    }
     const kg = SuffixCoverageResponse.parse((await t.api.get('/coverage/kg').expect(200)).body).data;
     expect(kg.status).toBe('unsupported');
     expect(kg.notes).toContain('no usable https RDAP endpoint');
@@ -122,6 +201,23 @@ describe('POST /coverage/refresh', () => {
       fixtureTested: false,
     });
     expect(t.app.get(RoutesService).bootstrapInfo().origin).toBe('refreshed');
+  });
+
+  it('prefers an IANA bootstrap entry over a curated RDAP route once IANA lists the TLD', async () => {
+    const services = data.bootstrap.bootstrap.services.map(([tlds, urls]) => [tlds, urls] as [string[], string[]]);
+    services.push([['ch'], ['https://rdap.example-ch-registry.test/']], [['co'], ['https://rdap.registry.co/co/']], [['ie'], ['https://rdap.example-ie-registry.test/']]);
+    fake.respond = () => http(200, live(services));
+    await t.api.post('/coverage/refresh').expect(200);
+    // Reviewed second-level exclusions hold whichever endpoint wins.
+    const routes = t.app.get(RoutesService);
+    expect([routes.route('gov.co'), routes.route('gov.ie')]).toEqual([null, null]);
+    expect(routes.route('com.co')).toMatchObject({ routing: 'iana_bootstrap', endpoint: 'https://rdap.registry.co/co/' });
+    const govie = SuffixCoverageResponse.parse((await t.api.get('/coverage/gov.ie').expect(200)).body).data;
+    expect(govie.status).toBe('unsupported');
+    const ch = SuffixCoverageResponse.parse((await t.api.get('/coverage/ch').expect(200)).body).data;
+    // RDAP fixtures still exercise the shared RDAP classifier; the live result belongs to the old endpoint.
+    expect(ch).toMatchObject({ routing: 'iana_bootstrap', endpoint: 'https://rdap.example-ch-registry.test/', fixtureTested: true, liveValidatedAt: null });
+    expect(t.app.get(RoutesService).route('li')).toMatchObject({ routing: 'curated', endpoint: 'https://rdap.nic.li/' });
   });
 
   it('skips unusable endpoints and keeps working after a restart from the stored snapshot', async () => {

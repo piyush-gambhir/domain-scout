@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from the official DOMREG DAS example (https://www.domreg.lt/en/faq/for-registrars/how-to-get-the-information-on-domains/) with status \"registered\" from the documented status list. Not captured by this project: port 4343 was not tested from the development network. "
+  },
+  "domain": "fixture-registered.lt",
+  "suffix": "lt",
+  "protocol": "whois",
+  "route": "das.domreg.lt:4343",
+  "query": "get 1.0 fixture-registered.lt",
+  "response": {
+    "text": "% .lt registry DAS service\nDomain: fixture-registered.lt\nStatus: registered\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.lt",
+    "eligibility": "unknown"
+  }
+}

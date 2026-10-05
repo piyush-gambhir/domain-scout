@@ -3,6 +3,7 @@ import { CoverageReader, InputPreviewer } from '../core/ports.js';
 import { OperationRegistry } from '../jobs/operation-registry.js';
 import { CoverageService } from './coverage.service.js';
 import { InputPreviewService } from './input/input-preview.service.js';
+import { PublishedLimits } from './published-limits.js';
 import { FetchHttpTransport, RegistryHttpTransport } from './rdap/http-transport.js';
 import { RegistryChecker } from './registry-checker.js';
 import { RegistryController } from './registry.controller.js';
@@ -11,7 +12,7 @@ import { RoutesService } from './routes.service.js';
 import { NetWhoisTransport, WhoisTransport } from './whois/whois-transport.js';
 
 /**
- * Registry discovery: input normalization, routing (IANA RDAP bootstrap plus curated WHOIS), RDAP
+ * Registry discovery: input normalization, routing (IANA RDAP bootstrap plus curated RDAP and WHOIS), RDAP
  * and WHOIS clients with registry-specific classifiers, the `registry` job handler and coverage.
  * Transports are providers so tests replace them with fakes (overrideProvider).
  */
@@ -24,6 +25,7 @@ import { NetWhoisTransport, WhoisTransport } from './whois/whois-transport.js';
     InputPreviewService,
     RoutesService,
     CoverageService,
+    PublishedLimits,
     RegistryChecker,
     RegistryOperationHandler,
     { provide: InputPreviewer, useExisting: InputPreviewService },

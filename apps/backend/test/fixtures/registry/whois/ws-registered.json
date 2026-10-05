@@ -1,0 +1,25 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from flipbit/whois sample whois.website.ws/ws/found/google.ws.txt (MIT, commit 5f24f6b754, captured 2026-07-12): layout, banner and wording kept; the name, registrar, nameservers and dates are synthetic and contact data is removed. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
+  },
+  "domain": "fixture-registered.ws",
+  "suffix": "ws",
+  "protocol": "whois",
+  "route": "whois.website.ws:43",
+  "query": "fixture-registered.ws",
+  "response": {
+    "text": "Domain Name: FIXTURE-REGISTERED.WS\nDomain ID: D0000000000000000000000000000000-GDI\nWHOIS Server: whois.example-registrar.test\nRegistrar URL: https://registrar.example.test\nUpdated Date: 2026-01-31T10:43:38Z\nCreation Date: 2002-03-03T18:00:26Z\nRegistrar Registration Expiration Date: 2027-03-04T00:00:26Z\nRegistrar: Example Registrar\nDomain Status: clientTransferProhibited\nName Server: ns1.example-dns.test\nName Server: ns2.example-dns.test\nDNSSEC: unsigned\nURL of the ICANN WHOIS Data Problem Reporting System: http://wdprs.internic.net/\n>>> Last update of WHOIS database: 2026-07-12T12:34:25Z <<<\n\nFor more information on Whois status codes, please visit https://icann.org/epp\n\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.ws",
+    "eligibility": "unknown",
+    "registrar": "Example Registrar",
+    "expiresAt": "2027-03-04T00:00:26.000Z"
+  }
+}

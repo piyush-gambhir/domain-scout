@@ -1,0 +1,25 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from whoeasy test fixture whois.punktum.dk/via.dk.txt (MIT, commit a8347b8011, captured 2026-03-16) and the example in the official specification v6.3.1 (https://github.com/Punktum-dk/whois-service-specification): layout, banner and wording kept; the name, registrar, nameservers and dates are synthetic and contact data is removed. The session IP address is masked. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "fixture-registered.dk",
+  "suffix": "dk",
+  "protocol": "whois",
+  "route": "whois.punktum.dk:43",
+  "query": "fixture-registered.dk",
+  "response": {
+    "text": "# Hello xx.xx.xx.xx. Your session has been logged.\n#\n# Registry terms of use omitted from this fixture.\n#\n# Version: 6.1.1\n#\n# Registry terms of use omitted from this fixture.\n\nDomain:               fixture-registered.dk\nDNS:                  fixture-registered.dk\nRegistered:           1997-03-11\nExpires:              2027-03-31\nRegistration period:  1 year\nVID:                  no\nDNSSEC:               Signed delegation\nStatus:               Active\n\nNameservers\nHostname:             ns1.example-dns.test\nHostname:             ns2.example-dns.test\n\n# Use option --show-handles to get handle information.\n# whois -h whois.punktum.dk HELP for more help.\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.dk",
+    "eligibility": "unknown",
+    "expiresAt": "2027-03-31T00:00:00.000Z",
+    "dnssec": true
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reference capture flipbit/whois sample whois.nic.us/us/not-found/u34jedzcq.us.txt (MIT, commit 5f24f6b754, captured 2026-07-12), verbatim (the reply does not echo the name); titlesearch fixtures/whois/us-notfound.txt (2026-09-30) has the same first line. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "ncrkpywapczclpmikywcpuhv.us",
+  "suffix": "us",
+  "protocol": "whois",
+  "route": "whois.nic.us:43",
+  "query": "ncrkpywapczclpmikywcpuhv.us",
+  "response": {
+    "text": "No Data Found\nURL of the ICANN Whois Inaccuracy Complaint Form: https://www.icann.org/wicf/\n>>> Last update of WHOIS database: 2026-07-12T12:34:27Z <<<\n\nFor more information on Whois status codes, please visit https://icann.org/epp\n\n.US WHOIS Complaint Tool - http://www.whoiscomplaints.us\nAdvanced WHOIS Instructions - http://whois.us/help.html\n\nRegistry terms of use omitted from this fixture.\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": null,
+    "eligibility": "unknown"
+  }
+}

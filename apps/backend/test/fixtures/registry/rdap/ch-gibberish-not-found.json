@@ -1,0 +1,24 @@
+{
+  "provenance": {
+    "kind": "captured_live",
+    "capturedAt": "2026-10-05T15:34:07.047Z",
+    "request": "GET https://rdap.nic.ch/domain/yroddmwtccbjcvjeprlsalan.ch",
+    "notes": "Captured live from the fixed authorized test set (one random 24-character label); SWITCH answers a missing name with HTTP 404 and no body or content type, as its RDAP documentation states."
+  },
+  "domain": "yroddmwtccbjcvjeprlsalan.ch",
+  "suffix": "ch",
+  "protocol": "rdap",
+  "route": "https://rdap.nic.ch/",
+  "response": {
+    "status": 404,
+    "headers": {},
+    "body": "",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": null,
+    "eligibility": "unknown"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from whoeasy test fixture whois.hkirc.hk/google.com.hk.txt (MIT, commit a8347b8011, captured 2026-03-16): layout, banner and wording kept; the name, registrar, nameservers and dates are synthetic and contact data is removed. Upper-case names and trailing spaces kept as captured. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "fixture-registered.com.hk",
+  "suffix": "com.hk",
+  "protocol": "whois",
+  "route": "whois.hkirc.hk:43",
+  "query": "fixture-registered.com.hk",
+  "response": {
+    "text": " \n -------------------------------------------------------------------------------\n Whois server by HKIRC\n -------------------------------------------------------------------------------\n .hk top level Domain names can be registered via HKIRC-Accredited Registrars. \n Go to https://www.hkirc.hk/content.jsp?id=280 for details. \n -------------------------------------------------------------------------------\n\n\n\nDomain Name:  FIXTURE-REGISTERED.COM.HK \n\nDomain Status: Active \n\nDNSSEC:  unsigned  \n\nContract Version:   Refer to registrar   \n\nRegistrar Name: EXAMPLE REGISTRAR LTD.\n\nReseller: \n\nRegistrant Contact Information:\n\nCountry: Hong Kong (HK)\n\nDomain Name Commencement Date: 14-07-2001\n\nExpiry Date: 20-11-2027 \n\nRe-registration Status:  Complete   \n\nName Servers Information:\n\nNS1.EXAMPLE-DNS.TEST\nNS2.EXAMPLE-DNS.TEST\n\nStatus Information:\n\nDomain Prohibit Status: The domain is protected by .HK Lock Service.\n\n\n\n\n -------------------------------------------------------------------------------\n The Registry contains ONLY .com.hk, .net.hk, .edu.hk, .org.hk,\n .gov.hk, idv.hk. and .hk $domains.\n -------------------------------------------------------------------------------\n\nRegistry terms of use omitted from this fixture.\n\n\n\n\n\n\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.com.hk",
+    "eligibility": "unknown",
+    "registrar": "EXAMPLE REGISTRAR LTD.",
+    "expiresAt": "2027-11-20T00:00:00.000Z",
+    "dnssec": false
+  }
+}

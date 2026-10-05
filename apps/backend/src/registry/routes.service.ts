@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Clock } from '../core/clock.js';
 import { AppError } from '../core/errors.js';
 import { Database, json } from '../storage/database.js';
-import { BootstrapJson, BootstrapSnapshot, loadRegistryData, type WhoisRouteSpec } from './data.js';
+import { BootstrapJson, BootstrapSnapshot, loadRegistryData, type CuratedRdapSpec, type WhoisRouteSpec } from './data.js';
 import { RegistryHttpTransport } from './rdap/http-transport.js';
 
 export const IANA_BOOTSTRAP_URL = 'https://data.iana.org/rdap/dns.json';
@@ -10,8 +10,12 @@ const BOOTSTRAP_METADATA_KEY = 'registry.rdap_bootstrap';
 const BOOTSTRAP_MAX_BYTES = 5 * 1024 * 1024;
 const BOOTSTRAP_TIMEOUT_MS = 30_000;
 
-/** Where a TLD's registration data is queried. Second-level suffixes route through their TLD. */
+/**
+ * Where a suffix's registration data is queried. Second-level suffixes route through their TLD unless
+ * a curated route names their own registry (co.za).
+ */
 export interface RegistryRoute {
+  /** Routed suffix: a TLD, or a second-level suffix with its own registry. */
   tld: string;
   /** Shared budget and cooldown key; RDAP and WHOIS hosts of one operator share it. */
   registryId: string;
@@ -21,6 +25,8 @@ export interface RegistryRoute {
   host: string;
   routing: 'iana_bootstrap' | 'curated';
   routingUpdatedAt: string;
+  /** Registry-published RDAP service used because the TLD is missing from the IANA bootstrap. */
+  curatedRdap: CuratedRdapSpec | null;
   whois: WhoisRouteSpec | null;
 }
 
@@ -33,8 +39,9 @@ export interface BootstrapInfo {
 }
 
 /**
- * Registry routing from the IANA RDAP bootstrap plus curated WHOIS routes for TLDs without RDAP.
- * RDAP wins when both exist. DNS is never a fallback: a TLD without a route is unsupported.
+ * Registry routing, in order of preference: the IANA RDAP bootstrap, registry-published RDAP
+ * services missing from the bootstrap (curated-rdap.json), then curated WHOIS routes with a
+ * registry-specific classifier. DNS is never a fallback: a TLD without a route is unsupported.
  */
 @Injectable()
 export class RoutesService {
@@ -45,14 +52,26 @@ export class RoutesService {
   private rdapHostSet = new Set<string>();
   private info!: BootstrapInfo;
   private readonly operatorByHost = new Map<string, string>();
+  /**
+   * Reviewed second-level zones each TLD's registry does not (verifiably) serve, from the curated
+   * data. They apply whichever endpoint wins, so an IANA bootstrap refresh cannot reopen them.
+   */
+  private readonly unservedZones = new Map<string, string[]>();
 
   constructor(
     private readonly db: Database,
     private readonly clock: Clock,
     private readonly http: RegistryHttpTransport,
   ) {
-    for (const operator of loadRegistryData().operators.registries) {
+    const data = loadRegistryData();
+    for (const operator of data.operators.registries) {
       for (const host of [...operator.rdapHosts, ...operator.whoisHosts]) this.operatorByHost.set(host, operator.id);
+    }
+    // Curated routes name their operator explicitly, so a 404 from their host counts as authoritative.
+    for (const spec of data.curatedRdap.routes) this.operatorByHost.set(new URL(spec.baseUrl).host, spec.registryId);
+    for (const spec of data.whois.routes) this.operatorByHost.set(spec.host, spec.registryId);
+    for (const spec of [...data.curatedRdap.routes, ...data.whois.routes]) {
+      if (spec.unservedSecondLevel) this.unservedZones.set(spec.tld, [...(this.unservedZones.get(spec.tld) ?? []), ...spec.unservedSecondLevel]);
     }
     const bundled = this.compute(loadRegistryData().bootstrap, 'bundled');
     const selected = this.selectSnapshot();
@@ -70,10 +89,36 @@ export class RoutesService {
     this.apply(state);
   }
 
-  /** Route for a registration suffix (`com`, `co.uk`), or null when unsupported. */
+  /**
+   * Route for a registration suffix (`com`, `co.uk`), or null when unsupported. A second-level suffix
+   * with its own registry route (`co.za`) uses it; others route through their TLD.
+   */
   route(suffix: string): RegistryRoute | null {
+    const own = this.routes.get(suffix);
+    if (own) return own;
+    return this.unserved(suffix) ? null : (this.routes.get(suffix.slice(suffix.lastIndexOf('.') + 1)) ?? null);
+  }
+
+  /** Second-level zones under a TLD that are never routed through it ('*' means all). */
+  unservedSecondLevel(tld: string): string[] {
+    return this.unservedZones.get(tld) ?? [];
+  }
+
+  /** Why a suffix has no route, for messages: names the TLD route that excludes a second-level zone. */
+  unsupportedReason(suffix: string): string {
     const tld = suffix.slice(suffix.lastIndexOf('.') + 1);
-    return this.routes.get(tld) ?? null;
+    const route = this.routes.get(tld);
+    if (route && !this.routes.has(suffix) && this.unserved(suffix)) {
+      return `the .${tld} registry route (${route.endpoint}) does not cover the .${suffix} zone: it is run elsewhere or the registry does not document serving it`;
+    }
+    return 'no RDAP service in the IANA bootstrap or the curated registry list, and no registry-specific WHOIS classifier';
+  }
+
+  private unserved(suffix: string): boolean {
+    const tld = suffix.slice(suffix.lastIndexOf('.') + 1);
+    if (suffix === tld) return false;
+    const zones = this.unservedSecondLevel(tld);
+    return zones.includes('*') || zones.includes(suffix);
   }
 
   all(): RegistryRoute[] {
@@ -200,6 +245,7 @@ export class RoutesService {
           host,
           routing: 'iana_bootstrap',
           routingUpdatedAt,
+          curatedRdap: null,
           whois: null,
         });
       }
@@ -207,6 +253,22 @@ export class RoutesService {
 
     const data = loadRegistryData();
     for (const operator of data.operators.registries) for (const host of operator.rdapHosts) rdapHosts.add(host);
+    for (const spec of data.curatedRdap.routes) {
+      const host = new URL(spec.baseUrl).host;
+      rdapHosts.add(host);
+      if (routes.has(spec.tld)) continue;
+      routes.set(spec.tld, {
+        tld: spec.tld,
+        registryId: spec.registryId,
+        protocol: 'rdap',
+        endpoint: spec.baseUrl,
+        host,
+        routing: 'curated',
+        routingUpdatedAt: toIsoOrNull(spec.verifiedAt) ?? data.curatedRdap.updatedAt,
+        curatedRdap: spec,
+        whois: null,
+      });
+    }
     for (const spec of data.whois.routes) {
       if (routes.has(spec.tld)) continue;
       routes.set(spec.tld, {
@@ -217,6 +279,7 @@ export class RoutesService {
         host: spec.host,
         routing: 'curated',
         routingUpdatedAt: toIsoOrNull(spec.verifiedAt) ?? data.whois.updatedAt,
+        curatedRdap: null,
         whois: spec,
       });
     }

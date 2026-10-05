@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from the Internetstiftelsen WHOIS service description (December 2025: state System with a reason field) and an older reference capture of a system-state reply (weppos/whois-parser, before 2016), on the 2026 banner. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "fixture-system.se",
+  "suffix": "se",
+  "protocol": "whois",
+  "route": "whois.iis.se:43",
+  "query": "fixture-system.se",
+  "response": {
+    "text": "# Registry terms of use omitted from this fixture.\n#\nstate:            system\nreason:           SE Blocked, Example and test domains\ndomain:           fixture-system.se\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": "fixture-system.se",
+    "eligibility": "reserved"
+  }
+}

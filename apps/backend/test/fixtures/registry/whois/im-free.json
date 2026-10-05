@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from whoeasy test fixture whois.nic.im/nxdomain.txt (MIT, commit a8347b8011, captured 2026-03-16): reply kept verbatim except the queried name, replaced with a random 24-character label. The reply also carries a \"Domain Name:\" line. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
+  },
+  "domain": "zfauqjygynnitzkgtwfxkxrg.im",
+  "suffix": "im",
+  "protocol": "whois",
+  "route": "whois.nic.im:43",
+  "query": "zfauqjygynnitzkgtwfxkxrg.im",
+  "response": {
+    "text": "\r\nDomain Name:\tzfauqjygynnitzkgtwfxkxrg.im\r\nThe domain zfauqjygynnitzkgtwfxkxrg.im was not found.\r\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": "zfauqjygynnitzkgtwfxkxrg.im",
+    "eligibility": "unknown"
+  }
+}

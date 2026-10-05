@@ -1,6 +1,6 @@
 {
-  "description": "Curated registry WHOIS routes for TLDs without an RDAP service in the IANA bootstrap. A route is listed only when a registry-specific classifier exists for it. Hosts were checked against the IANA root zone database on the date shown.",
-  "updatedAt": "2026-10-05T13:30:00Z",
+  "description": "Curated registry WHOIS routes for suffixes without an RDAP service in the IANA bootstrap or curated-rdap.json. A route is listed only when a registry-specific classifier exists for it. Hosts were checked against the IANA root zone database (or the registry's own page for second-level registries) on the date shown; formatSources say where each classifier's reply patterns come from. withoutClassifier records researched suffixes that stay unsupported and why.",
+  "updatedAt": "2026-10-05T18:00:00Z",
   "routes": [
     {
       "tld": "de",
@@ -19,12 +19,16 @@
       "host": "whois.nic.io",
       "port": 43,
       "query": "{domain}",
-      "parser": "nic-io",
-      "registryId": "whois.nic.io",
+      "parser": "identity-digital",
+      "registryId": "identity-digital",
       "source": "https://www.iana.org/domains/root/db/io.html",
-      "verifiedAt": "2026-10-05T13:30:00Z",
+      "verifiedAt": "2026-10-05T18:00:00Z",
       "rateLimitCooldownSeconds": 300,
-      "notes": "Registry back end is operated by Identity Digital, which documents a 10 queries per second per IP limit with blacklisting but no throttle message text. Unrecognized replies are inconclusive."
+      "notes": "Identity Digital back end (shared with .sh, .vc and .me). Identity Digital documents a limit of 10 queries per second per IP on port 43 and HTTP with blacklisting, but no throttle message text. Unrecognized replies are inconclusive.",
+      "formatSources": [
+        "https://identity.digital/help-articles/whois-faq",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.nic.io (reference captures 2026-03-16)"
+      ]
     },
     {
       "tld": "jp",
@@ -61,16 +65,773 @@
       "verifiedAt": "2026-10-05T13:30:00Z",
       "rateLimitCooldownSeconds": 600,
       "notes": "Registered replies carry no Status line; free replies carry 'Status: AVAILABLE'. Other status values are inconclusive."
+    },
+    {
+      "tld": "be",
+      "host": "whois.dns.be",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "dns-belgium",
+      "registryId": "dns-belgium",
+      "source": "https://www.iana.org/domains/root/db/be.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 3600,
+      "publishedLimits": [
+        {
+          "queries": 100,
+          "windowSeconds": 3600,
+          "source": "https://docs.dnsbelgium.be/be/general/whoisanddas.html"
+        }
+      ],
+      "unservedSecondLevel": [
+        "ac.be"
+      ],
+      "formatSources": [
+        "https://docs.dnsbelgium.be/be/general/whoisanddas.html",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.dns.be (reference captures 2026-03-16)"
+      ],
+      "notes": "DNS Belgium allows 100 WHOIS queries per hour per IP (return code -2 above it, a one-hour block with -3 at twice the limit); Domain Scout stops at the published limit. NOT ALLOWED is reported as invalid. Registered replies may say NOT AVAILABLE or REGISTERED (both appear in the documentation)."
+    },
+    {
+      "tld": "se",
+      "host": "whois.iis.se",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "internetstiftelsen",
+      "registryId": "internetstiftelsen",
+      "source": "https://www.iana.org/domains/root/db/se.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "unservedSecondLevel": [
+        "*"
+      ],
+      "formatSources": [
+        "https://internetstiftelsen.se/app/uploads/2025/12/internetstiftelsen-service-description-whois-protocol.pdf",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.iis.se (reference captures 2026-03-16)"
+      ],
+      "notes": "Internetstiftelsen permits 1 search per second per IP and may block abusers until further notice; no throttle text is documented. State quarantine is reported as no record with restricted eligibility and state system (reserved or blocked) as no record with reserved eligibility. Legacy second-level zones (org.se, pp.se, county letters) are not routed because the registry does not document serving them on this host."
+    },
+    {
+      "tld": "dk",
+      "host": "whois.punktum.dk",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "punktum",
+      "registryId": "punktum",
+      "source": "https://www.iana.org/domains/root/db/dk.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "formatSources": [
+        "https://github.com/Punktum-dk/whois-service-specification (v6.3.1, 2026-07-22)",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.punktum.dk (reference captures 2026-03-16)"
+      ],
+      "notes": "Punktum dk allows 1 request per second per IP; exceeding it triggers a temporary ban with no documented reply text. The not-found text comes from a reference capture, not the specification. \"Offered to waiting list\" is reported as no record with restricted eligibility."
+    },
+    {
+      "tld": "pt",
+      "host": "whois.dns.pt",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "dns-pt",
+      "registryId": "dns-pt",
+      "source": "https://www.iana.org/domains/root/db/pt.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "formatSources": [
+        "https://www.pt.pt/en/data-protection/pt-whois-policy/",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.dns.pt (reference captures 2026-03-16)"
+      ],
+      "notes": "DNS.PT suspends IPs that query abusively (no number published since the July 2026 policy). Reply formats come from 2026 reference captures only."
+    },
+    {
+      "tld": "ie",
+      "host": "whois.weare.ie",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "weare-ie",
+      "registryId": "ie-domain-registry",
+      "source": "https://www.iana.org/domains/root/db/ie.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 3600,
+      "publishedLimits": [
+        {
+          "queries": 100,
+          "windowSeconds": 86400,
+          "source": "https://www.weare.ie/whois-services-policy-2023/"
+        }
+      ],
+      "unservedSecondLevel": [
+        "gov.ie"
+      ],
+      "formatSources": [
+        "https://www.weare.ie/whois-services-policy-2023/",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.weare.ie (reference captures 2026-03-16)"
+      ],
+      "notes": "IE Domain Registry allows 100 WHOIS queries per rolling 24 hours per IP and blocks above that without a documented reply; Domain Scout stops at the published limit. Reply formats come from 2026 reference captures only."
+    },
+    {
+      "tld": "nz",
+      "host": "whois.irs.net.nz",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "internetnz",
+      "registryId": "internetnz",
+      "source": "https://www.iana.org/domains/root/db/nz.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 60,
+      "formatSources": [
+        "https://web.archive.org/web/20250712072655/https://docs.internetnz.nz/registry/interfaces/whois/",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.irs.net.nz (reference captures 2026-03-16)"
+      ],
+      "notes": "InternetNZ restricts WHOIS to 10 queries per second per IP. Covers .nz and its second-level zones (co.nz, org.nz, ...). Reply formats come from 2026 reference captures; the registry documents limits and error codes but not reply text."
+    },
+    {
+      "tld": "mx",
+      "host": "whois.mx",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "nic-mexico",
+      "registryId": "nic-mexico",
+      "source": "https://www.iana.org/domains/root/db/mx.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "formatSources": [
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.mx (reference captures 2026-03-16)"
+      ],
+      "notes": "Covers .mx and its second-level zones (com.mx, org.mx, ...). NIC Mexico publishes no WHOIS limits or reply documentation; formats come from 2026 reference captures only."
+    },
+    {
+      "tld": "gg",
+      "host": "whois.gg",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "channel-isles",
+      "registryId": "channel-isles",
+      "source": "https://www.iana.org/domains/root/db/gg.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 600,
+      "formatSources": [
+        "https://www.channelisles.net/legal/whoisterms",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.gg (reference captures 2026-03-16)"
+      ],
+      "notes": "CIDR (Island Networks) WHOIS is free for private, non-commercial use and the operator may slow or stop excessive querying; no rate or throttle text is published. Names the registry does not operate or that cannot be registered also answer NOT FOUND."
+    },
+    {
+      "tld": "je",
+      "host": "whois.je",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "channel-isles",
+      "registryId": "channel-isles",
+      "source": "https://www.iana.org/domains/root/db/je.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 600,
+      "formatSources": [
+        "https://www.channelisles.net/legal/whoisterms",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.je (reference captures 2026-03-16)"
+      ],
+      "notes": "CIDR (Island Networks) WHOIS is free for private, non-commercial use and the operator may slow or stop excessive querying; no rate or throttle text is published. Names the registry does not operate or that cannot be registered also answer NOT FOUND."
+    },
+    {
+      "tld": "sh",
+      "host": "whois.nic.sh",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "identity-digital",
+      "registryId": "identity-digital",
+      "source": "https://www.iana.org/domains/root/db/sh.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "formatSources": [
+        "https://identity.digital/help-articles/whois-faq",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.nic.sh (reference captures 2026-03-16)",
+        "https://github.com/prodxpdev/titlesearch/tree/e87bb1a596/fixtures/whois (captured 2026-09-30)"
+      ],
+      "notes": "Identity Digital back end. Identity Digital documents 10 queries per second per IP with blacklisting but no throttle text. An Identity Digital RDAP endpoint for .sh is named only by third parties, so WHOIS stays the route."
+    },
+    {
+      "tld": "vc",
+      "host": "whois.identitydigital.services",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "identity-digital",
+      "registryId": "identity-digital",
+      "source": "https://www.iana.org/domains/root/db/vc.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "formatSources": [
+        "https://identity.digital/help-articles/whois-faq",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.identitydigital.services (reference captures 2026-03-16)"
+      ],
+      "notes": "Identity Digital back end. The not-found sample was captured from the same host for another TLD; no .vc-specific not-found capture exists. An Identity Digital RDAP endpoint for .vc is named only by third parties."
+    },
+    {
+      "tld": "me",
+      "host": "whois.nic.me",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "identity-digital",
+      "registryId": "identity-digital",
+      "source": "https://www.iana.org/domains/root/db/me.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "formatSources": [
+        "https://identity.digital/help-articles/whois-faq",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.nic.me (reference captures 2026-03-16)",
+        "https://github.com/prodxpdev/titlesearch/tree/e87bb1a596/fixtures/whois (captured 2026-09-30)"
+      ],
+      "notes": "Identity Digital back end. The not-found reply changed from \"NOT FOUND\" (2022) to \"Domain not found.\" (2026 captures). An Identity Digital RDAP endpoint for .me is named only by third parties."
+    },
+    {
+      "tld": "am",
+      "host": "whois.amnic.net",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "amnic",
+      "registryId": "amnic",
+      "source": "https://www.iana.org/domains/root/db/am.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "formatSources": [
+        "https://www.amnic.net/whois/usage.html",
+        "https://www.amnic.net/policy/en/Policy_EN.pdf",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.amnic.net (reference captures 2026-03-16)"
+      ],
+      "notes": "AM NIC logs and rate limits requests without publishing a number. Names renewed in the last 15 days of the post-expiry period are hidden from WHOIS (policy), so \"No match\" can hide a held name."
+    },
+    {
+      "tld": "ws",
+      "host": "whois.website.ws",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "website-ws",
+      "registryId": "website-ws",
+      "source": "https://www.iana.org/domains/root/db/ws.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "unservedSecondLevel": [
+        "*"
+      ],
+      "formatSources": [
+        "https://github.com/flipbit/whois/tree/5f24f6b754/tests/Whois.Tests/Samples/whois.website.ws (reference captures 2026-07-12)"
+      ],
+      "notes": "No published limits. The not-found text has changed several times since 2014; the classifier matches only the 2026 form, which echoes the queried name. An RDAP endpoint is named only by third parties. Second-level zones (com.ws, org.ws, ...) are not routed: serving them on this host is unverified."
+    },
+    {
+      "tld": "la",
+      "host": "whois.nic.la",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "centralnic",
+      "registryId": "centralnic",
+      "source": "https://www.iana.org/domains/root/db/la.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 900,
+      "formatSources": [
+        "https://whois.nic.la/",
+        "https://centralnicregistry.com/policies/whois-guidance",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.nic.la (reference captures 2026-03-16)"
+      ],
+      "notes": "CentralNic platform. Replies say access is rate limited; CentralNic's general guidance is 1,800 queries per 15 minutes per IPv4 /24 or IPv6 /48, which is assumed, not stated, to apply to .la."
+    },
+    {
+      "tld": "gl",
+      "host": "whois.nic.gl",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "centralnic",
+      "registryId": "centralnic",
+      "source": "https://www.iana.org/domains/root/db/gl.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 900,
+      "formatSources": [
+        "https://whois.nic.gl/rdap",
+        "https://centralnicregistry.com/policies/whois-guidance",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.nic.gl (reference captures 2026-03-16)"
+      ],
+      "notes": "CentralNic platform (1,800 queries per 15 minutes per IPv4 /24 or IPv6 /48). The registry says CentralNic also provides RDAP for .gl but publishes no base URL, so WHOIS stays the route."
+    },
+    {
+      "tld": "im",
+      "host": "whois.nic.im",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "nic-im",
+      "registryId": "nic-im",
+      "source": "https://www.iana.org/domains/root/db/im.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "formatSources": [
+        "https://www.nic.im/public/whois.mth",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.nic.im (reference captures 2026-03-16)"
+      ],
+      "notes": "No published limits. Not-found replies also carry a \"Domain Name:\" line, so only the registry's exact \"was not found\" sentence counts as no record."
+    },
+    {
+      "tld": "lu",
+      "host": "whois.dns.lu",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "dns-lu",
+      "registryId": "dns-lu",
+      "source": "https://www.iana.org/domains/root/db/lu.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 120,
+      "formatSources": [
+        "https://dns.lu/en/domains/apiprotocols",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.dns.lu (reference captures 2026-03-16 and 2026-03-18)"
+      ],
+      "notes": "DNS-LU limits queries per IP with a wait that doubles with each excess query (\"%% Maximum query rate reached\"). domaintype RESERVED is reported as no record with reserved eligibility."
+    },
+    {
+      "tld": "ee",
+      "host": "whois.tld.ee",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "eis",
+      "registryId": "eis",
+      "source": "https://www.iana.org/domains/root/db/ee.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 60,
+      "publishedLimits": [
+        {
+          "queries": 25,
+          "windowSeconds": 60,
+          "source": "https://docs.internet.ee/en/staging/debian_build_doc/"
+        }
+      ],
+      "formatSources": [
+        "https://github.com/internetee/whois/tree/1c657ad092 (registry server source: lib/whois_server.rb, app/views/whois_record)",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.tld.ee (reference captures 2026-03-16)",
+        "https://docs.internet.ee/en/staging/debian_build_doc/"
+      ],
+      "notes": "EIS throttles by refusing connections (its deployment documentation shows a firewall limit of 25 connections per 60 s per IP), which surfaces as a transport error; Domain Scout stays within that limit. An RDAP service is documented as pre-launch only."
+    },
+    {
+      "tld": "lv",
+      "host": "whois.nic.lv",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "nic-lv",
+      "registryId": "nic-lv",
+      "source": "https://www.iana.org/domains/root/db/lv.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "unservedSecondLevel": [
+        "gov.lv",
+        "mil.lv"
+      ],
+      "formatSources": [
+        "https://www.nic.lv/static/data/NIC_Whois_noteikumi_ENG.pdf",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.nic.lv (reference captures 2026-03-16)"
+      ],
+      "notes": "NIC.LV limits queries per IP without publishing a number. WHOIS data is refreshed four times a day, so a recent registration can still read \"free\". gov.lv and mil.lv are run under other institutions' rules."
+    },
+    {
+      "tld": "lt",
+      "host": "das.domreg.lt",
+      "port": 4343,
+      "query": "get 1.0 {domain}",
+      "parser": "domreg-das",
+      "registryId": "domreg",
+      "source": "https://www.iana.org/domains/root/db/lt.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 60,
+      "unservedSecondLevel": [
+        "*"
+      ],
+      "formatSources": [
+        "https://www.domreg.lt/en/faq/for-registrars/how-to-get-the-information-on-domains/"
+      ],
+      "notes": "Uses DOMREG's Domain Availability Service on port 4343, which the registry recommends for automated checks (up to several dozen queries per second), instead of port-43 WHOIS, which blocks an IP after 100 queries per 30 minutes. Reply format and statuses are from the registry page; fixture-tested only (port 4343 untested on the development network)."
+    },
+    {
+      "tld": "sk",
+      "host": "whois.sk-nic.sk",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "sk-nic",
+      "registryId": "sk-nic",
+      "source": "https://www.iana.org/domains/root/db/sk.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "unservedSecondLevel": [
+        "*"
+      ],
+      "formatSources": [
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.sk-nic.sk (reference captures 2026-03-16)"
+      ],
+      "notes": "SK-NIC publishes no WHOIS limits or reply documentation; formats come from 2026 reference captures only. org.sk is not routed: serving it on this host is unverified."
+    },
+    {
+      "tld": "hr",
+      "host": "whois.dns.hr",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "carnet",
+      "registryId": "carnet",
+      "source": "https://www.iana.org/domains/root/db/hr.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "formatSources": [
+        "https://domene.hr/en/portal/about/whois",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.dns.hr (reference captures 2026-03-16)"
+      ],
+      "notes": "CARNET limits queries per client internally without publishing a number or reply text. Covers .hr and com.hr."
+    },
+    {
+      "tld": "rs",
+      "host": "whois.rnids.rs",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "rnids",
+      "registryId": "rnids",
+      "source": "https://www.iana.org/domains/root/db/rs.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "unservedSecondLevel": [
+        "ac.rs",
+        "gov.rs"
+      ],
+      "formatSources": [
+        "https://www.rnids.rs/en/domain-name-status-codes",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.rnids.rs (reference captures 2026-03-16)"
+      ],
+      "notes": "RNIDS publishes no numeric limit and may remove access for abusers. Covers .rs and the RNIDS-registered second-level zones (co.rs, org.rs, edu.rs, in.rs); ac.rs and gov.rs are delegated elsewhere."
+    },
+    {
+      "tld": "bg",
+      "host": "whois.register.bg",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "register-bg",
+      "registryId": "register-bg",
+      "source": "https://www.iana.org/domains/root/db/bg.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "formatSources": [
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.register.bg (reference captures 2026-03-16)"
+      ],
+      "notes": "Register.BG publishes no WHOIS documentation or limits; formats come from 2026 reference captures only. Both free and registered replies start with \"DOMAIN NAME:\", so only the registration status line decides."
+    },
+    {
+      "tld": "hu",
+      "host": "whois.nic.hu",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "nic-hu",
+      "registryId": "nic-hu",
+      "source": "https://www.iana.org/domains/root/db/hu.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "formatSources": [
+        "https://www.domain.hu/tudastar/whois-kereses-domain-tulajdonos/",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.nic.hu (reference captures 2026-03-16)"
+      ],
+      "notes": "Port-43 replies carry only the name and creation date (no status or registrar). No published limits."
+    },
+    {
+      "tld": "us",
+      "host": "whois.nic.us",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "us-registry",
+      "registryId": "us-registry",
+      "source": "https://www.iana.org/domains/root/db/us.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "unservedSecondLevel": [
+        "*"
+      ],
+      "formatSources": [
+        "https://www.about.us/documents/policies/Registration_Data_Policy.pdf",
+        "https://github.com/prodxpdev/titlesearch/tree/e87bb1a596/fixtures/whois (captured 2026-09-30)",
+        "https://github.com/flipbit/whois/tree/5f24f6b754/tests/Whois.Tests/Samples/whois.nic.us (captured 2026-07-12)"
+      ],
+      "notes": "The registry notes that failure to locate a record is not indicative of availability. An RDAP endpoint is named only by third parties, so WHOIS stays the route. Locality zones (ny.us, k12.ny.us, ...) are managed by delegated managers and are not routed."
+    },
+    {
+      "tld": "it",
+      "host": "whois.nic.it",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "registro-it",
+      "registryId": "registro-it",
+      "source": "https://www.iana.org/domains/root/db/it.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "formatSources": [
+        "https://www.nic.it/sites/default/files/documenti/2024/Synchronous_Technical_Guidelines_v3.2_0.pdf",
+        "https://www.nic.it/sites/default/files/documenti/2022/Whois_policy_v_2_2_.pdf",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.nic.it (reference captures 2026-03-16)"
+      ],
+      "notes": "Registro .it documents the AVAILABLE and UNASSIGNABLE replies; UNASSIGNABLE (geographical or reserved names) is reported as no record with reserved eligibility. No numeric limit is published; a third-party report saw throttling (timeouts, empty replies) after about 10 back-to-back queries."
+    },
+    {
+      "tld": "at",
+      "host": "whois.nic.at",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "nic-at",
+      "registryId": "nic-at",
+      "source": "https://www.iana.org/domains/root/db/at.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "unservedSecondLevel": [
+        "gv.at"
+      ],
+      "formatSources": [
+        "https://www.nic.at/en/my-at-domain/domain-search/whois-policy",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.nic.at (reference captures 2026-03-16)"
+      ],
+      "notes": "nic.at offers single-domain queries free of charge and may deactivate access for misuse; no numeric limit or throttle text is published. Contact fields changed on 2026-10-01 (NISG 2026); the domain lines the classifier uses did not. gv.at is not routed: serving it on this host is unverified."
+    },
+    {
+      "tld": "hk",
+      "host": "whois.hkirc.hk",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "hkirc",
+      "registryId": "hkirc",
+      "source": "https://www.iana.org/domains/root/db/hk.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 10,
+      "publishedLimits": [
+        {
+          "queries": 1,
+          "windowSeconds": 10,
+          "source": "HKIRC throttle reply \"Please maintain at least 10-second time before starting another enquiry.\""
+        }
+      ],
+      "formatSources": [
+        "https://www.hkirc.hk/en/whois/",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.hkirc.hk (reference captures 2026-03-16)",
+        "https://github.com/mboot-github/WhoisDomain/blob/master/testdata/hkirc.hk/input (throttle reply, captured 2023-09-09)"
+      ],
+      "notes": "HKIRC may block IPs for excessive use; its throttle reply asks for at least 10 seconds between queries, so Domain Scout spaces .hk queries by 10 s. Covers .hk and com.hk, net.hk, org.hk, edu.hk, gov.hk and idv.hk, which the reply banner lists as the registry contents."
+    },
+    {
+      "tld": "ru",
+      "host": "whois.tcinet.ru",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "tci",
+      "registryId": "tci",
+      "source": "https://www.iana.org/domains/root/db/ru.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 3600,
+      "publishedLimits": [
+        {
+          "queries": 120,
+          "windowSeconds": 60,
+          "source": "https://tcinet.ru/documents/whois_ru_rf.pdf"
+        }
+      ],
+      "formatSources": [
+        "https://tcinet.ru/documents/whois_ru_rf.pdf (v1.0, 2022-09-12; read from the 2025-05-03 Wayback copy)",
+        "https://github.com/mboot-github/WhoisDomain/blob/master/testdata/tcinet.ru/input (captured 2023-09-09)",
+        "https://github.com/nmetluk/whois-watcher/blob/d717eb366ad6c6c0b865133e3ec1d75ca1d65c79/tests/unit/test_free_verification.py (not-found reply, captured 2026-06-04)"
+      ],
+      "notes": "TCI allows 120 queries per minute per IP and cuts access for an hour above that. A third-party project reported \"No entries found\" for a newly registered name for two days, so a fresh no record can lag new registrations. The .ru registry holds second-level names only; third-level zones such as com.ru are separate registries (private suffixes, already excluded)."
+    },
+    {
+      "tld": "tr",
+      "host": "whois.trabis.gov.tr",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "trabis",
+      "registryId": "trabis",
+      "source": "https://www.iana.org/domains/root/db/tr.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "formatSources": [
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.trabis.gov.tr (reference captures 2026-03-16)",
+        "https://www.trabis.gov.tr/FAQ/1"
+      ],
+      "notes": "TRABIS publishes no WHOIS limits or reply documentation; formats come from 2026 reference captures only. Covers direct .tr names and the TRABIS second-level zones (com.tr, org.tr, net.tr, ...)."
+    },
+    {
+      "tld": "il",
+      "host": "whois.isoc.org.il",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "isoc-il",
+      "registryId": "isoc-il",
+      "source": "https://www.iana.org/domains/root/db/il.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "unservedSecondLevel": [
+        "idf.il"
+      ],
+      "formatSources": [
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.isoc.org.il (reference captures 2026-03-16)",
+        "https://www.isoc.org.il/domain-name-registry/registry-updates/whois_policy_update_2026"
+      ],
+      "notes": "ISOC-IL changed which contact data WHOIS shows on 2026-09-01; the captures predate that, and the domain lines the classifier uses are expected to stay. Names are registered under co.il, org.il and the other ISOC-IL zones; idf.il is allocated elsewhere and not routed."
+    },
+    {
+      "tld": "ae",
+      "host": "whois.aeda.net.ae",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "aeda",
+      "registryId": "aeda",
+      "source": "https://www.iana.org/domains/root/db/ae.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 86400,
+      "publishedLimits": [
+        {
+          "queries": 20,
+          "windowSeconds": 3600,
+          "source": "https://whois.aeda.net.ae/"
+        },
+        {
+          "queries": 200,
+          "windowSeconds": 86400,
+          "source": "https://whois.aeda.net.ae/"
+        }
+      ],
+      "formatSources": [
+        "https://whois.aeda.net.ae/",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.aeda.net.ae (reference captures 2026-03-16)"
+      ],
+      "notes": ".aeDA allows 20 WHOIS queries per hour and 200 per day per IP and bans for 24 hours above that; Domain Scout stops at those limits. Port-43 records carry no dates. Covers .ae and co.ae, net.ae, org.ae and the other .aeDA zones."
+    },
+    {
+      "tld": "sa",
+      "host": "whois.nic.net.sa",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "saudinic",
+      "registryId": "saudinic",
+      "source": "https://www.iana.org/domains/root/db/sa.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "publishedLimits": [
+        {
+          "queries": 60,
+          "windowSeconds": 60,
+          "source": "Saudi NIC Registrar Operation Manual v0.5.0 (June 2020), section 6.2.4"
+        }
+      ],
+      "formatSources": [
+        "https://www.monshaat.gov.sa/sites/default/files/Registrar%20Operation%20Manual.pdf (Saudi NIC Registrar Operation Manual v0.5.0, June 2020, section 6.2.4)",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.nic.net.sa (reference captures 2026-03-16)"
+      ],
+      "notes": "SaudiNIC limits WHOIS to 60 requests per minute per IP and says the output format is not guaranteed to stay the same. Records carry no registrar, status or dates."
+    },
+    {
+      "tld": "so",
+      "host": "whois.nic.so",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "nic-so",
+      "registryId": "nic-so",
+      "source": "https://www.iana.org/domains/root/db/so.html",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "formatSources": [
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.nic.so (reference captures 2026-03-16)"
+      ],
+      "notes": "No published limits. Not-found replies also carry a \"Domain Name:\" line. An RDAP endpoint (rdap.nic.so) is used by the sonic.so website, but its link to the registry could not be confirmed from IANA, so WHOIS stays the route."
+    },
+    {
+      "tld": "co.za",
+      "host": "coza-whois.registry.net.za",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "zarc",
+      "registryId": "zarc",
+      "source": "https://zarc.web.za/whois/",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "formatSources": [
+        "https://zarc.web.za/whois/",
+        "https://zarc.web.za/whois-terms-and-conditions",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.registry.net.za (reference captures 2026-03-16)"
+      ],
+      "notes": "ZARC runs .co.za as its own registry (ZADNA delegates .za only at the second level). ZARC publishes no limits and forbids high-volume automated use that stresses the service. The reference capture came from whois.registry.net.za rather than coza-whois.registry.net.za; both are ZARC hosts."
+    },
+    {
+      "tld": "org.za",
+      "host": "org-whois.registry.net.za",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "zarc",
+      "registryId": "zarc",
+      "source": "https://zarc.web.za/whois/",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "formatSources": [
+        "https://zarc.web.za/whois/",
+        "https://zarc.web.za/whois-terms-and-conditions",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.registry.net.za (reference captures 2026-03-16)"
+      ],
+      "notes": "ZARC runs .org.za as its own registry (ZADNA delegates .za only at the second level). ZARC publishes no limits and forbids high-volume automated use that stresses the service. The reference capture came from whois.registry.net.za rather than org-whois.registry.net.za; both are ZARC hosts."
+    },
+    {
+      "tld": "net.za",
+      "host": "net-whois.registry.net.za",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "zarc",
+      "registryId": "zarc",
+      "source": "https://zarc.web.za/whois/",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "formatSources": [
+        "https://zarc.web.za/whois/",
+        "https://zarc.web.za/whois-terms-and-conditions",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.registry.net.za (reference captures 2026-03-16)"
+      ],
+      "notes": "ZARC runs .net.za as its own registry (ZADNA delegates .za only at the second level). ZARC publishes no limits and forbids high-volume automated use that stresses the service. The reference capture came from whois.registry.net.za rather than net-whois.registry.net.za; both are ZARC hosts."
+    },
+    {
+      "tld": "web.za",
+      "host": "web-whois.registry.net.za",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "zarc",
+      "registryId": "zarc",
+      "source": "https://zarc.web.za/whois/",
+      "verifiedAt": "2026-10-05T18:00:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "formatSources": [
+        "https://zarc.web.za/whois/",
+        "https://zarc.web.za/whois-terms-and-conditions",
+        "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.registry.net.za (reference captures 2026-03-16)"
+      ],
+      "notes": "ZARC runs .web.za as its own registry (ZADNA delegates .za only at the second level). ZARC publishes no limits and forbids high-volume automated use that stresses the service. The reference capture came from whois.registry.net.za rather than web-whois.registry.net.za; both are ZARC hosts."
     }
   ],
   "withoutClassifier": [
-    { "tld": "za", "host": null, "source": "https://www.iana.org/domains/root/db/za.html", "reason": "IANA lists neither RDAP nor WHOIS for .za; second-level zones such as co.za are run by separate registries that were not verified." },
-    { "tld": "co", "host": "whois.registry.co", "source": "https://www.iana.org/domains/root/db/co.html", "reason": "WHOIS host known from IANA; no registry-specific classifier or fixtures yet." },
-    { "tld": "me", "host": "whois.nic.me", "source": "https://www.iana.org/domains/root/db/me.html", "reason": "WHOIS host known from IANA; no registry-specific classifier or fixtures yet." },
-    { "tld": "us", "host": "whois.nic.us", "source": "https://www.iana.org/domains/root/db/us.html", "reason": "WHOIS host known from IANA; no registry-specific classifier or fixtures yet." },
-    { "tld": "ch", "host": "whois.nic.ch", "source": "https://www.iana.org/domains/root/db/ch.html", "reason": "WHOIS host known from IANA; no registry-specific classifier or fixtures yet." },
-    { "tld": "at", "host": "whois.nic.at", "source": "https://www.iana.org/domains/root/db/at.html", "reason": "WHOIS host known from IANA; no registry-specific classifier or fixtures yet." },
-    { "tld": "it", "host": "whois.nic.it", "source": "https://www.iana.org/domains/root/db/it.html", "reason": "WHOIS host known from IANA; no registry-specific classifier or fixtures yet." },
-    { "tld": "es", "host": "whois.nic.es", "source": "https://www.iana.org/domains/root/db/es.html", "reason": "WHOIS host known from IANA; no registry-specific classifier or fixtures yet." }
+    {
+      "tld": "za",
+      "host": null,
+      "source": "https://www.iana.org/domains/root/db/za.html",
+      "checkedAt": "2026-10-05T18:00:00Z",
+      "reason": "ZADNA runs no TLD-level registry service: IANA lists neither RDAP nor WHOIS for .za. co.za, org.za, net.za and web.za route to ZARC; other second-level zones (ac.za, gov.za, edu.za, law.za, ...) have no verified public machine-readable service."
+    },
+    {
+      "tld": "es",
+      "host": "whois.nic.es",
+      "source": "https://www.dominios.es/es/sobre-dominios/valores-anadidos/whois-43",
+      "checkedAt": "2026-10-05T18:00:00Z",
+      "reason": "Red.es serves port-43 WHOIS only to individually authorized IP addresses (one per person or organization, 10 queries per minute); its announced RDAP service has no published endpoint."
+    },
+    {
+      "tld": "gr",
+      "host": null,
+      "source": "https://grweb.ics.forth.gr/public/registrars?lang=en",
+      "checkedAt": "2026-10-05T18:00:00Z",
+      "reason": "ICS-FORTH publishes no port-43 WHOIS or RDAP service (IANA lists none). Its web lookup uses per-session tokens and its WHOIS API is limited to registrars on registered static IP addresses."
+    },
+    {
+      "tld": "ro",
+      "host": "whois.rotld.ro",
+      "source": "https://github.com/klkvsk/whoeasy/tree/a8347b8011/tests/Fixture/Whois/whois.rotld.ro (terms header in replies captured 2026-03-16)",
+      "checkedAt": "2026-10-05T18:00:00Z",
+      "reason": "ROTLD's WHOIS terms, printed in every reply, do not permit use for domain hunting or applying automated processes to ROTLD without its prior permission, so Domain Scout does not query it."
+    }
   ]
 }

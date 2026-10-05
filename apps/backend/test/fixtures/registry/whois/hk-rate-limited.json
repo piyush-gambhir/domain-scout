@@ -1,0 +1,24 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reference capture from WhoisDomain testdata/hkirc.hk/input (MIT, commit a89d4da170, captured 2023-09-09), with the whois client header lines removed. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
+  },
+  "domain": "hfffmyuresttfvpmqcicbxta.hk",
+  "suffix": "hk",
+  "protocol": "whois",
+  "route": "whois.hkirc.hk:43",
+  "query": "hfffmyuresttfvpmqcicbxta.hk",
+  "response": {
+    "text": "Please maintain at least 10-second time before starting another enquiry.\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "rate_limited",
+    "reasonCode": "rate_limited",
+    "matchedName": null,
+    "eligibility": "unknown",
+    "cooldownSeconds": 10
+  }
+}

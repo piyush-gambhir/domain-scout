@@ -48,6 +48,35 @@ const ELIGIBILITY_NOTES: Record<string, SuffixCoverage['eligibilityNotes']> = {
     },
   ],
   jp: [{ text: 'A JPRS state starting with "Reserved" is reported as reserved eligibility', source: 'JPRS WHOIS [State] field' }],
+  be: [{ text: 'DNS Belgium status "NOT ALLOWED" (not a valid domain name) is reported as invalid with restricted eligibility', source: 'https://docs.dnsbelgium.be/be/general/whoisanddas.html' }],
+  ch: [
+    {
+      text: 'SWITCH: a 404 "usually" means the name is not registered but not always that it can be registered; a 200 can also mean it cannot be registered at this time',
+      source: 'https://www.nic.ch/whois/rdap/',
+    },
+  ],
+  li: [
+    {
+      text: 'SWITCH: a 404 "usually" means the name is not registered but not always that it can be registered; a 200 can also mean it cannot be registered at this time',
+      source: 'https://www.nic.li/whois/rdap/',
+    },
+  ],
+  dk: [{ text: 'Status "Offered to waiting list" is reported as no record with restricted eligibility', source: 'https://github.com/Punktum-dk/whois-service-specification' }],
+  ee: [
+    {
+      text: 'Unregistered names with status Reserved are reported as reserved; Blocked, AtAuction, PendingRegistration and Disputed as restricted',
+      source: 'https://github.com/internetee/whois (app/models/whois_record.rb)',
+    },
+  ],
+  it: [{ text: 'Status UNASSIGNABLE (geographical or reserved names) is reported as no record with reserved eligibility', source: 'Registro .it Synchronous Technical Guidelines v3.2, section 16.4' }],
+  lt: [{ text: 'DOMREG DAS status "reserved" is reported as no record with reserved eligibility', source: 'https://www.domreg.lt/en/faq/for-registrars/how-to-get-the-information-on-domains/' }],
+  lu: [{ text: 'DNS-LU domaintype RESERVED is reported as no record with reserved eligibility', source: 'https://dns.lu/en/domains/apiprotocols' }],
+  se: [
+    {
+      text: 'Internetstiftelsen state "quarantine" is reported as no record with restricted eligibility and state "system" (reserved or blocked) as reserved',
+      source: 'https://internetstiftelsen.se/app/uploads/2025/12/internetstiftelsen-service-description-whois-protocol.pdf',
+    },
+  ],
 };
 
 /**
@@ -108,12 +137,20 @@ export class CoverageService extends CoverageReader implements OnModuleInit {
         const httpOnly = this.routes.httpOnlyEndpoints(tld);
         if (known) notes.push(known.reason);
         else if (httpOnly) notes.push(`The IANA bootstrap lists no usable https RDAP endpoint, only ${httpOnly.join(', ')}; plain-HTTP endpoints are not used.`);
-        else notes.push('No RDAP service in the IANA bootstrap and no verified WHOIS route with a registry-specific classifier.');
+        else notes.push('No RDAP service in the IANA bootstrap or curated registry list, and no verified WHOIS route with a registry-specific classifier.');
         notes.push('DNS and third-party aggregators are never used as a substitute.');
       } else {
-        if (suffix !== tld) notes.push(`Routed through the .${tld} registry.`);
+        if (route.tld !== suffix) notes.push(`Routed through the .${route.tld} registry.`);
+        if (route.curatedRdap) {
+          notes.push(`Registry-published RDAP service not listed in the IANA bootstrap; base URL from ${route.curatedRdap.source}.`);
+          if (route.curatedRdap.notes) notes.push(route.curatedRdap.notes);
+        }
         if (route.whois?.notes) notes.push(route.whois.notes);
         if (route.whois) notes.push(`WHOIS host verified against ${route.whois.source}.`);
+        const unserved = this.routes.unservedSecondLevel(suffix);
+        if (route.tld === suffix && unserved.length > 0) {
+          notes.push(unserved.includes('*') ? 'Second-level zones under this TLD are not routed.' : `Second-level zones not routed: ${unserved.map((zone) => `.${zone}`).join(', ')}.`);
+        }
         if (fixtureTested && !kinds.includes('captured_live')) notes.push('Fixtures are reconstructed from documentation and reference captures, not captured live by this project.');
         const skipped = notRun.get(suffix);
         if (skipped && !liveValidatedAt) notes.push(`Live validation not run: ${skipped.reason}`);
@@ -173,7 +210,7 @@ export class CoverageService extends CoverageReader implements OnModuleInit {
     const info = this.routes.bootstrapInfo();
     const counts = this.counts();
     const limits = [
-      'Bootstrap counts are not working-TLD counts. "discovered" means the IANA RDAP bootstrap or a curated WHOIS route names a registry endpoint; it does not show that the endpoint answers, classifies correctly or accepts registrations.',
+      'Bootstrap counts are not working-TLD counts. "discovered" means the IANA RDAP bootstrap, a registry-published RDAP service or a curated WHOIS route names a registry endpoint; it does not show that the endpoint answers, classifies correctly or accepts registrations.',
       '"tested" means classifier fixtures exist for the suffix and/or an authorized live validation passed against the current endpoint. Fixtures marked reconstructed are derived from documentation and reference captures.',
       'A missing registry record (no_record) does not guarantee that a name can be registered, nor its price. Eligibility is reported only when a source states it.',
       'Unsupported suffixes are never checked through DNS, registrars or third-party aggregators.',
@@ -181,7 +218,9 @@ export class CoverageService extends CoverageReader implements OnModuleInit {
       `Coverage rows cover the ${data.rootTlds.count} TLDs in the IANA root list version ${data.rootTlds.version} plus individually tested second-level suffixes; other second-level suffixes inherit routing from their TLD without their own validation.`,
     ];
     if (data.liveValidation.notRun.length > 0) {
-      limits.push(`Live validation was not run for: ${data.liveValidation.notRun.map((n) => `.${n.suffix} (${n.reason})`).join('; ')}.`);
+      const byReason = new Map<string, string[]>();
+      for (const entry of data.liveValidation.notRun) byReason.set(entry.reason, [...(byReason.get(entry.reason) ?? []), `.${entry.suffix}`]);
+      limits.push(`Live validation was not run for: ${[...byReason].map(([reason, suffixes]) => `${suffixes.join(', ')} (${reason})`).join('; ')}.`);
     }
     return {
       bootstrapPublishedAt: info.publishedAt,
@@ -232,6 +271,23 @@ export class CoverageService extends CoverageReader implements OnModuleInit {
       throw AppError.notFound(`Suffix ${input}`);
     }
     const base = toCoverage(tldRow);
+    if (base.status !== 'unsupported' && this.routes.route(suffix) === null) {
+      return {
+        ...base,
+        suffix,
+        status: 'unsupported',
+        protocol: null,
+        endpoint: null,
+        registryId: null,
+        routing: null,
+        routingUpdatedAt: null,
+        fixtureTested: false,
+        liveValidatedAt: null,
+        liveValidation: [],
+        eligibilityNotes: [],
+        notes: `No verified registry lookup: ${this.routes.unsupportedReason(suffix)}. DNS and third-party aggregators are never used as a substitute.`,
+      };
+    }
     return {
       ...base,
       suffix,

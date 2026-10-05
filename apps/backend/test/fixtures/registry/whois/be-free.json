@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from whoeasy test fixture whois.dns.be/nxdomain.txt (MIT, commit a8347b8011, captured 2026-03-16): reply kept verbatim except the queried name, replaced with a random 24-character label. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "irjmedrqacdwjrjxounswmha.be",
+  "suffix": "be",
+  "protocol": "whois",
+  "route": "whois.dns.be:43",
+  "query": "irjmedrqacdwjrjxounswmha.be",
+  "response": {
+    "text": "% .be Whois Server 6.1\r\n%\r\n% Registry terms of use omitted from this fixture.\r\n%\r\n% Registry terms of use omitted from this fixture.\r\n% DNS Belgium can take measures to limit the use of its whois services in order to\r\n%\r\n\r\nDomain:\tirjmedrqacdwjrjxounswmha.be\r\nStatus:\tAVAILABLE\r\n\r\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": "irjmedrqacdwjrjxounswmha.be",
+    "eligibility": "unknown"
+  }
+}

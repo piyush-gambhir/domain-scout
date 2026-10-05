@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from the official Punktum dk WHOIS specification v6.3.1 example for a name offered to a waiting list (https://github.com/Punktum-dk/whois-service-specification), with the reference capture banner. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "fixture-waiting-list.dk",
+  "suffix": "dk",
+  "protocol": "whois",
+  "route": "whois.punktum.dk:43",
+  "query": "fixture-waiting-list.dk",
+  "response": {
+    "text": "# Hello xx.xx.xx.xx. Your session has been logged.\n#\n# Registry terms of use omitted from this fixture.\n#\n# Version: 6.1.1\n#\n# Registry terms of use omitted from this fixture.\n\nDomain:               fixture-waiting-list.dk\nDNS:                  fixture-waiting-list.dk\nRegistered:           ***N/A***\nExpires:              ***N/A***\nRegistration period:  ***N/A***\nVID:                  ***N/A***\nDNSSEC:               ***N/A***\nStatus:               Offered to waiting list\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": "fixture-waiting-list.dk",
+    "eligibility": "restricted"
+  }
+}

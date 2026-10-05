@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from the official DOMREG DAS example (https://www.domreg.lt/en/faq/for-registrars/how-to-get-the-information-on-domains/), which shows exactly this reply for an available name, with the example name replaced. Not captured by this project. "
+  },
+  "domain": "jwgfzjgxlotpnqhtxbvzwufg.lt",
+  "suffix": "lt",
+  "protocol": "whois",
+  "route": "das.domreg.lt:4343",
+  "query": "get 1.0 jwgfzjgxlotpnqhtxbvzwufg.lt",
+  "response": {
+    "text": "% .lt registry DAS service\nDomain: jwgfzjgxlotpnqhtxbvzwufg.lt\nStatus: available\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": "jwgfzjgxlotpnqhtxbvzwufg.lt",
+    "eligibility": "unknown"
+  }
+}

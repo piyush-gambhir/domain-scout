@@ -1,0 +1,26 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from whoeasy test fixture whois.rnids.rs/pmnd.rs.txt (MIT, commit a8347b8011, captured 2026-03-16): layout, banner and wording kept; the name, registrar, nameservers and dates are synthetic and contact data is removed. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "fixture-registered.rs",
+  "suffix": "rs",
+  "protocol": "whois",
+  "route": "whois.rnids.rs:43",
+  "query": "fixture-registered.rs",
+  "response": {
+    "text": "\r\n% Registry terms of use omitted from this fixture.\r\n%\r\nDomain name: fixture-registered.rs\r\nDomain status: Active https://www.rnids.rs/en/domain-name-status-codes#Active\r\nRegistration date: 07.09.2020 10:06:53\r\nModification date: 04.02.2026 23:24:21\r\nExpiration date: 07.09.2027 10:06:53\r\nConfirmed: 13.10.2020 18:05:06\r\nRegistrar: Example Registrar\r\n\r\n\r\nRegistrant: Individual\r\n\r\n\r\nDNS: ns1.example-dns.test - \r\nDNS: ns2.example-dns.test - \r\n\r\n\r\nDNSSEC signed: no\r\n\r\nWhois Timestamp: 16.03.2026 17:20:26\r\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.rs",
+    "eligibility": "unknown",
+    "registrar": "Example Registrar",
+    "expiresAt": "2027-09-07T00:00:00.000Z",
+    "dnssec": false
+  }
+}

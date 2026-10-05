@@ -1,0 +1,26 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from whoeasy test fixture whois.registry.net.za/travelstart.co.za.txt (MIT, commit a8347b8011, captured 2026-03-16), taken from whois.registry.net.za rather than the documented coza-whois.registry.net.za: layout, banner and wording kept; the name, registrar, nameservers and dates are synthetic and contact data is removed. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "fixture-registered.co.za",
+  "suffix": "co.za",
+  "protocol": "whois",
+  "route": "coza-whois.registry.net.za:43",
+  "query": "fixture-registered.co.za",
+  "response": {
+    "text": "Domain Name: fixture-registered.co.za\nRegistry Domain ID: 0zz00_DOMAIN-CO.ZA\nRegistrar WHOIS Server: \nRegistrar URL: https://registrar.example.test/\nUpdated Date: 2026-02-07T06:10:39Z\nCreation Date: 2004-02-11T14:28:49Z\nRegistry Expiry Date: 2027-02-11T14:28:49Z\nRegistrar Registration Expiration Date: 2027-02-11T14:28:49Z\nRegistrar: Example Registrar\nRegistrar IANA ID: 9999\nReseller: \nDomain Status: ok https://icann.org/epp#ok\nName Server: ns1.example-dns.test\nName Server: ns2.example-dns.test\nDNSSEC: unsigned\nURL of the ICANN Whois Inaccuracy Complaint Form: https://www.icann.org/wicf/\n>>> Last update of WHOIS database: 2026-03-17T00:07:07Z <<<\n\nFor more information on Whois status codes, please visit https://icann.org/epp\n\n# --\n\n# For more information on Whois status codes, please visit https://icann.org/epp\n\n# Registry terms of use omitted from this fixture.\n\r\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.co.za",
+    "eligibility": "unknown",
+    "registrar": "Example Registrar",
+    "expiresAt": "2027-02-11T14:28:49.000Z",
+    "dnssec": false
+  }
+}
