@@ -15,7 +15,7 @@
     "build": "tsc -p tsconfig.build.json",
     "generate": "tsc -p tsconfig.build.json && node scripts/emit-openapi.mjs",
     "typecheck": "tsc --noEmit",
-    "lint": "node scripts/emit-openapi.mjs --check",
+    "lint": "tsc -p tsconfig.build.json && node scripts/emit-openapi.mjs --check",
     "test": "vitest run",
     "clean": "rm -rf dist"
   },
