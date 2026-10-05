@@ -224,6 +224,7 @@ export const ResultFilter = z
     priceCurrency: CurrencyCode.optional(),
     maxLength: z.number().int().min(1).max(63).optional(),
     collectionId: Uuid.optional(),
+    inCollection: z.boolean().optional().meta({ description: 'Only items in (true) or not in (false) any shortlist' }),
     sort: ResultSort.default('input'),
     order: z.enum(['asc', 'desc']).default('asc'),
   })
@@ -243,6 +244,7 @@ export const ResultQuery = z.object({
   priceCurrency: z.string().optional(),
   maxLength: z.coerce.number().int().optional(),
   collectionId: z.string().optional(),
+  inCollection: z.enum(['true', 'false']).optional(),
   sort: ResultSort.optional(),
   order: z.enum(['asc', 'desc']).optional(),
   cursor: z.string().optional(),
@@ -265,6 +267,7 @@ export function resultFilterFromQuery(query: z.output<typeof ResultQuery>): Resu
     priceCurrency: query.priceCurrency,
     maxLength: query.maxLength,
     collectionId: query.collectionId,
+    inCollection: query.inCollection === undefined ? undefined : query.inCollection === 'true',
     sort: query.sort,
     order: query.order,
   });

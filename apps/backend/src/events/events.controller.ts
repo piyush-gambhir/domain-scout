@@ -18,7 +18,9 @@ export const DEFAULT_SSE_OPTIONS: SseOptions = { heartbeatMs: 15_000, batchSize:
 
 /** One SSE message. JSON.stringify never emits raw newlines, so `data:` stays one line. */
 export function formatSse(event: DomainEvent): string {
-  return `id: ${event.eventId}\nevent: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`;
+  // An `id: 0` line would reset the browser's Last-Event-ID, so a cursor of 0 is never sent.
+  const id = event.eventId && event.eventId !== '0' ? `id: ${event.eventId}\n` : '';
+  return `${id}event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`;
 }
 
 /**

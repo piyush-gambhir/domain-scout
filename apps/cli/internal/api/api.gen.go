@@ -2020,6 +2020,24 @@ func (e ListJobResultsParamsResolved) Valid() bool {
 	}
 }
 
+// Defines values for ListJobResultsParamsInCollection.
+const (
+	ListJobResultsParamsInCollectionFalse ListJobResultsParamsInCollection = "false"
+	ListJobResultsParamsInCollectionTrue  ListJobResultsParamsInCollection = "true"
+)
+
+// Valid indicates whether the value is a known member of the ListJobResultsParamsInCollection enum.
+func (e ListJobResultsParamsInCollection) Valid() bool {
+	switch e {
+	case ListJobResultsParamsInCollectionFalse:
+		return true
+	case ListJobResultsParamsInCollectionTrue:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ListJobResultsParamsOrder.
 const (
 	ListJobResultsParamsOrderAsc  ListJobResultsParamsOrder = "asc"
@@ -3763,10 +3781,13 @@ type Promotion struct {
 
 // Provider defines model for Provider.
 type Provider struct {
-	AccountRequirements []string             `json:"accountRequirements"`
-	Capabilities        ProviderCapabilities `json:"capabilities"`
-	Catalog             *CatalogState        `json:"catalog"`
-	CredentialFields    []CredentialField    `json:"credentialFields"`
+	AccountRequirements []string `json:"accountRequirements"`
+
+	// ApiHosts Hosts that receive domain names during exact checks, quotes, transfers or aftermarket lookups
+	ApiHosts         []string             `json:"apiHosts"`
+	Capabilities     ProviderCapabilities `json:"capabilities"`
+	Catalog          *CatalogState        `json:"catalog"`
+	CredentialFields []CredentialField    `json:"credentialFields"`
 
 	// Credentials Never contains secret values
 	Credentials CredentialState `json:"credentials"`
@@ -3997,11 +4018,14 @@ type Resolver string
 type ResultFilter struct {
 	CollectionId  *Uuid                 `json:"collectionId,omitempty"`
 	Confirmations *[]ConfirmationStatus `json:"confirmations,omitempty"`
-	MaxLength     *int                  `json:"maxLength,omitempty"`
-	MaxPrice      *DecimalString        `json:"maxPrice,omitempty"`
-	Order         ResultFilterOrder     `json:"order"`
-	Outcomes      *[]string             `json:"outcomes,omitempty"`
-	PriceCurrency *CurrencyCode         `json:"priceCurrency,omitempty"`
+
+	// InCollection Only items in (true) or not in (false) any shortlist
+	InCollection  *bool             `json:"inCollection,omitempty"`
+	MaxLength     *int              `json:"maxLength,omitempty"`
+	MaxPrice      *DecimalString    `json:"maxPrice,omitempty"`
+	Order         ResultFilterOrder `json:"order"`
+	Outcomes      *[]string         `json:"outcomes,omitempty"`
+	PriceCurrency *CurrencyCode     `json:"priceCurrency,omitempty"`
 
 	// Q Substring match on the domain or name
 	Q        *string      `json:"q,omitempty"`
@@ -4016,8 +4040,11 @@ type ResultFilterOrder string
 
 // ResultFilterInput defines model for ResultFilterInput.
 type ResultFilterInput struct {
-	CollectionId  *Uuid                   `json:"collectionId,omitempty"`
-	Confirmations *[]ConfirmationStatus   `json:"confirmations,omitempty"`
+	CollectionId  *Uuid                 `json:"collectionId,omitempty"`
+	Confirmations *[]ConfirmationStatus `json:"confirmations,omitempty"`
+
+	// InCollection Only items in (true) or not in (false) any shortlist
+	InCollection  *bool                   `json:"inCollection,omitempty"`
 	MaxLength     *int                    `json:"maxLength,omitempty"`
 	MaxPrice      *DecimalString          `json:"maxPrice,omitempty"`
 	Order         *ResultFilterInputOrder `json:"order,omitempty"`
@@ -4779,24 +4806,28 @@ type CreateJobParams struct {
 
 // ListJobResultsParams defines parameters for ListJobResults.
 type ListJobResultsParams struct {
-	Q             *string                       `form:"q,omitempty" json:"q,omitempty"`
-	Outcomes      *string                       `form:"outcomes,omitempty" json:"outcomes,omitempty"`
-	Suffixes      *string                       `form:"suffixes,omitempty" json:"suffixes,omitempty"`
-	States        *string                       `form:"states,omitempty" json:"states,omitempty"`
-	Resolved      *ListJobResultsParamsResolved `form:"resolved,omitempty" json:"resolved,omitempty"`
-	Confirmations *string                       `form:"confirmations,omitempty" json:"confirmations,omitempty"`
-	MaxPrice      *string                       `form:"maxPrice,omitempty" json:"maxPrice,omitempty"`
-	PriceCurrency *string                       `form:"priceCurrency,omitempty" json:"priceCurrency,omitempty"`
-	MaxLength     *int                          `form:"maxLength,omitempty" json:"maxLength,omitempty"`
-	CollectionId  *string                       `form:"collectionId,omitempty" json:"collectionId,omitempty"`
-	Sort          *ResultSort                   `form:"sort,omitempty" json:"sort,omitempty"`
-	Order         *ListJobResultsParamsOrder    `form:"order,omitempty" json:"order,omitempty"`
-	Cursor        *string                       `form:"cursor,omitempty" json:"cursor,omitempty"`
-	Limit         *int                          `form:"limit,omitempty" json:"limit,omitempty"`
+	Q             *string                           `form:"q,omitempty" json:"q,omitempty"`
+	Outcomes      *string                           `form:"outcomes,omitempty" json:"outcomes,omitempty"`
+	Suffixes      *string                           `form:"suffixes,omitempty" json:"suffixes,omitempty"`
+	States        *string                           `form:"states,omitempty" json:"states,omitempty"`
+	Resolved      *ListJobResultsParamsResolved     `form:"resolved,omitempty" json:"resolved,omitempty"`
+	Confirmations *string                           `form:"confirmations,omitempty" json:"confirmations,omitempty"`
+	MaxPrice      *string                           `form:"maxPrice,omitempty" json:"maxPrice,omitempty"`
+	PriceCurrency *string                           `form:"priceCurrency,omitempty" json:"priceCurrency,omitempty"`
+	MaxLength     *int                              `form:"maxLength,omitempty" json:"maxLength,omitempty"`
+	CollectionId  *string                           `form:"collectionId,omitempty" json:"collectionId,omitempty"`
+	InCollection  *ListJobResultsParamsInCollection `form:"inCollection,omitempty" json:"inCollection,omitempty"`
+	Sort          *ResultSort                       `form:"sort,omitempty" json:"sort,omitempty"`
+	Order         *ListJobResultsParamsOrder        `form:"order,omitempty" json:"order,omitempty"`
+	Cursor        *string                           `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit         *int                              `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
 // ListJobResultsParamsResolved defines parameters for ListJobResults.
 type ListJobResultsParamsResolved string
+
+// ListJobResultsParamsInCollection defines parameters for ListJobResults.
+type ListJobResultsParamsInCollection string
 
 // ListJobResultsParamsOrder defines parameters for ListJobResults.
 type ListJobResultsParamsOrder string
@@ -11315,6 +11346,18 @@ func NewListJobResultsRequest(server string, id Uuid, params *ListJobResultsPara
 		if params.CollectionId != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "collectionId", *params.CollectionId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.InCollection != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "inCollection", *params.InCollection, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else {
 				for _, qp := range strings.Split(queryFrag, "&") {

@@ -1166,6 +1166,18 @@
             }
           },
           {
+            "name": "inCollection",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          },
+          {
             "name": "sort",
             "in": "query",
             "required": false,
@@ -9688,6 +9700,13 @@
               }
             ]
           },
+          "apiHosts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Hosts that receive domain names during exact checks, quotes, transfers or aftermarket lookups"
+          },
           "accountRequirements": {
             "type": "array",
             "items": {
@@ -9714,6 +9733,7 @@
           "readiness",
           "catalog",
           "purchaseLink",
+          "apiHosts",
           "accountRequirements",
           "rateLimits"
         ]
@@ -12725,6 +12745,10 @@
               }
             ]
           },
+          "inCollection": {
+            "description": "Only items in (true) or not in (false) any shortlist",
+            "type": "boolean"
+          },
           "sort": {
             "default": "input",
             "allOf": [
@@ -12807,6 +12831,10 @@
                 "$ref": "#/components/schemas/Uuid"
               }
             ]
+          },
+          "inCollection": {
+            "description": "Only items in (true) or not in (false) any shortlist",
+            "type": "boolean"
           },
           "sort": {
             "default": "input",

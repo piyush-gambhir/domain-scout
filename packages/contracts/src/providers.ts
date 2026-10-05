@@ -129,6 +129,9 @@ export const Provider = z
     readiness: ProviderReadiness,
     catalog: CatalogState.nullable(),
     purchaseLink: PurchaseLinkInfo.nullable(),
+    apiHosts: z
+      .array(z.string())
+      .meta({ description: 'Hosts that receive domain names during exact checks, quotes, transfers or aftermarket lookups' }),
     accountRequirements: z.array(z.string()),
     rateLimits: z.string().nullable(),
   })
