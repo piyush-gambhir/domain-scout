@@ -1,0 +1,236 @@
+{
+  "description": "Classifier fixtures under apps/backend/test/fixtures/registry. A suffix listed here counts as fixture-tested in coverage; test/registry/fixtures.spec.ts checks that every entry exists and classifies as expected. Protocol-behavior fixtures have suffix null.",
+  "fixtures": [
+    {
+      "file": "rdap/com-example-registered.json",
+      "suffix": "com",
+      "protocol": "rdap",
+      "kind": "captured_live",
+      "expected": "registered"
+    },
+    {
+      "file": "rdap/com-google-registered.json",
+      "suffix": "com",
+      "protocol": "rdap",
+      "kind": "captured_live",
+      "expected": "registered"
+    },
+    {
+      "file": "rdap/com-gibberish-not-found.json",
+      "suffix": "com",
+      "protocol": "rdap",
+      "kind": "captured_live",
+      "expected": "no_record"
+    },
+    {
+      "file": "rdap/si-nic-registered.json",
+      "suffix": "si",
+      "protocol": "rdap",
+      "kind": "captured_live",
+      "expected": "registered"
+    },
+    {
+      "file": "rdap/si-gibberish-not-found.json",
+      "suffix": "si",
+      "protocol": "rdap",
+      "kind": "captured_live",
+      "expected": "no_record"
+    },
+    {
+      "file": "rdap/co-uk-bbc-registered.json",
+      "suffix": "co.uk",
+      "protocol": "rdap",
+      "kind": "captured_live",
+      "expected": "registered"
+    },
+    {
+      "file": "rdap/co-uk-gibberish-not-found.json",
+      "suffix": "co.uk",
+      "protocol": "rdap",
+      "kind": "captured_live",
+      "expected": "no_record"
+    },
+    {
+      "file": "rdap/uk-gibberish-not-found.json",
+      "suffix": "uk",
+      "protocol": "rdap",
+      "kind": "captured_live",
+      "expected": "no_record"
+    },
+    {
+      "file": "rdap/dev-gibberish-not-found.json",
+      "suffix": "dev",
+      "protocol": "rdap",
+      "kind": "captured_live",
+      "expected": "no_record"
+    },
+    {
+      "file": "rdap/com-idn-registered.json",
+      "suffix": "com",
+      "protocol": "rdap",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "rdap/com-identity-mismatch.json",
+      "suffix": null,
+      "protocol": "rdap",
+      "kind": "reconstructed",
+      "expected": "inconclusive"
+    },
+    {
+      "file": "rdap/com-rate-limited-429-seconds.json",
+      "suffix": null,
+      "protocol": "rdap",
+      "kind": "reconstructed",
+      "expected": "rate_limited"
+    },
+    {
+      "file": "rdap/si-rate-limited-429-date.json",
+      "suffix": null,
+      "protocol": "rdap",
+      "kind": "reconstructed",
+      "expected": "rate_limited"
+    },
+    {
+      "file": "rdap/si-html-404.json",
+      "suffix": null,
+      "protocol": "rdap",
+      "kind": "reconstructed",
+      "expected": "inconclusive"
+    },
+    {
+      "file": "whois/de-registered.json",
+      "suffix": "de",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/de-free.json",
+      "suffix": "de",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/de-failed-registered.json",
+      "suffix": "de",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/de-invalid.json",
+      "suffix": "de",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "invalid"
+    },
+    {
+      "file": "whois/de-idn-registered.json",
+      "suffix": "de",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/de-rate-limited.json",
+      "suffix": "de",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "rate_limited"
+    },
+    {
+      "file": "whois/de-truncated.json",
+      "suffix": "de",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "inconclusive"
+    },
+    {
+      "file": "whois/de-truncated-transport.json",
+      "suffix": "de",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "inconclusive"
+    },
+    {
+      "file": "whois/io-free.json",
+      "suffix": "io",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/io-registered.json",
+      "suffix": "io",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/jp-free.json",
+      "suffix": "jp",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/jp-registered.json",
+      "suffix": "jp",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/jp-rate-limited.json",
+      "suffix": "jp",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "rate_limited"
+    },
+    {
+      "file": "whois/cn-free.json",
+      "suffix": "cn",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/cn-registered.json",
+      "suffix": "cn",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/cn-rate-limited.json",
+      "suffix": "cn",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "rate_limited"
+    },
+    {
+      "file": "whois/eu-free.json",
+      "suffix": "eu",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "no_record"
+    },
+    {
+      "file": "whois/eu-registered.json",
+      "suffix": "eu",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "registered"
+    },
+    {
+      "file": "whois/eu-rate-limited.json",
+      "suffix": "eu",
+      "protocol": "whois",
+      "kind": "reconstructed",
+      "expected": "rate_limited"
+    }
+  ]
+}

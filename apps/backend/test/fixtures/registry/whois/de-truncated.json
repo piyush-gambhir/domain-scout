@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed: a DENIC reply cut off before the Status line (connection dropped). Without a status the reply proves nothing."
+  },
+  "domain": "xuyyywhvrkbhteqkpwsucwkn.de",
+  "suffix": "de",
+  "protocol": "whois",
+  "route": "whois.denic.de:43",
+  "query": "-T dn,ace xuyyywhvrkbhteqkpwsucwkn.de",
+  "response": {
+    "text": "Domain: xuyyywhvrkbhteqkpwsucwkn.de\nNserver: ns1.exa",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "inconclusive",
+    "reasonCode": "unrecognized_response",
+    "matchedName": null,
+    "eligibility": "unknown"
+  }
+}

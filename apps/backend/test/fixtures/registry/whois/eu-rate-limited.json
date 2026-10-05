@@ -1,0 +1,24 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from community reports of the EURid/DNS Belgium throttle text (\"Excessive querying, grace period of N seconds\"; webhostingtalk.nl, about 2008). Current wording unverified."
+  },
+  "domain": "wznhkqrtvmfyxbcpdlgjasoe.eu",
+  "suffix": "eu",
+  "protocol": "whois",
+  "route": "whois.eu:43",
+  "query": "wznhkqrtvmfyxbcpdlgjasoe.eu",
+  "response": {
+    "text": "%  Excessive querying, grace period of 1800 seconds.\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "rate_limited",
+    "reasonCode": "rate_limited",
+    "matchedName": null,
+    "eligibility": "unknown",
+    "cooldownSeconds": 1800
+  }
+}

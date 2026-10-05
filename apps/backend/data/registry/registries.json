@@ -1,0 +1,62 @@
+{
+  "description": "Registry operators whose RDAP and WHOIS hosts share one rate-limit budget (registryId). Hosts not listed here use the host name itself as registryId, so endpoints on one host always share a budget.",
+  "updatedAt": "2026-10-05T13:30:00Z",
+  "registries": [
+    {
+      "id": "verisign",
+      "name": "Verisign",
+      "rdapHosts": ["rdap.verisign.com", "tld-rdap.verisign.com"],
+      "whoisHosts": ["whois.verisign-grs.com"],
+      "source": "IANA RDAP bootstrap 2026-09-30 (com, net, cc, name and others) and IANA root zone database entries for com and net"
+    },
+    {
+      "id": "nominet",
+      "name": "Nominet",
+      "rdapHosts": ["rdap.nominet.uk"],
+      "whoisHosts": ["whois.nic.uk"],
+      "source": "IANA RDAP bootstrap 2026-09-30 and IANA root zone database entry for uk"
+    },
+    {
+      "id": "register-si",
+      "name": "Register.si (Arnes)",
+      "rdapHosts": ["rdap.register.si"],
+      "whoisHosts": ["whois.register.si"],
+      "source": "IANA RDAP bootstrap 2026-09-30 and IANA root zone database entry for si"
+    },
+    {
+      "id": "google-registry",
+      "name": "Charleston Road Registry (Google)",
+      "rdapHosts": ["pubapi.registry.google"],
+      "whoisHosts": ["whois.nic.google"],
+      "source": "IANA RDAP bootstrap 2026-09-30 (46 TLDs including app and dev)"
+    },
+    {
+      "id": "denic",
+      "name": "DENIC",
+      "rdapHosts": ["rdap.denic.de"],
+      "whoisHosts": ["whois.denic.de"],
+      "source": "IANA root zone database entry for de; DENIC RDAP service page https://www.denic.de/en/services/whois-service/rdap-service/"
+    },
+    {
+      "id": "jprs",
+      "name": "Japan Registry Services",
+      "rdapHosts": ["rdap.nic.jprs"],
+      "whoisHosts": ["whois.jprs.jp"],
+      "source": "IANA RDAP bootstrap 2026-09-30 (jprs) and IANA root zone database entry for jp"
+    },
+    {
+      "id": "cnnic",
+      "name": "CNNIC",
+      "rdapHosts": [],
+      "whoisHosts": ["whois.cnnic.cn"],
+      "source": "IANA root zone database entry for cn"
+    },
+    {
+      "id": "eurid",
+      "name": "EURid",
+      "rdapHosts": [],
+      "whoisHosts": ["whois.eu"],
+      "source": "IANA root zone database entry for eu"
+    }
+  ]
+}

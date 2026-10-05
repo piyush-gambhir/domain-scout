@@ -1,0 +1,26 @@
+{
+  "provenance": {
+    "kind": "captured_live",
+    "capturedAt": "2026-10-05T13:36:02.082Z",
+    "request": "GET https://rdap.register.si/domain/nuuicitwazczmsydxikmipdy.si",
+    "notes": "Captured live from the fixed authorized test set; body unmodified, response headers reduced to content-type."
+  },
+  "domain": "nuuicitwazczmsydxikmipdy.si",
+  "suffix": "si",
+  "protocol": "rdap",
+  "route": "https://rdap.register.si/",
+  "response": {
+    "status": 404,
+    "headers": {
+      "content-type": "application/rdap+JSON"
+    },
+    "body": "{\"errorCode\":404,\"title\":\"Domain 'nuuicitwazczmsydxikmipdy.si' not found\"}",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": null,
+    "eligibility": "unknown"
+  }
+}

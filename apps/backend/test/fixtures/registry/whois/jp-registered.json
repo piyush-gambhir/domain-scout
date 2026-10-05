@@ -1,0 +1,24 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from JPRS documentation (https://jprs.jp/about/dom-search/jprs-whois/) and the whois.jprs.jp captures in likexian/whois-parser testdata (Apache-2.0, revision 2426ff1). Not captured by this project: outbound TCP port 43 was blocked on the validation network on 2026-10-05. Synthetic name and values. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "fixture-registered.jp",
+  "suffix": "jp",
+  "protocol": "whois",
+  "route": "whois.jprs.jp:43",
+  "query": "fixture-registered.jp/e",
+  "response": {
+    "text": "[ Registry terms of use omitted from this fixture. ]\n\nDomain Information:\n[Domain Name]                   FIXTURE-REGISTERED.JP\n\n[Registrant]                    Example Organization\n\n[Name Server]                   ns1.example-dns.test\n[Name Server]                   ns2.example-dns.test\n[Signing Key]                   \n\n[Created on]                    2015/05/30\n[Expires on]                    2027/05/31\n[Status]                        Active\n[Last Updated]                  2026/06/01 01:05:09 (JST)\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.jp",
+    "eligibility": "unknown",
+    "expiresAt": "2027-05-30T15:00:00.000Z"
+  }
+}

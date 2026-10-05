@@ -1,0 +1,24 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from the DENIC throttle text quoted by the weppos/whois-parser WhoisDenicDe parser documentation and DENIC FAQ reports. Not captured by this project."
+  },
+  "domain": "xuyyywhvrkbhteqkpwsucwkn.de",
+  "suffix": "de",
+  "protocol": "whois",
+  "route": "whois.denic.de:43",
+  "query": "-T dn,ace xuyyywhvrkbhteqkpwsucwkn.de",
+  "response": {
+    "text": "% Error: 55000000002 Connection refused; access control limit reached.\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "rate_limited",
+    "reasonCode": "rate_limited",
+    "matchedName": null,
+    "eligibility": "unknown",
+    "cooldownSeconds": 120
+  }
+}

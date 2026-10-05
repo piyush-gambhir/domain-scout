@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from DENIC documentation (status values and sample names at https://docs.denic.de/en/Content/DENIC-29/Domain-Status.htm, -T dn,ace output lines) and the whois.denic.de capture in likexian/whois-parser testdata (Apache-2.0, revision 2426ff1). Not captured by this project: outbound TCP port 43 was blocked on the validation network on 2026-10-05."
+  },
+  "domain": "denic-connect-example.de",
+  "suffix": "de",
+  "protocol": "whois",
+  "route": "whois.denic.de:43",
+  "query": "-T dn,ace denic-connect-example.de",
+  "response": {
+    "text": "Domain: denic-connect-example.de\nNserver: ns1.denic.de\nNserver: ns2.denic.de\nNserver: ns3.denic.de\nNserver: ns4.denic.net\nStatus: connect\nChanged: 2024-02-13T08:46:01+01:00\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "denic-connect-example.de",
+    "eligibility": "unknown"
+  }
+}

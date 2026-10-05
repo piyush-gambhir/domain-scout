@@ -1,5 +1,6 @@
 import type {
   CreateJobRequestParsed,
+  ExtensionPreset,
   InputPreview,
   InputSourceParsed,
   Job,
@@ -20,6 +21,8 @@ export abstract class InputPreviewer {
   abstract preview(source: InputSourceParsed): InputPreview;
   /** Normalize one complete domain; null when invalid or not a registrable domain. */
   abstract normalize(domain: string): NormalizedDomain | null;
+  /** Built-in extension presets bundled with the backend. */
+  abstract presets(): ExtensionPreset[];
 }
 
 /** Internal job request for a monitoring run; not part of the public CreateJobRequest. */

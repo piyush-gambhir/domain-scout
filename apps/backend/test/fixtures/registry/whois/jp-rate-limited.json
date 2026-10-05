@@ -1,0 +1,24 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from the access-restriction message documented at https://jprs.jp/about/dom-search/jprs-whois/whois-guide-notes.html (checked 2026-10-05). Not captured."
+  },
+  "domain": "qhpzmbxkvtrwdlnafcyeogsu.jp",
+  "suffix": "jp",
+  "protocol": "whois",
+  "route": "whois.jprs.jp:43",
+  "query": "qhpzmbxkvtrwdlnafcyeogsu.jp/e",
+  "response": {
+    "text": "Cannot process your search request.\nService currently unavailable due to incoming of a large amount of requests.\nPlease try again later.\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "rate_limited",
+    "reasonCode": "rate_limited",
+    "matchedName": null,
+    "eligibility": "unknown",
+    "cooldownSeconds": 300
+  }
+}

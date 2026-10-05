@@ -1,0 +1,136 @@
+{
+  "description": "Authorized live validation results (fixed test set only: example.com, google.com, nic.si, bbc.co.uk and random 24-character lowercase labels), written by test/live/registry.live.spec.ts with DOMAIN_SCOUT_LIVE_TESTS=1 and DOMAIN_SCOUT_LIVE_RECORD=1.",
+  "results": [
+    {
+      "domain": "bbc.co.uk",
+      "suffix": "co.uk",
+      "protocol": "rdap",
+      "destination": "https://rdap.nominet.uk/uk/",
+      "expected": "registered",
+      "observed": "registered",
+      "at": "2026-10-05T13:57:16.046Z",
+      "httpStatus": 200,
+      "reason": "registry_record"
+    },
+    {
+      "domain": "walhhtqvecbswxokrqrmdcmh.co.uk",
+      "suffix": "co.uk",
+      "protocol": "rdap",
+      "destination": "https://rdap.nominet.uk/uk/",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-05T13:57:17.361Z",
+      "httpStatus": 404,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "example.com",
+      "suffix": "com",
+      "protocol": "rdap",
+      "destination": "https://rdap.verisign.com/com/v1/",
+      "expected": "registered",
+      "observed": "registered",
+      "at": "2026-10-05T13:57:15.588Z",
+      "httpStatus": 200,
+      "reason": "registry_record"
+    },
+    {
+      "domain": "google.com",
+      "suffix": "com",
+      "protocol": "rdap",
+      "destination": "https://rdap.verisign.com/com/v1/",
+      "expected": "registered",
+      "observed": "registered",
+      "at": "2026-10-05T13:57:17.399Z",
+      "httpStatus": 200,
+      "reason": "registry_record"
+    },
+    {
+      "domain": "mbwdsdyrptupknvgstmtjndr.com",
+      "suffix": "com",
+      "protocol": "rdap",
+      "destination": "https://rdap.verisign.com/com/v1/",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-05T13:57:19.844Z",
+      "httpStatus": 404,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "kezfavxgiaxygihfnbgjqxbz.dev",
+      "suffix": "dev",
+      "protocol": "rdap",
+      "destination": "https://pubapi.registry.google/rdap/",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-05T13:57:15.116Z",
+      "httpStatus": 404,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "bexhezbfngforoezktahdvgs.si",
+      "suffix": "si",
+      "protocol": "rdap",
+      "destination": "https://rdap.register.si/",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-05T13:57:16.837Z",
+      "httpStatus": 404,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "nic.si",
+      "suffix": "si",
+      "protocol": "rdap",
+      "destination": "https://rdap.register.si/",
+      "expected": "registered",
+      "observed": "registered",
+      "at": "2026-10-05T13:57:15.505Z",
+      "httpStatus": 200,
+      "reason": "registry_record"
+    },
+    {
+      "domain": "pfdotgyejuoiqbcqszwmrrdz.uk",
+      "suffix": "uk",
+      "protocol": "rdap",
+      "destination": "https://rdap.nominet.uk/uk/",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-05T13:57:18.670Z",
+      "httpStatus": 404,
+      "reason": "registry_not_found"
+    }
+  ],
+  "notRun": [
+    {
+      "suffix": "jp",
+      "destination": "whois.jprs.jp:43",
+      "reason": "outside the authorized live test set, and outbound TCP port 43 was blocked",
+      "at": "2026-10-05T13:30:00Z"
+    },
+    {
+      "suffix": "cn",
+      "destination": "whois.cnnic.cn:43",
+      "reason": "outside the authorized live test set, and outbound TCP port 43 was blocked",
+      "at": "2026-10-05T13:30:00Z"
+    },
+    {
+      "suffix": "eu",
+      "destination": "whois.eu:43",
+      "reason": "outside the authorized live test set, and outbound TCP port 43 was blocked",
+      "at": "2026-10-05T13:30:00Z"
+    },
+    {
+      "suffix": "de",
+      "destination": "whois.denic.de:43",
+      "reason": "timeout: whois.denic.de did not answer within 15000 ms",
+      "at": "2026-10-05T13:57:29.626Z"
+    },
+    {
+      "suffix": "io",
+      "destination": "whois.nic.io:43",
+      "reason": "timeout: whois.nic.io did not answer within 15000 ms",
+      "at": "2026-10-05T13:57:29.626Z"
+    }
+  ]
+}

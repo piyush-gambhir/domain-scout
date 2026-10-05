@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed: the transport reported truncation (size cap or reset after data). Truncated text is inconclusive even when it looks almost complete."
+  },
+  "domain": "xuyyywhvrkbhteqkpwsucwkn.de",
+  "suffix": "de",
+  "protocol": "whois",
+  "route": "whois.denic.de:43",
+  "query": "-T dn,ace xuyyywhvrkbhteqkpwsucwkn.de",
+  "response": {
+    "text": "Domain: xuyyywhvrkbhteqkpwsucwkn.de\nStatus: fr",
+    "truncated": true
+  },
+  "expected": {
+    "outcome": "inconclusive",
+    "reasonCode": "truncated_response",
+    "matchedName": null,
+    "eligibility": "unknown"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from the whois.cnnic.cn captures in likexian/whois-parser testdata (Apache-2.0, revision 2426ff1). Not captured by this project: outbound TCP port 43 was blocked on the validation network on 2026-10-05. Synthetic name and values."
+  },
+  "domain": "fixture-registered.cn",
+  "suffix": "cn",
+  "protocol": "whois",
+  "route": "whois.cnnic.cn:43",
+  "query": "fixture-registered.cn",
+  "response": {
+    "text": "Domain Name: fixture-registered.cn\nROID: 20150311s10001s00000000-cn\nDomain Status: clientDeleteProhibited\nDomain Status: clientTransferProhibited\nRegistrant: Example Organization\nSponsoring Registrar: Example Registrar Co., Ltd.\nName Server: ns1.example-dns.test\nName Server: ns2.example-dns.test\nRegistration Time: 2015-03-17 12:20:05\nExpiration Time: 2027-03-17 12:48:36\nDNSSEC: unsigned\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.cn",
+    "eligibility": "unknown",
+    "registrar": "Example Registrar Co., Ltd.",
+    "expiresAt": "2027-03-17T04:48:36.000Z",
+    "dnssec": false
+  }
+}

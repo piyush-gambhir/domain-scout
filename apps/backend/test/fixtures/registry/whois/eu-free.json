@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from the whois.eu captures in likexian/whois-parser testdata (Apache-2.0, revision 2426ff1; header abridged). Not captured by this project: outbound TCP port 43 was blocked on the validation network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "wznhkqrtvmfyxbcpdlgjasoe.eu",
+  "suffix": "eu",
+  "protocol": "whois",
+  "route": "whois.eu:43",
+  "query": "wznhkqrtvmfyxbcpdlgjasoe.eu",
+  "response": {
+    "text": "% Registry terms of use omitted from this fixture.\n%\n% WHOIS wznhkqrtvmfyxbcpdlgjasoe.eu\nDomain: wznhkqrtvmfyxbcpdlgjasoe.eu\nScript: LATIN\nStatus: AVAILABLE\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": "wznhkqrtvmfyxbcpdlgjasoe.eu",
+    "eligibility": "unknown"
+  }
+}

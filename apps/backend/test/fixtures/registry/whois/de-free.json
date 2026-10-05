@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from DENIC documentation (status values and sample names at https://docs.denic.de/en/Content/DENIC-29/Domain-Status.htm, -T dn,ace output lines) and the whois.denic.de capture in likexian/whois-parser testdata (Apache-2.0, revision 2426ff1). Not captured by this project: outbound TCP port 43 was blocked on the validation network on 2026-10-05."
+  },
+  "domain": "xuyyywhvrkbhteqkpwsucwkn.de",
+  "suffix": "de",
+  "protocol": "whois",
+  "route": "whois.denic.de:43",
+  "query": "-T dn,ace xuyyywhvrkbhteqkpwsucwkn.de",
+  "response": {
+    "text": "Domain: xuyyywhvrkbhteqkpwsucwkn.de\nStatus: free\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": "xuyyywhvrkbhteqkpwsucwkn.de",
+    "eligibility": "unknown"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from the whois.cnnic.cn captures in likexian/whois-parser testdata (Apache-2.0, revision 2426ff1). Not captured by this project: outbound TCP port 43 was blocked on the validation network on 2026-10-05."
+  },
+  "domain": "tkvwqzrnmhxbylpfdjasceog.cn",
+  "suffix": "cn",
+  "protocol": "whois",
+  "route": "whois.cnnic.cn:43",
+  "query": "tkvwqzrnmhxbylpfdjasceog.cn",
+  "response": {
+    "text": "No matching record.\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": null,
+    "eligibility": "unknown"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from RFC 9110 Retry-After (HTTP-date form) with an empty body; not captured."
+  },
+  "domain": "nuuicitwazczmsydxikmipdy.si",
+  "suffix": null,
+  "protocol": "rdap",
+  "route": "https://rdap.register.si/",
+  "response": {
+    "status": 429,
+    "headers": {
+      "retry-after": "Mon, 05 Oct 2026 12:10:00 GMT"
+    },
+    "body": "",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "rate_limited",
+    "reasonCode": "rate_limited",
+    "matchedName": null,
+    "eligibility": "unknown",
+    "cooldownUntil": "2026-10-05T12:10:00.000Z"
+  }
+}

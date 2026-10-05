@@ -1,0 +1,26 @@
+{
+  "provenance": {
+    "kind": "captured_live",
+    "capturedAt": "2026-10-05T13:36:04.647Z",
+    "request": "GET https://rdap.verisign.com/com/v1/domain/fhscaevkizwukbrsktchdjqo.com",
+    "notes": "Captured live: Verisign answers 404 with an empty body and an RDAP content type."
+  },
+  "domain": "fhscaevkizwukbrsktchdjqo.com",
+  "suffix": "com",
+  "protocol": "rdap",
+  "route": "https://rdap.verisign.com/com/v1/",
+  "response": {
+    "status": 404,
+    "headers": {
+      "content-type": "application/rdap+json"
+    },
+    "body": "",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": null,
+    "eligibility": "unknown"
+  }
+}

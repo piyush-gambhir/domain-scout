@@ -1,0 +1,24 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from third-party WHOIS sites relaying .cn replies with \"Queried interval is too short.\" (inference, not CNNIC documentation). Not captured."
+  },
+  "domain": "tkvwqzrnmhxbylpfdjasceog.cn",
+  "suffix": "cn",
+  "protocol": "whois",
+  "route": "whois.cnnic.cn:43",
+  "query": "tkvwqzrnmhxbylpfdjasceog.cn",
+  "response": {
+    "text": "Queried interval is too short.\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "rate_limited",
+    "reasonCode": "rate_limited",
+    "matchedName": null,
+    "eligibility": "unknown",
+    "cooldownSeconds": 300
+  }
+}

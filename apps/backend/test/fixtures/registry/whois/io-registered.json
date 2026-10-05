@@ -1,0 +1,26 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from the whois.nic.io not-found capture in likexian/whois-parser testdata (Apache-2.0, revision 2426ff1, captured 2022-07-03; terms text abridged) and the ICANN-style registry format used by Identity Digital. Not captured by this project: outbound TCP port 43 was blocked on the validation network on 2026-10-05. Synthetic name and values. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "fixture-registered.io",
+  "suffix": "io",
+  "protocol": "whois",
+  "route": "whois.nic.io:43",
+  "query": "fixture-registered.io",
+  "response": {
+    "text": "Domain Name: fixture-registered.io\nRegistry Domain ID: REDACTED\nRegistrar WHOIS Server: whois.example-registrar.test\nRegistrar URL: https://registrar.example.test\nUpdated Date: 2026-03-01T10:00:00Z\nCreation Date: 2015-03-01T10:00:00Z\nRegistry Expiry Date: 2027-03-01T10:00:00Z\nRegistrar: Example Registrar LLC\nRegistrar IANA ID: 9999\nDomain Status: clientTransferProhibited https://icann.org/epp#clientTransferProhibited\nRegistrant Organization: REDACTED FOR PRIVACY\nName Server: ns1.example-dns.test\nName Server: ns2.example-dns.test\nDNSSEC: unsigned\n>>> Last update of WHOIS database: 2026-10-05T13:00:00Z <<<\n\nRegistry terms of use omitted from this fixture.\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "registered",
+    "reasonCode": "registry_record",
+    "matchedName": "fixture-registered.io",
+    "eligibility": "unknown",
+    "registrar": "Example Registrar LLC",
+    "expiresAt": "2027-03-01T10:00:00.000Z",
+    "dnssec": false
+  }
+}

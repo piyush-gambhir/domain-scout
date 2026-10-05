@@ -1,0 +1,26 @@
+{
+  "provenance": {
+    "kind": "captured_live",
+    "capturedAt": "2026-10-05T13:36:03.925Z",
+    "request": "GET https://rdap.nominet.uk/uk/domain/kruzeajemznjjlcyvjryumxq.co.uk",
+    "notes": "Captured live from the fixed authorized test set; body unmodified, response headers reduced to content-type."
+  },
+  "domain": "kruzeajemznjjlcyvjryumxq.co.uk",
+  "suffix": "co.uk",
+  "protocol": "rdap",
+  "route": "https://rdap.nominet.uk/uk/",
+  "response": {
+    "status": 404,
+    "headers": {
+      "content-type": "application/json;charset=utf-8"
+    },
+    "body": "{\"errorCode\":404,\"title\":\"Domain kruzeajemznjjlcyvjryumxq.co.uk not found\"}",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": null,
+    "eligibility": "unknown"
+  }
+}

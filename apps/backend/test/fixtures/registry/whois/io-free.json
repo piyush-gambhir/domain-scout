@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from the whois.nic.io not-found capture in likexian/whois-parser testdata (Apache-2.0, revision 2426ff1, captured 2022-07-03; terms text abridged) and the ICANN-style registry format used by Identity Digital. Not captured by this project: outbound TCP port 43 was blocked on the validation network on 2026-10-05. The terms mention \"too many queries\"; the classifier must not read that as throttling. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "ocpnfbcuhgemerfpiylpzswk.io",
+  "suffix": "io",
+  "protocol": "whois",
+  "route": "whois.nic.io:43",
+  "query": "ocpnfbcuhgemerfpiylpzswk.io",
+  "response": {
+    "text": "Domain not found.\n>>> Last update of WHOIS database: 2026-10-05T13:00:00Z <<<\n\nRegistry terms of use omitted from this fixture.\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": null,
+    "eligibility": "unknown"
+  }
+}

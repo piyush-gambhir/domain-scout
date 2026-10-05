@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from JPRS documentation (https://jprs.jp/about/dom-search/jprs-whois/) and the whois.jprs.jp captures in likexian/whois-parser testdata (Apache-2.0, revision 2426ff1). Not captured by this project: outbound TCP port 43 was blocked on the validation network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+  },
+  "domain": "qhpzmbxkvtrwdlnafcyeogsu.jp",
+  "suffix": "jp",
+  "protocol": "whois",
+  "route": "whois.jprs.jp:43",
+  "query": "qhpzmbxkvtrwdlnafcyeogsu.jp/e",
+  "response": {
+    "text": "[ Registry terms of use omitted from this fixture. ]\n\nNo match!!\n\nWith JPRS WHOIS, you can query the following domain name information\nsponsored by JPRS.\n    - All of registered JP domain name\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": null,
+    "eligibility": "unknown"
+  }
+}

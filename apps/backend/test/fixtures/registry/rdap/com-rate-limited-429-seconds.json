@@ -1,0 +1,28 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed from RFC 7480 section 5.5 and RFC 9110 Retry-After (delay-seconds form); not captured."
+  },
+  "domain": "fhscaevkizwukbrsktchdjqo.com",
+  "suffix": null,
+  "protocol": "rdap",
+  "route": "https://rdap.verisign.com/com/v1/",
+  "response": {
+    "status": 429,
+    "headers": {
+      "content-type": "application/rdap+json",
+      "retry-after": "120"
+    },
+    "body": "{\"errorCode\":429,\"title\":\"Too Many Requests\",\"description\":[\"Query rate exceeded\"]}",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "rate_limited",
+    "reasonCode": "rate_limited",
+    "matchedName": null,
+    "eligibility": "unknown",
+    "cooldownSeconds": 120
+  }
+}

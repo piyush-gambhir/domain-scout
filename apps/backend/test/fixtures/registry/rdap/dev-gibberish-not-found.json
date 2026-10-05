@@ -1,0 +1,26 @@
+{
+  "provenance": {
+    "kind": "captured_live",
+    "capturedAt": "2026-10-05T13:35:59.236Z",
+    "request": "GET https://pubapi.registry.google/rdap/domain/gdlnjnmvngzeworimuteqkcn.dev",
+    "notes": "Captured live from the fixed authorized test set; body unmodified except registry notices and contact details, replaced for publication, response headers reduced to content-type."
+  },
+  "domain": "gdlnjnmvngzeworimuteqkcn.dev",
+  "suffix": "dev",
+  "protocol": "rdap",
+  "route": "https://pubapi.registry.google/rdap/",
+  "response": {
+    "status": 404,
+    "headers": {
+      "content-type": "application/rdap+json; charset=utf-8"
+    },
+    "body": "{\"rdapConformance\":[\"rdap_level_0\",\"icann_rdap_response_profile_1\",\"icann_rdap_technical_implementation_guide_1\"],\"lang\":\"en\",\"description\":[\"gdlnjnmvngzeworimuteqkcn.dev not found\"],\"errorCode\":404,\"title\":\"Not Found\",\"notices\":[{\"description\":[\"Registry terms of use omitted from this fixture.\"],\"links\":[{\"href\":\"https://pubapi.registry.google/rdap/help/tos\",\"rel\":\"self\",\"type\":\"application/rdap+json\",\"value\":\"https://pubapi.registry.google/rdap/domain/gdlnjnmvngzeworimuteqkcn.dev\"},{\"href\":\"https://www.registry.google/policies/rdap-terms/\",\"rel\":\"terms-of-service\",\"type\":\"text/html\",\"value\":\"https://pubapi.registry.google/rdap/domain/gdlnjnmvngzeworimuteqkcn.dev\"}],\"title\":\"RDAP Terms of Service\"}]}",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "no_record",
+    "reasonCode": "registry_not_found",
+    "matchedName": null,
+    "eligibility": "unknown"
+  }
+}

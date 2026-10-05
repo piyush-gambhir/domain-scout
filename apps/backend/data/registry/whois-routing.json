@@ -1,0 +1,76 @@
+{
+  "description": "Curated registry WHOIS routes for TLDs without an RDAP service in the IANA bootstrap. A route is listed only when a registry-specific classifier exists for it. Hosts were checked against the IANA root zone database on the date shown.",
+  "updatedAt": "2026-10-05T13:30:00Z",
+  "routes": [
+    {
+      "tld": "de",
+      "host": "whois.denic.de",
+      "port": 43,
+      "query": "-T dn,ace {domain}",
+      "parser": "denic",
+      "registryId": "denic",
+      "source": "https://www.iana.org/domains/root/db/de.html",
+      "verifiedAt": "2026-10-05T13:30:00Z",
+      "rateLimitCooldownSeconds": 120,
+      "notes": "DENIC returns status lines only with the -T dn,ace flags. DENIC also runs an RDAP pilot at rdap.denic.de that is not in the IANA bootstrap; it reset TLS connections from the validation network on 2026-10-05, so WHOIS stays the route."
+    },
+    {
+      "tld": "io",
+      "host": "whois.nic.io",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "nic-io",
+      "registryId": "whois.nic.io",
+      "source": "https://www.iana.org/domains/root/db/io.html",
+      "verifiedAt": "2026-10-05T13:30:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "notes": "Registry back end is operated by Identity Digital, which documents a 10 queries per second per IP limit with blacklisting but no throttle message text. Unrecognized replies are inconclusive."
+    },
+    {
+      "tld": "jp",
+      "host": "whois.jprs.jp",
+      "port": 43,
+      "query": "{domain}/e",
+      "parser": "jprs",
+      "registryId": "jprs",
+      "source": "https://www.iana.org/domains/root/db/jp.html",
+      "verifiedAt": "2026-10-05T13:30:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "notes": "The /e suffix requests English output. JPRS documents the throttle message at https://jprs.jp/about/dom-search/jprs-whois/whois-guide-notes.html."
+    },
+    {
+      "tld": "cn",
+      "host": "whois.cnnic.cn",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "cnnic",
+      "registryId": "cnnic",
+      "source": "https://www.iana.org/domains/root/db/cn.html",
+      "verifiedAt": "2026-10-05T13:30:00Z",
+      "rateLimitCooldownSeconds": 300,
+      "notes": "The throttle text 'Queried interval is too short.' is taken from third-party relays of CNNIC replies, not from CNNIC documentation."
+    },
+    {
+      "tld": "eu",
+      "host": "whois.eu",
+      "port": 43,
+      "query": "{domain}",
+      "parser": "eurid",
+      "registryId": "eurid",
+      "source": "https://www.iana.org/domains/root/db/eu.html",
+      "verifiedAt": "2026-10-05T13:30:00Z",
+      "rateLimitCooldownSeconds": 600,
+      "notes": "Registered replies carry no Status line; free replies carry 'Status: AVAILABLE'. Other status values are inconclusive."
+    }
+  ],
+  "withoutClassifier": [
+    { "tld": "za", "host": null, "source": "https://www.iana.org/domains/root/db/za.html", "reason": "IANA lists neither RDAP nor WHOIS for .za; second-level zones such as co.za are run by separate registries that were not verified." },
+    { "tld": "co", "host": "whois.registry.co", "source": "https://www.iana.org/domains/root/db/co.html", "reason": "WHOIS host known from IANA; no registry-specific classifier or fixtures yet." },
+    { "tld": "me", "host": "whois.nic.me", "source": "https://www.iana.org/domains/root/db/me.html", "reason": "WHOIS host known from IANA; no registry-specific classifier or fixtures yet." },
+    { "tld": "us", "host": "whois.nic.us", "source": "https://www.iana.org/domains/root/db/us.html", "reason": "WHOIS host known from IANA; no registry-specific classifier or fixtures yet." },
+    { "tld": "ch", "host": "whois.nic.ch", "source": "https://www.iana.org/domains/root/db/ch.html", "reason": "WHOIS host known from IANA; no registry-specific classifier or fixtures yet." },
+    { "tld": "at", "host": "whois.nic.at", "source": "https://www.iana.org/domains/root/db/at.html", "reason": "WHOIS host known from IANA; no registry-specific classifier or fixtures yet." },
+    { "tld": "it", "host": "whois.nic.it", "source": "https://www.iana.org/domains/root/db/it.html", "reason": "WHOIS host known from IANA; no registry-specific classifier or fixtures yet." },
+    { "tld": "es", "host": "whois.nic.es", "source": "https://www.iana.org/domains/root/db/es.html", "reason": "WHOIS host known from IANA; no registry-specific classifier or fixtures yet." }
+  ]
+}

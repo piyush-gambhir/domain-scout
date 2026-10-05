@@ -1,0 +1,26 @@
+{
+  "provenance": {
+    "kind": "reconstructed",
+    "capturedAt": null,
+    "request": null,
+    "notes": "Reconstructed: a generic web-server HTML 404 page (wrong path or front-end proxy), which is not an RDAP answer."
+  },
+  "domain": "nuuicitwazczmsydxikmipdy.si",
+  "suffix": null,
+  "protocol": "rdap",
+  "route": "https://rdap.register.si/",
+  "response": {
+    "status": 404,
+    "headers": {
+      "content-type": "text/html; charset=utf-8"
+    },
+    "body": "<!DOCTYPE html>\n<html><head><title>404 Not Found</title></head><body><h1>Not Found</h1><p>The requested URL was not found on this server.</p></body></html>\n",
+    "truncated": false
+  },
+  "expected": {
+    "outcome": "inconclusive",
+    "reasonCode": "unexpected_404_body",
+    "matchedName": null,
+    "eligibility": "unknown"
+  }
+}

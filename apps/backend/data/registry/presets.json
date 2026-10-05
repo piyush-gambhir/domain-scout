@@ -1,0 +1,9 @@
+{
+  "description": "Built-in extension presets. Every suffix listed here has a registry route in the bundled data (RDAP bootstrap or curated WHOIS) as of 2026-10-05.",
+  "presets": [
+    { "id": "popular", "name": "Popular", "extensions": ["com", "net", "org", "io", "ai", "app", "dev", "xyz"] },
+    { "id": "tech", "name": "Tech", "extensions": ["io", "dev", "app", "ai", "tech", "cloud", "software", "codes"] },
+    { "id": "europe", "name": "Europe", "extensions": ["eu", "de", "uk", "fr", "nl", "si", "fi", "pl", "cz", "no"] },
+    { "id": "commerce", "name": "Commerce", "extensions": ["shop", "store", "online", "site"] }
+  ]
+}
