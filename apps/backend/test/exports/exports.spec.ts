@@ -47,6 +47,7 @@ function item(jobId: string, domain: string, outcome: string): JobItem {
     suffix: domain.slice(domain.indexOf('.') + 1),
     operation: 'registry',
     target: null,
+    source: null,
     state: 'finished',
     attempts: 1,
     outcome,

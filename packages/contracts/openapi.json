@@ -11907,6 +11907,11 @@
             "description": "Provider, service or diagnostic check id",
             "type": "string"
           },
+          "source": {
+            "nullable": true,
+            "description": "Shared source budget key this item used, e.g. registry:verisign or provider:porkbun; null for local work",
+            "type": "string"
+          },
           "state": {
             "$ref": "#/components/schemas/ItemState"
           },
@@ -12032,6 +12037,7 @@
           "suffix",
           "operation",
           "target",
+          "source",
           "state",
           "attempts",
           "outcome",

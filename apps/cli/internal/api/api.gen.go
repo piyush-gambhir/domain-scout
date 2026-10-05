@@ -3327,9 +3327,12 @@ type JobItem struct {
 	Operation  JobOperation `json:"operation"`
 
 	// Outcome Operation-specific outcome, e.g. a RegistryOutcome
-	Outcome   *string    `json:"outcome"`
-	Resolved  bool       `json:"resolved"`
-	RetryAt   *time.Time `json:"retryAt"`
+	Outcome  *string    `json:"outcome"`
+	Resolved bool       `json:"resolved"`
+	RetryAt  *time.Time `json:"retryAt"`
+
+	// Source Shared source budget key this item used, e.g. registry:verisign or provider:porkbun; null for local work
+	Source    *string    `json:"source"`
 	StartedAt *time.Time `json:"startedAt"`
 
 	// State Execution state; the source outcome is separate

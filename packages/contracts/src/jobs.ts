@@ -114,6 +114,10 @@ export const JobItem = z
     suffix: Suffix.nullable(),
     operation: JobOperation,
     target: z.string().nullable().meta({ description: 'Provider, service or diagnostic check id' }),
+    source: z
+      .string()
+      .nullable()
+      .meta({ description: 'Shared source budget key this item used, e.g. registry:verisign or provider:porkbun; null for local work' }),
     state: ItemState,
     attempts: z.number().int(),
     outcome: z.string().nullable().meta({ description: 'Operation-specific outcome, e.g. a RegistryOutcome' }),

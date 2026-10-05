@@ -191,6 +191,7 @@ export class JobResultsService implements JobResults {
         suffix: row.suffix,
         operation: row.operation,
         target: row.target === '' ? null : row.target,
+        source: row.source_key ? row.source_key : null,
         state: row.state,
         attempts: row.attempts,
         outcome: row.outcome,
