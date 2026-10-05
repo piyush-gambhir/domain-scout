@@ -1,0 +1,342 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import { ArrowDownNarrowWide, ArrowUpWideNarrow, ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react';
+import type { ResultFilter } from '@domain-scout/contracts';
+import { cn } from '@/lib/utils';
+import { Button } from '../ui/button';
+import { Checkbox } from '../ui/checkbox';
+import { Input } from '../ui/input';
+import { Field } from '../ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Segmented } from '../ui/segmented';
+import { Select } from '../ui/select';
+
+export type Sort = NonNullable<ResultFilter['sort']>;
+
+const SORTS: { value: Sort; label: string }[] = [
+  { value: 'input', label: 'Input order' },
+  { value: 'domain', label: 'Domain' },
+  { value: 'suffix', label: 'Extension' },
+  { value: 'length', label: 'Length' },
+  { value: 'outcome', label: 'Outcome' },
+  { value: 'checkedAt', label: 'Checked' },
+  { value: 'price', label: 'Price' },
+];
+
+const LIST_KEYS = ['outcomes', 'suffixes', 'states', 'confirmations'] as const;
+
+/** URL search params <-> ResultFilter. Lists are comma separated, like the API query form. */
+export function filterFromParams(params: URLSearchParams): ResultFilter {
+  const filter: ResultFilter = {};
+  const q = params.get('q');
+  if (q) filter.q = q;
+  for (const key of LIST_KEYS) {
+    const value = params.get(key);
+    if (value) (filter as Record<string, unknown>)[key] = value.split(',').filter(Boolean);
+  }
+  const resolved = params.get('resolved');
+  if (resolved === 'true' || resolved === 'false') filter.resolved = resolved === 'true';
+  const maxLength = Number(params.get('maxLength'));
+  if (Number.isInteger(maxLength) && maxLength > 0 && maxLength <= 63) filter.maxLength = maxLength;
+  const maxPrice = params.get('maxPrice');
+  if (maxPrice && /^\d+(\.\d+)?$/.test(maxPrice)) filter.maxPrice = maxPrice;
+  const currency = params.get('priceCurrency');
+  if (currency && /^[A-Z]{3}$/.test(currency)) filter.priceCurrency = currency;
+  const collectionId = params.get('collectionId');
+  if (collectionId) filter.collectionId = collectionId;
+  const sort = params.get('sort');
+  if (sort && SORTS.some((s) => s.value === sort)) filter.sort = sort as Sort;
+  const order = params.get('order');
+  if (order === 'asc' || order === 'desc') filter.order = order;
+  return filter;
+}
+
+export function filterToParams(filter: ResultFilter, base: URLSearchParams): URLSearchParams {
+  const params = new URLSearchParams(base);
+  for (const key of ['q', ...LIST_KEYS, 'resolved', 'maxLength', 'maxPrice', 'priceCurrency', 'collectionId', 'sort', 'order']) params.delete(key);
+  for (const [key, value] of Object.entries(filter)) {
+    if (value === undefined || value === null || value === '') continue;
+    if (Array.isArray(value)) {
+      if (value.length) params.set(key, value.join(','));
+    } else params.set(key, String(value));
+  }
+  return params;
+}
+
+/** Same filter in the API's query-string form. */
+export function filterToQuery(filter: ResultFilter) {
+  return {
+    q: filter.q,
+    outcomes: filter.outcomes?.join(','),
+    suffixes: filter.suffixes?.join(','),
+    states: filter.states?.join(','),
+    confirmations: filter.confirmations?.join(','),
+    resolved: filter.resolved === undefined ? undefined : filter.resolved ? ('true' as const) : ('false' as const),
+    maxLength: filter.maxLength,
+    maxPrice: filter.maxPrice,
+    priceCurrency: filter.priceCurrency,
+    collectionId: filter.collectionId,
+    sort: filter.sort,
+    order: filter.order,
+  };
+}
+
+export function isFiltered(filter: ResultFilter): boolean {
+  return Boolean(
+    filter.q ||
+      filter.outcomes?.length ||
+      filter.suffixes?.length ||
+      filter.states?.length ||
+      filter.confirmations?.length ||
+      filter.resolved !== undefined ||
+      filter.maxLength ||
+      filter.maxPrice ||
+      filter.collectionId,
+  );
+}
+
+function MultiSelect({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: { value: string; label: string }[];
+  value: string[] | undefined;
+  onChange: (value: string[] | undefined) => void;
+}) {
+  const selected = new Set(value ?? []);
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button size="sm" variant={selected.size ? 'primary' : 'secondary'} className="h-9">
+          {label}
+          {selected.size ? <span className="font-mono text-xs tabular">{selected.size}</span> : null}
+          <ChevronDown className="opacity-70" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-60 p-1">
+        {options.length === 0 ? <p className="p-2 text-sm text-muted-foreground">No options.</p> : null}
+        <ul className="flex flex-col">
+          {options.map((option) => {
+            const id = `ms-${label}-${option.value}`;
+            return (
+              <li key={option.value}>
+                <label htmlFor={id} className="flex h-8 items-center gap-2.5 rounded-md px-2 text-sm hover:bg-hover">
+                  <Checkbox
+                    id={id}
+                    checked={selected.has(option.value)}
+                    onCheckedChange={(checked) => {
+                      const next = new Set(selected);
+                      if (checked === true) next.add(option.value);
+                      else next.delete(option.value);
+                      onChange(next.size ? [...next] : undefined);
+                    }}
+                  />
+                  <span className="truncate">{option.label}</span>
+                </label>
+              </li>
+            );
+          })}
+        </ul>
+        {selected.size ? (
+          <Button size="sm" variant="quiet" className="mt-1 w-full" onClick={() => onChange(undefined)}>
+            Clear
+          </Button>
+        ) : null}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function MoreFiltersBody({
+  filter,
+  onChange,
+  collections,
+}: {
+  filter: ResultFilter;
+  onChange: (patch: Partial<ResultFilter>) => void;
+  collections: { value: string; label: string }[];
+}) {
+  // Mounted only while the popover is open, so the draft always starts from the active filter.
+  const [maxPrice, setMaxPrice] = useState(filter.maxPrice ?? '');
+  const priceInvalid = maxPrice !== '' && !/^\d+(\.\d+)?$/.test(maxPrice);
+  return (
+    <>
+      <Field label="Max name length" htmlFor="f-maxlen">
+        <Input
+          id="f-maxlen"
+          type="number"
+          inputMode="numeric"
+          min={1}
+          max={63}
+          value={filter.maxLength ?? ''}
+          onChange={(e) => {
+            const n = Number(e.target.value);
+            onChange({ maxLength: e.target.value && Number.isInteger(n) && n >= 1 && n <= 63 ? n : undefined });
+          }}
+        />
+      </Field>
+      <div className="grid grid-cols-[1fr_5.5rem] gap-2">
+        <Field label="Max first-year price" htmlFor="f-maxprice">
+          <Input
+            id="f-maxprice"
+            inputMode="decimal"
+            value={maxPrice}
+            aria-invalid={priceInvalid || undefined}
+            onChange={(e) => {
+              setMaxPrice(e.target.value);
+              if (e.target.value === '') onChange({ maxPrice: undefined });
+              else if (/^\d+(\.\d+)?$/.test(e.target.value)) onChange({ maxPrice: e.target.value });
+            }}
+            className="font-mono"
+          />
+        </Field>
+        <Field label="Currency" htmlFor="f-currency">
+          <Input
+            id="f-currency"
+            defaultValue={filter.priceCurrency ?? ''}
+            maxLength={3}
+            placeholder="USD"
+            onChange={(e) => {
+              const value = e.target.value.toUpperCase();
+              onChange({ priceCurrency: /^[A-Z]{3}$/.test(value) ? value : undefined });
+            }}
+            className="font-mono uppercase"
+          />
+        </Field>
+      </div>
+      <Field label="Shortlist" htmlFor="f-collection">
+        <Select
+          id="f-collection"
+          value={filter.collectionId ?? '__any__'}
+          onValueChange={(value) => onChange({ collectionId: value === '__any__' ? undefined : value })}
+          options={[{ value: '__any__', label: 'Any' }, ...collections]}
+        />
+      </Field>
+    </>
+  );
+}
+
+function MoreFilters({
+  filter,
+  onChange,
+  collections,
+}: {
+  filter: ResultFilter;
+  onChange: (patch: Partial<ResultFilter>) => void;
+  collections: { value: string; label: string }[];
+}) {
+  const active = [filter.maxLength, filter.maxPrice, filter.collectionId].filter(Boolean).length;
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button size="sm" variant={active ? 'primary' : 'secondary'} className="h-9">
+          <SlidersHorizontal />
+          More
+          {active ? <span className="font-mono text-xs tabular">{active}</span> : null}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="flex w-72 flex-col gap-4 p-4">
+        <MoreFiltersBody filter={filter} onChange={onChange} collections={collections} />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+export function ResultFilters({
+  filter,
+  onChange,
+  outcomeOptions,
+  suffixOptions,
+  collections,
+  searchRef,
+}: {
+  filter: ResultFilter;
+  onChange: (patch: Partial<ResultFilter>) => void;
+  outcomeOptions: { value: string; label: string }[];
+  suffixOptions: { value: string; label: string }[];
+  collections: { value: string; label: string }[];
+  searchRef: React.RefObject<HTMLInputElement | null>;
+}) {
+  const [q, setQ] = useState(filter.q ?? '');
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  });
+  useEffect(() => {
+    const timer = setTimeout(() => onChangeRef.current({ q: q.trim() || undefined }), 300);
+    return () => clearTimeout(timer);
+  }, [q]);
+
+  const resolved = filter.resolved === undefined ? 'all' : filter.resolved ? 'resolved' : 'unresolved';
+  const order = filter.order ?? 'asc';
+
+  return (
+    <div className="flex flex-wrap items-center gap-2" role="search" aria-label="Filter results">
+      <div className="relative w-full sm:w-64">
+        <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          ref={searchRef}
+          type="search"
+          aria-label="Search results"
+          placeholder="Search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+      <MultiSelect label="Outcome" options={outcomeOptions} value={filter.outcomes} onChange={(outcomes) => onChange({ outcomes })} />
+      <MultiSelect label="Extension" options={suffixOptions} value={filter.suffixes} onChange={(suffixes) => onChange({ suffixes })} />
+      <Segmented
+        aria-label="Resolution"
+        value={resolved}
+        onValueChange={(value) => onChange({ resolved: value === 'all' ? undefined : value === 'resolved' })}
+        options={[
+          { value: 'all', label: 'All' },
+          { value: 'resolved', label: 'Resolved' },
+          { value: 'unresolved', label: 'Unresolved' },
+        ]}
+      />
+      <MoreFilters filter={filter} onChange={onChange} collections={collections} />
+      <div className="flex items-center gap-1 sm:ml-auto">
+        <Select aria-label="Sort by" value={filter.sort ?? 'input'} onValueChange={(sort) => onChange({ sort: sort as Sort })} options={SORTS} className="h-9 w-36" />
+        <Button
+          size="icon"
+          variant="secondary"
+          aria-label={order === 'asc' ? 'Ascending, switch to descending' : 'Descending, switch to ascending'}
+          onClick={() => onChange({ order: order === 'asc' ? 'desc' : 'asc' })}
+        >
+          {order === 'asc' ? <ArrowDownNarrowWide /> : <ArrowUpWideNarrow />}
+        </Button>
+      </div>
+      {isFiltered(filter) ? (
+        <Button
+          size="sm"
+          variant="quiet"
+          className={cn('h-9')}
+          onClick={() => {
+            setQ('');
+            onChange({
+              q: undefined,
+              outcomes: undefined,
+              suffixes: undefined,
+              states: undefined,
+              confirmations: undefined,
+              resolved: undefined,
+              maxLength: undefined,
+              maxPrice: undefined,
+              priceCurrency: undefined,
+              collectionId: undefined,
+            });
+          }}
+        >
+          <X />
+          Clear filters
+        </Button>
+      ) : null}
+    </div>
+  );
+}

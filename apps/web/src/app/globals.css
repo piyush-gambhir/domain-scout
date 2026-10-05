@@ -1,0 +1,203 @@
+@import 'tailwindcss';
+
+/* Dark mode follows the `dark` class that next-themes puts on <html>. */
+@custom-variant dark (&:where(.dark, .dark *));
+/* Sidebar rail mode: data-sidebar is set on <html> before paint (see layout.tsx) so there is no flash.
+   Scoped to the desktop sidebar (.sidebar-rail) so the mobile drawer always shows labels. */
+@custom-variant rail (&:where([data-sidebar='collapsed'] .sidebar-rail, [data-sidebar='collapsed'] .sidebar-rail *));
+
+/*
+ * Design tokens. Borderless: separation comes from whitespace, type weight and soft tints.
+ * Monochrome accent (near-black on white, inverted in dark). Status colors are the only color
+ * and always sit next to a text label. Text tokens meet WCAG AA on every surface they are used on.
+ */
+:root {
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --muted-foreground: #5c5c5c;
+  --sidebar: #f6f6f6;
+  --sidebar-hover: #ececec;
+  --sidebar-active: #e4e4e4;
+  --input: #f1f1f1;
+  --hover: #f4f4f4;
+  --selected: #ebebeb;
+  --popover: #ffffff;
+  --control: #c4c4c4;
+  --control-hover: #b0b0b0;
+  --primary: #0a0a0a;
+  --primary-foreground: #fafafa;
+  --overlay: rgb(0 0 0 / 0.28);
+  --ring: #0a0a0a;
+  --positive: #15803d;
+  --caution: #b45309;
+  --negative: #b91c1c;
+  --neutral: #6b6b6b;
+  --sidebar-width: 15rem;
+  color-scheme: light;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --muted-foreground: #a1a1a1;
+  --sidebar: #111111;
+  --sidebar-hover: #1b1b1b;
+  --sidebar-active: #232323;
+  --input: #1d1d1d;
+  --hover: #151515;
+  --selected: #212121;
+  --popover: #141414;
+  --control: #4a4a4a;
+  --control-hover: #5c5c5c;
+  --primary: #ededed;
+  --primary-foreground: #0a0a0a;
+  --overlay: rgb(0 0 0 / 0.6);
+  --ring: #ededed;
+  --positive: #4ade80;
+  --caution: #fbbf24;
+  --negative: #f87171;
+  --neutral: #a1a1a1;
+  color-scheme: dark;
+}
+
+:root[data-sidebar='collapsed'] {
+  --sidebar-width: 3.5rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-hover: var(--sidebar-hover);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-input: var(--input);
+  --color-hover: var(--hover);
+  --color-selected: var(--selected);
+  --color-popover: var(--popover);
+  --color-control: var(--control);
+  --color-control-hover: var(--control-hover);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-overlay: var(--overlay);
+  --color-ring: var(--ring);
+  --color-positive: var(--positive);
+  --color-caution: var(--caution);
+  --color-negative: var(--negative);
+  --color-neutral: var(--neutral);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv11';
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Visible focus everywhere; outlines are not borders and only appear for keyboard focus. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--selected);
+  }
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Restrained motion: short fades and slides, disabled for reduced motion. */
+@keyframes ds-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes ds-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes ds-pop-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.98);
+  }
+}
+@keyframes ds-pop-out {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.98);
+  }
+}
+@keyframes ds-sheet-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+@keyframes ds-sheet-out {
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes ds-drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+}
+@keyframes ds-drawer-out {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .anim-fade[data-state='open'],
+  .anim-fade[data-state='delayed-open'],
+  .anim-fade[data-state='instant-open'] {
+    animation: ds-fade-in 120ms ease-out;
+  }
+  .anim-fade[data-state='closed'] {
+    animation: ds-fade-out 100ms ease-in;
+  }
+  .anim-pop[data-state='open'] {
+    animation: ds-pop-in 140ms ease-out;
+  }
+  .anim-pop[data-state='closed'] {
+    animation: ds-pop-out 100ms ease-in;
+  }
+  .anim-sheet[data-state='open'] {
+    animation: ds-sheet-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .anim-sheet[data-state='closed'] {
+    animation: ds-sheet-out 140ms ease-in;
+  }
+  .anim-drawer[data-state='open'] {
+    animation: ds-drawer-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .anim-drawer[data-state='closed'] {
+    animation: ds-drawer-out 140ms ease-in;
+  }
+}
+
+/* cmdk group headings */
+[cmdk-group-heading] {
+  padding: 0.5rem 0.5rem 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+[cmdk-group] + [cmdk-group] {
+  margin-top: 0.25rem;
+}
