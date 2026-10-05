@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import type { DiagnosticCheck, NameCheckServiceId, Resolver } from '@domain-scout/contracts';
 import { api } from '@/lib/api';
 import { plural } from '@/lib/format';
-import { useNameCheckServices } from '@/lib/queries';
+import { useNameCheckServices, useSettings } from '@/lib/queries';
 import { useIdempotency } from '@/lib/use-idempotency';
 import { uniq } from '@/lib/utils';
 import { ErrorState } from '../states';
@@ -119,7 +119,10 @@ const RESOLVERS: { value: Resolver; label: string; destination: string }[] = [
 
 export function DiagnosticsDialog({ open, onOpenChange, target }: { open: boolean; onOpenChange: (open: boolean) => void; target: DomainTarget }) {
   const [checks, setChecks] = useState<Set<DiagnosticCheck>>(new Set(['dns', 'nameservers']));
-  const [resolver, setResolver] = useState<Resolver>('system');
+  const settings = useSettings();
+  // Null until changed here: the request then omits it and settings.diagnostics.resolver applies.
+  const [chosenResolver, setResolver] = useState<Resolver | null>(null);
+  const resolver: Resolver = chosenResolver ?? settings.data?.diagnostics.resolver ?? 'system';
   const idempotency = useIdempotency();
   const started = useJobStarted();
   const chosen = CHECKS.filter((c) => checks.has(c.value));
@@ -134,7 +137,7 @@ export function DiagnosticsDialog({ open, onOpenChange, target }: { open: boolea
     mutationFn: async () => {
       const domains = await target.resolveDomains();
       if (domains.length === 0) throw new Error('Nothing selected.');
-      const body = { domains, checks: chosen.map((c) => c.value), resolver };
+      const body = { domains, checks: chosen.map((c) => c.value), ...(chosenResolver ? { resolver: chosenResolver } : {}) };
       return (await api.call('createDiagnostics', { body, idempotencyKey: idempotency.keyFor(body) })).data;
     },
     onSuccess: (job) => {

@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useTheme } from 'next-themes';
 import { PanelLeftClose, PanelLeftOpen, Search, SunMoon } from 'lucide-react';
 import { useUnreadNoticeCount } from '@/lib/queries';
+import { type ThemeChoice, useThemePreference } from '@/lib/theme';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -41,7 +41,7 @@ function NavLink({ item, rail, badge, onNavigate }: { item: NavItem; rail: boole
 }
 
 function ThemeMenu({ rail }: { rail: boolean }) {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = useThemePreference();
   return (
     <DropdownMenu>
       <Tooltip content="Theme" side="right" disabled={!rail}>
@@ -52,7 +52,7 @@ function ThemeMenu({ rail }: { rail: boolean }) {
       </Tooltip>
       <DropdownMenuContent side="right" align="end" className="min-w-36">
         <DropdownMenuLabel>Theme</DropdownMenuLabel>
-        <DropdownMenuRadioGroup value={theme ?? 'system'} onValueChange={setTheme}>
+        <DropdownMenuRadioGroup value={theme} onValueChange={(value) => setTheme(value as ThemeChoice)}>
           <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="system">System</DropdownMenuRadioItem>

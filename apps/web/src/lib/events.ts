@@ -141,7 +141,9 @@ export function useJobEvents(jobId: string | null | undefined, onEvent?: (event:
         case 'job.updated': {
           const job = event.payload as Job;
           const previous = client.getQueryData<Job>(qk.job(job.id));
-          client.setQueryData(qk.job(job.id), job);
+          // Events omit the restorable input text (only GET /jobs/:id carries it); keep the cached copy.
+          const text = job.input.text ?? previous?.input.text ?? null;
+          client.setQueryData(qk.job(job.id), text === job.input.text ? job : { ...job, input: { ...job.input, text } });
           void client.invalidateQueries({ queryKey: qk.jobs() });
           const nowTerminal = TERMINAL_JOB_STATES.includes(job.state);
           if (nowTerminal && previous?.state !== job.state) {

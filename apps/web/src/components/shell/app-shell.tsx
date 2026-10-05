@@ -7,6 +7,7 @@ import { Menu, Search, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import { qk } from '@/lib/queries';
 import { useSessionRequired } from '@/lib/session';
+import { ThemeSync } from '@/lib/theme';
 import { Button } from '../ui/button';
 import { CommandPalette } from './command-palette';
 import { SessionRequired } from './session-required';
@@ -113,6 +114,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} onToggleSidebar={toggle} />
+      <ThemeSync />
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import { PageHeader } from '@/components/states';
+import { MonitoringPage } from '@/components/monitoring/monitoring-page';
 
 export const metadata: Metadata = { title: 'Monitor' };
 
 export default function Page() {
-  return <PageHeader title="Monitor" />;
+  return <MonitoringPage />;
 }

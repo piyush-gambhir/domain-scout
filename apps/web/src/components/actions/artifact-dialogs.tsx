@@ -78,7 +78,8 @@ export function ExportDialog({
 }) {
   const [format, setFormat] = useState<Format>('csv');
   const [scope, setScope] = useState<string | null>(null);
-  const [candidatesOnly, setCandidatesOnly] = useState(false);
+  // TXT keeps only names with no registry record or a positive confirmation unless every name is asked for.
+  const [everyName, setEveryName] = useState(false);
   const [includeNotes, setIncludeNotes] = useState(false);
   const [artifact, setArtifact] = useState<ExportArtifact | null>(null);
   const activeScope = scope ?? firstEnabled(scopes, defaultScope);
@@ -89,7 +90,7 @@ export function ExportDialog({
       if (!option) throw new Error('Choose a scope.');
       const built: ScopeInput = await option.build();
       const response = await api.call('createExport', {
-        body: { format, scope: built, includeNotes, candidatesOnly: format === 'txt' ? candidatesOnly : false },
+        body: { format, scope: built, includeNotes, ...(format === 'txt' && everyName ? { candidatesOnly: false } : {}) },
       });
       return response.data;
     },
@@ -139,7 +140,7 @@ export function ExportDialog({
             <ScopePicker options={scopes} value={activeScope} onChange={setScope} />
             <div className="flex flex-col gap-3">
               {format === 'txt' ? (
-                <SwitchField id="export-candidates" label="Only no record or provider-confirmed names" checked={candidatesOnly} onCheckedChange={setCandidatesOnly} />
+                <SwitchField id="export-every-name" label="Also include registered and unresolved names" checked={everyName} onCheckedChange={setEveryName} />
               ) : null}
               <SwitchField id="export-notes" label="Include notes" checked={includeNotes} onCheckedChange={setIncludeNotes} />
             </div>

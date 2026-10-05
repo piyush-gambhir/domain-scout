@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Camera, Download, Ellipsis, NotebookPen, Pencil, RotateCw, Tag, Trash, X } from 'lucide-react';
+import { Camera, Download, Ellipsis, NotebookPen, Pencil, RotateCw, Scale, Tag, Trash, X } from 'lucide-react';
 import { toast } from 'sonner';
 import type { CollectionEntry } from '@domain-scout/contracts';
 import { api } from '@/lib/api';
@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import { ArtifactDialogsHost, type ArtifactRequest } from '../actions/artifact-host';
 import { ProviderRequestDialog } from '../actions/provider-request-dialog';
 import type { DomainTarget, ScopeOption } from '../actions/types';
+import { MAX_COMPARE_DOMAINS } from '../compare/shared';
 import { useJobStarted } from '../actions/use-job-started';
 import { DomainDetail } from '../domain/domain-detail';
 import { DomainName } from '../domain/domain-name';
@@ -258,6 +259,17 @@ export function CollectionView({ collectionId }: { collectionId: string }) {
     },
   });
 
+  // Comparisons read retained offers only, so opening one sends nothing anywhere.
+  const compare = useMutation({
+    mutationFn: async () => {
+      const domains = await target.resolveDomains();
+      if (domains.length === 0) throw new Error('Nothing to compare.');
+      if (domains.length > MAX_COMPARE_DOMAINS) throw new Error(`Compare at most ${MAX_COMPARE_DOMAINS} domains at a time.`);
+      return domains;
+    },
+    onSuccess: (domains) => router.push(`/compare?domains=${encodeURIComponent(domains.join(','))}`),
+  });
+
   const deleteCollection = useMutation({
     mutationFn: async () => api.call('deleteCollection', { params: { id: collectionId } }),
     onSuccess: () => {
@@ -326,6 +338,10 @@ export function CollectionView({ collectionId }: { collectionId: string }) {
                   <Camera />
                   Snapshot
                 </DropdownMenuItem>
+                <DropdownMenuItem disabled={entryCount === 0 || compare.isPending} onSelect={() => compare.mutate()}>
+                  <Scale />
+                  Compare {hasSelection ? 'selected' : 'all'}
+                </DropdownMenuItem>
                 {hasSelection ? (
                   <DropdownMenuItem onSelect={() => setConfirm('remove')}>
                     <X />
@@ -354,7 +370,7 @@ export function CollectionView({ collectionId }: { collectionId: string }) {
         ) : rows.length === 0 ? (
           <EmptyState>No domains in this shortlist.</EmptyState>
         ) : (
-          <div className="-mx-1 overflow-x-auto px-1">
+          <div className="relative -mx-1 overflow-x-auto px-1">
             <table className="w-full min-w-[46rem] text-left text-sm">
               <thead>
                 <tr className="text-xs text-muted-foreground">
@@ -433,7 +449,10 @@ export function CollectionView({ collectionId }: { collectionId: string }) {
                         {best ? (
                           <span className="flex flex-col">
                             <Price amount={best.registration.amount} currency={best.currency} kind={best.kind} years={best.registration.years} />
-                            <span className="text-xs text-muted-foreground">{names.get(best.providerId) ?? best.providerId}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {names.get(best.providerId) ?? best.providerId} ·{' '}
+                              <CheckedAt iso={best.observedAt} freshness={best.freshness} staleAt={best.staleAt} expiresAt={best.quoteExpiresAt} />
+                            </span>
                           </span>
                         ) : (
                           <span className="text-muted-foreground">Unknown</span>

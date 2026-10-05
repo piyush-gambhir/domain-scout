@@ -66,6 +66,7 @@ export function item(index: number) {
     suffix: 'test',
     operation: 'registry',
     target: null,
+    source: 'registry:fixture-registry',
     state: 'finished',
     attempts: 1,
     outcome: registry.outcome,
@@ -75,7 +76,20 @@ export function item(index: number) {
     startedAt: CHECKED_AT,
     finishedAt: CHECKED_AT,
     evidence: { registry, confirmation: null, offers: [], nameCheck: null, diagnostic: null, listing: null },
-    bestPrice: registry.outcome === 'no_record' ? { providerId: 'fixture', amount: '10.37', currency: 'USD', kind: 'published', years: 1 } : null,
+    bestPrice:
+      registry.outcome === 'no_record'
+        ? {
+            providerId: 'fixture',
+            amount: '10.37',
+            currency: 'USD',
+            kind: 'published',
+            years: 1,
+            offerId: uuid(200_000 + index),
+            source: 'Fixture catalog',
+            observedAt: CHECKED_AT,
+            freshness: 'stale',
+          }
+        : null,
     collectionIds: index % 50 === 0 ? [uuid(999)] : [],
   };
 }

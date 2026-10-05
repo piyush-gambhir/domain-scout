@@ -106,3 +106,19 @@ test('a dialog opened from a menu returns focus to the menu trigger', async ({ p
   await expect(page.getByRole('dialog', { name: 'Snapshot' })).toBeHidden();
   await expect(more).toBeFocused();
 });
+
+test('TXT exports keep candidates by default and include every name only when asked', async ({ page }) => {
+  await mockJobApi(page);
+  await page.goto(`/jobs/${JOB_ID}`);
+  await page.getByRole('checkbox', { name: `Select ${domainAt(0)}` }).click();
+  await page.getByRole('toolbar', { name: 'Selected results' }).getByRole('button', { name: 'Export' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Export' });
+  await dialog.getByRole('radio', { name: 'TXT' }).click();
+  const first = page.waitForRequest((r) => r.url().endsWith('/api/v1/exports') && r.method() === 'POST');
+  await dialog.getByRole('button', { name: 'Export', exact: true }).click();
+  expect((await first).postDataJSON()).not.toHaveProperty('candidatesOnly');
+  await dialog.getByRole('switch', { name: 'Also include registered and unresolved names' }).click();
+  const second = page.waitForRequest((r) => r.url().endsWith('/api/v1/exports') && r.method() === 'POST');
+  await dialog.getByRole('button', { name: 'Export', exact: true }).click();
+  expect((await second).postDataJSON()).toMatchObject({ format: 'txt', candidatesOnly: false });
+});

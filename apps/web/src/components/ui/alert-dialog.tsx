@@ -13,6 +13,7 @@ export function ConfirmDialog({
   confirmLabel,
   onConfirm,
   pending,
+  children,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -21,6 +22,8 @@ export function ConfirmDialog({
   confirmLabel: string;
   onConfirm: () => void;
   pending?: boolean;
+  /** Extra detail under the description, e.g. the exact records a deletion removes. */
+  children?: React.ReactNode;
 }) {
   const returnFocus = useReturnFocus();
   return (
@@ -37,6 +40,7 @@ export function ConfirmDialog({
           {description ? (
             <AlertPrimitive.Description className="mt-2 text-sm text-muted-foreground">{description}</AlertPrimitive.Description>
           ) : null}
+          {children ? <div className="mt-3 text-sm">{children}</div> : null}
           <div className="mt-6 flex justify-end gap-2">
             <AlertPrimitive.Cancel asChild>
               <Button variant="ghost">Cancel</Button>

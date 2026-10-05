@@ -301,7 +301,14 @@ function ProviderDetail({ provider }: { provider: Provider }) {
           <SectionTitle>Purchase link</SectionTitle>
           <Facts
             items={[
-              ['Kind', provider.purchaseLink.kind === 'dashboard' ? 'Dashboard (sign-in required)' : 'Search page'],
+              [
+                'Kind',
+                provider.purchaseLink.kind === 'dashboard'
+                  ? 'Dashboard (sign-in required)'
+                  : provider.purchaseLink.kind === 'website'
+                    ? 'Website (name not prefilled)'
+                    : 'Search page',
+              ],
               ['Template', <span key="t" className="break-all font-mono text-[13px]">{provider.purchaseLink.template}</span>],
               ['Verified', formatDate(provider.purchaseLink.verifiedAt)],
             ]}

@@ -1,8 +1,13 @@
 import type { Metadata } from 'next';
-import { PageHeader } from '@/components/states';
+import { Suspense } from 'react';
+import { HistoryPage } from '@/components/history/history-page';
 
 export const metadata: Metadata = { title: 'History' };
 
 export default function Page() {
-  return <PageHeader title="History" />;
+  return (
+    <Suspense>
+      <HistoryPage />
+    </Suspense>
+  );
 }

@@ -4,11 +4,11 @@ import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { Command } from 'cmdk';
 import { Dialog as DialogPrimitive } from 'radix-ui';
-import { useTheme } from 'next-themes';
 import { Bookmark, ListChecks, Moon, PanelLeft, Plus, Search, Sun, SunMoon } from 'lucide-react';
 import { api } from '@/lib/api';
 import { jobTypeLabel } from '@/lib/labels';
 import { qk, useCollections } from '@/lib/queries';
+import { useThemePreference } from '@/lib/theme';
 import { Kbd } from '../ui/kbd';
 import { ALL_NAV_ITEMS } from './nav';
 
@@ -43,7 +43,7 @@ export function CommandPalette({
   onToggleSidebar: () => void;
 }) {
   const router = useRouter();
-  const { setTheme } = useTheme();
+  const { setTheme } = useThemePreference();
   const mod = isMac() ? '⌘' : 'Ctrl';
   const jobs = useQuery({
     queryKey: qk.jobs({ limit: 6 }),

@@ -2,7 +2,7 @@ import { csrfHeaders, expect, test } from './fixtures';
 
 // Local preview only: POST /inputs/preview normalizes text without any external query, and the
 // Run button is never pressed. Names are limited to the fixed live test set and invalid rows.
-const INPUT = ['example.com', 'google.com', 'example.com', 'nic.si', 'bbc.co.uk', 'not a domain!'].join('\n');
+const INPUT = ['example.com', 'google.com', 'example.com', 'nic.si', 'bbc.co.uk', 'not_a_domain!'].join('\n');
 
 test('preview shows the counts the API computes for a pasted list', async ({ page }) => {
   await page.goto('/scan');
@@ -28,7 +28,7 @@ test('preview shows the counts the API computes for a pasted list', async ({ pag
 
   expect(data.counts.duplicate).toBeGreaterThanOrEqual(1);
   expect(data.counts.invalid).toBeGreaterThanOrEqual(1);
-  await expect(page.getByTestId('preview-problems')).toContainText('not a domain!');
+  await expect(page.getByTestId('preview-problems')).toContainText('not_a_domain!');
   await expect(page.getByRole('button', { name: /^Run \d+ checks?$/ })).toBeEnabled();
 });
 

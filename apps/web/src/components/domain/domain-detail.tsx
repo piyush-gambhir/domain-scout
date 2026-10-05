@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BookmarkPlus, ExternalLink, Maximize2, RotateCw, Tag } from 'lucide-react';
 import type { DomainEvidence, Offer, RegistryObservation } from '@domain-scout/contracts';
 import { api } from '@/lib/api';
-import { PRICE_KIND, PURCHASE_PATH, confirmationStatus, diagnosticStatus, humanize, nameCheckStatus, registryStatus } from '@/lib/labels';
+import { DESTINATION_LABEL, DESTINATION_NOTE, PRICE_KIND, PURCHASE_PATH, confirmationStatus, diagnosticStatus, humanize, nameCheckStatus, registryStatus } from '@/lib/labels';
 import { formatDate, formatDateTime, formatMoney } from '@/lib/format';
 import { qk, useProviders } from '@/lib/queries';
 import { useIdempotency } from '@/lib/use-idempotency';
@@ -35,7 +35,7 @@ function Section({ title, children, className }: { title: string; children: Reac
 }
 
 function ScrollTable({ children }: { children: React.ReactNode }) {
-  return <div className="-mx-1 overflow-x-auto px-1">{children}</div>;
+  return <div className="relative -mx-1 overflow-x-auto px-1">{children}</div>;
 }
 
 function Mono({ children }: { children: React.ReactNode }) {
@@ -182,14 +182,16 @@ function PurchaseSection({ evidence }: { evidence: DomainEvidence }) {
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 underline-offset-4 hover:underline"
                     >
-                      {provider.purchaseKind === 'dashboard' ? 'Dashboard' : 'Open'}
+                      {DESTINATION_LABEL[provider.purchaseKind ?? 'search'] ?? 'Open'}
                       <ExternalLink aria-hidden className="size-3.5" />
                       <span className="sr-only"> {provider.name} (opens in a new tab)</span>
                     </a>
                   ) : (
                     <span className="text-muted-foreground">None</span>
                   )}
-                  {provider.purchaseKind === 'dashboard' ? <span className="ml-2 text-xs text-muted-foreground">Sign-in required</span> : null}
+                  {provider.purchaseKind && DESTINATION_NOTE[provider.purchaseKind] ? (
+                    <span className="ml-2 text-xs text-muted-foreground">{DESTINATION_NOTE[provider.purchaseKind]}</span>
+                  ) : null}
                 </td>
               </tr>
             ))}
@@ -278,10 +280,13 @@ function OffersSection({ offers, names }: { offers: Offer[]; names: Map<string, 
                 <td className={tdClass}>
                   {offer.destination ? (
                     <a href={offer.destination.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 underline-offset-4 hover:underline">
-                      {offer.destination.kind === 'dashboard' ? 'Dashboard' : 'Open'}
+                      {DESTINATION_LABEL[offer.destination.kind] ?? 'Open'}
                       <ExternalLink aria-hidden className="size-3.5" />
                       <span className="sr-only"> {names.get(offer.providerId) ?? offer.providerId} (opens in a new tab)</span>
                     </a>
+                  ) : null}
+                  {offer.destination && DESTINATION_NOTE[offer.destination.kind] ? (
+                    <span className="block text-xs text-muted-foreground">{DESTINATION_NOTE[offer.destination.kind]}</span>
                   ) : null}
                 </td>
               </tr>

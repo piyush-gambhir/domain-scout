@@ -87,6 +87,29 @@ export function plural(count: number, one: string, many = `${one}s`): string {
   return `${formatCount(count)} ${count === 1 ? one : many}`;
 }
 
+export function formatBytes(bytes: number | null | undefined): string {
+  if (bytes === null || bytes === undefined) return 'Unknown';
+  if (bytes < 1024) return `${number.format(bytes)} B`;
+  const units = ['KB', 'MB', 'GB', 'TB'];
+  let value = bytes / 1024;
+  let unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit++;
+  }
+  return `${value.toFixed(value < 10 ? 1 : 0)} ${units[unit]}`;
+}
+
+/** Watch and settings intervals in words: 1440 -> "Daily". */
+export function formatInterval(minutes: number): string {
+  if (minutes === 1440) return 'Daily';
+  if (minutes === 10080) return 'Weekly';
+  if (minutes === 60) return 'Hourly';
+  if (minutes % 1440 === 0) return `Every ${minutes / 1440} days`;
+  if (minutes % 60 === 0) return `Every ${minutes / 60} hours`;
+  return `Every ${minutes} minutes`;
+}
+
 export function shortId(id: string): string {
   return id.slice(0, 8);
 }

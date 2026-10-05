@@ -214,3 +214,59 @@ export const CAPABILITY_NAME: Record<CapabilityName, string> = {
 };
 
 export const CAPABILITY_ORDER: CapabilityName[] = ['purchaseLink', 'catalog', 'exactCheck', 'quote', 'transfer', 'aftermarket'];
+
+export const WATCH_STATE: Record<string, StatusInfo> = {
+  active: { label: 'Active', tone: 'positive' },
+  paused: { label: 'Paused', tone: 'muted' },
+};
+
+/** Missed runs and runs with failures are unresolved: they never read as a successful check. */
+export const WATCH_RUN_STATUS: Record<string, StatusInfo> = {
+  scheduled: { label: 'Scheduled', tone: 'muted' },
+  running: { label: 'Running', tone: 'neutral' },
+  completed: { label: 'Completed', tone: 'positive' },
+  completed_with_errors: { label: 'Completed with failures', tone: 'caution', unresolved: true },
+  missed: { label: 'Missed', tone: 'caution', unresolved: true },
+  catch_up: { label: 'Catch-up run', tone: 'neutral' },
+  cancelled: { label: 'Cancelled', tone: 'muted' },
+};
+
+export function watchRunStatus(status: string): StatusInfo {
+  return WATCH_RUN_STATUS[status] ?? { label: humanize(status), tone: 'muted' };
+}
+
+export const NOTICE_TYPE: Record<string, string> = {
+  availability_changed: 'Registry result changed',
+  confirmation_changed: 'Provider confirmation changed',
+  price_changed: 'Price changed',
+};
+
+/** Before/after evidence values: registry outcomes and confirmation states get their labels; amounts stay as given. */
+export function evidenceStatus(kind: string, value: string): StatusInfo | null {
+  if (kind === 'registry') return registryStatus(value);
+  if (kind === 'confirmation') return PROVIDER_CHECK[value] ?? { label: humanize(value), tone: 'muted' };
+  return null;
+}
+
+export const LISTING_STATUS: Record<string, StatusInfo> = {
+  fixed_price: { label: 'Fixed price', tone: 'neutral' },
+  auction: { label: 'Auction', tone: 'neutral' },
+  make_offer: { label: 'Make offer', tone: 'neutral' },
+  not_listed: { label: 'Not listed', tone: 'muted' },
+  unknown: { label: 'Unknown', tone: 'caution', unresolved: true },
+};
+
+/** Link text for a purchase destination. A website link opens the provider's home page with no name prefilled. */
+export const DESTINATION_LABEL: Record<string, string> = {
+  search: 'Open',
+  dashboard: 'Dashboard',
+  website: 'Website',
+  checkout: 'Checkout',
+  listing: 'Listing',
+};
+
+/** Short qualifier shown beside destinations that do not lead straight to the name. */
+export const DESTINATION_NOTE: Record<string, string> = {
+  dashboard: 'Sign-in required',
+  website: 'Name not prefilled',
+};

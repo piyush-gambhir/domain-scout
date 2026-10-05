@@ -138,7 +138,7 @@ export function ResultsTable(props: ResultsTableProps) {
           const item = row.original;
           const status = outcomeStatus(item.operation, item.outcome, item.state);
           return (
-            <span title={item.error?.message ?? item.evidence.registry?.reason.message} className="min-w-0">
+            <span title={[item.error?.message ?? item.evidence.registry?.reason.message, item.source].filter(Boolean).join(' · ') || undefined} className="min-w-0">
               <StatusLabel status={status} />
             </span>
           );
@@ -158,9 +158,11 @@ export function ResultsTable(props: ResultsTableProps) {
         cell: ({ row }) => {
           const best = row.original.bestPrice;
           if (!best) return row.original.state === 'finished' ? <span className="text-muted-foreground">Unknown</span> : null;
+          // Age travels with the price: an old catalog price must not read as current.
           return (
-            <span title={`${best.providerId}, ${best.years} year`} className="min-w-0">
+            <span title={`${best.providerId}, ${best.years} year, ${best.source}`} className="flex min-w-0 flex-col leading-tight">
               <Price amount={best.amount} currency={best.currency} kind={best.kind} />
+              {best.observedAt ? <CheckedAt iso={best.observedAt} freshness={best.freshness} className="truncate text-xs text-muted-foreground" /> : null}
             </span>
           );
         },

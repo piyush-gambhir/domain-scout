@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import { PageHeader } from '@/components/states';
+import { DiscoverPage } from '@/components/discover/discover-page';
 
 export const metadata: Metadata = { title: 'Discover' };
 
 export default function Page() {
-  return <PageHeader title="Discover" />;
+  return <DiscoverPage />;
 }

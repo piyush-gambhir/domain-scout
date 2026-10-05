@@ -1,7 +1,7 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import type { ResultFilter } from '@domain-scout/contracts';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { OperationArgs, ResultFilter } from '@domain-scout/contracts';
 import { api } from './api';
 
 /** Query keys. Caches hold unwrapped `data` so SSE updates can write them directly. */
@@ -19,8 +19,45 @@ export const qk = {
   presets: ['presets'] as const,
   criteria: ['criteria'] as const,
   notices: ['notices'] as const,
+  noticeList: (query: object) => ['notices', 'list', query] as const,
   nameCheckServices: ['nameCheckServices'] as const,
+  settings: ['settings'] as const,
+  watches: ['watches'] as const,
+  watch: (id: string) => ['watches', id] as const,
+  watchRuns: (id: string) => ['watches', id, 'runs'] as const,
+  history: (query?: object) => (query ? (['history', query] as const) : (['history'] as const)),
+  priceHistory: (query: object) => ['priceHistory', query] as const,
+  generationThemes: ['generationThemes'] as const,
+  comparison: (request: object) => ['comparison', request] as const,
+  transferOptions: (domain: string) => ['transferOptions', domain] as const,
+  listings: (domain: string) => ['listings', domain] as const,
+  aftermarketSources: ['aftermarketSources'] as const,
+  portfolio: ['portfolio'] as const,
+  coverage: ['coverage'] as const,
+  dataInventory: ['dataInventory'] as const,
+  artifacts: ['artifacts'] as const,
+  capabilities: ['capabilities'] as const,
+  health: ['health'] as const,
 };
+
+export function useSettings() {
+  return useQuery({
+    queryKey: qk.settings,
+    queryFn: ({ signal }) => api.call('getSettings', { signal }).then((r) => r.data),
+    staleTime: 60_000,
+  });
+}
+
+export type SettingsPatchInput = OperationArgs<'patchSettings'>['body'];
+
+/** Saves part of the settings; the response replaces the cached settings. */
+export function usePatchSettings() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (patch: SettingsPatchInput) => (await api.call('patchSettings', { body: patch })).data,
+    onSuccess: (settings) => client.setQueryData(qk.settings, settings),
+  });
+}
 
 export function useProviders() {
   return useQuery({

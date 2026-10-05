@@ -1,8 +1,13 @@
 import type { Metadata } from 'next';
-import { PageHeader } from '@/components/states';
+import { Suspense } from 'react';
+import { ComparePage } from '@/components/compare/compare-page';
 
 export const metadata: Metadata = { title: 'Compare' };
 
 export default function Page() {
-  return <PageHeader title="Compare" />;
+  return (
+    <Suspense>
+      <ComparePage />
+    </Suspense>
+  );
 }

@@ -15,6 +15,7 @@ import {
   Play,
   RotateCcw,
   RotateCw,
+  Scale,
   Stethoscope,
   Tag,
   Undo2,
@@ -36,6 +37,7 @@ import { ShortlistDialog } from '../actions/shortlist-dialog';
 import type { DomainTarget, ScopeInput, ScopeOption } from '../actions/types';
 import { useJobStarted } from '../actions/use-job-started';
 import { WatchDialog } from '../actions/watch-dialog';
+import { MAX_COMPARE_DOMAINS } from '../compare/shared';
 import { DomainDetail } from '../domain/domain-detail';
 import { RelativeTime } from '../domain/time';
 import { EmptyState, ErrorState, PageHeader } from '../states';
@@ -250,6 +252,17 @@ export function JobView({ jobId }: { jobId: string }) {
       retryIdempotency.reset();
       started(created, `Recheck of ${plural(created.counters.total, 'domain')} started`);
     },
+  });
+
+  // Comparisons read retained offers only, so opening one sends nothing anywhere.
+  const compare = useMutation({
+    mutationFn: async () => {
+      const domains = await target.resolveDomains();
+      if (domains.length === 0) throw new Error('Nothing selected.');
+      if (domains.length > MAX_COMPARE_DOMAINS) throw new Error(`Compare at most ${MAX_COMPARE_DOMAINS} domains at a time.`);
+      return domains;
+    },
+    onSuccess: (domains) => router.push(`/compare?domains=${encodeURIComponent(domains.join(','))}`),
   });
 
   const cancel = useMutation({
@@ -534,6 +547,10 @@ export function JobView({ jobId }: { jobId: string }) {
                   <DropdownMenuItem onSelect={() => setDialog('watch')}>
                     <Bell />
                     Watch
+                  </DropdownMenuItem>
+                  <DropdownMenuItem disabled={compare.isPending} onSelect={() => compare.mutate()}>
+                    <Scale />
+                    Compare prices
                   </DropdownMenuItem>
                 </>
               ) : null}
