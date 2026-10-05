@@ -79,7 +79,8 @@ describe('local auth', () => {
     const s = await t.createSession();
     await t.anon.get('/settings').set('Cookie', s.cookie).expect(200);
     const info = await t.anon.get('/auth/session').set('Cookie', s.cookie).expect(200);
-    expect(info.body.data).toEqual({ sessionId: s.sessionId, csrfToken: s.csrfToken, expiresAt: s.expiresAt });
+    expect(info.body.data).toEqual({ csrfToken: s.csrfToken, expiresAt: s.expiresAt });
+    expect(info.body.data).not.toHaveProperty('sessionId');
 
     const patch = { appearance: { theme: 'dark' } };
     await t.anon.patch('/settings').set('Cookie', s.cookie).set('X-CSRF-Token', s.csrfToken).set('Origin', WEB).send(patch).expect(200);

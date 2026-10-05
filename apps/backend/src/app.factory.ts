@@ -11,7 +11,7 @@ import { requestContextMiddleware } from './runtime/http.middleware.js';
 /** Nest options shared by main.ts and the test helper. */
 export function appOptions(config: AppConfig): NestApplicationOptions {
   return {
-    logger: config.embedded ? false : ['error', 'warn', 'log'],
+    logger: config.embedded ? false : ['error', 'warn'],
     bodyParser: false,
     // Throw initialization errors (e.g. an unresolved provider) instead of aborting the process
     // silently, which hides the cause when the logger is off in tests.

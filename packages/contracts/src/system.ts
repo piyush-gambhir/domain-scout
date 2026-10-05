@@ -104,6 +104,11 @@ export const SessionInfo = z
   .object({ sessionId: z.string(), csrfToken: z.string(), expiresAt: Timestamp })
   .meta({ id: 'SessionInfo' });
 export const SessionInfoResponse = envelope(SessionInfo, 'SessionInfoResponse');
+/** What a browser may learn about its own session: never the session id behind the HttpOnly cookie. */
+export const SessionStatus = z
+  .object({ csrfToken: z.string(), expiresAt: Timestamp })
+  .meta({ id: 'SessionStatus' });
+export const SessionStatusResponse = envelope(SessionStatus, 'SessionStatusResponse');
 
 /* Domain evidence and history. */
 

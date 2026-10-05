@@ -4288,6 +4288,18 @@ type SessionInfoResponse struct {
 	Data            SessionInfo `json:"data"`
 }
 
+// SessionStatus defines model for SessionStatus.
+type SessionStatus struct {
+	CsrfToken string    `json:"csrfToken"`
+	ExpiresAt Timestamp `json:"expiresAt"`
+}
+
+// SessionStatusResponse defines model for SessionStatusResponse.
+type SessionStatusResponse struct {
+	ContractVersion string        `json:"contractVersion"`
+	Data            SessionStatus `json:"data"`
+}
+
 // Settings defines model for Settings.
 type Settings struct {
 	Appearance struct {
@@ -14808,7 +14820,7 @@ type GetSessionResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	// JSON200 the response for an HTTP 200 `application/json` response
-	JSON200 *SessionInfoResponse
+	JSON200 *SessionStatusResponse
 	// JSON400 the response for an HTTP 400 `application/json` response
 	JSON400 *ErrorResponse
 	// JSON401 the response for an HTTP 401 `application/json` response
@@ -14822,7 +14834,7 @@ type GetSessionResponse struct {
 }
 
 // GetJSON200 returns the response for an HTTP 200 `application/json` response
-func (r GetSessionResponse) GetJSON200() *SessionInfoResponse {
+func (r GetSessionResponse) GetJSON200() *SessionStatusResponse {
 	return r.JSON200
 }
 
@@ -23535,7 +23547,7 @@ func ParseGetSessionResponse(rsp *http.Response) (*GetSessionResponse, error) {
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest SessionInfoResponse
+		var dest SessionStatusResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

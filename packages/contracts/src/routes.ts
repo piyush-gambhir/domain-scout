@@ -99,6 +99,7 @@ import {
   ServiceStopResponse,
   SessionExchange,
   SessionInfoResponse,
+  SessionStatusResponse,
   SettingsPatch,
   SettingsResponse,
 } from './system.js';
@@ -160,7 +161,7 @@ export const routes = {
   stopService: { method: 'post', path: '/service/stop', summary: 'Gracefully stop the backend', tag: 'system', response: ServiceStopResponse, status: 202 },
   createBootstrapCode: { method: 'post', path: '/auth/bootstrap-codes', summary: 'Single-use code for opening the browser UI (API token only)', tag: 'system', response: BootstrapCodeResponse, status: 201 },
   createSession: { method: 'post', path: '/auth/session', summary: 'Exchange a bootstrap code for a browser session', tag: 'system', body: SessionExchange, response: SessionInfoResponse, status: 201, auth: 'none' },
-  getSession: { method: 'get', path: '/auth/session', summary: 'Current browser session', tag: 'system', response: SessionInfoResponse },
+  getSession: { method: 'get', path: '/auth/session', summary: 'Current browser session', tag: 'system', response: SessionStatusResponse },
 
   // Input
   previewInput: { method: 'post', path: '/inputs/preview', summary: 'Parse, validate, expand and deduplicate input without external queries', tag: 'inputs', body: InputSource, response: InputPreviewResponse },

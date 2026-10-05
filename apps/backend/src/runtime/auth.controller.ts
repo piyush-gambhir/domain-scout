@@ -26,6 +26,7 @@ export class AuthController {
   getSession(@Req() req: Request) {
     const auth = req.auth;
     if (auth?.kind !== 'session') throw new AppError('forbidden', 'Only browser sessions have session info');
-    return ok({ sessionId: auth.sessionId, csrfToken: auth.csrfToken, expiresAt: auth.expiresAt });
+    // The session id stays behind the HttpOnly cookie; page scripts only need the CSRF token.
+    return ok({ csrfToken: auth.csrfToken, expiresAt: auth.expiresAt });
   }
 }

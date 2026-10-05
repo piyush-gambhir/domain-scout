@@ -555,7 +555,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SessionInfoResponse"
+                  "$ref": "#/components/schemas/SessionStatusResponse"
                 }
               }
             }
@@ -16231,6 +16231,36 @@
           },
           "data": {
             "$ref": "#/components/schemas/SessionInfo"
+          }
+        },
+        "required": [
+          "contractVersion",
+          "data"
+        ]
+      },
+      "SessionStatus": {
+        "type": "object",
+        "properties": {
+          "csrfToken": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "csrfToken",
+          "expiresAt"
+        ]
+      },
+      "SessionStatusResponse": {
+        "type": "object",
+        "properties": {
+          "contractVersion": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/SessionStatus"
           }
         },
         "required": [
