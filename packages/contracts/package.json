@@ -1,0 +1,30 @@
+{
+  "name": "@domain-scout/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "generate": "tsc -p tsconfig.build.json && node scripts/emit-openapi.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "node scripts/emit-openapi.mjs --check",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "typescript": "~5.9.3",
+    "vitest": "^5.0.3"
+  }
+}

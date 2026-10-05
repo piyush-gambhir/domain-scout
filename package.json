@@ -1,0 +1,27 @@
+{
+  "name": "domain-scout",
+  "private": true,
+  "packageManager": "pnpm@11.17.0",
+  "engines": {
+    "node": ">=24.11"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "node scripts/dev.mjs",
+    "generate": "turbo run generate",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "check": "turbo run lint typecheck test",
+    "package": "turbo run build && node scripts/package.mjs",
+    "format": "prettier --write --ignore-unknown .",
+    "format:check": "prettier --check --ignore-unknown .",
+    "clean": "turbo run clean && rm -rf node_modules .turbo"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.9",
+    "turbo": "^2.11.7",
+    "typescript": "~5.9.3"
+  }
+}

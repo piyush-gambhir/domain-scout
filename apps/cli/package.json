@@ -1,0 +1,17 @@
+{
+  "name": "@domain-scout/cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Go CLI (domain-scout). Turbo runs Go tasks through these scripts.",
+  "scripts": {
+    "generate": "go generate ./...",
+    "build": "go build -trimpath -o bin/domain-scout ./cmd/domain-scout",
+    "typecheck": "go vet ./...",
+    "lint": "go vet ./... && gofmt -l . | (! grep .)",
+    "test": "go test ./...",
+    "clean": "rm -rf bin"
+  },
+  "devDependencies": {
+    "@domain-scout/contracts": "workspace:*"
+  }
+}

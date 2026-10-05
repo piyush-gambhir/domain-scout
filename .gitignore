@@ -1,1 +1,17 @@
 trials/
+node_modules/
+.next/
+.turbo/
+dist/
+coverage/
+release/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+.DS_Store
+**/.claude/
+test-results/
+playwright-report/
+.pnpm-store/
+apps/cli/bin/

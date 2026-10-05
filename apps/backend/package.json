@@ -1,0 +1,39 @@
+{
+  "name": "@domain-scout/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "node scripts/dev.mjs",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:live": "DOMAIN_SCOUT_LIVE_TESTS=1 vitest run test/live",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@domain-scout/contracts": "workspace:*",
+    "@nestjs/common": "^12.1.2",
+    "@nestjs/core": "^12.1.2",
+    "@nestjs/platform-express": "^12.1.2",
+    "decimal.js": "^10.6.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "tldts": "^7.4.16",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^12.1.2",
+    "@swc/core": "^1.16.13",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.10.0",
+    "@types/supertest": "^6.0.3",
+    "supertest": "^7.1.4",
+    "typescript": "~5.9.3",
+    "unplugin-swc": "^2.0.0",
+    "vitest": "^5.0.3"
+  }
+}

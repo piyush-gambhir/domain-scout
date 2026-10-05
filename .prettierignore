@@ -1,0 +1,5 @@
+trials/
+pnpm-lock.yaml
+packages/contracts/openapi.json
+apps/cli/internal/api/
+*.md
