@@ -44,7 +44,8 @@ function marks(values: readonly unknown[]): string {
  *
  * Semantics: `resolved: false` means finished without a definitive answer (pending work is selected
  * with `states`); `maxPrice` keeps only items with a known best price at or below it; `confirmations`
- * matches the provider confirmation evidence recorded on the item itself.
+ * matches the provider confirmation evidence recorded on the item itself, or, for items without
+ * any (registry rows), the newest confirmation recorded for the domain by any provider.
  */
 export class ResultQueryBuilder {
   private readonly sort: SortSpec;
@@ -101,12 +102,21 @@ export class ResultQueryBuilder {
       params.push(f.resolved ? 1 : 0);
     }
     if (f.confirmations?.length) {
+      // The item's own confirmation evidence decides; items without any (registry rows) use the
+      // newest confirmation recorded for the same domain from any provider. CROSS JOIN keeps
+      // json_each as the outer loop, so each item does primary-key lookups of its own evidence
+      // ids instead of scanning every confirmation.
+      const own = `SELECT 1 FROM json_each(i.evidence_json, '$.observations') je
+           CROSS JOIN observations co ON co.id = je.value
+           WHERE co.kind = 'confirmation'`;
       clauses.push(
-        `EXISTS (SELECT 1 FROM json_each(i.evidence_json, '$.observations') je
-           JOIN observations co ON co.id = je.value
-           WHERE co.kind = 'confirmation' AND json_extract(co.payload_json, '$.status') IN (${marks(f.confirmations)}))`,
+        `(EXISTS (${own} AND json_extract(co.payload_json, '$.status') IN (${marks(f.confirmations)}))
+          OR (NOT EXISTS (${own})
+            AND (SELECT json_extract(lc.payload_json, '$.status') FROM observations lc
+                 WHERE lc.kind = 'confirmation' AND lc.subject = i.subject
+                 ORDER BY lc.observed_at DESC, lc.id DESC LIMIT 1) IN (${marks(f.confirmations)})))`,
       );
-      params.push(...f.confirmations);
+      params.push(...f.confirmations, ...f.confirmations);
     }
     if (f.maxPrice !== undefined) {
       clauses.push('bp.amount IS NOT NULL AND CAST(bp.amount AS REAL) <= CAST(? AS REAL)');

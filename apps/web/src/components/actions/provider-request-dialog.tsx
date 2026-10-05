@@ -45,15 +45,18 @@ export function ProviderRequestDialog({
   onOpenChange,
   target,
   defaultOperation = 'quote',
+  defaultSelected,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   target: DomainTarget;
   defaultOperation?: ProviderOperation;
+  /** Providers checked initially, e.g. from restored criteria. */
+  defaultSelected?: string[];
 }) {
   const providers = useProviders();
   const [operation, setOperation] = useState<ProviderOperation>(defaultOperation);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<Set<string>>(() => new Set(defaultSelected));
   const idempotency = useIdempotency();
   const started = useJobStarted();
   const op = OPERATIONS.find((o) => o.value === operation)!;

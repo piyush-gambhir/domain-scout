@@ -1,4 +1,5 @@
 import { Injectable, Optional } from '@nestjs/common';
+import { createHash } from 'node:crypto';
 import type { PriceSeries, PurchasePath } from '@domain-scout/contracts';
 import { decodeCursor, encodeCursor } from '../core/envelope.js';
 import { InputPreviewer } from '../core/ports.js';
@@ -33,11 +34,28 @@ export interface HistoryQuery {
   limit: number;
 }
 
+interface HistoryPayload {
+  renewal?: { years?: number };
+  transfer?: { includesYears?: number | null };
+  promotion?: { description?: string; requiresTermYears?: number | null; expiresAt?: string | null } | null;
+}
+
+/**
+ * Stable signature of a promotion's conditions (description, required term, expiry), so different
+ * campaigns never share a trend. Regular prices and promotional rows without details stay distinct.
+ */
+function promotionSignature(promotional: boolean, promotion: HistoryPayload['promotion']): string {
+  if (!promotional) return 'regular';
+  if (!promotion) return 'promo';
+  const conditions = JSON.stringify([promotion.description ?? '', promotion.requiresTermYears ?? null, promotion.expiresAt ?? null]);
+  return `promo:${createHash('sha256').update(conditions).digest('hex').slice(0, 16)}`;
+}
+
 /**
  * Observed price history. Observations are grouped into comparable series (same provider, scope,
- * purchase path, currency, region, registration term, renewal term, transfer-included years and
- * promotional flag); unmatched records never join a
- * trend. Gaps are periods no observation's freshness window covered; nothing is interpolated.
+ * purchase path, price kind, currency, region, registration term, renewal term, transfer-included
+ * years and promotion conditions); unmatched records never join a trend. Gaps are periods no
+ * observation's freshness window covered; nothing is interpolated.
  */
 @Injectable()
 export class HistoryService {
@@ -78,19 +96,21 @@ export class HistoryService {
       const scope = row.domain ?? row.suffix;
       const promotional = row.promotional === 1;
       // Renewal and transfer amounts are comparable only for the same covered years.
-      const payload = json.parse<{ renewal?: { years?: number }; transfer?: { includesYears?: number | null } }>(row.payload_json, {});
+      const payload = json.parse<HistoryPayload>(row.payload_json, {});
       const renewalYears = payload.renewal?.years ?? 1;
       const transferYears = payload.transfer?.includesYears ?? null;
       const key = [
         row.provider_id,
         scope,
         row.purchase_path,
+        // A published catalog price, an estimate and an exact quote are different measurements.
+        row.kind,
         row.currency,
         row.region ?? '-',
         `${row.term_years}y`,
         `renew${renewalYears}y`,
         `transfer${transferYears ?? '?'}y`,
-        promotional ? 'promo' : 'regular',
+        promotionSignature(promotional, payload.promotion),
       ].join('|');
       let group = groups.get(key);
       if (!group) {

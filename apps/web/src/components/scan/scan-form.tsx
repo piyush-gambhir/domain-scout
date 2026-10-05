@@ -5,17 +5,20 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { FileUp, Play } from 'lucide-react';
 import { toast } from 'sonner';
-import type { InputPreview, InputPreviewRow, InputRowStatus } from '@domain-scout/contracts';
+import type { InputPreview, InputPreviewRow, InputRowStatus, ResultFilter } from '@domain-scout/contracts';
 import { api } from '@/lib/api';
+import { PROVIDERS_PARAM, compactFilter, parseBudget, withBudget, withoutPrice } from '@/lib/criteria';
 import { formatCount, plural } from '@/lib/format';
 import type { StatusInfo } from '@/lib/labels';
-import { qk } from '@/lib/queries';
+import { qk, useSettings } from '@/lib/queries';
 import { readJson, writeJson } from '@/lib/storage';
 import { type ScanInputRestore, takeScanInput } from '@/lib/restore';
 import { useDebounced } from '@/lib/use-debounced';
 import { useIdempotency } from '@/lib/use-idempotency';
-import { cn, hashString } from '@/lib/utils';
+import { cn, hashString, uniq } from '@/lib/utils';
+import { BudgetFields, ProviderPicker, SaveCriteriaPopover } from '../actions/save-criteria';
 import { DomainName } from '../domain/domain-name';
+import { describeFilter, filterToParams } from '../jobs/filters';
 import { ErrorState, PageHeader, SectionTitle } from '../states';
 import { StatusLabel } from '../status';
 import { Button } from '../ui/button';
@@ -35,12 +38,28 @@ interface Draft {
   extensions: string[];
   label: string;
   recheck: boolean;
+  /** Saved criteria for the results view the run opens. The scan itself contacts registries only. */
+  resultFilter: ResultFilter | null;
+  providerIds: string[];
+  budgetAmount: string;
+  budgetCurrency: string;
 }
 
 const DRAFT_KEY = 'ds.scan.draft';
 const MAX_TEXT = 5_000_000;
 const LIST_LIMIT = 200;
-const EMPTY: Draft = { text: '', format: 'auto', csvColumn: '', extensions: [], label: '', recheck: false };
+const EMPTY: Draft = {
+  text: '',
+  format: 'auto',
+  csvColumn: '',
+  extensions: [],
+  label: '',
+  recheck: false,
+  resultFilter: null,
+  providerIds: [],
+  budgetAmount: '',
+  budgetCurrency: '',
+};
 
 const ROW_STATUS: Record<InputRowStatus, StatusInfo> = {
   valid: { label: 'Valid', tone: 'positive' },
@@ -203,22 +222,35 @@ export function ScanForm() {
     handledSource.current = source;
     window.history.replaceState(null, '', '/scan');
     const startedAt = editVersion.current;
-    const apply = (input: ScanInputRestore) => {
-      if (handledSource.current === source && editVersion.current === startedAt) setDraft(fromRestore(input));
+    const apply = (next: Draft) => {
+      if (handledSource.current === source && editVersion.current === startedAt) setDraft(next);
     };
     if (restoreKey) {
       // The initial render already used a stash present at mount; this covers stashes that arrive later.
       const restored = takeScanInput(restoreKey);
-      if (restored) void Promise.resolve(restored).then(apply);
+      if (restored) void Promise.resolve(fromRestore(restored)).then(apply);
     } else if (jobParam) {
       api
         .call('getJob', { params: { id: jobParam } })
-        .then(({ data }) => apply({ text: data.input.text ?? '', extensions: data.input.extensions, label: data.label ?? '' }))
+        .then(({ data }) => apply(fromRestore({ text: data.input.text ?? '', extensions: data.input.extensions, label: data.label ?? '' })))
         .catch(() => toast.error('Could not restore that scan.'));
     } else if (criteriaParam) {
+      // Input, extensions, results filter, providers and budget come back; nothing runs.
       api
         .call('getCriteria', { params: { id: criteriaParam } })
-        .then(({ data }) => apply({ text: data.input ?? '', extensions: data.extensions, label: data.name }))
+        .then(({ data }) => {
+          // The budget is the one price cap: a saved budget wins, else a filter cap becomes the budget.
+          const filter = compactFilter(data.filter);
+          const cap = data.budget ?? (filter.maxPrice ? { amount: filter.maxPrice, currency: filter.priceCurrency ?? '' } : null);
+          const rest = withoutPrice(filter);
+          apply({
+            ...fromRestore({ text: data.input ?? '', extensions: data.extensions, label: data.name }),
+            resultFilter: Object.keys(rest).length ? rest : null,
+            providerIds: data.providerIds,
+            budgetAmount: cap?.amount ?? '',
+            budgetCurrency: cap?.currency ?? '',
+          });
+        })
         .catch(() => toast.error('Could not restore those criteria.'));
     }
   }, [restoreKey, jobParam, criteriaParam]);
@@ -260,6 +292,24 @@ export function ScanForm() {
   const totalChecks = current?.counts.totalChecks ?? 0;
   const tooLarge = draft.text.length > MAX_TEXT;
 
+  const settings = useSettings();
+  const budgetCurrency = draft.budgetCurrency || settings.data?.comparison.currency || 'USD';
+  const { budget, error: budgetError } = parseBudget(draft.budgetAmount, budgetCurrency);
+  const filterParts = draft.resultFilter ? describeFilter(draft.resultFilter) : [];
+
+  // Criteria keep input text but not parse settings, so forced CSV input is saved as the values of
+  // the column read, one per line, from the current preview. Until it matches, there is nothing to save.
+  const criteriaInput =
+    draft.format === 'csv' ? (current ? uniq(current.rows.map((r) => r.original.trim()).filter(Boolean)).join('\n') : null) : draft.text;
+
+  /** The results view a run opens: the restored filter with the budget as its price cap, plus providers. */
+  const resultsQuery = () => {
+    const params = filterToParams(compactFilter(withBudget(draft.resultFilter, budget)), new URLSearchParams());
+    if (draft.providerIds.length) params.set(PROVIDERS_PARAM, draft.providerIds.join(','));
+    const query = params.toString();
+    return query ? `?${query}` : '';
+  };
+
   const run = useMutation({
     mutationFn: async () => {
       const body = {
@@ -279,11 +329,30 @@ export function ScanForm() {
       idempotency.reset();
       client.setQueryData(qk.job(job.id), job);
       void client.invalidateQueries({ queryKey: qk.jobs() });
-      router.push(`/jobs/${job.id}`);
+      router.push(`/jobs/${job.id}${resultsQuery()}`);
     },
   });
 
-  const canRun = totalChecks > 0 && !tooLarge && !run.isPending;
+  const saveCriteria = useMutation({
+    mutationFn: async (name: string) => {
+      const filter = draft.resultFilter ? compactFilter(draft.resultFilter) : null;
+      const body = {
+        name,
+        input: criteriaInput ?? '',
+        extensions: draft.extensions,
+        filter: filter && Object.keys(filter).length ? filter : null,
+        providerIds: draft.providerIds,
+        budget,
+      };
+      return (await api.call('createCriteria', { body })).data;
+    },
+    onSuccess: (criteria) => {
+      void client.invalidateQueries({ queryKey: qk.criteria });
+      toast.success(`Saved ${criteria.name}`, { action: { label: 'Shortlists', onClick: () => router.push('/collections') } });
+    },
+  });
+
+  const canRun = totalChecks > 0 && !tooLarge && !budgetError && !run.isPending;
   const runRef = useRef<() => void>(() => {});
   useEffect(() => {
     runRef.current = () => {
@@ -331,10 +400,17 @@ export function ScanForm() {
       <PageHeader
         title="Scan"
         actions={
-          <Button variant="primary" disabled={!canRun} onClick={() => run.mutate()}>
-            <Play />
-            {totalChecks > 0 ? `Run ${plural(totalChecks, 'check')}` : 'Run'}
-          </Button>
+          <>
+            <SaveCriteriaPopover
+              disabled={Boolean(budgetError) || tooLarge || criteriaInput === null}
+              pending={saveCriteria.isPending}
+              onSave={(name) => saveCriteria.mutateAsync(name)}
+            />
+            <Button variant="primary" disabled={!canRun} onClick={() => run.mutate()}>
+              <Play />
+              {totalChecks > 0 ? `Run ${plural(totalChecks, 'check')}` : 'Run'}
+            </Button>
+          </>
         }
       />
       <div className="grid gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -413,6 +489,36 @@ export function ScanForm() {
             </Field>
           </div>
           <SwitchField id="scan-recheck" label="Ignore cached results" checked={draft.recheck} onCheckedChange={(recheck) => update({ recheck })} className="max-w-sm" />
+
+          <section aria-label="Results" className="flex flex-col gap-4">
+            <span className="text-xs font-medium text-muted-foreground">Results</span>
+            <div className="grid items-end gap-4 sm:grid-cols-[minmax(0,1fr)_auto]">
+              <BudgetFields
+                idPrefix="scan"
+                amount={draft.budgetAmount}
+                currency={budgetCurrency}
+                error={budgetError}
+                onChange={(patch) =>
+                  update({
+                    ...(patch.amount !== undefined ? { budgetAmount: patch.amount } : {}),
+                    ...(patch.currency !== undefined ? { budgetCurrency: patch.currency } : {}),
+                  })
+                }
+              />
+              <div className={cn(budgetError && 'sm:mb-5')}>
+                <ProviderPicker value={draft.providerIds} onChange={(providerIds) => update({ providerIds })} />
+              </div>
+            </div>
+            {filterParts.length ? (
+              <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm" data-testid="restored-filter">
+                <span className="text-muted-foreground">Filter</span>
+                <span>{filterParts.join(' · ')}</span>
+                <Button size="sm" variant="link" className="h-auto p-0 text-muted-foreground" onClick={() => update({ resultFilter: null })}>
+                  Clear
+                </Button>
+              </p>
+            ) : null}
+          </section>
         </div>
 
         <div className="min-w-0">

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
   Bell,
   BookmarkPlus,
@@ -15,6 +16,7 @@ import {
   Play,
   RotateCcw,
   RotateCw,
+  Save,
   Scale,
   Stethoscope,
   Tag,
@@ -23,6 +25,7 @@ import {
 } from 'lucide-react';
 import type { Job, JobItem, ResultFilter } from '@domain-scout/contracts';
 import { api } from '@/lib/api';
+import { providersFromParams, withoutPrice } from '@/lib/criteria';
 import { JOB_OPERATION, jobStateStatus, jobTypeLabel, outcomeOptions, outcomeStatus } from '@/lib/labels';
 import { formatCount, plural } from '@/lib/format';
 import { qk, useCollections } from '@/lib/queries';
@@ -33,6 +36,7 @@ import { cn, uniq } from '@/lib/utils';
 import { ArtifactDialogsHost, type ArtifactRequest } from '../actions/artifact-host';
 import { DiagnosticsDialog, NameCheckDialog } from '../actions/enrichment-dialogs';
 import { ProviderRequestDialog } from '../actions/provider-request-dialog';
+import { SaveCriteriaDialog } from '../actions/save-criteria';
 import { ShortlistDialog } from '../actions/shortlist-dialog';
 import type { DomainTarget, ScopeInput, ScopeOption } from '../actions/types';
 import { useJobStarted } from '../actions/use-job-started';
@@ -46,7 +50,7 @@ import { Button } from '../ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Sheet } from '../ui/sheet';
 import { Skeleton, SkeletonRows } from '../ui/skeleton';
-import { ResultFilters, filterFromParams, filterToParams, filterToQuery, isFiltered } from './filters';
+import { ResultFilters, describeFilter, filterFromParams, filterToParams, filterToQuery, isFiltered } from './filters';
 import { ResultsTable } from './results-table';
 import { useSelection } from './selection';
 
@@ -54,7 +58,7 @@ const PAGE_SIZE = 200;
 const RESOLVE_PAGE_SIZE = 1000;
 const MAX_BULK_DOMAINS = 10_000;
 
-type DialogName = 'shortlist' | 'providers' | 'names' | 'diagnostics' | 'watch' | null;
+type DialogName = 'shortlist' | 'providers' | 'names' | 'diagnostics' | 'watch' | 'criteria' | null;
 
 function Progress({ job, activeOutcomes, onOutcome }: { job: Job; activeOutcomes: string[]; onOutcome: (outcome: string) => void }) {
   const { counters } = job;
@@ -146,6 +150,8 @@ export function JobView({ jobId }: { jobId: string }) {
   const job = useLiveJob(jobId);
   const filter = useMemo(() => filterFromParams(new URLSearchParams(searchParams.toString())), [searchParams]);
   const filterKey = JSON.stringify(filter);
+  // Providers chosen with restored criteria; they preselect provider requests and saved criteria.
+  const selectedProviders = useMemo(() => providersFromParams(new URLSearchParams(searchParams.toString())), [searchParams]);
   const detailName = searchParams.get('d');
   const running = job.data ? !isTerminal(job.data) : false;
   const operation = job.data ? JOB_OPERATION[job.data.type] : 'registry';
@@ -264,6 +270,27 @@ export function JobView({ jobId }: { jobId: string }) {
       return domains;
     },
     onSuccess: (domains) => router.push(`/compare?domains=${encodeURIComponent(domains.join(','))}`),
+  });
+
+  // Saving stores the filter as shown plus chosen providers and budget; nothing runs. The price cap
+  // is saved as the budget (prefilled from it), so clearing the budget removes the cap.
+  const saveCriteria = useMutation({
+    mutationFn: async (choice: { name: string; providerIds: string[]; budget: { amount: string; currency: string } | null }) => {
+      const input = job.data?.input;
+      const body = {
+        name: choice.name,
+        filter: withoutPrice(filter),
+        extensions: input?.extensions ?? [],
+        providerIds: choice.providerIds,
+        budget: choice.budget,
+        input: job.data?.type === 'registry_scan' ? (input?.text ?? null) : null,
+      };
+      return (await api.call('createCriteria', { body })).data;
+    },
+    onSuccess: (criteria) => {
+      void client.invalidateQueries({ queryKey: qk.criteria });
+      toast.success(`Saved ${criteria.name}`, { action: { label: 'Shortlists', onClick: () => router.push('/collections') } });
+    },
   });
 
   const cancel = useMutation({
@@ -404,6 +431,10 @@ export function JobView({ jobId }: { jobId: string }) {
                   <Camera />
                   Snapshot
                 </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setDialog('criteria')}>
+                  <Save />
+                  Save criteria
+                </DropdownMenuItem>
                 {data.type === 'registry_scan' ? (
                   <DropdownMenuItem onSelect={() => router.push(`/scan?job=${data.id}`)}>
                     <Undo2 />
@@ -449,6 +480,7 @@ export function JobView({ jobId }: { jobId: string }) {
         onChange={updateFilter}
         outcomeOptions={outcomeChoices}
         suffixOptions={suffixChoices}
+        showConfirmations={domainJob}
         collections={(collections.data ?? []).map((c) => ({ value: c.id, label: c.name }))}
         searchRef={searchRef}
       />
@@ -572,11 +604,30 @@ export function JobView({ jobId }: { jobId: string }) {
       </Sheet>
 
       <ShortlistDialog open={dialog === 'shortlist'} onOpenChange={(o) => setDialog(o ? 'shortlist' : null)} target={target} />
-      <ProviderRequestDialog open={dialog === 'providers'} onOpenChange={(o) => setDialog(o ? 'providers' : null)} target={target} />
+      <ProviderRequestDialog
+        open={dialog === 'providers'}
+        onOpenChange={(o) => setDialog(o ? 'providers' : null)}
+        target={target}
+        defaultSelected={selectedProviders}
+      />
       <NameCheckDialog open={dialog === 'names'} onOpenChange={(o) => setDialog(o ? 'names' : null)} target={target} />
       <DiagnosticsDialog open={dialog === 'diagnostics'} onOpenChange={(o) => setDialog(o ? 'diagnostics' : null)} target={target} />
       <WatchDialog open={dialog === 'watch'} onOpenChange={(o) => setDialog(o ? 'watch' : null)} target={target} />
       <ArtifactDialogsHost request={artifact} onClose={() => setArtifact(null)} scopes={exportScopes} />
+      <SaveCriteriaDialog
+        open={dialog === 'criteria'}
+        onOpenChange={(o) => setDialog(o ? 'criteria' : null)}
+        summary={
+          <>
+            <p>{describeFilter(withoutPrice(filter), operation).join(' · ') || 'No filter'}</p>
+            {data.input.extensions.length ? <p className="font-mono text-[13px]">{data.input.extensions.map((e) => `.${e}`).join(' ')}</p> : null}
+          </>
+        }
+        initialProviders={selectedProviders}
+        initialBudget={{ amount: filter.maxPrice ?? '', currency: filter.priceCurrency ?? null }}
+        pending={saveCriteria.isPending}
+        onSave={(choice) => saveCriteria.mutateAsync(choice)}
+      />
     </>
   );
 }

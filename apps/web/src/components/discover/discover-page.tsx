@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, Plus, Save, Search, X } from 'lucide-react';
+import { ArrowRight, Plus, Search, X } from 'lucide-react';
 import { toast } from 'sonner';
 import type { GenerationPreview, GenerationRequest, GenerationStrategy } from '@domain-scout/contracts';
 import { api } from '@/lib/api';
@@ -14,6 +14,7 @@ import { readJson, writeJson } from '@/lib/storage';
 import { useDebounced } from '@/lib/use-debounced';
 import { useIsClient } from '@/lib/use-is-client';
 import { cn } from '@/lib/utils';
+import { SaveCriteriaPopover } from '../actions/save-criteria';
 import { ExtensionPicker } from '../scan/extension-picker';
 import { EmptyState, ErrorState, PageHeader, SectionTitle } from '../states';
 import { StatusLabel } from '../status';
@@ -21,7 +22,6 @@ import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
 import { Input, Textarea } from '../ui/input';
 import { Field } from '../ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Skeleton } from '../ui/skeleton';
 import { Switch } from '../ui/switch';
 import { type Candidate, STRATEGY_LABEL, addedCandidate, expandedDomains, fromGenerated, parseList } from './candidates';
@@ -247,39 +247,6 @@ function CandidateRow({
   );
 }
 
-function SaveCriteria({ disabled, onSave, pending }: { disabled: boolean; onSave: (name: string) => Promise<unknown>; pending: boolean }) {
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState('');
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="secondary" disabled={disabled}>
-          <Save />
-          Save criteria
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-72">
-        <form
-          className="flex flex-col gap-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (disabled || !name.trim()) return;
-            void onSave(name.trim()).then(() => {
-              setName('');
-              setOpen(false);
-            });
-          }}
-        >
-          <Input autoFocus aria-label="Criteria name" placeholder="Name" maxLength={200} value={name} onChange={(e) => setName(e.target.value)} />
-          <Button type="submit" size="sm" variant="primary" disabled={disabled || !name.trim() || pending}>
-            Save
-          </Button>
-        </form>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
 function DiscoverForm() {
   const router = useRouter();
   const client = useQueryClient();
@@ -441,7 +408,7 @@ function DiscoverForm() {
         title="Discover"
         actions={
           <>
-            <SaveCriteria disabled={!current} pending={saveCriteria.isPending} onSave={(name) => saveCriteria.mutateAsync(name)} />
+            <SaveCriteriaPopover disabled={!current} pending={saveCriteria.isPending} onSave={(name) => saveCriteria.mutateAsync(name)} />
             <Button variant="primary" disabled={!current || selected.length === 0} onClick={sendToScan}>
               <ArrowRight />
               {selected.length > 0 ? `Send ${formatCount(selected.length)} to scan` : 'Send to scan'}

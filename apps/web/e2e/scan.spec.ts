@@ -54,3 +54,37 @@ test('the scan draft survives navigation', async ({ page }) => {
   await page.getByTestId('sidebar').getByRole('link', { name: 'Scan' }).click();
   await expect(page.getByLabel('Domains or names')).toHaveValue('example.com');
 });
+
+test('a preset saved in the UI is the preset the API expands by id (B03)', async ({ page }) => {
+  await page.goto('/scan');
+  const input = page.getByLabel('Add extensions');
+  await input.fill('si co.uk');
+  await input.press('Enter');
+  const name = `UI preset ${Date.now()}`;
+  await page.getByRole('button', { name: 'Save preset' }).click();
+  await page.getByLabel('Preset name').fill(name);
+  const created = page.waitForResponse((r) => r.url().endsWith('/api/v1/presets') && r.request().method() === 'POST');
+  await page.getByRole('button', { name: 'Save 2 extensions' }).click();
+  const response = await created;
+  expect(response.ok()).toBe(true);
+  const { data } = (await response.json()) as { data: { id: string; name: string; extensions: string[]; builtIn: boolean } };
+  expect(data).toMatchObject({ name, extensions: ['si', 'co.uk'], builtIn: false });
+  await expect(page.getByRole('group', { name: 'Presets' }).getByRole('button', { name: new RegExp(`^${name}`) })).toBeVisible();
+
+  try {
+    // The list agents read (`domain-scout presets list`) carries the same id.
+    const listed = (await (await page.request.get('/api/v1/presets?limit=500')).json()) as { data: { id: string; extensions: string[] }[] };
+    expect(listed.data.find((p) => p.id === data.id)?.extensions).toEqual(['si', 'co.uk']);
+    // `scan --preset <id>` sends presetId; the backend expands it locally with no query.
+    const preview = await page.request.post('/api/v1/inputs/preview', {
+      data: { text: 'example', format: 'auto', presetId: data.id },
+      headers: await csrfHeaders(page),
+    });
+    expect(preview.ok()).toBe(true);
+    const { data: expanded } = (await preview.json()) as { data: { domains: string[]; extensions: string[] } };
+    expect([...expanded.domains].sort()).toEqual(['example.co.uk', 'example.si']);
+    expect([...expanded.extensions].sort()).toEqual(['co.uk', 'si']);
+  } finally {
+    await page.request.delete(`/api/v1/presets/${data.id}`, { headers: await csrfHeaders(page) });
+  }
+});

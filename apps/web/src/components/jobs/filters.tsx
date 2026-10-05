@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { ArrowDownNarrowWide, ArrowUpWideNarrow, ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react';
-import type { ResultFilter } from '@domain-scout/contracts';
+import type { ConfirmationStatus, JobOperation, ResultFilter } from '@domain-scout/contracts';
+import { formatMoney } from '@/lib/format';
+import { confirmationStatus, outcomeStatus } from '@/lib/labels';
 import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
@@ -26,6 +28,11 @@ const SORTS: { value: Sort; label: string }[] = [
 
 const LIST_KEYS = ['outcomes', 'suffixes', 'states', 'confirmations'] as const;
 
+const CONFIRMATIONS: ConfirmationStatus[] = ['available', 'unavailable', 'restricted', 'unknown'];
+
+/** Provider confirmation choices; registry rows match on the newest confirmation for their domain. */
+export const CONFIRMATION_OPTIONS = CONFIRMATIONS.map((value) => ({ value, label: confirmationStatus(value).label }));
+
 /** URL search params <-> ResultFilter. Lists are comma separated, like the API query form. */
 export function filterFromParams(params: URLSearchParams): ResultFilter {
   const filter: ResultFilter = {};
@@ -45,6 +52,8 @@ export function filterFromParams(params: URLSearchParams): ResultFilter {
   if (currency && /^[A-Z]{3}$/.test(currency)) filter.priceCurrency = currency;
   const collectionId = params.get('collectionId');
   if (collectionId) filter.collectionId = collectionId;
+  const inCollection = params.get('inCollection');
+  if (inCollection === 'true' || inCollection === 'false') filter.inCollection = inCollection === 'true';
   const sort = params.get('sort');
   if (sort && SORTS.some((s) => s.value === sort)) filter.sort = sort as Sort;
   const order = params.get('order');
@@ -54,7 +63,7 @@ export function filterFromParams(params: URLSearchParams): ResultFilter {
 
 export function filterToParams(filter: ResultFilter, base: URLSearchParams): URLSearchParams {
   const params = new URLSearchParams(base);
-  for (const key of ['q', ...LIST_KEYS, 'resolved', 'maxLength', 'maxPrice', 'priceCurrency', 'collectionId', 'sort', 'order']) params.delete(key);
+  for (const key of ['q', ...LIST_KEYS, 'resolved', 'maxLength', 'maxPrice', 'priceCurrency', 'collectionId', 'inCollection', 'sort', 'order']) params.delete(key);
   for (const [key, value] of Object.entries(filter)) {
     if (value === undefined || value === null || value === '') continue;
     if (Array.isArray(value)) {
@@ -77,9 +86,28 @@ export function filterToQuery(filter: ResultFilter) {
     maxPrice: filter.maxPrice,
     priceCurrency: filter.priceCurrency,
     collectionId: filter.collectionId,
+    inCollection: filter.inCollection === undefined ? undefined : filter.inCollection ? ('true' as const) : ('false' as const),
     sort: filter.sort,
     order: filter.order,
   };
+}
+
+/** Short human description of a filter, e.g. for saved criteria. Empty when nothing narrows or sorts. */
+export function describeFilter(filter: ResultFilter, operation: JobOperation = 'registry'): string[] {
+  const parts: string[] = [];
+  if (filter.q) parts.push(`Matching "${filter.q}"`);
+  if (filter.outcomes?.length) parts.push(`Outcome ${filter.outcomes.map((o) => outcomeStatus(operation, o).label).join(', ')}`);
+  if (filter.suffixes?.length) parts.push(filter.suffixes.map((s) => `.${s}`).join(' '));
+  if (filter.confirmations?.length) parts.push(`Provider ${filter.confirmations.map((c) => confirmationStatus(c).label).join(', ')}`);
+  if (filter.resolved !== undefined) parts.push(filter.resolved ? 'Resolved only' : 'Unresolved only');
+  if (filter.maxLength) parts.push(`Up to ${filter.maxLength} characters`);
+  if (filter.maxPrice) parts.push(`At most ${formatMoney(filter.maxPrice, filter.priceCurrency ?? 'USD')}`);
+  if (filter.collectionId) parts.push('In one shortlist');
+  if (filter.inCollection !== undefined) parts.push(filter.inCollection ? 'Shortlisted' : 'Not shortlisted');
+  if (filter.sort && filter.sort !== 'input') {
+    parts.push(`Sorted by ${SORTS.find((s) => s.value === filter.sort)?.label.toLowerCase() ?? filter.sort}${filter.order === 'desc' ? ', descending' : ''}`);
+  }
+  return parts;
 }
 
 export function isFiltered(filter: ResultFilter): boolean {
@@ -92,11 +120,12 @@ export function isFiltered(filter: ResultFilter): boolean {
       filter.resolved !== undefined ||
       filter.maxLength ||
       filter.maxPrice ||
-      filter.collectionId,
+      filter.collectionId ||
+      filter.inCollection !== undefined,
   );
 }
 
-function MultiSelect({
+export function MultiSelect({
   label,
   options,
   value,
@@ -211,9 +240,19 @@ function MoreFiltersBody({
       <Field label="Shortlist" htmlFor="f-collection">
         <Select
           id="f-collection"
-          value={filter.collectionId ?? '__any__'}
-          onValueChange={(value) => onChange({ collectionId: value === '__any__' ? undefined : value })}
-          options={[{ value: '__any__', label: 'Any' }, ...collections]}
+          value={filter.collectionId ?? (filter.inCollection === undefined ? '__any__' : filter.inCollection ? '__in__' : '__out__')}
+          onValueChange={(value) =>
+            onChange({
+              collectionId: value.startsWith('__') ? undefined : value,
+              inCollection: value === '__in__' ? true : value === '__out__' ? false : undefined,
+            })
+          }
+          options={[
+            { value: '__any__', label: 'Any' },
+            { value: '__in__', label: 'In any shortlist' },
+            { value: '__out__', label: 'Not shortlisted' },
+            ...collections,
+          ]}
         />
       </Field>
     </>
@@ -229,7 +268,7 @@ function MoreFilters({
   onChange: (patch: Partial<ResultFilter>) => void;
   collections: { value: string; label: string }[];
 }) {
-  const active = [filter.maxLength, filter.maxPrice, filter.collectionId].filter(Boolean).length;
+  const active = [filter.maxLength, filter.maxPrice, filter.collectionId || filter.inCollection !== undefined].filter(Boolean).length;
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -251,6 +290,7 @@ export function ResultFilters({
   onChange,
   outcomeOptions,
   suffixOptions,
+  showConfirmations,
   collections,
   searchRef,
 }: {
@@ -258,6 +298,8 @@ export function ResultFilters({
   onChange: (patch: Partial<ResultFilter>) => void;
   outcomeOptions: { value: string; label: string }[];
   suffixOptions: { value: string; label: string }[];
+  /** Domain results only: name checks and catalog refreshes have no provider confirmations. */
+  showConfirmations: boolean;
   collections: { value: string; label: string }[];
   searchRef: React.RefObject<HTMLInputElement | null>;
 }) {
@@ -290,6 +332,14 @@ export function ResultFilters({
       </div>
       <MultiSelect label="Outcome" options={outcomeOptions} value={filter.outcomes} onChange={(outcomes) => onChange({ outcomes })} />
       <MultiSelect label="Extension" options={suffixOptions} value={filter.suffixes} onChange={(suffixes) => onChange({ suffixes })} />
+      {showConfirmations || filter.confirmations?.length ? (
+        <MultiSelect
+          label="Confirmation"
+          options={CONFIRMATION_OPTIONS}
+          value={filter.confirmations}
+          onChange={(confirmations) => onChange({ confirmations: confirmations as ConfirmationStatus[] | undefined })}
+        />
+      ) : null}
       <Segmented
         aria-label="Resolution"
         value={resolved}
@@ -330,6 +380,7 @@ export function ResultFilters({
               maxPrice: undefined,
               priceCurrency: undefined,
               collectionId: undefined,
+              inCollection: undefined,
             });
           }}
         >

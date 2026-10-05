@@ -122,7 +122,9 @@ func (a *App) rootCmd() *cobra.Command {
 		Long: `domain-scout talks to the local Domain Scout backend, starting it when needed.
 
 Output is the API JSON envelope (with contractVersion) on stdout by default.
-Progress and errors go to stderr. Commands never prompt.
+--output ndjson prints one row per line; each object row carries the
+envelope's contractVersion. Progress and errors go to stderr. Commands
+never prompt.
 
 Exit codes: 0 success or accepted submission, 1 local failure, 2 invalid
 request or usage, 3 job finished with unresolved items, 4 provider access
@@ -134,7 +136,7 @@ missing, 5 backend setup or version failure, 130 interrupted wait.`,
 	}
 	root.SetVersionTemplate("domain-scout {{.Version}}\n")
 	pf := root.PersistentFlags()
-	pf.StringVarP(&a.opts.output, "output", "o", outputJSON, "output format: json, table or ndjson")
+	pf.StringVarP(&a.opts.output, "output", "o", outputJSON, "output format: json, table or ndjson (one row per line, each with contractVersion)")
 	pf.BoolVar(&a.opts.noInput, "no-input", false, "never prompt (accepted for compatibility; the CLI never prompts)")
 	pf.BoolVarP(&a.opts.quiet, "quiet", "q", false, "suppress progress messages on stderr")
 	pf.StringVar(&a.opts.backendURL, "backend-url", "", "use this backend URL instead of runtime discovery (token from "+EnvAPIToken+" or the token file)")

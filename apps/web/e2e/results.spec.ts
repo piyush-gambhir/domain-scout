@@ -51,6 +51,55 @@ test('outcome filters update the URL and the backend query', async ({ page }) =>
   await expect(page.getByText('Available')).toHaveCount(0);
 });
 
+test('the confirmation filter is sent to the backend and kept in the URL (S01)', async ({ page }) => {
+  const queries = await mockJobApi(page);
+  await page.goto(`/jobs/${JOB_ID}`);
+  await expect(page.getByText(`${TOTAL.toLocaleString('en')} results`)).toBeVisible();
+  await page.getByRole('button', { name: 'Confirmation', exact: true }).click();
+  await page.getByRole('checkbox', { name: 'Available', exact: true }).click();
+  await page.getByRole('checkbox', { name: 'Restricted', exact: true }).click();
+  await expect(page).toHaveURL(/confirmations=available%2Crestricted|confirmations=available,restricted/);
+  await expect.poll(() => queries.some((q) => new URLSearchParams(q).get('confirmations') === 'available,restricted')).toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', { name: /^Confirmation/ })).toContainText('2');
+});
+
+test('rechecking selected rows submits only the selected domains (S03)', async ({ page }) => {
+  await mockJobApi(page);
+  const calls = await mockApi(page, {
+    'POST /rechecks': (c) => ({
+      status: 201,
+      json: {
+        contractVersion: '1.0.0',
+        data: job(uuid(0x701), { type: 'registry_scan', state: 'queued', counters: { total: (c.body as { domains: string[] }).domains.length, pending: 0, running: 0, finished: 0, interrupted: 0, resolved: 0, unresolved: 0, outcomes: {} } }),
+      },
+    }),
+  });
+  const rechecks = () => calls.filter((c) => c.method === 'POST' && c.path === '/rechecks').map((c) => (c.body as { domains: string[] }).domains);
+  await page.goto(`/jobs/${JOB_ID}`);
+  const toolbar = page.getByRole('toolbar', { name: 'Selected results' });
+
+  // Two explicit rows.
+  await page.getByRole('checkbox', { name: `Select ${domainAt(3)}` }).click();
+  await page.getByRole('checkbox', { name: `Select ${domainAt(0)}` }).click();
+  await expect(toolbar).toContainText('2 selected');
+  await toolbar.getByRole('button', { name: 'Recheck' }).click();
+  await expect(page.getByText('Recheck of 2 domains started')).toBeVisible();
+  expect(rechecks()).toEqual([[domainAt(3), domainAt(0)]]);
+
+  // Every row matching a filter, past the loaded page, and nothing outside it.
+  await toolbar.getByRole('button', { name: 'Clear selection' }).click();
+  await page.getByRole('group', { name: 'Filter by outcome' }).getByRole('button', { name: /No record/ }).click();
+  await expect(page.getByText('250 results')).toBeVisible();
+  await page.getByRole('checkbox', { name: 'Select loaded rows' }).click();
+  await page.getByRole('button', { name: 'Select all 250 matching' }).click();
+  await expect(toolbar).toContainText('250 selected');
+  await toolbar.getByRole('button', { name: 'Recheck' }).click();
+  await expect(page.getByText('Recheck of 250 domains started')).toBeVisible();
+  const noRecord = Array.from({ length: TOTAL }, (_, i) => i).filter((i) => i % 6 === 1).map(domainAt);
+  expect(rechecks()[1]).toEqual(noRecord);
+});
+
 test('a row opens the detail panel beside the table', async ({ page }) => {
   await mockJobApi(page);
   await page.goto(`/jobs/${JOB_ID}`);

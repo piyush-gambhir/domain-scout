@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises';
+import type { BrowserContext, Download, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { DONE, INTERRUPTED, mockHistory, mockPriceHistory } from './page-fixtures';
 import { PHONE, pageOverflow, startedWork } from './mock-api';
@@ -74,6 +76,88 @@ test('price history shows each comparable series with gaps left as gaps', async 
   await page.getByLabel('Extension').fill('si');
   await expect(page.getByText('No comparable observations')).toBeVisible();
   expect(calls.some((c) => c.path === '/price-history' && c.search.get('suffix') === 'si')).toBe(true);
+});
+
+/** Picks a format from an export menu and returns the downloaded file's name and text. */
+async function exportAs(page: Page, menu: string, format: 'JSON' | 'CSV'): Promise<{ name: string; text: string }> {
+  await page.getByRole('button', { name: menu }).click();
+  const download: Promise<Download> = page.waitForEvent('download');
+  await page.getByRole('menuitem', { name: format }).click();
+  const file = await download;
+  return { name: file.suggestedFilename(), text: await readFile((await file.path())!, 'utf8') };
+}
+
+/** Exported history is built from API data only: no session or CSRF cookie values. */
+async function expectNoCredentials(context: BrowserContext, text: string) {
+  for (const cookie of await context.cookies()) expect(text).not.toContain(cookie.value);
+  expect(text).not.toMatch(/ds_session|ds_csrf|authorization|bearer/i);
+}
+
+test('exports the shown price series as JSON and points as CSV, named by scope (H04)', async ({ page, context }) => {
+  const calls = await mockPriceHistory(page);
+  await page.goto('/history?view=prices');
+  const settled = page.waitForResponse((r) => r.url().includes('/api/v1/price-history') && new URL(r.url()).searchParams.get('suffix') === 'com');
+  await page.getByLabel('Extension').fill('.com');
+  await settled;
+  await expect(page.getByTestId('price-series')).toHaveCount(2);
+  await expect(page.getByRole('button', { name: 'Export price history' })).toBeEnabled();
+  const requests = calls.length;
+
+  const json = await exportAs(page, 'Export price history', 'JSON');
+  expect(json.name).toMatch(/^domain-scout-price-history-suffix-com-\d{8}T\d{6}Z\.json$/);
+  const doc = JSON.parse(json.text);
+  expect(doc).toMatchObject({
+    kind: 'domain-scout-price-history',
+    contractVersion: '1.0.0',
+    scope: { suffix: 'com', domain: null, providerId: null },
+    loadedSeries: 2,
+    totalSeries: 2,
+    complete: true,
+  });
+  expect(doc.series.map((s: { key: string; points: unknown[]; gaps: unknown[] }) => [s.key, s.points.length, s.gaps.length])).toEqual([
+    ['porkbun|com|new_registration|USD|-|1|0', 5, 1],
+    ['dynadot|com|renewal|USD|-|1|0', 1, 0],
+  ]);
+  await expectNoCredentials(context, json.text);
+
+  const csv = await exportAs(page, 'Export price history', 'CSV');
+  expect(csv.name).toMatch(/^domain-scout-price-history-suffix-com-\d{8}T\d{6}Z\.csv$/);
+  const lines = csv.text.trimEnd().split('\r\n');
+  expect(lines[0]).toBe('seriesKey,providerId,scope,purchasePath,currency,region,termYears,promotional,offerId,observedAt,kind,registration,renewal,transfer');
+  expect(lines).toHaveLength(7);
+  // An unknown amount stays blank, never zero.
+  expect(lines[5]).toMatch(/,2026-09-22T00:00:00\.000Z,published,,11\.08,8\.00$/);
+  expect(lines[6]).toContain('dynadot|com|renewal|USD|-|1|0,dynadot,com,renewal,USD,,1,true,');
+  await expectNoCredentials(context, csv.text);
+  // Files come from the data on screen; exporting requested nothing.
+  expect(calls.length).toBe(requests);
+});
+
+test('exports the listed jobs, named by their filter (H04)', async ({ page, context }) => {
+  await mockHistory(page);
+  await page.goto('/history');
+  await expect(page.getByTestId('history-row')).toHaveCount(50);
+
+  const all = await exportAs(page, 'Export job history', 'JSON');
+  expect(all.name).toMatch(/^domain-scout-job-history-all-\d{8}T\d{6}Z\.json$/);
+  const doc = JSON.parse(all.text);
+  expect(doc).toMatchObject({ kind: 'domain-scout-job-history', contractVersion: '1.0.0', scope: { q: null, type: null }, loadedJobs: 50, totalJobs: 58, complete: false });
+  expect(doc.jobs[0]).toMatchObject({ jobId: DONE, label: 'Launch scan', extensions: ['com'] });
+  await expectNoCredentials(context, all.text);
+
+  const settled = page.waitForResponse((r) => r.url().includes('/api/v1/history') && new URL(r.url()).searchParams.get('type') === 'quote');
+  await page.getByRole('combobox', { name: 'Type' }).click();
+  await page.getByRole('option', { name: 'Quotes' }).click();
+  await settled;
+  await expect(page.getByTestId('history-row')).toHaveCount(1);
+  await expect(page.getByRole('button', { name: 'Export job history' })).toBeEnabled();
+  const quotes = await exportAs(page, 'Export job history', 'CSV');
+  expect(quotes.name).toMatch(/^domain-scout-job-history-type-quote-\d{8}T\d{6}Z\.csv$/);
+  const lines = quotes.text.trimEnd().split('\r\n');
+  expect(lines[0]).toBe('jobId,type,label,state,createdAt,finishedAt,total,unresolved,extensions,destinations,resumable');
+  expect(lines).toHaveLength(2);
+  expect(lines[1]).toContain(',quote,Quote request,completed,');
+  await expectNoCredentials(context, quotes.text);
 });
 
 test('price history from the real backend starts empty', async ({ page }) => {

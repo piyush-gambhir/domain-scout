@@ -296,6 +296,72 @@ describe('exports', () => {
     expect(html).toContain('not found');
   });
 
+  it('domain, collection and all scopes carry the newest name checks and diagnostics (X05)', async () => {
+    const domain = 'qzvkxmwplrtnbjhdgfcsyaeu.com';
+    const label = 'qzvkxmwplrtnbjhdgfcsyaeu';
+    const at = (minutes: number) => new Date(Date.parse(T0) + minutes * 60_000).toISOString();
+    const nameCheck = (service: string, outcome: string, minutes: number, name = label) =>
+      fx.observation('name_check', name, outcome, at(minutes), {
+        name,
+        service,
+        namespace: `${service} name`,
+        outcome,
+        destination: `${service}.test`,
+        httpStatus: outcome === 'exists' ? 200 : 404,
+        reason: { code: outcome, message: `${service} said ${outcome}` },
+        detail: null,
+      });
+    const diagnostic = (check: string, outcome: string, minutes: number) =>
+      fx.observation('diagnostic', domain, outcome, at(minutes), {
+        domain,
+        check,
+        outcome,
+        destination: 'resolver.test',
+        reason: { code: outcome, message: `${check} ${outcome}` },
+        data: {},
+      });
+    fx.registry(domain, 'no_record', at(-5));
+    nameCheck('npm', 'not_found', -30);
+    const github = nameCheck('github', 'not_found', -20);
+    // A long newer history of one service never hides the newest check of another.
+    for (let n = 0; n < 205; n++) nameCheck('npm', 'not_found', -19 + n * 0.01);
+    const npm = nameCheck('npm', 'exists', -10);
+    nameCheck('github', 'exists', -1, 'unrelatedlabel');
+    diagnostic('dns', 'observed', -25);
+    const dns = diagnostic('dns', 'no_answer', -8);
+    const tls = diagnostic('tls', 'unreachable', -7);
+    const expected = [npm, github, dns, tls].sort();
+
+    const listed = JSON.parse((await exportOf({ format: 'json', scope: { kind: 'domains', domains: [domain] } })).body);
+    expect([...listed.resolved.evidenceIds.other].sort()).toEqual(expected);
+    // Domain rows keep the registry outcome as their status; checks are separate evidence.
+    expect(listed.items[0]).toMatchObject({ domain, outcome: 'no_record' });
+    expect(listed.items[0].checks.map((c: Record<string, string>) => [c.kind, c.id, c.label, c.outcome, c.checkedAt, c.source, c.reason])).toEqual([
+      ['name_check', npm, 'npm (npm name)', 'exists', at(-10), 'npm.test', 'npm said exists'],
+      ['name_check', github, 'github (github name)', 'not_found', at(-20), 'github.test', 'github said not_found'],
+      ['diagnostic', tls, 'tls diagnostic', 'unreachable', at(-7), 'resolver.test', 'tls unreachable'],
+      ['diagnostic', dns, 'dns diagnostic', 'no_answer', at(-8), 'resolver.test', 'dns no_answer'],
+    ]);
+
+    const collection = (await http.post('/api/v1/collections').send({ name: 'Checks' }).expect(201)).body.data;
+    await http.post(`/api/v1/collections/${collection.id}/entries`).send({ domains: [domain] }).expect(200);
+    const shortlist = JSON.parse((await exportOf({ format: 'json', scope: { kind: 'collection', collectionId: collection.id } })).body);
+    expect([...shortlist.resolved.evidenceIds.other].sort()).toEqual(expected);
+
+    const all = JSON.parse((await exportOf({ format: 'json', scope: { kind: 'all' } })).body);
+    expect(all.resolved.evidenceIds.other).toEqual(expect.arrayContaining(expected));
+
+    const snapshot = (await http.post('/api/v1/snapshots').send({ title: 'Checks', scope: { kind: 'collection', collectionId: collection.id } }).expect(201)).body.data;
+    const doc = JSON.parse((await http.get(`/api/v1/snapshots/${snapshot.id}/download?format=json`).expect(200)).text);
+    const checks = doc.items[0].checks as { label: string; outcome: string; checkedAt: string; source: string }[];
+    expect(checks.map((c) => [c.label, c.outcome, c.checkedAt, c.source])).toEqual([
+      ['npm (npm name)', 'exists', at(-10), 'npm.test'],
+      ['github (github name)', 'not_found', at(-20), 'github.test'],
+      ['tls diagnostic', 'unreachable', at(-7), 'resolver.test'],
+      ['dns diagnostic', 'no_answer', at(-8), 'resolver.test'],
+    ]);
+  });
+
   it('lists, reads and deletes exports with their files', async () => {
     const created = await exportOf({ format: 'json', scope: { kind: 'domains', domains: ['bravo.com'] } });
     const list = ExportListResponse.parse((await http.get('/api/v1/exports?limit=2').expect(200)).body);

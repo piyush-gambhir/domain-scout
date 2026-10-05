@@ -76,6 +76,21 @@ func TestNDJSONOutput(t *testing.T) {
 		if m["jobId"] != jobID {
 			t.Fatalf("line is not an item: %s", l)
 		}
+		// Each row names the contract of the envelope it came from (G02).
+		if m["contractVersion"] != "1.0.0" || !strings.HasPrefix(l, `{"contractVersion":"1.0.0","id":`) {
+			t.Fatalf("row does not lead with contractVersion: %s", l)
+		}
+	}
+
+	// A single object and an object that already names its version.
+	f.reply("GET", "/api/v1/presets", 200, `{"contractVersion":"9.8.7","data":[{"id":"popular","name":"Popular","extensions":["com"],"builtIn":true,"createdAt":null},{"contractVersion":"1.2.3","id":"x"},{}],"nextCursor":null,"total":3}`)
+	r = newHarness(t).api(f, "presets", "list", "-o", "ndjson")
+	expectCode(t, r, ExitOK)
+	want := `{"contractVersion":"9.8.7","id":"popular","name":"Popular","extensions":["com"],"builtIn":true,"createdAt":null}` + "\n" +
+		`{"contractVersion":"1.2.3","id":"x"}` + "\n" +
+		`{"contractVersion":"9.8.7"}` + "\n"
+	if r.stdout != want {
+		t.Fatalf("rows not stamped as expected:\n%s", r.stdout)
 	}
 
 	// Nested lists render one row per line (input preview rows).
@@ -84,6 +99,11 @@ func TestNDJSONOutput(t *testing.T) {
 	expectCode(t, r, ExitOK)
 	if n := strings.Count(r.stdout, "\n"); n != 2 {
 		t.Fatalf("want 2 preview rows, got:\n%s", r.stdout)
+	}
+	for _, l := range strings.Split(strings.TrimRight(r.stdout, "\n"), "\n") {
+		if decodeJSON(t, l)["contractVersion"] != "1.0.0" {
+			t.Fatalf("preview row lacks contractVersion: %s", l)
+		}
 	}
 	sent := decodeJSON(t, string(f.requests("POST", "/api/v1/inputs/preview")[0].body))
 	if exts := sent["extensions"].([]any); len(exts) != 1 || exts[0] != "com" {
@@ -1045,5 +1065,44 @@ func TestNoticesReadAllForOneWatch(t *testing.T) {
 	expectCode(t, newHarness(t).api(f, "notices", "read", jobID, "--watch", otherJobID), ExitUsage)
 	if len(f.requests("POST", "/api/v1/notices/read")) != 1 {
 		t.Fatal("usage errors must not reach the API")
+	}
+}
+
+// B03: a preset saved anywhere (the web UI included) is listed by its id, and
+// scan and input preview send that same id back for the backend to expand.
+func TestSavedPresetIDIsReusedByScanAndPreview(t *testing.T) {
+	const presetID = "5f0c3d2e-8a41-4c6b-9d7e-2b1f0a9c8e71"
+	f := newFakeAPI(t)
+	f.reply("GET", "/api/v1/presets", 200, page([]string{
+		`{"id":"popular","name":"Popular","extensions":["com","net"],"builtIn":true,"createdAt":null}`,
+		`{"id":"` + presetID + `","name":"Saved in the UI","extensions":["si","co.uk"],"builtIn":false,"createdAt":"2026-10-05T12:00:00.000Z"}`,
+	}, ""))
+	f.reply("POST", "/api/v1/jobs", 201, envelope(jobJSON(jobSpec{state: "queued", total: 2})))
+	f.reply("POST", "/api/v1/inputs/preview", 200, envelope(`{"rows":[],"domains":["example.si","example.co.uk"],"extensions":["si","co.uk"],"counts":{"inputRows":1,"valid":1,"duplicate":0,"invalid":0,"ambiguous":0,"uniqueDomains":2,"totalChecks":2}}`))
+
+	r := newHarness(t).api(f, "presets", "list", "-o", "ndjson")
+	expectCode(t, r, ExitOK)
+	listed := ""
+	for _, l := range strings.Split(strings.TrimRight(r.stdout, "\n"), "\n") {
+		if m := decodeJSON(t, l); m["builtIn"] == false {
+			listed, _ = m["id"].(string)
+		}
+	}
+	if listed != presetID {
+		t.Fatalf("saved preset not listed by id:\n%s", r.stdout)
+	}
+
+	r = newHarness(t).api(f, "scan", "example", "--preset", listed)
+	expectCode(t, r, ExitOK)
+	scan := decodeJSON(t, string(f.requests("POST", "/api/v1/jobs")[0].body))
+	if input := scan["input"].(map[string]any); input["presetId"] != presetID {
+		t.Fatalf("scan did not send the listed preset id: %v", input)
+	}
+
+	r = newHarness(t).api(f, "input", "preview", "example", "--preset", listed)
+	expectCode(t, r, ExitOK)
+	preview := decodeJSON(t, string(f.requests("POST", "/api/v1/inputs/preview")[0].body))
+	if preview["presetId"] != presetID {
+		t.Fatalf("preview did not send the listed preset id: %v", preview)
 	}
 }

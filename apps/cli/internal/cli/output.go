@@ -49,8 +49,14 @@ func (a *App) emit(body []byte, v view) error {
 		if single != nil {
 			items = []json.RawMessage{single}
 		}
+		// Rows leave the envelope, so each object row carries its contractVersion.
+		version := envelopeVersion(body)
 		for _, it := range items {
-			if err := writeCompact(a.Stdout, it); err != nil {
+			row, err := stampVersion(it, version)
+			if err != nil {
+				return err
+			}
+			if err := writeCompact(a.Stdout, row); err != nil {
 				return err
 			}
 		}
@@ -79,6 +85,45 @@ func writeCompact(w io.Writer, raw json.RawMessage) error {
 	buf.WriteByte('\n')
 	_, err := w.Write(buf.Bytes())
 	return err
+}
+
+// envelopeVersion returns the envelope's contractVersion, or "" when absent.
+func envelopeVersion(body []byte) string {
+	var env struct {
+		ContractVersion string `json:"contractVersion"`
+	}
+	_ = json.Unmarshal(body, &env)
+	return env.ContractVersion
+}
+
+// stampVersion adds "contractVersion" as the first key of an object row that
+// does not already have one. Other keys keep their order; non-object rows are
+// returned unchanged.
+func stampVersion(raw json.RawMessage, version string) (json.RawMessage, error) {
+	trimmed := bytes.TrimSpace(raw)
+	if version == "" || len(trimmed) == 0 || trimmed[0] != '{' {
+		return raw, nil
+	}
+	var probe map[string]json.RawMessage
+	if err := json.Unmarshal(trimmed, &probe); err != nil {
+		return nil, failErr("backend returned malformed JSON: %v", err)
+	}
+	if _, ok := probe["contractVersion"]; ok {
+		return raw, nil
+	}
+	quoted, err := json.Marshal(version)
+	if err != nil {
+		return nil, failErr("cannot encode contractVersion: %v", err)
+	}
+	inner := bytes.TrimSpace(trimmed[1:])
+	var buf bytes.Buffer
+	buf.WriteString(`{"contractVersion":`)
+	buf.Write(quoted)
+	if len(inner) > 0 && inner[0] != '}' {
+		buf.WriteByte(',')
+	}
+	buf.Write(inner)
+	return buf.Bytes(), nil
 }
 
 // extract returns the rows of an envelope: an array (items) or one object (single).

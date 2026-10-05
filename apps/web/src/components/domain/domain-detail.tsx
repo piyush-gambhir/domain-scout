@@ -220,6 +220,29 @@ function OfferFees({ offer }: { offer: Offer }) {
   return <span className="flex flex-col text-xs">{parts}</span>;
 }
 
+/** Muted line under an amount: the years it covers, or other terms that change its meaning. */
+function Terms({ children }: { children: React.ReactNode }) {
+  return <span className="block text-xs text-muted-foreground">{children}</span>;
+}
+
+function transferYears(includes: number | null): string {
+  if (includes === null) return 'Included years unknown';
+  return includes === 0 ? 'No registration year included' : `Includes ${includes} yr`;
+}
+
+/** Promotion conditions as supplied; an unverified eligibility is always called out. */
+function PromotionTerms({ promotion }: { promotion: NonNullable<Offer['promotion']> }) {
+  return (
+    <span className="mt-1 flex max-w-56 flex-col gap-0.5 text-xs text-muted-foreground" data-testid="promotion">
+      <span className="text-foreground">Promotion: {promotion.description}</span>
+      {promotion.requiresTermYears ? <span>Requires {promotion.requiresTermYears} yr term</span> : null}
+      {promotion.restrictions ? <span>Restrictions: {promotion.restrictions}</span> : null}
+      {promotion.expiresAt ? <span>Ends {formatDate(promotion.expiresAt)}</span> : null}
+      {promotion.eligibilityVerified ? null : <StatusLabel status={{ label: 'Eligibility not verified', tone: 'caution', unresolved: true }} />}
+    </span>
+  );
+}
+
 function OffersSection({ offers, names }: { offers: Offer[]; names: Map<string, string> }) {
   if (offers.length === 0) return null;
   const sorted = [...offers].sort((a, b) => a.providerId.localeCompare(b.providerId) || a.purchasePath.localeCompare(b.purchasePath));
@@ -229,7 +252,7 @@ function OffersSection({ offers, names }: { offers: Offer[]; names: Map<string, 
         <table className={cn(tableClass, 'min-w-[52rem]')}>
           <thead>
             <tr>
-              {['Provider', 'Kind', 'Path', 'Registration', 'Renewal', 'Term', 'Fees', 'Premium', 'Observed', ''].map((h, i) => (
+              {['Provider', 'Kind', 'Path', 'Registration', 'Renewal', 'Fees', 'Premium', 'Observed', ''].map((h, i) => (
                 <th key={i} scope="col" className={thClass}>
                   {h}
                 </th>
@@ -245,21 +268,25 @@ function OffersSection({ offers, names }: { offers: Offer[]; names: Map<string, 
                 </td>
                 <td className={tdClass}>{PRICE_KIND[offer.kind]}</td>
                 <td className={tdClass}>{PURCHASE_PATH[offer.purchasePath]}</td>
-                <td className={tdClass}>
-                  {offer.purchasePath === 'transfer' ? money(offer.transfer.amount, offer.currency) : money(offer.registration.amount, offer.currency)}
-                  {offer.promotion ? (
-                    <span className="block max-w-48 text-xs text-muted-foreground">
-                      Promotion: {offer.promotion.description}
-                      {offer.promotion.requiresTermYears ? `, ${offer.promotion.requiresTermYears} yr term` : ''}
-                      {offer.promotion.eligibilityVerified ? '' : ', eligibility unverified'}
-                      {offer.promotion.expiresAt ? `, ends ${formatDate(offer.promotion.expiresAt)}` : ''}
-                    </span>
-                  ) : null}
+                <td className={tdClass} data-testid="offer-registration">
+                  {offer.purchasePath === 'transfer' ? (
+                    <>
+                      {money(offer.transfer.amount, offer.currency)}
+                      <Terms>{transferYears(offer.transfer.includesYears)}</Terms>
+                    </>
+                  ) : (
+                    <>
+                      {money(offer.registration.amount, offer.currency)}
+                      <Terms>
+                        for {offer.registration.years} yr{offer.minYears && offer.minYears > 1 ? `, minimum ${offer.minYears} yr` : ''}
+                      </Terms>
+                    </>
+                  )}
+                  {offer.promotion ? <PromotionTerms promotion={offer.promotion} /> : null}
                 </td>
-                <td className={tdClass}>{money(offer.renewal.amount, offer.currency)}</td>
-                <td className={tdClass}>
-                  {offer.registration.years} yr
-                  {offer.minYears && offer.minYears > 1 ? <span className="block text-xs text-muted-foreground">min {offer.minYears} yr</span> : null}
+                <td className={tdClass} data-testid="offer-renewal">
+                  {money(offer.renewal.amount, offer.currency)}
+                  {offer.renewal.amount !== null ? <Terms>for {offer.renewal.years} yr</Terms> : null}
                 </td>
                 <td className={tdClass}>
                   <OfferFees offer={offer} />

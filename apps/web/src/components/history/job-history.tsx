@@ -18,6 +18,7 @@ import { RelativeTime } from '../domain/time';
 import { EmptyState, ErrorState } from '../states';
 import { StatusLabel } from '../status';
 import { ConfirmDialog } from '../ui/alert-dialog';
+import { HistoryExportMenu, downloadJobHistoryCsv, downloadJobHistoryJson } from './history-export';
 import { Button } from '../ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Input } from '../ui/input';
@@ -131,6 +132,8 @@ export function JobHistory() {
   });
   const rows = history.data?.pages.flatMap((p) => p.data) ?? [];
   const total = history.data?.pages[0]?.total ?? null;
+  const exportable = rows.length > 0 && !history.isPlaceholderData && !history.isFetching;
+  const loaded = () => ({ contractVersion: history.data?.pages[0]?.contractVersion ?? '', rows, total, complete: !history.hasNextPage });
 
   const remove = useMutation({
     mutationFn: async (entry: HistoryEntry) => api.call('deleteJob', { params: { id: entry.jobId } }),
@@ -157,6 +160,12 @@ export function JobHistory() {
           options={[{ value: ANY, label: 'All types' }, ...Object.entries(JOB_TYPE).map(([value, label]) => ({ value, label }))]}
         />
         {total !== null ? <span className="text-sm text-muted-foreground sm:ml-auto">{plural(total, 'job')}</span> : null}
+        <HistoryExportMenu
+          label="Export job history"
+          disabled={!exportable}
+          onJson={() => downloadJobHistoryJson(query, loaded())}
+          onCsv={() => downloadJobHistoryCsv(query, loaded())}
+        />
       </div>
       {history.isPending ? (
         <SkeletonRows rows={6} />

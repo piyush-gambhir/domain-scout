@@ -15,6 +15,7 @@ import { Input } from '../ui/input';
 import { Field } from '../ui/label';
 import { Select } from '../ui/select';
 import { SkeletonRows } from '../ui/skeleton';
+import { HistoryExportMenu, downloadPriceHistoryCsv, downloadPriceHistoryJson } from './history-export';
 import { PriceChart, primaryField } from './price-chart';
 
 const ANY = '__any__';
@@ -120,24 +121,40 @@ export function PriceHistory() {
   });
   const series = history.data?.pages.flatMap((p) => p.data) ?? [];
   const names = new Map((providers.data ?? []).map((p) => [p.id, p.name]));
+  // Exports describe exactly what is shown, so they wait while another filter is loading.
+  const exportable = series.length > 0 && !history.isPlaceholderData && !history.isFetching;
+  const loaded = () => ({
+    contractVersion: history.data?.pages[0]?.contractVersion ?? '',
+    rows: series,
+    total: history.data?.pages[0]?.total ?? null,
+    complete: !history.hasNextPage,
+  });
 
   return (
     <section aria-label="Price history">
-      <div className="mb-6 grid gap-4 sm:grid-cols-3 sm:max-w-3xl" role="search" aria-label="Filter price history">
-        <Field label="Extension" htmlFor="ph-suffix">
-          <Input id="ph-suffix" value={suffix} placeholder="com" spellCheck={false} autoCapitalize="off" onChange={(e) => setSuffix(e.target.value)} className="font-mono" />
-        </Field>
-        <Field label="Domain" htmlFor="ph-domain">
-          <Input id="ph-domain" value={domain} spellCheck={false} autoCapitalize="off" onChange={(e) => setDomain(e.target.value)} className="font-mono" />
-        </Field>
-        <Field label="Provider" htmlFor="ph-provider">
-          <Select
-            id="ph-provider"
-            value={providerId}
-            onValueChange={setProviderId}
-            options={[{ value: ANY, label: 'Any provider' }, ...(providers.data ?? []).map((p) => ({ value: p.id, label: p.name }))]}
-          />
-        </Field>
+      <div className="mb-6 flex flex-wrap items-end gap-4">
+        <div className="grid w-full gap-4 sm:max-w-3xl sm:flex-1 sm:grid-cols-3" role="search" aria-label="Filter price history">
+          <Field label="Extension" htmlFor="ph-suffix">
+            <Input id="ph-suffix" value={suffix} placeholder="com" spellCheck={false} autoCapitalize="off" onChange={(e) => setSuffix(e.target.value)} className="font-mono" />
+          </Field>
+          <Field label="Domain" htmlFor="ph-domain">
+            <Input id="ph-domain" value={domain} spellCheck={false} autoCapitalize="off" onChange={(e) => setDomain(e.target.value)} className="font-mono" />
+          </Field>
+          <Field label="Provider" htmlFor="ph-provider">
+            <Select
+              id="ph-provider"
+              value={providerId}
+              onValueChange={setProviderId}
+              options={[{ value: ANY, label: 'Any provider' }, ...(providers.data ?? []).map((p) => ({ value: p.id, label: p.name }))]}
+            />
+          </Field>
+        </div>
+        <HistoryExportMenu
+          label="Export price history"
+          disabled={!exportable}
+          onJson={() => downloadPriceHistoryJson(query, loaded())}
+          onCsv={() => downloadPriceHistoryCsv(query, loaded())}
+        />
       </div>
       {history.isPending ? (
         <SkeletonRows rows={4} />

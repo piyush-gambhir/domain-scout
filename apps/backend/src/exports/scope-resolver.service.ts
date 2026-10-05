@@ -1,19 +1,24 @@
 import { Injectable, Optional } from '@nestjs/common';
 import {
   ResultFilter,
+  type AftermarketListing,
   type BestPrice,
+  type Diagnostic,
   type ExportScope,
   type JobItem,
+  type NameCheck,
   type Offer,
   type ProviderConfirmation,
   type RegistryObservation,
   type ResultFilterParsed,
 } from '@domain-scout/contracts';
 import type { z } from 'zod';
+import { Clock } from '../core/clock.js';
 import { AppError } from '../core/errors.js';
 import { JobResults } from '../core/ports.js';
 import { EvidenceReader } from '../evidence/evidence-reader.service.js';
 import { Database } from '../storage/database.js';
+import { hydrateObservation, type ObservationRow } from '../storage/evidence.js';
 
 /** Largest page JobResults.list returns. */
 const FILTER_PAGE = 1000;
@@ -71,6 +76,7 @@ export class ScopeResolver {
   constructor(
     private readonly db: Database,
     private readonly reader: EvidenceReader,
+    private readonly clock: Clock,
     @Optional() private readonly results?: JobResults,
   ) {}
 
@@ -178,6 +184,39 @@ export class ScopeResolver {
     return items;
   }
 
+  /**
+   * Newest name check per service and namespace for the domain's label, newest diagnostic per check
+   * and newest listing per marketplace, the same kinds a job item would carry.
+   */
+  private latestOther(domain: string, unicode: string, suffix: string): OtherEvidence[] {
+    const label = suffix && domain.endsWith(`.${suffix}`) ? domain.slice(0, -(suffix.length + 1)) : domain.split('.')[0]!;
+    // Name-check subjects keep the case they were submitted with; match the A-label and Unicode label.
+    const labels = [...new Set([label, unicode.split('.')[0] ?? label].map((l) => l.toLowerCase()).filter(Boolean))];
+    const now = this.clock.now();
+    return [
+      ...this.newestPer('name_check', `lower(subject) IN (${labels.map(() => '?').join(', ')})`, labels, ['service', 'namespace']).map((row) =>
+        nameCheckEvidence(hydrateObservation<NameCheck>(row, now)),
+      ),
+      ...this.newestPer('diagnostic', 'subject = ?', [domain], ['check']).map((row) => diagnosticEvidence(hydrateObservation<Diagnostic>(row, now))),
+      ...this.newestPer('listing', 'subject = ?', [domain], ['marketplace']).map((row) => listingEvidence(hydrateObservation<AftermarketListing>(row, now))),
+    ];
+  }
+
+  /**
+   * Newest observation per payload key (newest first), chosen in SQL before any limit so a long
+   * history of one service or check never hides another. `where` and `keys` are fixed fragments.
+   */
+  private newestPer(kind: 'name_check' | 'diagnostic' | 'listing', where: string, params: string[], keys: string[]): ObservationRow[] {
+    const partition = keys.map((key) => `json_extract(payload_json, '$.${key}')`).join(', ');
+    return this.db.all<ObservationRow>(
+      `SELECT * FROM (
+         SELECT o.*, ROW_NUMBER() OVER (PARTITION BY ${partition} ORDER BY observed_at DESC, id DESC) AS rn
+         FROM observations o WHERE kind = ? AND ${where}
+       ) WHERE rn = 1 ORDER BY observed_at DESC, id DESC`,
+      [kind, ...params],
+    );
+  }
+
   private jobResults(): JobResults {
     if (!this.results) throw new AppError('unavailable', 'Job results are not available');
     return this.results;
@@ -207,15 +246,16 @@ export class ScopeResolver {
     const normalized = suffixHint ? null : this.reader.normalize(domain);
     const suffix = suffixHint ?? normalized?.suffix ?? domain.slice(domain.indexOf('.') + 1);
     const latest = this.reader.latest(domain, suffix);
+    const shownUnicode = unicode ?? normalized?.unicode ?? latest.registry?.unicode ?? domain;
     return {
       itemId: null,
       domain,
-      unicode: unicode ?? normalized?.unicode ?? latest.registry?.unicode ?? domain,
+      unicode: shownUnicode,
       suffix,
       registry: latest.registry,
       confirmations: latest.confirmations,
       offers: latest.offers,
-      other: [],
+      other: this.latestOther(domain, shownUnicode, suffix),
       bestPrice: null,
       itemOutcome: null,
       operation: null,
@@ -228,47 +268,51 @@ export class ScopeResolver {
 
 function otherEvidence(item: JobItem): OtherEvidence[] {
   const out: OtherEvidence[] = [];
-  const check = item.evidence?.nameCheck;
-  if (check) {
-    out.push({
-      kind: 'name_check',
-      id: check.id,
-      label: `${check.service} (${check.namespace})`,
-      outcome: check.outcome,
-      checkedAt: check.checkedAt,
-      freshness: check.freshness ?? null,
-      source: check.destination,
-      reason: check.reason?.message ?? null,
-    });
-  }
-  const diagnostic = item.evidence?.diagnostic;
-  if (diagnostic) {
-    out.push({
-      kind: 'diagnostic',
-      id: diagnostic.id,
-      label: `${diagnostic.check} diagnostic`,
-      outcome: diagnostic.outcome,
-      checkedAt: diagnostic.checkedAt,
-      freshness: diagnostic.freshness ?? null,
-      source: diagnostic.destination,
-      reason: diagnostic.reason?.message ?? null,
-    });
-  }
-  const listing = item.evidence?.listing;
-  if (listing) {
-    out.push({
-      kind: 'listing',
-      id: listing.id,
-      label: `listing on ${listing.marketplace}`,
-      outcome: listing.status,
-      checkedAt: listing.observedAt,
-      freshness: listing.freshness ?? null,
-      source: listing.source,
-      reason: listing.caveat,
-    });
-  }
+  if (item.evidence?.nameCheck) out.push(nameCheckEvidence(item.evidence.nameCheck));
+  if (item.evidence?.diagnostic) out.push(diagnosticEvidence(item.evidence.diagnostic));
+  if (item.evidence?.listing) out.push(listingEvidence(item.evidence.listing));
   return out;
 }
+
+function nameCheckEvidence(check: NameCheck): OtherEvidence {
+  return {
+    kind: 'name_check',
+    id: check.id,
+    label: `${check.service} (${check.namespace})`,
+    outcome: check.outcome,
+    checkedAt: check.checkedAt,
+    freshness: check.freshness ?? null,
+    source: check.destination,
+    reason: check.reason?.message ?? null,
+  };
+}
+
+function diagnosticEvidence(diagnostic: Diagnostic): OtherEvidence {
+  return {
+    kind: 'diagnostic',
+    id: diagnostic.id,
+    label: `${diagnostic.check} diagnostic`,
+    outcome: diagnostic.outcome,
+    checkedAt: diagnostic.checkedAt,
+    freshness: diagnostic.freshness ?? null,
+    source: diagnostic.destination,
+    reason: diagnostic.reason?.message ?? null,
+  };
+}
+
+function listingEvidence(listing: AftermarketListing): OtherEvidence {
+  return {
+    kind: 'listing',
+    id: listing.id,
+    label: `listing on ${listing.marketplace}`,
+    outcome: listing.status,
+    checkedAt: listing.observedAt,
+    freshness: listing.freshness ?? null,
+    source: listing.source,
+    reason: listing.caveat,
+  };
+}
+
 
 function unique(values: string[]): string[] {
   return [...new Set(values)];

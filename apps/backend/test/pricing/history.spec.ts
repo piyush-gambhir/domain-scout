@@ -96,6 +96,59 @@ describe('price history (H01-H03)', () => {
     expect(res.data.filter((s) => s.scope === 'xq7mz9renewal.com')).toHaveLength(2);
   });
 
+  it('keeps different promotion conditions and price kinds in separate series (H02)', async () => {
+    const evidence = t.app.get(EvidenceRepository);
+    const domain = 'qzvkxmwplrtnbjhdgfcsyaeu.com';
+    const insert = (options: {
+      kind?: 'exact_quote' | 'estimated';
+      amount: string;
+      promotion?: { description: string; requiresTermYears: number | null; expiresAt: string | null; restrictions?: string | null } | null;
+    }) => {
+      const now = t.clock.iso();
+      const record = offerRecord({
+        providerId: 'dynadot',
+        domain,
+        suffix: 'com',
+        draft: draft({
+          kind: options.kind ?? 'exact_quote',
+          currency: 'USD',
+          registration: { amount: options.amount, years: 1 },
+          promotional: options.promotion !== null,
+          promotion: options.promotion
+            ? { eligibilityVerified: false, ...options.promotion, restrictions: options.promotion.restrictions ?? null }
+            : null,
+          source: { label: 'fixture', url: null },
+        }),
+        observedAt: now,
+        staleAt: now,
+        destination: null,
+      });
+      evidence.insertOffer(record.write);
+      t.clock.advance(60_000);
+    };
+    const spring = { description: 'Spring sale', requiresTermYears: null, expiresAt: '2026-11-01T00:00:00.000Z' };
+    insert({ amount: '1.99', promotion: spring });
+    // Same campaign observed again, with restrictions text that is not part of the signature.
+    insert({ amount: '2.49', promotion: { ...spring, restrictions: 'New customers only' } });
+    insert({ amount: '0.99', promotion: { ...spring, requiresTermYears: 2 } });
+    insert({ amount: '1.49', promotion: { ...spring, expiresAt: '2026-12-01T00:00:00.000Z' } });
+    insert({ amount: '0.49', promotion: { description: 'First year coupon', requiresTermYears: null, expiresAt: null } });
+    insert({ amount: '9.99', promotion: null });
+    insert({ amount: '10.99', kind: 'estimated', promotion: null });
+
+    const res = PriceHistoryResponse.parse((await t.api.get(`/price-history?domain=${domain}&providerId=dynadot`).expect(200)).body);
+    const own = res.data.filter((s) => s.scope === domain);
+    const amounts = own.map((s) => s.points.map((p) => p.registration)).sort((a, b) => a[0]!.localeCompare(b[0]!));
+    expect(amounts).toEqual([['0.49'], ['0.99'], ['1.49'], ['1.99', '2.49'], ['10.99'], ['9.99']]);
+    for (const series of own) {
+      expect(new Set(series.points.map((p) => p.kind)).size).toBe(1);
+      expect(series.promotional).toBe(series.points[0]!.registration !== '9.99' && series.points[0]!.registration !== '10.99');
+    }
+    // Keys are stable across reads.
+    const again = PriceHistoryResponse.parse((await t.api.get(`/price-history?domain=${domain}&providerId=dynadot`).expect(200)).body);
+    expect(again.data.map((s) => s.key)).toEqual(res.data.map((s) => s.key));
+  });
+
   it('paginates series and filters by time', async () => {
     const page = PriceHistoryResponse.parse((await t.api.get('/price-history?limit=1').expect(200)).body);
     expect(page.data).toHaveLength(1);

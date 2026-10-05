@@ -1,4 +1,7 @@
 import request from 'supertest';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   CollectionEntryListResponse,
@@ -177,6 +180,52 @@ describe('presets without the registry module', () => {
       expect(list.data.every((p) => p.builtIn && p.createdAt === null)).toBe(true);
     } finally {
       await t.close();
+    }
+  });
+});
+
+describe('shortlists across sessions (S02)', () => {
+  it('reopening the app on the same data directory keeps entries, notes, evidence and offers', async () => {
+    const dataDir = mkdtempSync(join(tmpdir(), 'domain-scout-s02-'));
+    const domain = 'qzvkxmwplrtnbjhdgfcsyaeu.com';
+    const boot = () =>
+      createModuleApp({
+        modules: [CollectionsModule],
+        clock: new FakeClock(new Date(T0)),
+        dataDir,
+        providers: [{ provide: InputPreviewer, useValue: new FakePreviewer() }],
+      });
+    try {
+      const first = await boot();
+      const fx = new EvidenceFixtures(first.get(EvidenceRepository));
+      const http = request(first.app.getHttpServer());
+      const created = CollectionResponse.parse((await http.post('/api/v1/collections').send({ name: 'Keep', notes: 'launch' }).expect(201)).body).data;
+      await http.post(`/api/v1/collections/${created.id}/entries`).send({ domains: [domain, 'example.com'], notes: 'call registrar' }).expect(200);
+      const registry = fx.registry(domain, 'no_record', minutes(-5));
+      const confirmation = fx.confirmation(domain, 'porkbun', 'available', minutes(-3));
+      const catalog = fx.offer({ providerId: 'porkbun', domain: null, suffix: 'com', registration: '11.08', renewal: '12.08', at: minutes(-60), sourceUrl: 'https://porkbun.test/pricing' });
+      const quote = fx.offer({ providerId: 'porkbun', domain, suffix: 'com', registration: '9.73', at: minutes(-2) });
+      const before = CollectionEntryListResponse.parse((await http.get(`/api/v1/collections/${created.id}/entries`).expect(200)).body);
+      await first.close();
+
+      const second = await boot();
+      try {
+        const http2 = request(second.app.getHttpServer());
+        const collection = CollectionResponse.parse((await http2.get(`/api/v1/collections/${created.id}`).expect(200)).body).data;
+        expect(collection).toMatchObject({ name: 'Keep', notes: 'launch', entryCount: 2 });
+        const after = CollectionEntryListResponse.parse((await http2.get(`/api/v1/collections/${created.id}/entries`).expect(200)).body);
+        expect(after).toEqual(before);
+        const entry = after.data.find((e) => e.domain === domain)!;
+        expect(entry.notes).toBe('call registrar');
+        expect(entry.registry).toMatchObject({ id: registry, outcome: 'no_record', checkedAt: minutes(-5) });
+        expect(entry.confirmations.map((c) => [c.id, c.providerId, c.status, c.checkedAt])).toEqual([[confirmation, 'porkbun', 'available', minutes(-3)]]);
+        expect(entry.offers.map((o) => o.id).sort()).toEqual([catalog, quote].sort());
+        expect(entry.offers.find((o) => o.id === catalog)).toMatchObject({ registration: { amount: '11.08' }, renewal: { amount: '12.08' }, source: { url: 'https://porkbun.test/pricing' } });
+      } finally {
+        await second.close();
+      }
+    } finally {
+      rmSync(dataDir, { recursive: true, force: true });
     }
   });
 });

@@ -245,6 +245,43 @@ describe('job results', () => {
     expect(subjects(other.data)).toEqual(['c.com']);
   });
 
+  it('filters registry rows by the newest provider confirmation for their domain (S01)', async () => {
+    // Registry items carry no confirmation of their own; the provider-check job confirmed ab.com
+    // available and c.com unavailable.
+    const check = async (query: string, job: string, expected: string[]) => {
+      const page = JobItemListResponse.parse((await t.api.get(`/jobs/${job}/results?${query}`).expect(200)).body);
+      expect(subjects(page.data), query).toEqual(expected);
+      expect(page.total, query).toBe(expected.length);
+    };
+    await check('confirmations=available', jobId, ['ab.com']);
+    await check('confirmations=unavailable', jobId, ['c.com']);
+    await check('confirmations=unknown', jobId, []);
+    await check('confirmations=available&outcomes=no_record&sort=domain&order=desc', jobId, ['ab.com']);
+
+    // A newer confirmation from another provider supersedes the older one for registry rows, while
+    // provider-check items keep matching on the evidence they recorded themselves.
+    const id = randomUUID();
+    const at = new Date(t.clock.now().getTime() + 60_000).toISOString();
+    const staleAt = new Date(Date.parse(at) + 900_000).toISOString();
+    t.app.get(EvidenceRepository).insertObservation({
+      id,
+      kind: 'confirmation',
+      subject: 'ab.com',
+      suffix: 'com',
+      sourceId: 'provider:dynadot',
+      destination: 'api.dynadot.test',
+      outcome: 'unavailable',
+      observedAt: at,
+      staleAt,
+      payload: { id, providerId: 'dynadot', domain: 'ab.com', status: 'unavailable', premium: null, checkedAt: at, staleAt, destination: 'api.dynadot.test', reason: { code: 'unavailable', message: 'unavailable' } },
+    });
+    await check('confirmations=available', jobId, []);
+    await check('confirmations=unavailable', jobId, ['ab.com', 'c.com']);
+    await check('confirmations=available', checkJobId, ['ab.com']);
+    // Unresolved and unconfirmed rows stay countable through the other filters.
+    await check('resolved=false', jobId, ['mmmm.dev']);
+  });
+
   it('exposes matching ids and items by id for exports', async () => {
     const filter = ResultFilter.parse({ sort: 'domain', outcomes: ['no_record'] });
     const ids = t.results.matchingIds(jobId, filter);

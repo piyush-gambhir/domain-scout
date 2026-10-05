@@ -195,8 +195,10 @@ function jsonExport(
 ): string {
   const items = records.map((record) => {
     const price = pickPrice(record);
-    const row: Record<string, string | null> = {};
+    const row: Record<string, unknown> = {};
     for (const field of fields) row[field] = fieldValue(record, field, price);
+    // Name checks, diagnostics and listings stay separate evidence, each with its own source and time.
+    if (record.other.length) row.checks = record.other.map((check) => ({ ...check }));
     return row;
   });
   const document = {
