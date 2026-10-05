@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
 
 export interface AppConfig {
@@ -15,6 +15,10 @@ export interface AppConfig {
   startedAt: string;
   /** True in tests: no lock, runtime file or signal handlers. */
   embedded: boolean;
+  /** Local API token. When absent it is loaded from (or created in) `<runtimeDir>/api-token`. */
+  apiToken?: string;
+  /** Grace period for in-flight work during a graceful stop (default 5000 ms). */
+  stopGraceMs?: number;
 }
 
 export const APP_CONFIG = Symbol('APP_CONFIG');
@@ -40,6 +44,8 @@ export function testConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     instanceId: randomUUID(),
     startedAt: new Date().toISOString(),
     embedded: true,
+    // A fixed in-memory token keeps tests from writing token files outside their temp directory.
+    apiToken: randomBytes(32).toString('base64url'),
     ...overrides,
   };
 }

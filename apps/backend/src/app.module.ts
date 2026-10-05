@@ -1,8 +1,9 @@
 import { Module, type DynamicModule } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { CoreModule, type CoreOptions } from './core/core.module.js';
 import { AppExceptionFilter } from './core/errors.js';
 import { RuntimeModule } from './runtime/runtime.module.js';
+import { AuthGuard } from './runtime/auth.guard.js';
 import { SystemModule } from './system/system.module.js';
 import { EventsModule } from './events/events.module.js';
 import { JobsModule } from './jobs/jobs.module.js';
@@ -37,7 +38,11 @@ export class AppModule {
         ExportsModule,
         EvidenceModule,
       ],
-      providers: [{ provide: APP_FILTER, useClass: AppExceptionFilter }],
+      providers: [
+        { provide: APP_FILTER, useClass: AppExceptionFilter },
+        // Local auth for every route; see runtime/auth.guard.ts.
+        { provide: APP_GUARD, useClass: AuthGuard },
+      ],
     };
   }
 }

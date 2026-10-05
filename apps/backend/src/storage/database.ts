@@ -56,21 +56,35 @@ export class Database {
     this.db.exec(sql);
   }
 
+  /** True while a `transaction()` callback is running. */
+  get inTransaction(): boolean {
+    return this.depth > 0;
+  }
+
   /** Runs `fn` in a transaction. Nested calls use savepoints. `fn` must be synchronous. */
   transaction<T>(fn: () => T): T {
-    const savepoint = `sp_${this.depth}`;
-    this.db.exec(this.depth === 0 ? 'BEGIN IMMEDIATE' : `SAVEPOINT ${savepoint}`);
-    this.depth++;
+    // Cleanup is chosen from the entry depth, and depth is restored exactly once, so a failing
+    // COMMIT or RELEASE rolls back the right scope and surfaces its own error.
+    const depth = this.depth;
+    const savepoint = `sp_${depth}`;
+    this.db.exec(depth === 0 ? 'BEGIN IMMEDIATE' : `SAVEPOINT ${savepoint}`);
+    this.depth = depth + 1;
     try {
       const result = fn();
       if (result instanceof Promise) throw new Error('Database.transaction callbacks must be synchronous');
-      this.depth--;
-      this.db.exec(this.depth === 0 ? 'COMMIT' : `RELEASE ${savepoint}`);
+      this.db.exec(depth === 0 ? 'COMMIT' : `RELEASE ${savepoint}`);
       return result;
     } catch (error) {
-      this.depth--;
-      this.db.exec(this.depth === 0 ? 'ROLLBACK' : `ROLLBACK TO ${savepoint}; RELEASE ${savepoint}`);
+      try {
+        if (depth > 0) this.db.exec(`ROLLBACK TO ${savepoint}; RELEASE ${savepoint}`);
+        // SQLite may already have rolled back (e.g. after SQLITE_FULL); only roll back what is open.
+        else if (this.db.isTransaction) this.db.exec('ROLLBACK');
+      } catch {
+        // Keep the original error; a failed rollback is secondary.
+      }
       throw error;
+    } finally {
+      this.depth = depth;
     }
   }
 

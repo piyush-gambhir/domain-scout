@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { DEFAULT_SETTINGS, Settings, type Settings as SettingsShape } from '@domain-scout/contracts';
 import type { z } from 'zod';
 import { SettingsPatch } from '@domain-scout/contracts';
@@ -10,7 +10,9 @@ const KEY = 'app';
 /** Ordinary preferences stored as one JSON document. Secrets never go here. */
 @Injectable()
 export class SettingsService {
+  private readonly logger = new Logger('Settings');
   private cache: SettingsShape | null = null;
+  private readonly listeners = new Set<(settings: SettingsShape) => void>();
 
   constructor(
     private readonly db: Database,
@@ -27,15 +29,36 @@ export class SettingsService {
     return this.cache;
   }
 
+  /**
+   * Validates, persists and caches a partial update. Runs in its own transaction and must not be
+   * called inside another one: an outer rollback would leave the cache and listeners holding
+   * settings that were never committed.
+   */
   patch(patch: z.output<typeof SettingsPatch>): SettingsShape {
+    if (this.db.inTransaction) throw new Error('SettingsService.patch must not run inside another transaction');
     const next = Settings.parse(mergeSettings(this.get(), patch as Partial<SettingsShape>));
-    this.db.run(
-      `INSERT INTO settings (key, value_json, updated_at) VALUES (?, ?, ?)
-       ON CONFLICT(key) DO UPDATE SET value_json = excluded.value_json, updated_at = excluded.updated_at`,
-      [KEY, json.stringify(next), this.clock.iso()],
+    this.db.transaction(() =>
+      this.db.run(
+        `INSERT INTO settings (key, value_json, updated_at) VALUES (?, ?, ?)
+         ON CONFLICT(key) DO UPDATE SET value_json = excluded.value_json, updated_at = excluded.updated_at`,
+        [KEY, json.stringify(next), this.clock.iso()],
+      ),
     );
     this.cache = next;
+    for (const listener of this.listeners) {
+      try {
+        listener(next);
+      } catch (error) {
+        this.logger.error(`Settings listener failed: ${(error as Error).message}`);
+      }
+    }
     return next;
+  }
+
+  /** Called after every committed patch (e.g. the jobs engine resizing its budgets). Returns an unsubscribe function. */
+  onChange(listener: (settings: SettingsShape) => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
   }
 }
 
