@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 export const buttonVariants = cva(
-  'inline-flex shrink-0 select-none items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-45 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  'inline-flex shrink-0 select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-45 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
@@ -14,15 +14,18 @@ export const buttonVariants = cva(
         danger: 'bg-negative/10 text-negative hover:bg-negative/15',
         link: 'h-auto rounded-sm px-0 text-foreground underline-offset-4 hover:underline',
       },
+      // Every size keeps the 32px minimum hit target (--spacing-control).
       size: {
-        sm: 'h-8 px-3',
-        md: 'h-9 px-4',
-        lg: 'h-10 px-5',
-        icon: 'size-9',
-        'icon-sm': 'size-8',
-        'icon-xs': 'size-7 [&_svg]:size-3.5',
+        sm: 'h-control px-2.5',
+        md: 'h-control px-3',
+        lg: 'h-9 px-4',
+        icon: 'size-control',
+        'icon-sm': 'size-control',
+        'icon-xs': 'size-control [&_svg]:size-3.5',
       },
     },
+    // A link-styled button keeps the text's own box whatever size it is given.
+    compoundVariants: [{ variant: 'link', className: 'h-auto px-0' }],
     defaultVariants: { variant: 'secondary', size: 'md' },
   },
 );

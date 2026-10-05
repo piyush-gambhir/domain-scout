@@ -37,7 +37,7 @@ export function parseExtensions(input: string): { valid: string[]; invalid: stri
   return { valid: uniq(valid), invalid };
 }
 
-const chipClass = 'inline-flex h-7 items-center gap-1 rounded-md px-2 font-mono text-[13px] transition-colors';
+const chipClass = 'inline-flex h-6 items-center gap-1 rounded-[5px] px-1.5 font-mono text-[13px] transition-colors';
 
 function PresetChip({
   preset,
@@ -57,7 +57,7 @@ function PresetChip({
         aria-pressed={applied}
         title={preset.extensions.map((e) => `.${e}`).join(' ')}
         onClick={onToggle}
-        className={cn('h-7 rounded-md px-2.5 text-[13px] font-medium', !applied && 'hover:bg-selected')}
+        className={cn('h-control rounded-md px-2.5 text-[13px] font-medium', !applied && 'hover:bg-selected')}
       >
         {preset.name}
         <span className={cn('ml-1.5 font-mono text-xs', applied ? 'opacity-70' : 'text-muted-foreground')}>{preset.extensions.length}</span>
@@ -67,7 +67,7 @@ function PresetChip({
           type="button"
           aria-label={`Delete preset ${preset.name}`}
           onClick={onDelete}
-          className={cn('mr-0.5 grid size-6 place-items-center rounded', applied ? 'hover:bg-primary-foreground/15' : 'text-muted-foreground hover:bg-selected hover:text-foreground')}
+          className={cn('mr-1 grid size-6 place-items-center rounded', applied ? 'hover:bg-primary-foreground/15' : 'text-muted-foreground hover:bg-selected hover:text-foreground')}
         >
           <X className="size-3" />
         </button>
@@ -125,8 +125,9 @@ export function ExtensionPicker({ value, onChange }: { value: string[]; onChange
   };
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex min-h-11 flex-wrap items-center gap-1.5 rounded-md bg-input p-1.5">
+    <div className="flex flex-col gap-1.5">
+      {/* Long lists scroll inside the field so they never push the rest of the form off screen. */}
+      <div className="relative flex max-h-[5.25rem] min-h-control flex-wrap items-center gap-1 overflow-y-auto rounded-md bg-input p-1">
         {value.map((ext) => (
           <span key={ext} className={cn(chipClass, 'bg-background pr-0.5')}>
             .{ext}
@@ -170,7 +171,7 @@ export function ExtensionPicker({ value, onChange }: { value: string[]; onChange
               commit(draft + text);
             }
           }}
-          className="h-7 min-w-28 flex-1 bg-transparent px-1.5 font-mono text-sm outline-none placeholder:font-sans placeholder:text-muted-foreground"
+          className="h-6 min-w-28 flex-1 bg-transparent px-1.5 font-mono text-sm outline-none placeholder:font-sans placeholder:text-muted-foreground"
         />
       </div>
       {invalid.length ? (
@@ -182,9 +183,9 @@ export function ExtensionPicker({ value, onChange }: { value: string[]; onChange
       <div className="flex flex-wrap items-center gap-1.5" aria-label="Presets" role="group">
         {presets.isPending ? (
           <>
-            <Skeleton className="h-7 w-20" />
-            <Skeleton className="h-7 w-24" />
-            <Skeleton className="h-7 w-16" />
+            <Skeleton className="h-control w-20" />
+            <Skeleton className="h-control w-24" />
+            <Skeleton className="h-control w-16" />
           </>
         ) : presets.isError ? (
           <span className="text-xs text-muted-foreground">Presets unavailable</span>
@@ -202,7 +203,7 @@ export function ExtensionPicker({ value, onChange }: { value: string[]; onChange
         {value.length > 0 ? (
           <Popover open={saveOpen} onOpenChange={setSaveOpen}>
             <PopoverTrigger asChild>
-              <Button size="sm" variant="quiet" className="h-7 px-2">
+              <Button size="sm" variant="quiet" className="px-2">
                 <Plus />
                 Save preset
               </Button>
@@ -224,7 +225,7 @@ export function ExtensionPicker({ value, onChange }: { value: string[]; onChange
           </Popover>
         ) : null}
         {value.length > 0 ? (
-          <Button size="sm" variant="quiet" className="h-7 px-2" onClick={() => onChange([])}>
+          <Button size="sm" variant="quiet" className="px-2" onClick={() => onChange([])}>
             Clear
           </Button>
         ) : null}

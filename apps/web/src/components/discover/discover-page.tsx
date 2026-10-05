@@ -16,7 +16,7 @@ import { useIsClient } from '@/lib/use-is-client';
 import { cn } from '@/lib/utils';
 import { SaveCriteriaPopover } from '../actions/save-criteria';
 import { ExtensionPicker } from '../scan/extension-picker';
-import { EmptyState, ErrorState, PageHeader, SectionTitle } from '../states';
+import { EmptyState, ErrorState, InlineStat, Page, PageHeader, ScrollPane, SectionTitle } from '../states';
 import { StatusLabel } from '../status';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
@@ -153,19 +153,8 @@ function hasSource(request: GenerationRequest): boolean {
   return (request.roots?.length ?? 0) > 0 || (request.themes?.length ?? 0) > 0 || (request.strategies ?? []).includes('syllables');
 }
 
-function Stat({ label, value, testId, emphasis }: { label: string; value: number | undefined; testId: string; emphasis?: boolean }) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd data-testid={testId} className={cn('font-mono text-lg tabular', emphasis && 'font-semibold')}>
-        {value === undefined ? '0' : formatCount(value)}
-      </dd>
-    </div>
-  );
-}
-
 const toggleClass =
-  'inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-[13px] font-medium transition-colors aria-pressed:bg-primary aria-pressed:text-primary-foreground aria-[pressed=false]:bg-input aria-[pressed=false]:hover:bg-selected';
+  'inline-flex h-control items-center gap-1.5 rounded-md px-2.5 text-[13px] font-medium transition-colors aria-pressed:bg-primary aria-pressed:text-primary-foreground aria-[pressed=false]:bg-input aria-[pressed=false]:hover:bg-selected';
 
 function Toggle({ pressed, onClick, children, title }: { pressed: boolean; onClick: () => void; children: React.ReactNode; title?: string }) {
   return (
@@ -184,17 +173,17 @@ function ThemePicker({ value, onChange }: { value: string[]; onChange: (next: st
   const selected = new Set(value);
   if (themes.isPending) {
     return (
-      <div className="flex gap-1.5">
-        <Skeleton className="h-8 w-24" />
-        <Skeleton className="h-8 w-20" />
-        <Skeleton className="h-8 w-28" />
+      <div className="flex gap-1">
+        <Skeleton className="h-control w-24" />
+        <Skeleton className="h-control w-20" />
+        <Skeleton className="h-control w-28" />
       </div>
     );
   }
   if (themes.isError) return <p className="text-xs text-muted-foreground">Themes unavailable</p>;
   if (themes.data.length === 0) return <p className="text-xs text-muted-foreground">No themes bundled.</p>;
   return (
-    <div className="flex flex-wrap gap-1.5" role="group" aria-label="Themes">
+    <div className="flex flex-wrap gap-1" role="group" aria-label="Themes">
       {themes.data.map((theme) => (
         <Toggle
           key={theme.id}
@@ -223,23 +212,28 @@ function CandidateRow({
 }) {
   const id = `cand-${candidate.key}`;
   return (
-    <li className={cn('grid grid-cols-[1.75rem_minmax(0,1fr)_auto] items-start gap-x-2 rounded-md px-1.5 py-2 text-sm transition-colors', selected ? 'bg-selected' : 'hover:bg-hover')}>
-      <span className="flex h-5 items-center justify-center">
+    <li
+      className={cn(
+        // Most candidates start selected, so the checkbox alone shows selection; a tint would cover the list.
+        'grid h-row grid-cols-[1.75rem_minmax(0,14rem)_5.5rem_minmax(0,1fr)_auto] items-center gap-x-2 rounded-md px-1.5 text-sm transition-colors hover:bg-hover',
+        !selected && candidate.valid && 'text-muted-foreground',
+      )}
+    >
+      <span className="flex items-center justify-center">
         <Checkbox id={id} checked={selected} disabled={!candidate.valid} onCheckedChange={(v) => onSelect(v === true)} aria-label={`Select ${candidate.key}`} />
       </span>
-      <div className="min-w-0">
-        <div className="flex min-w-0 items-baseline gap-3">
-          <label htmlFor={id} className="min-w-0 truncate font-mono leading-5" title={candidate.key}>
-            {candidate.key}
-          </label>
-          <span className="shrink-0 text-xs text-muted-foreground">{STRATEGY_LABEL[candidate.strategy]}</span>
-          {candidate.valid ? null : <StatusLabel status={{ label: 'Invalid', tone: 'negative' }} className="shrink-0 text-xs" />}
-        </div>
-        <p className="mt-0.5 text-xs text-muted-foreground">
-          {candidate.rule}
-          {candidate.issues.length > 0 ? <span className={cn(!candidate.valid && 'text-foreground')}> · {candidate.issues.join('; ')}</span> : null}
-        </p>
-      </div>
+      <label htmlFor={id} className="min-w-0 truncate font-mono" title={candidate.key}>
+        {candidate.key}
+      </label>
+      {candidate.valid ? (
+        <span className="truncate text-xs text-muted-foreground">{STRATEGY_LABEL[candidate.strategy]}</span>
+      ) : (
+        <StatusLabel status={{ label: 'Invalid', tone: 'negative' }} className="text-xs" />
+      )}
+      <span className="min-w-0 truncate text-xs text-muted-foreground" title={[candidate.rule, ...candidate.issues].join(' · ')}>
+        {candidate.valid ? candidate.rule : null}
+        {candidate.issues.length > 0 ? <span className={cn(!candidate.valid && 'text-foreground')}>{candidate.valid ? ' · ' : ''}{candidate.issues.join('; ')}</span> : null}
+      </span>
       <Button size="icon-xs" variant="quiet" aria-label={`Remove ${candidate.key}`} onClick={onRemove}>
         <X />
       </Button>
@@ -402,22 +396,24 @@ function DiscoverForm() {
   const current =
     request !== null && debouncedKey === requestKey && (!hasSource(request) || (settled && preview.isSuccess && !preview.isFetching));
 
+  const count = (value: number | undefined) => (value === undefined ? '0' : formatCount(value));
+
   return (
-    <>
+    <Page>
       <PageHeader
         title="Discover"
         actions={
           <>
             <SaveCriteriaPopover disabled={!current} pending={saveCriteria.isPending} onSave={(name) => saveCriteria.mutateAsync(name)} />
-            <Button variant="primary" disabled={!current || selected.length === 0} onClick={sendToScan}>
+            <Button size="sm" variant="primary" disabled={!current || selected.length === 0} onClick={sendToScan}>
               <ArrowRight />
               {selected.length > 0 ? `Send ${formatCount(selected.length)} to scan` : 'Send to scan'}
             </Button>
           </>
         }
       />
-      <div className="grid gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
-        <div className="flex min-w-0 flex-col gap-6">
+      <div className="flex flex-col gap-8 lg:min-h-0 lg:flex-1 lg:flex-row lg:gap-10">
+        <div className="relative -mx-1 flex min-w-0 flex-col gap-4 px-1 lg:min-h-0 lg:w-[26rem] lg:shrink-0 lg:overflow-y-auto">
           <Field label="Roots" htmlFor="gen-roots" hint={fieldError(errors.roots)}>
             <Textarea
               id="gen-roots"
@@ -427,14 +423,14 @@ function DiscoverForm() {
               autoComplete="off"
               aria-invalid={Boolean(errors.roots) || undefined}
               onChange={(e) => setForm({ roots: e.target.value })}
-              className="min-h-28 font-mono text-[13px]"
+              className="h-24 min-h-16 font-mono text-[13px]"
             />
           </Field>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             <span className="text-xs font-medium text-muted-foreground">Themes</span>
             <ThemePicker value={form.themes} onChange={(themes) => setForm({ themes })} />
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-3">
             <Field label="Prefixes" htmlFor="gen-prefixes" hint={fieldError(errors.prefixes)}>
               <Input id="gen-prefixes" value={form.prefixes} spellCheck={false} aria-invalid={Boolean(errors.prefixes) || undefined} onChange={(e) => setForm({ prefixes: e.target.value })} className="font-mono" />
             </Field>
@@ -442,11 +438,11 @@ function DiscoverForm() {
               <Input id="gen-suffixes" value={form.suffixes} spellCheck={false} aria-invalid={Boolean(errors.suffixes) || undefined} onChange={(e) => setForm({ suffixes: e.target.value })} className="font-mono" />
             </Field>
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             <span className="text-xs font-medium text-muted-foreground" id="gen-strategies">
               Strategies
             </span>
-            <div className="flex flex-wrap gap-1.5" role="group" aria-labelledby="gen-strategies">
+            <div className="flex flex-wrap gap-1" role="group" aria-labelledby="gen-strategies">
               {STRATEGIES.map((strategy) => {
                 const on = form.strategies.includes(strategy.value);
                 return (
@@ -462,63 +458,59 @@ function DiscoverForm() {
             </div>
             {errors.strategies ? <p className="text-xs text-negative">{errors.strategies}</p> : null}
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Minimum length" htmlFor="gen-min" hint={fieldError(errors.minLength)}>
-              <Input id="gen-min" inputMode="numeric" value={form.minLength} aria-invalid={Boolean(errors.minLength) || undefined} onChange={(e) => setForm({ minLength: e.target.value })} className="font-mono" />
-            </Field>
-            <Field label="Maximum length" htmlFor="gen-max" hint={fieldError(errors.maxLength)}>
-              <Input id="gen-max" inputMode="numeric" value={form.maxLength} aria-invalid={Boolean(errors.maxLength) || undefined} onChange={(e) => setForm({ maxLength: e.target.value })} className="font-mono" />
-            </Field>
-          </div>
-          <div className="flex flex-wrap gap-x-8 gap-y-3">
-            <label className="flex items-center gap-3 text-sm">
-              <Switch checked={form.allowDigits} onCheckedChange={(allowDigits) => setForm({ allowDigits })} aria-label="Allow digits" />
-              Allow digits
-            </label>
-            <label className="flex items-center gap-3 text-sm">
-              <Switch checked={form.allowHyphens} onCheckedChange={(allowHyphens) => setForm({ allowHyphens })} aria-label="Allow hyphens" />
-              Allow hyphens
-            </label>
-          </div>
-          <Field label="Exclude" htmlFor="gen-exclude" hint={fieldError(errors.exclude)}>
-            <Input id="gen-exclude" value={form.exclude} spellCheck={false} aria-invalid={Boolean(errors.exclude) || undefined} onChange={(e) => setForm({ exclude: e.target.value })} className="font-mono" />
-          </Field>
-          <div className="flex flex-col gap-2">
+          <fieldset className="flex flex-col gap-3">
+            <legend className="sr-only">Rules</legend>
+            <div className="grid grid-cols-2 items-end gap-2 sm:grid-cols-4">
+              <Field label="Minimum length" htmlFor="gen-min" hint={fieldError(errors.minLength)}>
+                <Input id="gen-min" inputMode="numeric" value={form.minLength} aria-invalid={Boolean(errors.minLength) || undefined} onChange={(e) => setForm({ minLength: e.target.value })} className="font-mono" />
+              </Field>
+              <Field label="Maximum length" htmlFor="gen-max" hint={fieldError(errors.maxLength)}>
+                <Input id="gen-max" inputMode="numeric" value={form.maxLength} aria-invalid={Boolean(errors.maxLength) || undefined} onChange={(e) => setForm({ maxLength: e.target.value })} className="font-mono" />
+              </Field>
+              <Field label="Limit" htmlFor="gen-limit" hint={fieldError(errors.limit)}>
+                <Input id="gen-limit" inputMode="numeric" value={form.limit} aria-invalid={Boolean(errors.limit) || undefined} onChange={(e) => setForm({ limit: e.target.value })} className="font-mono" />
+              </Field>
+              <Field label="Seed" htmlFor="gen-seed" hint={fieldError(errors.seed)}>
+                <Input id="gen-seed" inputMode="numeric" value={form.seed} placeholder="1" aria-invalid={Boolean(errors.seed) || undefined} onChange={(e) => setForm({ seed: e.target.value })} className="font-mono" />
+              </Field>
+            </div>
+            <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
+              <Field label="Exclude" htmlFor="gen-exclude" hint={fieldError(errors.exclude)} className="min-w-40 flex-1">
+                <Input id="gen-exclude" value={form.exclude} spellCheck={false} aria-invalid={Boolean(errors.exclude) || undefined} onChange={(e) => setForm({ exclude: e.target.value })} className="font-mono" />
+              </Field>
+              <label className="flex h-control items-center gap-2 text-sm">
+                <Switch checked={form.allowDigits} onCheckedChange={(allowDigits) => setForm({ allowDigits })} aria-label="Allow digits" />
+                Digits
+              </label>
+              <label className="flex h-control items-center gap-2 text-sm">
+                <Switch checked={form.allowHyphens} onCheckedChange={(allowHyphens) => setForm({ allowHyphens })} aria-label="Allow hyphens" />
+                Hyphens
+              </label>
+            </div>
+          </fieldset>
+          <div className="flex flex-col gap-1">
             <span className="text-xs font-medium text-muted-foreground">Extensions</span>
             <ExtensionPicker value={form.extensions} onChange={(extensions) => setForm({ extensions })} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Limit" htmlFor="gen-limit" hint={fieldError(errors.limit)}>
-              <Input id="gen-limit" inputMode="numeric" value={form.limit} aria-invalid={Boolean(errors.limit) || undefined} onChange={(e) => setForm({ limit: e.target.value })} className="font-mono" />
-            </Field>
-            <Field label="Seed" htmlFor="gen-seed" hint={fieldError(errors.seed)}>
-              <Input id="gen-seed" inputMode="numeric" value={form.seed} placeholder="1" aria-invalid={Boolean(errors.seed) || undefined} onChange={(e) => setForm({ seed: e.target.value })} className="font-mono" />
-            </Field>
-          </div>
         </div>
 
-        <section aria-label="Candidates" aria-busy={pending} className="min-w-0">
-          <SectionTitle>Candidates</SectionTitle>
-          {preview.isError && enabled ? <ErrorState error={preview.error} onRetry={() => preview.refetch()} className="mb-4" /> : null}
-          <div className={cn('transition-opacity', pending && 'opacity-60')}>
-            <dl data-testid="generation-counts" className="flex flex-wrap gap-x-8 gap-y-4">
-              <Stat label="Generated" value={counts?.generated} testId="count-generated" />
-              <Stat label="Unique" value={counts?.unique} testId="count-unique" />
-              <Stat label="Duplicates" value={counts?.duplicates} testId="count-duplicates" />
-              <Stat label="Invalid" value={counts?.invalid} testId="count-invalid" />
-              <Stat label="Filtered out" value={counts?.filtered} testId="count-filtered" />
-              <Stat label="Expanded checks" value={data?.expandedChecks} testId="count-expanded" />
+        <section aria-label="Candidates" aria-busy={pending} className="flex min-w-0 flex-1 flex-col gap-3 lg:min-h-0">
+          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+            <SectionTitle className="mb-0">Candidates</SectionTitle>
+            <dl data-testid="generation-counts" className={cn('flex flex-wrap gap-x-4 gap-y-1 text-sm transition-opacity', pending && 'opacity-60')}>
+              <InlineStat label="Generated" value={count(counts?.generated)} testId="count-generated" />
+              <InlineStat label="Unique" value={count(counts?.unique)} testId="count-unique" />
+              <InlineStat label="Duplicates" value={count(counts?.duplicates)} testId="count-duplicates" />
+              <InlineStat label="Invalid" value={count(counts?.invalid)} testId="count-invalid" />
+              <InlineStat label="Filtered out" value={count(counts?.filtered)} testId="count-filtered" />
+              <InlineStat label="Expanded checks" value={count(data?.expandedChecks)} testId="count-expanded" />
             </dl>
-            <p className="mt-4 text-sm" data-testid="selection-summary">
-              <span className="font-medium">{formatCount(selected.length)} selected</span>
-              <span className="text-muted-foreground">
-                {' '}
-                · {plural(selectedChecks, 'check')} across {plural(form.extensions.length, 'extension')}
-              </span>
-            </p>
+          </div>
+          {preview.isError && enabled ? <ErrorState error={preview.error} onRetry={() => preview.refetch()} /> : null}
 
+          <div className="flex flex-wrap items-center gap-2">
             <form
-              className="mt-6 flex gap-2"
+              className="flex min-w-0 flex-1 gap-1.5 sm:max-w-md"
               onSubmit={(event) => {
                 event.preventDefault();
                 addNames();
@@ -533,31 +525,46 @@ function DiscoverForm() {
                 onChange={(e) => setNewName(e.target.value)}
                 className="font-mono"
               />
-              <Button type="submit" variant="secondary" disabled={!newName.trim()}>
+              <Button type="submit" size="sm" variant="secondary" disabled={!newName.trim()}>
                 <Plus />
                 Add
               </Button>
             </form>
+            {candidates.length > 0 ? (
+              <div className="relative ml-auto w-full sm:w-52">
+                <Search aria-hidden className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input type="search" aria-label="Filter candidates" placeholder="Filter" value={filter} onChange={(e) => setFilter(e.target.value)} className="pl-8" />
+              </div>
+            ) : null}
+          </div>
 
-            {candidates.length === 0 ? (
-              <EmptyState>No candidates yet.</EmptyState>
-            ) : (
-              <>
-                <div className="mb-1 mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
-                  <label className="flex h-9 items-center gap-2 px-1.5 text-sm text-muted-foreground">
+          <div className={cn('flex min-w-0 flex-col transition-opacity lg:min-h-0 lg:flex-1', pending && 'opacity-60')}>
+            <div className="flex h-8 shrink-0 flex-wrap items-center gap-x-3 px-1.5 text-sm">
+              {candidates.length > 0 ? (
+                <label className="flex items-center gap-2 text-muted-foreground">
+                  <span className="flex w-7 justify-center">
                     <Checkbox
                       aria-label="Select all shown candidates"
                       checked={allVisibleSelected ? true : someVisibleSelected ? 'indeterminate' : false}
                       onCheckedChange={(v) => setSelected(selectable.map((c) => c.key), v === true)}
                     />
-                    {plural(visible.length, 'candidate')}
-                  </label>
-                  <div className="relative ml-auto w-full sm:w-56">
-                    <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input type="search" aria-label="Filter candidates" placeholder="Filter" value={filter} onChange={(e) => setFilter(e.target.value)} className="pl-9" />
-                  </div>
-                </div>
-                <ul aria-label="Candidate list" className="flex flex-col gap-0.5">
+                  </span>
+                  {plural(visible.length, 'candidate')}
+                </label>
+              ) : null}
+              <p className="ml-auto" data-testid="selection-summary">
+                <span className="font-medium">{formatCount(selected.length)} selected</span>
+                <span className="text-muted-foreground">
+                  {' '}
+                  · {plural(selectedChecks, 'check')} across {plural(form.extensions.length, 'extension')}
+                </span>
+              </p>
+            </div>
+            {candidates.length === 0 ? (
+              <EmptyState>No candidates yet.</EmptyState>
+            ) : (
+              <ScrollPane>
+                <ul aria-label="Candidate list" className="flex flex-col">
                   {visible.slice(0, shown).map((candidate) => (
                     <CandidateRow
                       key={candidate.key}
@@ -569,30 +576,30 @@ function DiscoverForm() {
                   ))}
                 </ul>
                 {visible.length > shown ? (
-                  <div className="mt-4 flex justify-center">
+                  <div className="flex justify-center py-3">
                     <Button variant="ghost" onClick={() => setShown((n) => n + PAGE)}>
                       Show {formatCount(Math.min(PAGE, visible.length - shown))} more
                     </Button>
                   </div>
                 ) : null}
-              </>
+              </ScrollPane>
             )}
           </div>
         </section>
       </div>
-    </>
+    </Page>
   );
 }
 
 function DiscoverSkeleton() {
   return (
-    <>
+    <Page>
       <PageHeader title="Discover" />
-      <div className="grid gap-12 lg:grid-cols-[26rem_1fr]">
+      <div className="grid gap-10 lg:grid-cols-[26rem_1fr]">
         <Skeleton className="h-96" />
         <Skeleton className="h-64" />
       </div>
-    </>
+    </Page>
   );
 }
 

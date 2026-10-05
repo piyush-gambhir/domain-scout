@@ -56,7 +56,10 @@ export function BudgetFields({
 /** Compact provider multi-select for forms; selection only, nothing is sent to providers. */
 export function ProviderPicker({ value, onChange }: { value: string[]; onChange: (ids: string[]) => void }) {
   const providers = useProviders();
-  const options = (providers.data ?? []).filter((p) => p.enabled || value.includes(p.id)).map((p) => ({ value: p.id, label: p.name }));
+  // Registry directory entries have no price or quote source, so only named registrars are offered.
+  const options = (providers.data ?? [])
+    .filter((p) => value.includes(p.id) || (p.enabled && p.kind === 'registrar'))
+    .map((p) => ({ value: p.id, label: p.name }));
   return <MultiSelect label="Providers" options={options} value={value.length ? value : undefined} onChange={(ids) => onChange(ids ?? [])} />;
 }
 
@@ -129,7 +132,7 @@ function SaveCriteriaBody({
   const shownCurrency = currency ?? settings.data?.comparison.currency ?? 'USD';
   const { budget, error } = parseBudget(amount, shownCurrency);
   const canSave = name.trim().length > 0 && !error && !pending;
-  const list = (providers.data ?? []).filter((p) => p.enabled || selected.has(p.id));
+  const list = (providers.data ?? []).filter((p) => selected.has(p.id) || (p.enabled && p.kind === 'registrar'));
 
   return (
     <form

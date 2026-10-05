@@ -19,7 +19,7 @@ import { cn, hashString, uniq } from '@/lib/utils';
 import { BudgetFields, ProviderPicker, SaveCriteriaPopover } from '../actions/save-criteria';
 import { DomainName } from '../domain/domain-name';
 import { describeFilter, filterToParams } from '../jobs/filters';
-import { ErrorState, PageHeader, SectionTitle } from '../states';
+import { EmptyState, ErrorState, InlineStat, Page, PageHeader, ScrollPane, SectionTitle } from '../states';
 import { StatusLabel } from '../status';
 import { Button } from '../ui/button';
 import { Input, Textarea } from '../ui/input';
@@ -88,21 +88,10 @@ function initialDraft(restoreKey: string | null): Draft {
   return { ...EMPTY, ...(readJson<Partial<Draft>>('session', DRAFT_KEY) ?? {}) };
 }
 
-function Stat({ label, value, testId, emphasis }: { label: string; value: number | undefined; testId: string; emphasis?: boolean }) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd data-testid={testId} className={cn('font-mono text-lg tabular', emphasis && 'font-semibold')}>
-        {value === undefined ? '0' : formatCount(value)}
-      </dd>
-    </div>
-  );
-}
-
 function ProblemRow({ row, onUseSuggestion }: { row: InputPreviewRow; onUseSuggestion?: () => void }) {
   return (
-    <li className="grid grid-cols-[3rem_1fr] gap-x-3 py-2 text-sm sm:grid-cols-[3rem_minmax(0,14rem)_8rem_1fr]">
-      <span className="font-mono text-xs leading-5 text-muted-foreground tabular">{row.row}</span>
+    <li className="grid grid-cols-[2.5rem_1fr] gap-x-3 py-1 text-sm sm:grid-cols-[2.5rem_minmax(0,12rem)_6.5rem_1fr]">
+      <span className="font-mono text-xs leading-[1.125rem] text-muted-foreground tabular">{row.row}</span>
       <span className="min-w-0 truncate font-mono" title={row.original}>
         {row.original || <span className="text-muted-foreground">(empty)</span>}
       </span>
@@ -114,7 +103,7 @@ function ProblemRow({ row, onUseSuggestion }: { row: InputPreviewRow; onUseSugge
           <span className="ml-1 inline-flex items-center gap-2 text-foreground">
             <span className="font-mono">{row.suggestion}</span>
             {onUseSuggestion ? (
-              <Button size="sm" variant="secondary" className="h-6 px-2 text-xs" onClick={onUseSuggestion}>
+              <Button size="sm" variant="secondary" className="h-6 px-2 text-xs" onClick={onUseSuggestion} aria-label={`Use ${row.suggestion}`}>
                 Use
               </Button>
             ) : null}
@@ -142,56 +131,59 @@ function PreviewPanel({
   const problems = preview?.rows.filter((r) => r.status !== 'valid') ?? [];
   const valid = preview?.rows.filter((r) => r.status === 'valid') ?? [];
 
+  const count = (value: number | undefined) => (value === undefined ? '0' : formatCount(value));
   return (
-    <section aria-label="Preview" aria-busy={pending} className={cn('transition-opacity', pending && 'opacity-60')}>
-      <SectionTitle>Preview</SectionTitle>
-      {error ? <ErrorState error={error} onRetry={onRetry} className="mb-4" /> : null}
-      <dl data-testid="preview-counts" className="grid grid-cols-3 gap-x-6 gap-y-4 sm:grid-cols-4 xl:grid-cols-7">
-        <Stat label="Rows" value={counts?.inputRows} testId="count-rows" />
-        <Stat label="Valid" value={counts?.valid} testId="count-valid" />
-        <Stat label="Duplicates" value={counts?.duplicate} testId="count-duplicates" />
-        <Stat label="Invalid" value={counts?.invalid} testId="count-invalid" />
-        <Stat label="Ambiguous" value={counts?.ambiguous} testId="count-ambiguous" />
-        <Stat label="Unique domains" value={counts?.uniqueDomains} testId="count-unique" />
-        <Stat label="Total checks" value={counts?.totalChecks} testId="count-checks" emphasis />
+    <section aria-label="Preview" aria-busy={pending} className={cn('flex min-w-0 flex-col gap-3 transition-opacity lg:min-h-0 lg:flex-1', pending && 'opacity-60')}>
+      <SectionTitle className="mb-0">Preview</SectionTitle>
+      {error ? <ErrorState error={error} onRetry={onRetry} /> : null}
+      <dl data-testid="preview-counts" className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+        <InlineStat label="Rows" value={count(counts?.inputRows)} testId="count-rows" />
+        <InlineStat label="Valid" value={count(counts?.valid)} testId="count-valid" />
+        <InlineStat label="Duplicates" value={count(counts?.duplicate)} testId="count-duplicates" />
+        <InlineStat label="Invalid" value={count(counts?.invalid)} testId="count-invalid" />
+        <InlineStat label="Ambiguous" value={count(counts?.ambiguous)} testId="count-ambiguous" />
+        <InlineStat label="Unique domains" value={count(counts?.uniqueDomains)} testId="count-unique" />
+        <InlineStat label="Total checks" value={count(counts?.totalChecks)} testId="count-checks" emphasis />
       </dl>
 
-      {problems.length > 0 ? (
-        <div className="mt-8">
-          <h3 className="mb-1 text-sm font-medium">
-            Needs attention <span className="font-mono text-muted-foreground">{formatCount(problems.length)}</span>
-          </h3>
-          <ul data-testid="preview-problems">
-            {problems.slice(0, LIST_LIMIT).map((row) => (
-              <ProblemRow key={`${row.row}-${row.original}`} row={row} onUseSuggestion={onUseSuggestion(row)} />
-            ))}
-          </ul>
-          {problems.length > LIST_LIMIT ? <p className="mt-2 text-xs text-muted-foreground">{plural(problems.length - LIST_LIMIT, 'more row')}</p> : null}
-        </div>
-      ) : null}
+      <ScrollPane className="flex flex-col gap-5">
+        {problems.length > 0 ? (
+          <div>
+            <h3 className="mb-0.5 text-xs font-medium text-muted-foreground">
+              Needs attention <span className="font-mono">{formatCount(problems.length)}</span>
+            </h3>
+            <ul data-testid="preview-problems">
+              {problems.slice(0, LIST_LIMIT).map((row) => (
+                <ProblemRow key={`${row.row}-${row.original}`} row={row} onUseSuggestion={onUseSuggestion(row)} />
+              ))}
+            </ul>
+            {problems.length > LIST_LIMIT ? <p className="mt-1 text-xs text-muted-foreground">{plural(problems.length - LIST_LIMIT, 'more row')}</p> : null}
+          </div>
+        ) : null}
 
-      {valid.length > 0 ? (
-        <div className="mt-8">
-          <h3 className="mb-1 text-sm font-medium">
-            Domains <span className="font-mono text-muted-foreground">{formatCount(preview?.domains.length ?? valid.length)}</span>
-          </h3>
-          <ul className="text-sm">
-            {valid.slice(0, LIST_LIMIT).map((row) =>
-              row.domain ? (
-                <li key={`${row.row}-${row.domain.ascii}`} className="flex min-w-0 items-baseline gap-3 py-1">
-                  <DomainName ascii={row.domain.ascii} unicode={row.domain.unicode} />
-                  {row.expandedFrom ? (
-                    <span className="shrink-0 text-xs text-muted-foreground">from {row.expandedFrom}</span>
-                  ) : row.original.trim().toLowerCase() !== row.domain.ascii && row.original.trim() !== row.domain.unicode ? (
-                    <span className="min-w-0 truncate text-xs text-muted-foreground">from {row.original.trim()}</span>
-                  ) : null}
-                </li>
-              ) : null,
-            )}
-          </ul>
-          {valid.length > LIST_LIMIT ? <p className="mt-2 text-xs text-muted-foreground">{plural(valid.length - LIST_LIMIT, 'more row')}</p> : null}
-        </div>
-      ) : null}
+        {valid.length > 0 ? (
+          <div>
+            <h3 className="mb-0.5 text-xs font-medium text-muted-foreground">
+              Domains <span className="font-mono">{formatCount(preview?.domains.length ?? valid.length)}</span>
+            </h3>
+            <ul className="text-sm">
+              {valid.slice(0, LIST_LIMIT).map((row) =>
+                row.domain ? (
+                  <li key={`${row.row}-${row.domain.ascii}`} className="flex min-w-0 items-baseline gap-3 py-0.5">
+                    <DomainName ascii={row.domain.ascii} unicode={row.domain.unicode} />
+                    {row.expandedFrom ? (
+                      <span className="shrink-0 text-xs text-muted-foreground">from {row.expandedFrom}</span>
+                    ) : row.original.trim().toLowerCase() !== row.domain.ascii && row.original.trim() !== row.domain.unicode ? (
+                      <span className="min-w-0 truncate text-xs text-muted-foreground">from {row.original.trim()}</span>
+                    ) : null}
+                  </li>
+                ) : null,
+              )}
+            </ul>
+            {valid.length > LIST_LIMIT ? <p className="mt-1 text-xs text-muted-foreground">{plural(valid.length - LIST_LIMIT, 'more row')}</p> : null}
+          </div>
+        ) : null}
+      </ScrollPane>
     </section>
   );
 }
@@ -407,7 +399,7 @@ export function ScanForm() {
   };
 
   return (
-    <>
+    <Page>
       <PageHeader
         title="Scan"
         actions={
@@ -417,39 +409,37 @@ export function ScanForm() {
               pending={saveCriteria.isPending}
               onSave={(name) => saveCriteria.mutateAsync(name)}
             />
-            <Button variant="primary" disabled={!canRun} onClick={() => run.mutate()}>
+            <Button size="sm" variant="primary" disabled={!canRun} onClick={() => run.mutate()}>
               <Play />
               {totalChecks > 0 ? `Run ${plural(totalChecks, 'check')}` : 'Run'}
             </Button>
           </>
         }
       />
-      <div className="grid gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <div className="flex min-w-0 flex-col gap-6">
-          <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-8 lg:min-h-0 lg:flex-1 lg:flex-row lg:gap-10">
+        <div className="flex min-w-0 flex-col gap-4 lg:min-h-0 lg:flex-1">
+          <div className="flex min-h-48 flex-col gap-1 lg:min-h-0 lg:flex-1">
             <div className="flex items-center justify-between gap-2">
               <label htmlFor="scan-input" className="text-xs font-medium text-muted-foreground">
                 Domains or names
               </label>
-              <div className="flex items-center gap-1">
-                <Button size="sm" variant="quiet" onClick={() => fileInput.current?.click()}>
-                  <FileUp />
-                  Import TXT or CSV
-                </Button>
-                <input
-                  ref={fileInput}
-                  type="file"
-                  accept=".txt,.csv,text/plain,text/csv"
-                  className="sr-only"
-                  tabIndex={-1}
-                  aria-hidden
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    if (file) void loadFile(file);
-                    event.target.value = '';
-                  }}
-                />
-              </div>
+              <Button size="sm" variant="quiet" className="-mr-2" onClick={() => fileInput.current?.click()}>
+                <FileUp />
+                Import TXT or CSV
+              </Button>
+              <input
+                ref={fileInput}
+                type="file"
+                accept=".txt,.csv,text/plain,text/csv"
+                className="sr-only"
+                tabIndex={-1}
+                aria-hidden
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) void loadFile(file);
+                  event.target.value = '';
+                }}
+              />
             </div>
             <Textarea
               id="scan-input"
@@ -467,18 +457,19 @@ export function ScanForm() {
                   void loadFile(file);
                 }
               }}
-              className="min-h-64 font-mono text-[13px] lg:min-h-80"
+              // Fills the height left by the options below it instead of a fixed tall box.
+              className="min-h-48 flex-1 resize-none font-mono text-[13px] lg:min-h-24"
             />
             {tooLarge ? <p className="text-xs text-negative">Input is larger than 5 MB.</p> : null}
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex shrink-0 flex-col gap-1">
             <span className="text-xs font-medium text-muted-foreground">Extensions</span>
             <ExtensionPicker value={draft.extensions} onChange={(extensions) => update({ extensions })} />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Format" htmlFor="scan-format">
+          <div className="flex shrink-0 flex-wrap items-end gap-3">
+            <Field label="Format" htmlFor="scan-format" className="w-36">
               <Select
                 id="scan-format"
                 value={draft.format}
@@ -491,32 +482,34 @@ export function ScanForm() {
               />
             </Field>
             {draft.format === 'csv' ? (
-              <Field label="CSV column" htmlFor="scan-csv-column">
+              <Field label="CSV column" htmlFor="scan-csv-column" className="w-32">
                 <Input id="scan-csv-column" value={draft.csvColumn} placeholder="First column" onChange={(e) => update({ csvColumn: e.target.value })} />
               </Field>
             ) : null}
-            <Field label="Label" htmlFor="scan-label">
+            <Field label="Label" htmlFor="scan-label" className="min-w-32 flex-1">
               <Input id="scan-label" value={draft.label} maxLength={200} onChange={(e) => update({ label: e.target.value })} />
             </Field>
+            <SwitchField id="scan-recheck" label="Ignore cached results" checked={draft.recheck} onCheckedChange={(recheck) => update({ recheck })} className="h-control gap-2" />
           </div>
-          <SwitchField id="scan-recheck" label="Ignore cached results" checked={draft.recheck} onCheckedChange={(recheck) => update({ recheck })} className="max-w-sm" />
 
-          <section aria-label="Results" className="flex flex-col gap-4">
-            <span className="text-xs font-medium text-muted-foreground">Results</span>
-            <div className="grid items-end gap-4 sm:grid-cols-[minmax(0,1fr)_auto]">
-              <BudgetFields
-                idPrefix="scan"
-                amount={draft.budgetAmount}
-                currency={budgetCurrency}
-                error={budgetError}
-                onChange={(patch) =>
-                  update({
-                    ...(patch.amount !== undefined ? { budgetAmount: patch.amount } : {}),
-                    ...(patch.currency !== undefined ? { budgetCurrency: patch.currency } : {}),
-                  })
-                }
-              />
-              <div className={cn(budgetError && 'sm:mb-5')}>
+          <fieldset className="flex shrink-0 flex-col gap-1">
+            <legend className="mb-1 text-xs font-medium text-muted-foreground">Results view</legend>
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="w-56">
+                <BudgetFields
+                  idPrefix="scan"
+                  amount={draft.budgetAmount}
+                  currency={budgetCurrency}
+                  error={budgetError}
+                  onChange={(patch) =>
+                    update({
+                      ...(patch.amount !== undefined ? { budgetAmount: patch.amount } : {}),
+                      ...(patch.currency !== undefined ? { budgetCurrency: patch.currency } : {}),
+                    })
+                  }
+                />
+              </div>
+              <div className={cn(budgetError && 'mb-5')}>
                 <ProviderPicker value={draft.providerIds} onChange={(providerIds) => update({ providerIds })} />
               </div>
             </div>
@@ -529,10 +522,10 @@ export function ScanForm() {
                 </Button>
               </p>
             ) : null}
-          </section>
+          </fieldset>
         </div>
 
-        <div className="min-w-0">
+        <div className="flex min-w-0 flex-col lg:min-h-0 lg:flex-1">
           {hasInput ? (
             <PreviewPanel
               preview={preview.data}
@@ -542,25 +535,25 @@ export function ScanForm() {
               onUseSuggestion={suggestionHandler}
             />
           ) : (
-            <section aria-label="Preview">
-              <SectionTitle>Preview</SectionTitle>
-              <p className="text-sm text-muted-foreground">Nothing to preview.</p>
+            <section aria-label="Preview" className="flex min-w-0 flex-col lg:min-h-0 lg:flex-1">
+              <SectionTitle className="mb-0">Preview</SectionTitle>
+              <EmptyState>Nothing to preview.</EmptyState>
             </section>
           )}
         </div>
       </div>
-    </>
+    </Page>
   );
 }
 
 export function ScanFormSkeleton() {
   return (
-    <>
+    <Page>
       <PageHeader title="Scan" />
-      <div className="grid gap-12 lg:grid-cols-2">
-        <Skeleton className="h-80" />
+      <div className="grid gap-10 lg:min-h-0 lg:flex-1 lg:grid-cols-2">
+        <Skeleton className="h-80 lg:h-full" />
         <Skeleton className="h-40" />
       </div>
-    </>
+    </Page>
   );
 }

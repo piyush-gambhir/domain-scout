@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Camera, Download, Ellipsis, NotebookPen, Pencil, RotateCw, Scale, Tag, Trash, X } from 'lucide-react';
@@ -13,18 +14,18 @@ import { lowestRegistrationOffer } from '@/lib/money';
 import { qk, useProviders } from '@/lib/queries';
 import { useIdempotency } from '@/lib/use-idempotency';
 import { isTerminal, useLiveJob } from '@/lib/use-job';
-import { useIsDesktop } from '@/lib/use-media-query';
+import { useIsWide } from '@/lib/use-media-query';
 import { cn } from '@/lib/utils';
 import { ArtifactDialogsHost, type ArtifactRequest } from '../actions/artifact-host';
 import { ProviderRequestDialog } from '../actions/provider-request-dialog';
 import type { DomainTarget, ScopeOption } from '../actions/types';
 import { MAX_COMPARE_DOMAINS } from '../compare/shared';
 import { useJobStarted } from '../actions/use-job-started';
-import { DomainDetail } from '../domain/domain-detail';
+import { DomainDock, type DomainTab } from '../domain/domain-detail';
 import { DomainName } from '../domain/domain-name';
 import { Price } from '../domain/price';
 import { CheckedAt } from '../domain/time';
-import { EmptyState, ErrorState, PageHeader } from '../states';
+import { Crumb, EmptyState, ErrorState, Page, PageHeader } from '../states';
 import { StatusLabel } from '../status';
 import { ConfirmDialog } from '../ui/alert-dialog';
 import { Button } from '../ui/button';
@@ -32,7 +33,6 @@ import { Checkbox } from '../ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Input, Textarea } from '../ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { Sheet } from '../ui/sheet';
 import { Skeleton, SkeletonRows } from '../ui/skeleton';
 
 const PAGE_SIZE = 200;
@@ -58,12 +58,18 @@ function EntryNotes({ collectionId, entry }: { collectionId: string; entry: Coll
       }}
     >
       <PopoverTrigger asChild>
+        {/* The text shows when the table is wide; narrower, an icon (darker when a note exists) keeps notes editable. */}
         <button
           type="button"
-          className="flex min-w-0 max-w-full items-center gap-1.5 rounded-sm text-left text-muted-foreground hover:text-foreground"
+          title={entry.notes ?? undefined}
+          className={cn(
+            'flex h-control min-w-0 max-w-full items-center gap-1.5 rounded-sm text-left hover:text-foreground',
+            entry.notes ? 'text-foreground @5xl:text-muted-foreground' : 'text-muted-foreground',
+          )}
           aria-label={entry.notes ? `Edit notes for ${entry.domain}` : `Add notes for ${entry.domain}`}
         >
-          {entry.notes ? <span className="truncate">{entry.notes}</span> : <NotebookPen className="size-4" />}
+          {entry.notes ? <span className="hidden truncate @5xl:inline">{entry.notes}</span> : null}
+          <NotebookPen aria-hidden className={cn('size-4 shrink-0', entry.notes && '@5xl:hidden')} />
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80">
@@ -106,7 +112,7 @@ function CollectionTitle({ id, name }: { id: string; name: string }) {
           else setEditing(false);
         }}
       >
-        <Input autoFocus aria-label="Shortlist name" value={value} maxLength={200} onChange={(e) => setValue(e.target.value)} className="h-9 w-72 text-base font-semibold" />
+        <Input autoFocus aria-label="Shortlist name" value={value} maxLength={200} onChange={(e) => setValue(e.target.value)} className="w-64 text-base font-semibold" />
         <Button type="submit" size="sm" variant="primary" disabled={rename.isPending}>
           Save
         </Button>
@@ -117,8 +123,8 @@ function CollectionTitle({ id, name }: { id: string; name: string }) {
     );
   }
   return (
-    <span className="inline-flex items-center gap-2">
-      {name}
+    <span className="inline-flex min-w-0 max-w-full items-center gap-2">
+      <span className="truncate">{name}</span>
       <Button
         size="icon-xs"
         variant="quiet"
@@ -134,43 +140,70 @@ function CollectionTitle({ id, name }: { id: string; name: string }) {
   );
 }
 
+/** Shortlist notes on one header line; editing opens a popover so the table keeps the height. */
 function CollectionNotes({ id, notes }: { id: string; notes: string | null }) {
   const client = useQueryClient();
+  const [open, setOpen] = useState(false);
   const [value, setValue] = useState(notes ?? '');
-  const dirty = value !== (notes ?? '');
   const save = useMutation({
     mutationFn: async () => (await api.call('patchCollection', { params: { id }, body: { notes: value.trim() || null } })).data,
     onSuccess: (collection) => {
       client.setQueryData(qk.collection(id), collection);
       void client.invalidateQueries({ queryKey: qk.collections });
+      setOpen(false);
       toast.success('Notes saved');
     },
   });
   return (
-    <div className="flex max-w-2xl flex-col gap-2">
-      <label htmlFor="collection-notes" className="sr-only">
-        Notes
-      </label>
-      <Textarea id="collection-notes" placeholder="Notes" value={value} maxLength={20_000} onChange={(e) => setValue(e.target.value)} className="min-h-16" />
-      {dirty ? (
-        <div className="flex gap-2">
-          <Button size="sm" variant="primary" disabled={save.isPending} onClick={() => save.mutate()}>
-            Save notes
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => setValue(notes ?? '')}>
-            Discard
-          </Button>
-        </div>
-      ) : null}
-    </div>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (next) setValue(notes ?? '');
+      }}
+    >
+      <PopoverTrigger asChild>
+        <button type="button" className="inline-flex h-6 min-w-0 max-w-xl items-center gap-1.5 rounded-sm text-left hover:text-foreground">
+          <NotebookPen aria-hidden className="size-3.5 shrink-0" />
+          <span className="truncate">{notes ? notes : 'Add notes'}</span>
+          {notes ? <span className="sr-only">, edit notes</span> : null}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-96">
+        <form
+          className="flex flex-col gap-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            save.mutate();
+          }}
+        >
+          <label htmlFor="collection-notes" className="sr-only">
+            Notes
+          </label>
+          <Textarea id="collection-notes" autoFocus placeholder="Notes" value={value} maxLength={20_000} onChange={(e) => setValue(e.target.value)} className="min-h-32" />
+          <div className="flex justify-end gap-1.5">
+            <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" size="sm" variant="primary" disabled={save.isPending || value === (notes ?? '')}>
+              Save notes
+            </Button>
+          </div>
+        </form>
+      </PopoverContent>
+    </Popover>
   );
 }
+
+const thClass = 'h-8 pr-3 text-left text-xs font-medium text-muted-foreground';
+const tdClass = 'pr-3 align-middle';
 
 export function CollectionView({ collectionId }: { collectionId: string }) {
   const router = useRouter();
   const client = useQueryClient();
   const searchParams = useSearchParams();
-  const isDesktop = useIsDesktop();
+  const isWide = useIsWide();
+  const [detailTab, setDetailTab] = useState<DomainTab>('overview');
   const providers = useProviders();
   const started = useJobStarted();
   const idempotency = useIdempotency();
@@ -279,29 +312,30 @@ export function CollectionView({ collectionId }: { collectionId: string }) {
     },
   });
 
-  const setDetail = (domain: string | null) => {
+  const setDetail = useCallback((domain: string | null) => {
     const params = new URLSearchParams(window.location.search);
     if (domain) params.set('d', domain);
     else params.delete('d');
     const query = params.toString();
     window.history.replaceState(null, '', query ? `?${query}` : window.location.pathname);
-  };
-  const open = (domain: string) => (isDesktop ? setDetail(domain) : router.push(`/domains/${encodeURIComponent(domain)}`));
+  }, []);
+  const closeDetail = useCallback(() => setDetail(null), [setDetail]);
+  const open = (domain: string) => (isWide ? setDetail(domain) : router.push(`/domains/${encodeURIComponent(domain)}`));
 
   if (collection.isPending) {
     return (
-      <>
-        <Skeleton className="mb-6 h-7 w-56" />
-        <SkeletonRows rows={8} />
-      </>
+      <Page>
+        <Skeleton className="h-control w-72" />
+        <SkeletonRows rows={10} />
+      </Page>
     );
   }
   if (collection.isError) {
     return (
-      <>
-        <PageHeader title="Shortlist" />
+      <Page>
+        <PageHeader title="Shortlist" leading={<ShortlistsCrumb />} />
         <ErrorState error={collection.error} onRetry={() => collection.refetch()} />
-      </>
+      </Page>
     );
   }
 
@@ -309,97 +343,100 @@ export function CollectionView({ collectionId }: { collectionId: string }) {
   const someSelected = rows.some((r) => selected.has(r.domain));
   const countLabel = hasSelection ? formatCount(selected.size) : 'all';
 
+  const panelOpen = Boolean(detailName) && isWide;
+
   return (
-    <>
-      <PageHeader
-        title={<CollectionTitle key={collection.data.name} id={collectionId} name={collection.data.name} />}
-        actions={
-          <>
-            <Button size="sm" variant="secondary" disabled={recheck.isPending || recheckRunning || entryCount === 0} onClick={() => recheck.mutate()}>
-              <RotateCw className={cn(recheckRunning && 'motion-safe:animate-spin')} />
-              {recheckRunning ? 'Rechecking' : `Recheck ${countLabel}`}
-            </Button>
-            <Button size="sm" variant="secondary" disabled={entryCount === 0} onClick={() => setQuoteOpen(true)}>
-              <Tag />
-              Quotes
-            </Button>
-            <Button size="sm" variant="secondary" onClick={() => setArtifact({ kind: 'export', defaultScope: hasSelection ? 'selection' : 'collection' })}>
-              <Download />
-              Export
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="icon-sm" variant="secondary" aria-label="More shortlist actions">
-                  <Ellipsis />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onSelect={() => setArtifact({ kind: 'snapshot', defaultScope: hasSelection ? 'selection' : 'collection' })}>
-                  <Camera />
-                  Snapshot
-                </DropdownMenuItem>
-                <DropdownMenuItem disabled={entryCount === 0 || compare.isPending} onSelect={() => compare.mutate()}>
-                  <Scale />
-                  Compare {hasSelection ? 'selected' : 'all'}
-                </DropdownMenuItem>
-                {hasSelection ? (
-                  <DropdownMenuItem onSelect={() => setConfirm('remove')}>
-                    <X />
-                    Remove selected
+    <div className="flex min-w-0 flex-1 lg:min-h-0">
+      <Page>
+        <PageHeader
+          leading={<ShortlistsCrumb />}
+          title={<CollectionTitle key={collection.data.name} id={collectionId} name={collection.data.name} />}
+          meta={<span className="font-mono text-muted-foreground tabular">{plural(entryCount, 'domain')}</span>}
+          actions={
+            <>
+              <Button size="sm" variant="secondary" disabled={recheck.isPending || recheckRunning || entryCount === 0} onClick={() => recheck.mutate()}>
+                <RotateCw className={cn(recheckRunning && 'motion-safe:animate-spin')} />
+                {recheckRunning ? 'Rechecking' : `Recheck ${countLabel}`}
+              </Button>
+              <Button size="sm" variant="secondary" disabled={entryCount === 0} onClick={() => setQuoteOpen(true)}>
+                <Tag />
+                Quotes
+              </Button>
+              <Button size="sm" variant="secondary" onClick={() => setArtifact({ kind: 'export', defaultScope: hasSelection ? 'selection' : 'collection' })}>
+                <Download />
+                Export
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="icon-sm" variant="secondary" aria-label="More shortlist actions">
+                    <Ellipsis />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onSelect={() => setArtifact({ kind: 'snapshot', defaultScope: hasSelection ? 'selection' : 'collection' })}>
+                    <Camera />
+                    Snapshot
                   </DropdownMenuItem>
-                ) : null}
-                <DropdownMenuItem className="text-negative" onSelect={() => setConfirm('delete')}>
-                  <Trash />
-                  Delete shortlist
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </>
-        }
-      >
-        <p className="text-sm text-muted-foreground">{plural(entryCount, 'domain')}</p>
-      </PageHeader>
+                  <DropdownMenuItem disabled={entryCount === 0 || compare.isPending} onSelect={() => compare.mutate()}>
+                    <Scale />
+                    Compare {hasSelection ? 'selected' : 'all'}
+                  </DropdownMenuItem>
+                  {hasSelection ? (
+                    <DropdownMenuItem onSelect={() => setConfirm('remove')}>
+                      <X />
+                      Remove selected
+                    </DropdownMenuItem>
+                  ) : null}
+                  <DropdownMenuItem className="text-negative" onSelect={() => setConfirm('delete')}>
+                    <Trash />
+                    Delete shortlist
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          }
+        >
+          <CollectionNotes key={collection.data.notes ?? ''} id={collectionId} notes={collection.data.notes} />
+          {hasSelection ? <span className="text-foreground">{formatCount(selected.size)} selected</span> : null}
+        </PageHeader>
 
-      <CollectionNotes key={collection.data.notes ?? ''} id={collectionId} notes={collection.data.notes} />
-
-      <div className="mt-8">
         {entries.isPending ? (
-          <SkeletonRows rows={8} />
+          <SkeletonRows rows={10} />
         ) : entries.isError ? (
           <ErrorState error={entries.error} onRetry={() => entries.refetch()} />
         ) : rows.length === 0 ? (
           <EmptyState>No domains in this shortlist.</EmptyState>
         ) : (
-          <div className="relative -mx-1 overflow-x-auto px-1">
-            <table className="w-full min-w-[46rem] text-left text-sm">
-              <thead>
-                <tr className="text-xs text-muted-foreground">
-                  <th scope="col" className="w-10 pb-2 pl-2 font-medium">
+          <div className="@container relative -mx-1 px-1 lg:min-h-0 lg:flex-1 lg:overflow-y-auto" data-testid="entries-scroll">
+            <table className="w-full table-fixed text-sm">
+              <thead className="sticky top-0 z-10 bg-background max-md:top-12">
+                <tr>
+                  <th scope="col" className={cn(thClass, 'w-9 pl-2')}>
                     <Checkbox
                       aria-label="Select all loaded domains"
                       checked={allLoadedSelected ? true : someSelected ? 'indeterminate' : false}
                       onCheckedChange={(value) => setSelected(value === true ? new Set(rows.map((r) => r.domain)) : new Set())}
                     />
                   </th>
-                  <th scope="col" className="pb-2 pr-4 font-medium">
+                  <th scope="col" className={thClass}>
                     Domain
                   </th>
-                  <th scope="col" className="pb-2 pr-4 font-medium">
+                  <th scope="col" className={cn(thClass, 'w-32')}>
                     Registry
                   </th>
-                  <th scope="col" className="pb-2 pr-4 font-medium">
+                  <th scope="col" className={cn(thClass, 'hidden w-28 @4xl:table-cell')}>
                     Checked
                   </th>
-                  <th scope="col" className="pb-2 pr-4 font-medium">
+                  <th scope="col" className={cn(thClass, 'hidden w-52 @xl:table-cell')}>
                     Best known price
                   </th>
-                  <th scope="col" className="pb-2 pr-4 font-medium">
+                  <th scope="col" className={cn(thClass, 'hidden w-44 @3xl:table-cell')}>
                     Provider confirmation
                   </th>
-                  <th scope="col" className="pb-2 pr-4 font-medium">
-                    Notes
+                  <th scope="col" className={cn(thClass, 'w-9 @5xl:w-48')}>
+                    <span className="sr-only @5xl:not-sr-only">Notes</span>
                   </th>
-                  <th scope="col" className="w-10 pb-2 font-medium">
+                  <th scope="col" className={cn(thClass, 'w-10')}>
                     <span className="sr-only">Remove</span>
                   </th>
                 </tr>
@@ -410,11 +447,8 @@ export function CollectionView({ collectionId }: { collectionId: string }) {
                   const confirmation = [...entry.confirmations].sort((a, b) => b.checkedAt.localeCompare(a.checkedAt))[0];
                   const isSelected = selected.has(entry.domain);
                   return (
-                    <tr
-                      key={entry.id}
-                      className={cn('transition-colors', isSelected || detailName === entry.domain ? 'bg-selected' : 'hover:bg-hover')}
-                    >
-                      <td className="rounded-l-md py-2.5 pl-2">
+                    <tr key={entry.id} className={cn('h-row transition-colors', isSelected || detailName === entry.domain ? 'bg-selected' : 'hover:bg-hover')}>
+                      <td className="rounded-l-md pl-2 align-middle">
                         <Checkbox
                           aria-label={`Select ${entry.unicode || entry.domain}`}
                           checked={isSelected}
@@ -428,57 +462,42 @@ export function CollectionView({ collectionId }: { collectionId: string }) {
                           }
                         />
                       </td>
-                      <td className="max-w-64 py-2.5 pr-4">
+                      <td className={tdClass}>
                         <button type="button" onClick={() => open(entry.domain)} className="flex min-w-0 max-w-full rounded-sm text-left">
-                          <DomainName ascii={entry.domain} unicode={entry.unicode} className="text-[13px]" />
+                          <DomainName ascii={entry.domain} unicode={entry.unicode} />
                         </button>
                       </td>
-                      <td className="py-2.5 pr-4">
-                        {entry.registry ? (
-                          <StatusLabel status={registryStatus(entry.registry.outcome)} />
-                        ) : (
-                          <span className="text-muted-foreground">Not checked</span>
-                        )}
+                      <td className={tdClass}>
+                        {entry.registry ? <StatusLabel status={registryStatus(entry.registry.outcome)} /> : <span className="text-muted-foreground">Not checked</span>}
                       </td>
-                      <td className="py-2.5 pr-4 text-muted-foreground">
-                        {entry.registry ? (
-                          <CheckedAt iso={entry.registry.checkedAt} freshness={entry.registry.freshness} staleAt={entry.registry.staleAt} />
-                        ) : null}
+                      <td className={cn(tdClass, 'hidden truncate text-muted-foreground @4xl:table-cell')}>
+                        {entry.registry ? <CheckedAt iso={entry.registry.checkedAt} freshness={entry.registry.freshness} staleAt={entry.registry.staleAt} /> : null}
                       </td>
-                      <td className="py-2.5 pr-4">
+                      <td className={cn(tdClass, 'hidden @xl:table-cell')}>
                         {best ? (
-                          <span className="flex flex-col">
-                            <Price amount={best.registration.amount} currency={best.currency} kind={best.kind} years={best.registration.years} />
-                            <span className="text-xs text-muted-foreground">
-                              {names.get(best.providerId) ?? best.providerId} ·{' '}
-                              <CheckedAt iso={best.observedAt} freshness={best.freshness} staleAt={best.staleAt} expiresAt={best.quoteExpiresAt} />
-                            </span>
+                          <span className="flex min-w-0 items-baseline gap-1.5 truncate" title={`${names.get(best.providerId) ?? best.providerId}, ${best.registration.years} year, ${best.source.label}`}>
+                            <Price amount={best.registration.amount} currency={best.currency} kind={best.kind} years={best.registration.years} className="shrink-0" />
+                            <CheckedAt iso={best.observedAt} freshness={best.freshness} staleAt={best.staleAt} expiresAt={best.quoteExpiresAt} className="truncate text-xs text-muted-foreground" />
                           </span>
                         ) : (
                           <span className="text-muted-foreground">Unknown</span>
                         )}
                       </td>
-                      <td className="py-2.5 pr-4">
+                      <td className={cn(tdClass, 'hidden @3xl:table-cell')}>
                         {confirmation ? (
-                          <span className="flex flex-col">
+                          <span className="flex min-w-0 items-baseline gap-1.5 truncate">
                             <StatusLabel status={confirmationStatus(confirmation.status)} />
-                            <span className="text-xs text-muted-foreground">{names.get(confirmation.providerId) ?? confirmation.providerId}</span>
+                            <span className="truncate text-xs text-muted-foreground">{names.get(confirmation.providerId) ?? confirmation.providerId}</span>
                           </span>
                         ) : (
                           <span className="text-muted-foreground">None</span>
                         )}
                       </td>
-                      <td className="max-w-56 py-2.5 pr-4">
+                      <td className={tdClass}>
                         <EntryNotes collectionId={collectionId} entry={entry} />
                       </td>
-                      <td className="rounded-r-md py-2.5 pr-2">
-                        <Button
-                          size="icon-xs"
-                          variant="quiet"
-                          aria-label={`Remove ${entry.domain}`}
-                          disabled={remove.isPending}
-                          onClick={() => remove.mutate([entry.domain])}
-                        >
+                      <td className="rounded-r-md pr-1 text-right align-middle">
+                        <Button size="icon-xs" variant="quiet" aria-label={`Remove ${entry.domain}`} disabled={remove.isPending} onClick={() => remove.mutate([entry.domain])}>
                           <X />
                         </Button>
                       </td>
@@ -487,20 +506,18 @@ export function CollectionView({ collectionId }: { collectionId: string }) {
                 })}
               </tbody>
             </table>
+            {entries.hasNextPage ? (
+              <div className="flex justify-center py-3">
+                <Button variant="ghost" disabled={entries.isFetchingNextPage} onClick={() => entries.fetchNextPage()}>
+                  Load more
+                </Button>
+              </div>
+            ) : null}
           </div>
         )}
-        {entries.hasNextPage ? (
-          <div className="mt-4 flex justify-center">
-            <Button variant="ghost" disabled={entries.isFetchingNextPage} onClick={() => entries.fetchNextPage()}>
-              Load more
-            </Button>
-          </div>
-        ) : null}
-      </div>
+      </Page>
 
-      <Sheet open={Boolean(detailName) && isDesktop} onOpenChange={(next) => !next && setDetail(null)} title={detailName ?? ''}>
-        {detailName ? <DomainDetail key={detailName} name={detailName} variant="panel" /> : null}
-      </Sheet>
+      {panelOpen && detailName ? <DomainDock name={detailName} tab={detailTab} onTab={setDetailTab} onClose={closeDetail} /> : null}
       <ProviderRequestDialog open={quoteOpen} onOpenChange={setQuoteOpen} target={target} />
       <ArtifactDialogsHost request={artifact} onClose={() => setArtifact(null)} scopes={scopes} />
       <ConfirmDialog
@@ -520,6 +537,16 @@ export function CollectionView({ collectionId }: { collectionId: string }) {
         pending={remove.isPending}
         onConfirm={() => remove.mutate([...selected])}
       />
-    </>
+    </div>
+  );
+}
+
+function ShortlistsCrumb() {
+  return (
+    <Crumb>
+      <Link href="/collections" className="rounded-sm hover:text-foreground">
+        Shortlists
+      </Link>
+    </Crumb>
   );
 }

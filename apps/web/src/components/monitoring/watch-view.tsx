@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
@@ -9,9 +8,10 @@ import { api } from '@/lib/api';
 import { useWatchEvents, watchesDeletedHere } from '@/lib/events';
 import { WATCH_STATE, watchRunStatus } from '@/lib/labels';
 import { formatCount, formatDateTime, formatInterval, plural } from '@/lib/format';
+import { cn } from '@/lib/utils';
 import { qk, useProviders } from '@/lib/queries';
 import { RelativeTime } from '../domain/time';
-import { EmptyState, ErrorState, Facts, PageHeader, SectionTitle } from '../states';
+import { Crumb, EmptyState, ErrorState, Facts, Page, PageHeader, ScrollPane, SectionTitle } from '../states';
 import { StatusLabel } from '../status';
 import { Button } from '../ui/button';
 import { Skeleton, SkeletonRows } from '../ui/skeleton';
@@ -19,30 +19,28 @@ import { MissedRuns, NextRun } from './monitoring-page';
 import { NoticeFeed } from './notices';
 import { WatchActions } from './watch-actions';
 
-const DOMAIN_PREVIEW = 24;
-
 function Domains({ domains }: { domains: string[] }) {
-  const [all, setAll] = useState(false);
-  const shown = all ? domains : domains.slice(0, DOMAIN_PREVIEW);
   return (
-    <div>
-      <ul className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-[13px]">
-        {shown.map((domain) => (
-          <li key={domain}>
-            <Link href={`/domains/${encodeURIComponent(domain)}`} className="underline-offset-4 hover:underline">
-              {domain}
-            </Link>
-          </li>
-        ))}
-      </ul>
-      {domains.length > DOMAIN_PREVIEW ? (
-        <Button size="sm" variant="link" className="mt-2 text-muted-foreground" onClick={() => setAll((v) => !v)}>
-          {all ? 'Show fewer' : `Show all ${formatCount(domains.length)}`}
-        </Button>
-      ) : null}
-    </div>
+    <section aria-label="Domains" className="flex min-w-0 flex-col lg:min-h-0 lg:flex-1">
+      <SectionTitle>
+        Domains <span className="font-mono text-xs font-normal text-muted-foreground tabular">{formatCount(domains.length)}</span>
+      </SectionTitle>
+      <ScrollPane>
+        <ul className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-[13px]">
+          {domains.map((domain) => (
+            <li key={domain}>
+              <Link href={`/domains/${encodeURIComponent(domain)}`} className="rounded-sm underline-offset-4 hover:underline">
+                {domain}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </ScrollPane>
+    </section>
   );
 }
+
+const thClass = 'h-8 pr-3 text-left text-xs font-medium text-muted-foreground';
 
 function Runs({ watchId }: { watchId: string }) {
   const runs = useInfiniteQuery({
@@ -54,49 +52,62 @@ function Runs({ watchId }: { watchId: string }) {
   });
   const rows = runs.data?.pages.flatMap((p) => p.data) ?? [];
   return (
-    <section aria-label="Runs">
-      <SectionTitle>Runs</SectionTitle>
+    <section aria-label="Runs" className="flex min-w-0 flex-col lg:max-h-[45%] lg:min-h-0 lg:shrink-0">
+      <SectionTitle className="px-1">Runs</SectionTitle>
       {runs.isPending ? (
         <SkeletonRows rows={4} />
       ) : runs.isError ? (
         <ErrorState error={runs.error} onRetry={() => runs.refetch()} />
       ) : rows.length === 0 ? (
-        <EmptyState className="py-6 text-left">No runs yet.</EmptyState>
+        <EmptyState>No runs yet.</EmptyState>
       ) : (
-        <div className="relative -mx-1 overflow-x-auto px-1">
-          <table className="w-full min-w-[40rem] text-left text-sm">
-            <thead>
-              <tr className="text-xs text-muted-foreground">
-                {['Status', 'Scheduled for', 'Ran', 'Changes', 'Failures', ''].map((h, i) => (
-                  <th key={i} scope="col" className="pb-2 pr-4 font-medium">
-                    {h}
-                  </th>
-                ))}
+        <ScrollPane className="@container overflow-x-auto">
+          <table className="w-full min-w-[30rem] table-fixed text-sm">
+            <thead className="sticky top-0 z-10 bg-background">
+              <tr>
+                <th scope="col" className={cn(thClass, 'w-48 pl-1')}>
+                  Status
+                </th>
+                <th scope="col" className={cn(thClass, 'hidden @xl:table-cell')}>
+                  Scheduled for
+                </th>
+                <th scope="col" className={cn(thClass, 'w-28')}>
+                  Ran
+                </th>
+                <th scope="col" className={cn(thClass, 'w-[4.5rem]')}>
+                  Changes
+                </th>
+                <th scope="col" className={cn(thClass, 'w-[4.5rem]')}>
+                  Failures
+                </th>
+                <th scope="col" className={cn(thClass, 'w-16')}>
+                  <span className="sr-only">Results</span>
+                </th>
               </tr>
             </thead>
             <tbody>
               {rows.map((run) => (
                 <tr key={run.id} className="align-top" data-testid="watch-run">
-                  <td className="py-2 pr-4">
+                  <td className="py-1.5 pl-1 pr-3">
                     <StatusLabel status={watchRunStatus(run.status)} />
-                    {run.note ? <span className="block max-w-64 text-xs text-muted-foreground">{run.note}</span> : null}
+                    {run.note ? <span className="block truncate text-xs text-muted-foreground">{run.note}</span> : null}
                   </td>
-                  <td className="py-2 pr-4 text-muted-foreground">{formatDateTime(run.scheduledFor)}</td>
-                  <td className="py-2 pr-4">
+                  <td className="hidden truncate py-1.5 pr-3 text-muted-foreground @xl:table-cell">{formatDateTime(run.scheduledFor)}</td>
+                  <td className="py-1.5 pr-3">
                     {run.startedAt ? (
                       <span title={formatDateTime(run.startedAt)}>
                         <RelativeTime iso={run.startedAt} />
-                        {run.finishedAt ? null : <span className="text-muted-foreground"> · not finished</span>}
+                        {run.finishedAt ? null : <span className="block text-xs text-muted-foreground">not finished</span>}
                       </span>
                     ) : (
                       <span className="text-muted-foreground">Did not run</span>
                     )}
                   </td>
-                  <td className="py-2 pr-4 font-mono tabular">{run.startedAt ? formatCount(run.changes) : <span className="text-muted-foreground">None</span>}</td>
-                  <td className="py-2 pr-4 font-mono tabular">{run.startedAt ? formatCount(run.failures) : <span className="text-muted-foreground">None</span>}</td>
-                  <td className="py-2 pr-1 text-right">
+                  <td className="py-1.5 pr-3 font-mono tabular">{run.startedAt ? formatCount(run.changes) : <span className="font-sans text-muted-foreground">None</span>}</td>
+                  <td className="py-1.5 pr-3 font-mono tabular">{run.startedAt ? formatCount(run.failures) : <span className="font-sans text-muted-foreground">None</span>}</td>
+                  <td className="py-1.5 pr-1 text-right">
                     {run.jobId ? (
-                      <Link href={`/jobs/${run.jobId}`} className="text-sm underline-offset-4 hover:underline">
+                      <Link href={`/jobs/${run.jobId}`} className="rounded-sm underline-offset-4 hover:underline">
                         Results
                       </Link>
                     ) : null}
@@ -105,16 +116,26 @@ function Runs({ watchId }: { watchId: string }) {
               ))}
             </tbody>
           </table>
-        </div>
+          {runs.hasNextPage ? (
+            <div className="flex justify-center py-2">
+              <Button variant="ghost" disabled={runs.isFetchingNextPage} onClick={() => runs.fetchNextPage()}>
+                Load more
+              </Button>
+            </div>
+          ) : null}
+        </ScrollPane>
       )}
-      {runs.hasNextPage ? (
-        <div className="mt-3 flex justify-center">
-          <Button variant="ghost" disabled={runs.isFetchingNextPage} onClick={() => runs.fetchNextPage()}>
-            Load more
-          </Button>
-        </div>
-      ) : null}
     </section>
+  );
+}
+
+function MonitorCrumb() {
+  return (
+    <Crumb>
+      <Link href="/monitoring" className="rounded-sm hover:text-foreground">
+        Monitor
+      </Link>
+    </Crumb>
   );
 }
 
@@ -134,87 +155,81 @@ export function WatchView({ watchId }: { watchId: string }) {
     router.replace('/monitoring');
   });
 
-  const back = (
-    <Link href="/monitoring" className="mb-3 inline-block rounded-sm text-sm text-muted-foreground hover:text-foreground">
-      Monitor
-    </Link>
-  );
-
   if (watch.isPending) {
     return (
-      <>
-        {back}
-        <Skeleton className="mb-6 h-7 w-56" />
-        <SkeletonRows rows={6} />
-      </>
+      <Page>
+        <Skeleton className="h-control w-72" />
+        <SkeletonRows rows={8} />
+      </Page>
     );
   }
   if (watch.isError) {
     return (
-      <>
-        {back}
-        <PageHeader title="Watch" />
+      <Page>
+        <PageHeader title="Watch" leading={<MonitorCrumb />} />
         <ErrorState error={watch.error} onRetry={() => watch.refetch()} />
-      </>
+      </Page>
     );
   }
 
   const data = watch.data;
   return (
-    <>
-      {back}
-      <PageHeader title={data.name} actions={<WatchActions watch={data} onDeleted={() => router.push('/monitoring')} />}>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-          <StatusLabel status={WATCH_STATE[data.state] ?? { label: data.state, tone: 'muted' }} className="font-medium" />
-          <span className="text-muted-foreground">
-            {formatInterval(data.intervalMinutes)} · {plural(data.domains.length, 'domain')} · created <RelativeTime iso={data.createdAt} />
-          </span>
-        </div>
-      </PageHeader>
-
-      <Facts
-        className="max-w-3xl"
-        items={[
-          ['Last run', data.lastRunAt ? <span key="l" title={formatDateTime(data.lastRunAt)}><RelativeTime iso={data.lastRunAt} /></span> : <span className="text-muted-foreground">Never</span>],
-          ['Next run', <NextRun key="n" watch={data} />],
-          ['Missed', <span key="m"><MissedRuns count={data.missedRuns} />{data.missedRuns > 0 ? <span className="text-muted-foreground"> while the backend was stopped</span> : null}</span>],
-          ['Registry evidence', data.includeRegistry ? 'Included' : 'Not included'],
-          ['Providers', data.providerIds.length ? data.providerIds.map((id) => names.get(id) ?? id).join(', ') : 'None'],
-          ['Published prices', data.includeCatalogPrices ? 'Tracked' : 'Not tracked'],
-          [
-            'Destinations',
-            data.destinations.length ? (
-              <span key="d" className="font-mono text-[13px]">
-                {data.destinations.join(', ')}
-              </span>
-            ) : (
-              'None'
-            ),
-          ],
-          ...(data.lastJobId
-            ? [
-                [
-                  'Last job',
-                  <Link key="j" href={`/jobs/${data.lastJobId}`} className="underline-offset-4 hover:underline">
-                    Open results
-                  </Link>,
-                ] as [string, React.ReactNode],
-              ]
-            : []),
-        ]}
+    <Page>
+      <PageHeader
+        leading={<MonitorCrumb />}
+        title={data.name}
+        meta={
+          <>
+            <StatusLabel status={WATCH_STATE[data.state] ?? { label: data.state, tone: 'muted' }} className="font-medium" />
+            <span className="text-muted-foreground">
+              {formatInterval(data.intervalMinutes)} · {plural(data.domains.length, 'domain')} · created <RelativeTime iso={data.createdAt} />
+            </span>
+          </>
+        }
+        actions={<WatchActions watch={data} onDeleted={() => router.push('/monitoring')} />}
       />
 
-      <section className="mt-10" aria-label="Domains">
-        <SectionTitle>Domains</SectionTitle>
-        <Domains domains={data.domains} />
-      </section>
+      <div className="flex flex-col gap-8 lg:min-h-0 lg:flex-1 lg:flex-row lg:gap-10">
+        <div className="flex min-w-0 flex-col gap-5 lg:min-h-0 lg:w-[22rem] lg:shrink-0">
+          <Facts
+            className="shrink-0"
+            items={[
+              ['Last run', data.lastRunAt ? <span key="l" title={formatDateTime(data.lastRunAt)}><RelativeTime iso={data.lastRunAt} /></span> : <span className="text-muted-foreground">Never</span>],
+              ['Next run', <NextRun key="n" watch={data} />],
+              ['Missed', <span key="m"><MissedRuns count={data.missedRuns} />{data.missedRuns > 0 ? <span className="block text-xs text-muted-foreground">while the backend was stopped</span> : null}</span>],
+              ['Registry evidence', data.includeRegistry ? 'Included' : 'Not included'],
+              ['Providers', data.providerIds.length ? data.providerIds.map((id) => names.get(id) ?? id).join(', ') : 'None'],
+              ['Published prices', data.includeCatalogPrices ? 'Tracked' : 'Not tracked'],
+              [
+                'Destinations',
+                data.destinations.length ? (
+                  <span key="d" className="break-all font-mono text-xs">
+                    {data.destinations.join(', ')}
+                  </span>
+                ) : (
+                  'None'
+                ),
+              ],
+              ...(data.lastJobId
+                ? [
+                    [
+                      'Last job',
+                      <Link key="j" href={`/jobs/${data.lastJobId}`} className="rounded-sm underline-offset-4 hover:underline">
+                        Open results
+                      </Link>,
+                    ] as [string, React.ReactNode],
+                  ]
+                : []),
+            ]}
+          />
+          <Domains domains={data.domains} />
+        </div>
 
-      <div className="mt-10">
-        <Runs watchId={watchId} />
+        <div className="flex min-w-0 flex-1 flex-col gap-8 lg:min-h-0">
+          <Runs watchId={watchId} />
+          <NoticeFeed watchId={watchId} unreadCount={data.unreadNotices} className="lg:min-h-0 lg:flex-1" />
+        </div>
       </div>
-      <div className="mt-10">
-        <NoticeFeed watchId={watchId} unreadCount={data.unreadNotices} />
-      </div>
-    </>
+    </Page>
   );
 }

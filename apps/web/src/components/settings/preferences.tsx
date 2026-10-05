@@ -27,12 +27,12 @@ function WithSettings({ children }: { children: (settings: Settings) => React.Re
 /** Submit and discard for a section form; the form's onSubmit saves. */
 function SaveBar({ dirty, valid, pending, onDiscard }: { dirty: boolean; valid: boolean; pending: boolean; onDiscard: () => void }) {
   return (
-    <div className="mt-8 flex gap-2">
-      <Button type="submit" variant="primary" disabled={!dirty || !valid || pending}>
+    <div className="mt-5 flex gap-1.5">
+      <Button type="submit" size="sm" variant="primary" disabled={!dirty || !valid || pending}>
         Save
       </Button>
       {dirty ? (
-        <Button variant="ghost" onClick={onDiscard}>
+        <Button size="sm" variant="ghost" onClick={onDiscard}>
           Discard
         </Button>
       ) : null}
@@ -142,13 +142,15 @@ function ChecksForm({ settings }: { settings: Settings }) {
         event.preventDefault();
         submit();
       }}
-      className="max-w-2xl"
+      className="max-w-5xl"
     >
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-4">
         {CHECK_FIELDS.map((group) => (
-          <fieldset key={group.group}>
-            <legend className="mb-3 text-xs font-medium text-muted-foreground">{group.group}</legend>
-            <div className="grid gap-4 sm:grid-cols-2">
+          <fieldset key={group.group} aria-labelledby={`set-group-${group.group}`} className="grid gap-x-4 gap-y-2 md:grid-cols-[7rem_minmax(0,1fr)]">
+            <span id={`set-group-${group.group}`} className="text-xs font-medium text-muted-foreground md:pt-6">
+              {group.group}
+            </span>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               {group.fields.map((field) => {
                 const state = parsed.find((p) => p.field.key === field.key)!;
                 const range = field.max === undefined ? `at least ${field.min}` : `${field.min} to ${field.max}`;
@@ -175,9 +177,11 @@ function ChecksForm({ settings }: { settings: Settings }) {
             </div>
           </fieldset>
         ))}
-        <fieldset>
-          <legend className="mb-3 text-xs font-medium text-muted-foreground">Diagnostics</legend>
-          <div className="flex flex-col items-start gap-1.5">
+        <fieldset aria-labelledby="set-group-diagnostics" className="grid gap-x-4 gap-y-2 md:grid-cols-[7rem_minmax(0,1fr)]">
+          <span id="set-group-diagnostics" className="text-xs font-medium text-muted-foreground md:pt-6">
+            Diagnostics
+          </span>
+          <div className="flex flex-col items-start gap-1">
             <span className="text-xs font-medium text-muted-foreground">DNS resolver</span>
             <Segmented<Resolver>
               aria-label="DNS resolver"
@@ -283,7 +287,7 @@ function PricingForm({ settings }: { settings: Settings }) {
 
   return (
     <form
-      className="max-w-3xl"
+      className="max-w-4xl"
       onSubmit={(event) => {
         event.preventDefault();
         if (!valid) return;
@@ -297,7 +301,7 @@ function PricingForm({ settings }: { settings: Settings }) {
         );
       }}
     >
-      <div className="grid max-w-md gap-4 sm:grid-cols-2">
+      <div className="grid max-w-md gap-3 sm:grid-cols-2">
         <Field label="Ownership horizon" htmlFor="set-horizon">
           <Select
             id="set-horizon"
@@ -319,13 +323,13 @@ function PricingForm({ settings }: { settings: Settings }) {
         </Field>
       </div>
 
-      <fieldset className="mt-10">
-        <legend className="mb-3 text-xs font-medium text-muted-foreground">Exchange rates</legend>
+      <fieldset className="mt-6">
+        <legend className="mb-2 text-xs font-medium text-muted-foreground">Exchange rates</legend>
         {rates.length === 0 ? <p className="mb-3 text-sm text-muted-foreground">No exchange rates.</p> : null}
-        <ul className="flex flex-col gap-4" aria-label="Exchange rates">
+        <ul className="flex flex-col gap-2" aria-label="Exchange rates">
           {rates.map((rate, index) => (
-            <li key={rate.id} className="rounded-lg bg-hover/60 p-3" data-testid="fx-rate">
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-[5rem_5rem_7rem_minmax(0,1fr)_12rem_auto] sm:items-end">
+            <li key={rate.id} className="rounded-md bg-hover/60 px-2.5 py-2" data-testid="fx-rate">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-[4.5rem_4.5rem_6.5rem_minmax(0,1fr)_12rem_auto] sm:items-end">
                 <Field label="From" htmlFor={`fx-from-${rate.id}`}>
                   <Input id={`fx-from-${rate.id}`} value={rate.from} maxLength={3} onChange={(e) => update(rate.id, { from: e.target.value.toUpperCase() })} className="font-mono uppercase" />
                 </Field>
@@ -341,7 +345,7 @@ function PricingForm({ settings }: { settings: Settings }) {
                 <Field label="Observed" htmlFor={`fx-observed-${rate.id}`}>
                   <Input id={`fx-observed-${rate.id}`} type="datetime-local" value={rate.observedAt} onChange={(e) => update(rate.id, { observedAt: e.target.value, savedObservedAt: null })} />
                 </Field>
-                <Button size="icon" variant="quiet" aria-label={`Remove rate ${index + 1}`} onClick={() => setRates((list) => list.filter((r) => r.id !== rate.id))} className="justify-self-end">
+                <Button size="icon-sm" variant="quiet" aria-label={`Remove rate ${index + 1}`} onClick={() => setRates((list) => list.filter((r) => r.id !== rate.id))} className="justify-self-end">
                   <X />
                 </Button>
               </div>
@@ -354,7 +358,7 @@ function PricingForm({ settings }: { settings: Settings }) {
         <Button
           size="sm"
           variant="quiet"
-          className="mt-3"
+          className="-ml-2 mt-2"
           onClick={() => {
             setRates((list) => [...list, { id: nextId, from: '', to: '', rate: '', source: '', observedAt: toLocalInput(new Date().toISOString()), savedObservedAt: null }]);
             setNextId((n) => n + 1);

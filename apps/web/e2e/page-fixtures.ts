@@ -363,7 +363,7 @@ export async function mockPriceHistory(page: Page) {
           termYears: 1,
           promotional: true,
           kind: 'published',
-          promotion: { description: 'Renewal sale', requiresTermYears: null, expiresAt: null },
+          promotion: { description: 'Renewal sale', requiresTermYears: null, expiresAt: null, restrictions: null },
           points: [point(6, NOW, '9.99')],
           gaps: [],
         },

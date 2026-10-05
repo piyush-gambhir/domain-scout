@@ -71,6 +71,7 @@ test('offers show renewal with its own years and promotion terms as supplied', a
       }),
   });
   await page.goto(`/domains/${DOMAIN}`);
+  await page.getByRole('tab', { name: 'Prices' }).click();
   const prices = page.getByRole('region', { name: 'Prices' });
   await expect(prices).toBeVisible();
   // No column pairs the registration term with the renewal amount.

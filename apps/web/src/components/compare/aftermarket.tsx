@@ -14,12 +14,12 @@ import { isTerminal, useLiveJob } from '@/lib/use-job';
 import { Disclosure, joinNames } from '../actions/disclosure';
 import { useJobStarted } from '../actions/use-job-started';
 import { CheckedAt } from '../domain/time';
-import { ErrorState, SectionTitle } from '../states';
+import { EmptyState, ErrorState, SectionTitle } from '../states';
 import { StatusLabel } from '../status';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
 import { SkeletonRows } from '../ui/skeleton';
-import { DomainsField, OutLink, usableDomains } from './shared';
+import { DomainsField, OutLink, Workspace, usableDomains } from './shared';
 
 type Source = OperationResponse<'listAftermarketSources'>['data'][number];
 
@@ -47,7 +47,7 @@ function DomainListings({ domain, linkOnly }: { domain: string; linkOnly: Source
       ) : listings.data.length === 0 ? (
         <p className="text-sm text-muted-foreground">No retained listing evidence.</p>
       ) : (
-        <ul className="flex flex-col gap-4">
+        <ul className="flex flex-col gap-3">
           {listings.data.map((listing) => (
             <li key={listing.id} className="text-sm" data-testid="listing">
               <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
@@ -72,7 +72,7 @@ function DomainListings({ domain, linkOnly }: { domain: string; linkOnly: Source
         </ul>
       )}
       {links.length > 0 ? (
-        <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+        <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
           <span className="text-muted-foreground">Search</span>
           {links.map(({ source, url }) => (
             <OutLink key={source.id} href={url} label={source.name} provider={source.name} />
@@ -125,100 +125,105 @@ export function Aftermarket({ domainsText, onDomainsText, autoRun }: { domainsTe
   });
 
   return (
-    <div className="flex flex-col gap-10">
-      <form
-        className="flex flex-col gap-4"
-        onSubmit={(event) => {
-          event.preventDefault();
-          if (domains) setSubmitted(domains);
-        }}
-      >
-        <DomainsField value={domainsText} onChange={onDomainsText} />
-        <div>
-          <Button type="submit" variant="primary" disabled={!domains}>
-            <Search />
-            Show listings
-          </Button>
-        </div>
-      </form>
-
-      <section aria-label="Marketplaces">
-        <SectionTitle>Marketplaces</SectionTitle>
-        {sources.isPending ? (
-          <SkeletonRows rows={3} />
-        ) : sources.isError ? (
-          <ErrorState error={sources.error} onRetry={() => sources.refetch()} />
-        ) : (
-          <div className="grid gap-8 md:grid-cols-2">
+    <Workspace
+      form={
+        <>
+          <form
+            className="flex min-w-0 shrink-0 flex-col gap-3"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (domains) setSubmitted(domains);
+            }}
+          >
+            <DomainsField value={domainsText} onChange={onDomainsText} className="lg:[&_textarea]:h-36" />
             <div>
-              <p className="mb-1 text-xs font-medium text-muted-foreground">Lookups supported</p>
-              {supported.length === 0 ? (
-                <p className="text-sm text-muted-foreground">None.</p>
-              ) : (
-                <ul className="flex flex-col gap-0.5">
-                  {supported.map((source) => (
-                    <li key={source.id}>
-                      <label htmlFor={`am-${source.id}`} className="flex min-h-9 items-center gap-3 rounded-md px-2 text-sm hover:bg-hover">
-                        <Checkbox
-                          id={`am-${source.id}`}
-                          checked={chosen.has(source.id)}
-                          onCheckedChange={(value) =>
-                            setChosen((current) => {
-                              const next = new Set(current);
-                              if (value === true) next.add(source.id);
-                              else next.delete(source.id);
-                              return next;
-                            })
-                          }
-                        />
-                        <span className="min-w-0 flex-1">
-                          <span className="block">{source.name}</span>
-                          {source.apiHosts.length ? <span className="block truncate font-mono text-xs text-muted-foreground">{source.apiHosts.join(', ')}</span> : null}
-                        </span>
-                        {source.requiresCredentials ? <span className="text-xs text-muted-foreground">Needs credentials</span> : null}
-                      </label>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <Button type="submit" size="sm" variant="primary" disabled={!domains}>
+                <Search />
+                Show listings
+              </Button>
             </div>
-            <div>
-              <p className="mb-1 text-xs font-medium text-muted-foreground">Link only</p>
-              {linkOnly.length === 0 ? (
-                <p className="text-sm text-muted-foreground">None.</p>
-              ) : (
-                <ul className="flex flex-col gap-2 text-sm">
-                  {linkOnly.map((source) => (
-                    <li key={source.id} className="px-2">
-                      {source.name}
-                      {source.reason ? <span className="block text-xs text-muted-foreground">{source.reason}</span> : null}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
-        )}
-        {selected.length > 0 && domains ? (
-          <Disclosure>
-            Sends {plural(domains.length, 'domain name')} to {joinNames(selected.map((s) => (s.apiHosts.length ? `${s.name} (${s.apiHosts.join(', ')})` : s.name)))}.
-          </Disclosure>
-        ) : null}
-        <div className="mt-4">
-          <Button variant="secondary" disabled={!domains || selected.length === 0 || lookup.isPending} onClick={() => lookup.mutate()}>
-            Look up listings
-          </Button>
-        </div>
-      </section>
+          </form>
 
+          <section aria-label="Marketplaces" className="flex shrink-0 flex-col gap-2">
+            <SectionTitle className="mb-0">Marketplaces</SectionTitle>
+            {sources.isPending ? (
+              <SkeletonRows rows={3} />
+            ) : sources.isError ? (
+              <ErrorState error={sources.error} onRetry={() => sources.refetch()} />
+            ) : (
+              <>
+                <div>
+                  <p className="mb-0.5 text-xs font-medium text-muted-foreground">Lookups supported</p>
+                  {supported.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">None.</p>
+                  ) : (
+                    <ul className="flex flex-col">
+                      {supported.map((source) => (
+                        <li key={source.id}>
+                          <label htmlFor={`am-${source.id}`} className="-mx-2 flex min-h-8 items-center gap-2.5 rounded-md px-2 text-sm hover:bg-hover">
+                            <Checkbox
+                              id={`am-${source.id}`}
+                              checked={chosen.has(source.id)}
+                              onCheckedChange={(value) =>
+                                setChosen((current) => {
+                                  const next = new Set(current);
+                                  if (value === true) next.add(source.id);
+                                  else next.delete(source.id);
+                                  return next;
+                                })
+                              }
+                            />
+                            <span className="min-w-0 flex-1">
+                              <span className="block">{source.name}</span>
+                              {source.apiHosts.length ? <span className="block truncate font-mono text-xs text-muted-foreground">{source.apiHosts.join(', ')}</span> : null}
+                            </span>
+                            {source.requiresCredentials ? <span className="text-xs text-muted-foreground">Needs credentials</span> : null}
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div>
+                  <p className="mb-0.5 text-xs font-medium text-muted-foreground">Link only</p>
+                  {linkOnly.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">None.</p>
+                  ) : (
+                    <ul className="flex flex-col gap-1 text-sm">
+                      {linkOnly.map((source) => (
+                        <li key={source.id}>
+                          {source.name}
+                          {source.reason ? <span className="text-xs text-muted-foreground"> · {source.reason}</span> : null}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </>
+            )}
+            {selected.length > 0 && domains ? (
+              <Disclosure>
+                Sends {plural(domains.length, 'domain name')} to {joinNames(selected.map((s) => (s.apiHosts.length ? `${s.name} (${s.apiHosts.join(', ')})` : s.name)))}.
+              </Disclosure>
+            ) : null}
+            <div>
+              <Button size="sm" variant="secondary" disabled={!domains || selected.length === 0 || lookup.isPending} onClick={() => lookup.mutate()}>
+                Look up listings
+              </Button>
+            </div>
+          </section>
+        </>
+      }
+    >
       {submitted ? (
-        <section aria-label="Listings" className="flex flex-col gap-8">
-          <SectionTitle className="mb-0">Listings</SectionTitle>
+        <section aria-label="Listings" className="flex flex-col gap-6 pb-2">
           {submitted.map((domain) => (
             <DomainListings key={domain} domain={domain} linkOnly={linkOnly} />
           ))}
         </section>
-      ) : null}
-    </div>
+      ) : (
+        <EmptyState>No listings shown yet.</EmptyState>
+      )}
+    </Workspace>
   );
 }

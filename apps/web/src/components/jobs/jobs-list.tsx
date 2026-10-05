@@ -9,7 +9,7 @@ import { JOB_STATE, JOB_TYPE, jobStateStatus, jobTypeLabel } from '@/lib/labels'
 import { formatCount } from '@/lib/format';
 import { qk } from '@/lib/queries';
 import { RelativeTime } from '../domain/time';
-import { EmptyState, ErrorState, PageHeader } from '../states';
+import { EmptyState, ErrorState, Page, PageHeader, ScrollPane } from '../states';
 import { StatusLabel } from '../status';
 import { Button } from '../ui/button';
 import { Select } from '../ui/select';
@@ -33,79 +33,84 @@ export function JobsList() {
   });
   const rows = jobs.data?.pages.flatMap((page) => page.data) ?? [];
 
+  const total = jobs.data?.pages[0]?.total ?? null;
+
   return (
-    <>
+    <Page>
       <PageHeader
         title="Jobs"
+        meta={total !== null ? <span className="font-mono text-muted-foreground tabular">{formatCount(total)}</span> : null}
         actions={
           <>
             <Select
               aria-label="Type"
               value={type}
               onValueChange={setType}
-              className="w-44"
+              className="w-40"
               options={[{ value: ANY, label: 'All types' }, ...Object.entries(JOB_TYPE).map(([value, label]) => ({ value, label }))]}
             />
             <Select
               aria-label="State"
               value={state}
               onValueChange={setState}
-              className="w-48"
+              className="w-44"
               options={[{ value: ANY, label: 'All states' }, ...Object.entries(JOB_STATE).map(([value, info]) => ({ value, label: info.label }))]}
             />
           </>
         }
       />
       {jobs.isPending ? (
-        <SkeletonRows rows={8} />
+        <SkeletonRows rows={10} />
       ) : jobs.isError ? (
         <ErrorState error={jobs.error} onRetry={() => jobs.refetch()} />
       ) : rows.length === 0 ? (
-        <EmptyState>No jobs yet.</EmptyState>
+        <EmptyState>{type !== ANY || state !== ANY ? 'No jobs match.' : 'No jobs yet.'}</EmptyState>
       ) : (
-        <ul className="flex flex-col gap-0.5" aria-label="Jobs">
-          {rows.map((job) => {
-            const { counters } = job;
-            const percent = counters.total ? (counters.finished / counters.total) * 100 : 0;
-            return (
-              <li key={job.id}>
-                <Link
-                  href={`/jobs/${job.id}`}
-                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 gap-y-1 rounded-lg px-3 py-3 transition-colors hover:bg-hover sm:grid-cols-[minmax(0,1fr)_12rem_11rem_6rem]"
-                >
-                  <span className="min-w-0">
-                    <span className="block truncate font-medium">{job.label ?? jobTypeLabel(job.type)}</span>
-                    <span className="block truncate text-xs text-muted-foreground">
-                      {job.label ? `${jobTypeLabel(job.type)} · ` : ''}
-                      <RelativeTime iso={job.createdAt} />
-                      {job.input.extensions.length ? <span className="font-mono"> · {job.input.extensions.map((e) => `.${e}`).join(' ')}</span> : null}
+        <ScrollPane>
+          <ul className="flex flex-col" aria-label="Jobs">
+            {rows.map((job) => {
+              const { counters } = job;
+              const percent = counters.total ? (counters.finished / counters.total) * 100 : 0;
+              return (
+                <li key={job.id}>
+                  <Link
+                    href={`/jobs/${job.id}`}
+                    className="focus-inset grid min-h-row grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 rounded-md px-2.5 py-1 transition-colors hover:bg-hover sm:grid-cols-[minmax(0,1fr)_10rem_11rem_7rem]"
+                  >
+                    <span className="flex min-w-0 items-baseline gap-2">
+                      <span className="truncate font-medium">{job.label ?? jobTypeLabel(job.type)}</span>
+                      <span className="hidden min-w-0 truncate text-xs text-muted-foreground sm:inline">
+                        {job.label ? `${jobTypeLabel(job.type)} · ` : ''}
+                        <RelativeTime iso={job.createdAt} />
+                        {job.input.extensions.length ? <span className="font-mono"> · {job.input.extensions.map((e) => `.${e}`).join(' ')}</span> : null}
+                      </span>
                     </span>
-                  </span>
-                  <span className="hidden flex-col gap-1.5 sm:flex">
-                    <span className="h-1 w-full overflow-hidden rounded-full bg-input" aria-hidden>
-                      <span className="block h-full rounded-full bg-primary" style={{ width: `${percent}%` }} />
+                    <span className="hidden items-center gap-2 sm:flex">
+                      <span className="h-1 w-16 shrink-0 overflow-hidden rounded-full bg-input" aria-hidden>
+                        <span className="block h-full rounded-full bg-primary" style={{ width: `${percent}%` }} />
+                      </span>
+                      <span className="truncate font-mono text-xs text-muted-foreground tabular">
+                        {formatCount(counters.finished)}/{formatCount(counters.total)}
+                      </span>
                     </span>
-                    <span className="font-mono text-xs text-muted-foreground tabular">
-                      {formatCount(counters.finished)} / {formatCount(counters.total)}
+                    <StatusLabel status={jobStateStatus(job.state)} className="justify-self-end sm:justify-self-start" />
+                    <span className="hidden text-right font-mono text-xs text-muted-foreground tabular sm:block">
+                      {counters.unresolved ? `${formatCount(counters.unresolved)} unresolved` : ''}
                     </span>
-                  </span>
-                  <StatusLabel status={jobStateStatus(job.state)} className="justify-self-end text-sm sm:justify-self-start" />
-                  <span className="hidden text-right font-mono text-xs text-muted-foreground tabular sm:block">
-                    {counters.unresolved ? `${formatCount(counters.unresolved)} unresolved` : ''}
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+          {jobs.hasNextPage ? (
+            <div className="flex justify-center py-3">
+              <Button variant="ghost" disabled={jobs.isFetchingNextPage} onClick={() => jobs.fetchNextPage()}>
+                Load more
+              </Button>
+            </div>
+          ) : null}
+        </ScrollPane>
       )}
-      {jobs.hasNextPage ? (
-        <div className="mt-4 flex justify-center">
-          <Button variant="ghost" disabled={jobs.isFetchingNextPage} onClick={() => jobs.fetchNextPage()}>
-            Load more
-          </Button>
-        </div>
-      ) : null}
-    </>
+    </Page>
   );
 }

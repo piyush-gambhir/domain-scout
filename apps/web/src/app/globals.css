@@ -64,6 +64,22 @@
   --sidebar-width: 3.5rem;
 }
 
+/*
+ * Compact density. One place for the sizes every page shares: the page gutter, the gap between
+ * blocks, table rows, controls (also the minimum hit target), the docked detail pane, and base text.
+ * Each spacing token is also a utility (h-row, px-gutter, gap-section, h-control, w-dock).
+ * The results table's virtualizer row height (results-table.tsx) matches --spacing-row.
+ */
+@theme {
+  --spacing-gutter: 1.25rem;
+  --spacing-section: 1rem;
+  --spacing-row: 2.25rem;
+  --spacing-control: 2rem;
+  --spacing-dock: 28rem;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: calc(1.125 / 0.8125);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -97,8 +113,25 @@
     background: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
     font-feature-settings: 'cv11';
     -webkit-font-smoothing: antialiased;
+  }
+  /* Thin, quiet scrollbars for the panes that scroll inside the app frame. */
+  html {
+    scrollbar-color: var(--control) transparent;
+  }
+  * {
+    scrollbar-width: thin;
+  }
+  /* At desktop widths the app is exactly the window: only panes that hold growing data scroll. */
+  @media (min-width: 64rem) {
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
   }
   /* Visible focus everywhere; outlines are not borders and only appear for keyboard focus. */
   :focus-visible {
@@ -116,6 +149,11 @@
 
 @utility tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/* Focus ring drawn inside the element, for rows and items that sit at the edge of a scroll pane. */
+@utility focus-inset {
+  outline-offset: -2px;
 }
 
 /* Restrained motion: short fades and slides, disabled for reduced motion. */
@@ -139,16 +177,6 @@
   to {
     opacity: 0;
     transform: translate(-50%, -48%) scale(0.98);
-  }
-}
-@keyframes ds-sheet-in {
-  from {
-    transform: translateX(100%);
-  }
-}
-@keyframes ds-sheet-out {
-  to {
-    transform: translateX(100%);
   }
 }
 @keyframes ds-drawer-in {
@@ -176,12 +204,6 @@
   }
   .anim-pop[data-state='closed'] {
     animation: ds-pop-out 100ms ease-in;
-  }
-  .anim-sheet[data-state='open'] {
-    animation: ds-sheet-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-  .anim-sheet[data-state='closed'] {
-    animation: ds-sheet-out 140ms ease-in;
   }
   .anim-drawer[data-state='open'] {
     animation: ds-drawer-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1);

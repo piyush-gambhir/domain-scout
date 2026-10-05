@@ -46,8 +46,8 @@ export function ServiceSettings() {
 
   const caps = capabilities.data;
   return (
-    <section aria-label="Service" className="flex max-w-3xl flex-col gap-10">
-      <div>
+    <section aria-label="Service" className="grid max-w-5xl gap-x-10 gap-y-8 xl:grid-cols-2">
+      <div className="min-w-0">
         <SectionTitle>Backend</SectionTitle>
         {health.isPending ? (
           <Skeleton className="h-40" />
@@ -78,7 +78,7 @@ export function ServiceSettings() {
         )}
       </div>
 
-      <div>
+      <div className="min-w-0 xl:row-span-2">
         <SectionTitle>Capabilities</SectionTitle>
         {capabilities.isPending ? (
           <Skeleton className="h-40" />
@@ -99,8 +99,8 @@ export function ServiceSettings() {
                 'Providers',
                 <ul key="p" className="flex flex-col gap-1">
                   {caps.providers.map((p) => (
-                    <li key={p.id} className="flex gap-3">
-                      <span className="min-w-28">{p.name}</span>
+                    <li key={p.id} className="grid grid-cols-[9.5rem_minmax(0,1fr)] gap-3">
+                      <span className="truncate">{p.name}</span>
                       <StatusLabel status={READINESS[p.readiness]} className="text-muted-foreground" />
                     </li>
                   ))}
@@ -116,14 +116,14 @@ export function ServiceSettings() {
         ) : null}
       </div>
 
-      <div>
+      <div className="min-w-0">
         <SectionTitle>Stop</SectionTitle>
         {stop.isSuccess ? (
           <p className="text-sm" role="status">
             Stopping. Unfinished work becomes interrupted and can be resumed after the next start.
           </p>
         ) : (
-          <Button variant="danger" onClick={() => setConfirming(true)}>
+          <Button size="sm" variant="danger" onClick={() => setConfirming(true)}>
             <Power />
             Stop backend
           </Button>

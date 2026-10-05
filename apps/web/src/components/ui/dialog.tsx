@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Dialog as DialogPrimitive } from 'radix-ui';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -21,16 +21,38 @@ function openerOf(active: Element | null): HTMLElement | null {
   return active;
 }
 
+const DIALOG = '[role="dialog"], [role="alertdialog"]';
+
+/** Last element focused outside any dialog, tracked from the first dialog hook onward. */
+let lastOutside: HTMLElement | null = null;
+let tracking = false;
+function trackFocus() {
+  if (tracking || typeof document === 'undefined') return;
+  tracking = true;
+  document.addEventListener(
+    'focusin',
+    (event) => {
+      if (event.target instanceof HTMLElement && !event.target.closest(DIALOG)) lastOutside = event.target;
+    },
+    true,
+  );
+}
+
 /** Remembers what had focus when a dialog opened and returns focus there on close. Radix only
- * restores focus to a registered Trigger, and most dialogs here open from menus or toolbars. */
+ * restores focus to a registered Trigger, and most dialogs here open from menus or toolbars. A
+ * dialog whose field uses autoFocus skips Radix's open hook, so it falls back to the last element
+ * focused outside any dialog. */
 export function useReturnFocus() {
   const opener = useRef<HTMLElement | null>(null);
+  useEffect(trackFocus, []);
   return {
     onOpenAutoFocus: () => {
-      opener.current = openerOf(document.activeElement);
+      const active = document.activeElement;
+      opener.current = openerOf(active instanceof HTMLElement && !active.closest(DIALOG) ? active : lastOutside);
     },
     onCloseAutoFocus: (event: Event) => {
-      const target = opener.current;
+      const target = opener.current ?? openerOf(lastOutside);
+      opener.current = null;
       if (target?.isConnected && !target.matches(':disabled')) {
         event.preventDefault();
         target.focus({ preventScroll: true });
@@ -77,7 +99,7 @@ export function DialogContent({
             </Button>
           </DialogPrimitive.Close>
         </div>
-        <div className="min-h-0 overflow-y-auto px-6 pb-6 pt-4">{children}</div>
+        <div className="relative min-h-0 overflow-y-auto px-6 pb-6 pt-4">{children}</div>
       </DialogPrimitive.Content>
     </DialogPrimitive.Portal>
   );

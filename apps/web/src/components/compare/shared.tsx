@@ -3,6 +3,7 @@
 import { ChevronDown, ExternalLink } from 'lucide-react';
 import { parseDomains } from '@/lib/domains';
 import { plural } from '@/lib/format';
+import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
 import { Textarea } from '../ui/input';
@@ -12,13 +13,24 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 export const MAX_COMPARE_DOMAINS = 500;
 
 /** Domains typed or prefilled for the compare tabs, with parse feedback. */
-export function DomainsField({ value, onChange, max = MAX_COMPARE_DOMAINS }: { value: string; onChange: (value: string) => void; max?: number }) {
+export function DomainsField({
+  value,
+  onChange,
+  max = MAX_COMPARE_DOMAINS,
+  className,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  max?: number;
+  className?: string;
+}) {
   const parsed = parseDomains(value);
   const tooMany = parsed.valid.length > max;
   return (
     <Field
       label="Domains"
       htmlFor="compare-domains"
+      className={cn('lg:max-h-80', className)}
       hint={
         parsed.invalid.length ? (
           <span className="text-negative">
@@ -40,7 +52,7 @@ export function DomainsField({ value, onChange, max = MAX_COMPARE_DOMAINS }: { v
         autoComplete="off"
         aria-invalid={parsed.invalid.length > 0 || tooMany || undefined}
         onChange={(e) => onChange(e.target.value)}
-        className="min-h-20 font-mono text-[13px]"
+        className="min-h-24 font-mono text-[13px] lg:max-h-72 lg:min-h-20 lg:flex-1 lg:resize-none"
       />
     </Field>
   );
@@ -66,7 +78,7 @@ export function ProviderFilter({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant={selected.size ? 'primary' : 'secondary'} className="justify-between" aria-label="Providers">
+        <Button size="sm" variant={selected.size ? 'primary' : 'secondary'} className="w-full justify-between" aria-label="Providers">
           {selected.size ? plural(selected.size, 'provider') : 'All providers'}
           <ChevronDown className="opacity-70" />
         </Button>
@@ -112,5 +124,15 @@ export function OutLink({ href, label, provider }: { href: string; label: string
       <ExternalLink aria-hidden className="size-3.5" />
       <span className="sr-only"> at {provider} (opens in a new tab)</span>
     </a>
+  );
+}
+
+/** Two panes: a fixed form column and a results column that scrolls inside itself. */
+export function Workspace({ form, children }: { form: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-8 lg:min-h-0 lg:flex-1 lg:flex-row lg:gap-10">
+      <div className="relative -mx-1 flex min-w-0 flex-col gap-4 px-1 lg:min-h-0 lg:w-80 lg:shrink-0 lg:overflow-y-auto">{form}</div>
+      <div className="relative -mx-1 flex min-w-0 flex-1 flex-col px-1 lg:min-h-0 lg:overflow-y-auto">{children}</div>
+    </div>
   );
 }

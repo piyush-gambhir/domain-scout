@@ -15,6 +15,8 @@ test('virtualized results load pages on scroll and keep the DOM small', async ({
   expect(rendered).toBeGreaterThan(5);
   expect(rendered).toBeLessThan(80);
 
+  // The table scrolls inside its own pane, so the wheel goes over the table.
+  await page.getByTestId('results-scroll').hover();
   for (let i = 0; i < 40 && !(await page.getByRole('button', { name: domainAt(TOTAL - 1), exact: true }).isVisible()); i++) {
     await page.mouse.wheel(0, 6000);
     await page.waitForTimeout(120);
@@ -24,10 +26,30 @@ test('virtualized results load pages on scroll and keep the DOM small', async ({
   expect(await page.locator('[role="row"][data-row-index]').count()).toBeLessThan(80);
 });
 
+test('arrow keys move between rows inside the table pane and keep the row clear of the header', async ({ page }) => {
+  await mockJobApi(page);
+  await page.goto(`/jobs/${JOB_ID}`);
+  await page.getByRole('button', { name: domainAt(0), exact: true }).focus();
+  for (let i = 0; i < 30; i++) await page.keyboard.press('ArrowDown');
+  const down = page.getByRole('button', { name: domainAt(30), exact: true });
+  await expect(down).toBeFocused();
+  for (let i = 0; i < 28; i++) await page.keyboard.press('ArrowUp');
+  const up = page.getByRole('button', { name: domainAt(2), exact: true });
+  await expect(up).toBeFocused();
+  // Scrolling up to a row stops below the sticky column header, not underneath it.
+  const header = await page.getByRole('columnheader', { name: 'Domain' }).boundingBox();
+  const row = await up.boundingBox();
+  expect(row!.y).toBeGreaterThanOrEqual(header!.y + header!.height - 1);
+  // The document itself never scrolled.
+  expect(await page.evaluate(() => document.scrollingElement!.scrollTop)).toBe(0);
+});
+
 test('selection supports shift ranges and select all matching', async ({ page }) => {
   await mockJobApi(page);
   await page.goto(`/jobs/${JOB_ID}`);
   await page.getByRole('checkbox', { name: `Select ${domainAt(0)}` }).click();
+  // Toggling keeps focus on the checkbox, so Space toggles it again.
+  await expect(page.getByRole('checkbox', { name: `Select ${domainAt(0)}` })).toBeFocused();
   await page.getByRole('checkbox', { name: `Select ${domainAt(4)}` }).click({ modifiers: ['Shift'] });
   const toolbar = page.getByRole('toolbar', { name: 'Selected results' });
   await expect(toolbar).toContainText('5 selected');
@@ -55,13 +77,14 @@ test('the confirmation filter is sent to the backend and kept in the URL (S01)',
   const queries = await mockJobApi(page);
   await page.goto(`/jobs/${JOB_ID}`);
   await expect(page.getByText(`${TOTAL.toLocaleString('en')} results`)).toBeVisible();
-  await page.getByRole('button', { name: 'Confirmation', exact: true }).click();
+  // Provider confirmation is a less common filter, so it lives in the More popover.
+  await page.getByRole('button', { name: 'More filters' }).click();
   await page.getByRole('checkbox', { name: 'Available', exact: true }).click();
   await page.getByRole('checkbox', { name: 'Restricted', exact: true }).click();
   await expect(page).toHaveURL(/confirmations=available%2Crestricted|confirmations=available,restricted/);
   await expect.poll(() => queries.some((q) => new URLSearchParams(q).get('confirmations') === 'available,restricted')).toBe(true);
   await page.keyboard.press('Escape');
-  await expect(page.getByRole('button', { name: /^Confirmation/ })).toContainText('2');
+  await expect(page.getByRole('button', { name: 'More filters, 1 active' })).toContainText('1');
 });
 
 test('rechecking selected rows submits only the selected domains (S03)', async ({ page }) => {
@@ -100,19 +123,61 @@ test('rechecking selected rows submits only the selected domains (S03)', async (
   expect(rechecks()[1]).toEqual(noRecord);
 });
 
-test('a row opens the detail panel beside the table', async ({ page }) => {
+test('a row opens the detail panel docked beside the table', async ({ page }) => {
   await mockJobApi(page);
   await page.goto(`/jobs/${JOB_ID}`);
+  const table = page.getByTestId('results-scroll');
+  const tableWidth = await table.evaluate((el) => el.getBoundingClientRect().width);
   await page.getByRole('button', { name: domainAt(1), exact: true }).click();
-  const panel = page.getByRole('dialog', { name: domainAt(1) });
+  const panel = page.getByRole('complementary', { name: domainAt(1) });
   await expect(panel).toBeVisible();
   await expect(panel.getByRole('region', { name: 'Registry' })).toContainText('No record');
   await expect(page).toHaveURL(new RegExp(`d=${domainAt(1).replace('.', '\\.')}`));
-  // The table stays usable: another row swaps the panel content.
+  // Docked, not overlaid: the table gives up the panel's width and ends where the panel starts.
+  const [tableBox, panelBox] = await Promise.all([table.boundingBox(), panel.boundingBox()]);
+  expect(tableBox!.width).toBeLessThan(tableWidth - 300);
+  expect(tableBox!.x + tableBox!.width).toBeLessThanOrEqual(panelBox!.x + 1);
+  // The table stays usable: another row swaps the panel content and keeps the chosen tab.
+  await panel.getByRole('tab', { name: 'Evidence' }).click();
   await page.getByRole('button', { name: domainAt(0), exact: true }).click();
-  await expect(page.getByRole('dialog', { name: domainAt(0) })).toContainText('Registered');
+  const next = page.getByRole('complementary', { name: domainAt(0) });
+  await expect(next.getByRole('tab', { name: 'Evidence' })).toHaveAttribute('aria-selected', 'true');
+  await expect(next).toContainText('Registered');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('complementary', { name: domainAt(0) })).toHaveCount(0);
+});
+
+test('closing the panel returns focus to its row, even after a dialog opened from the panel', async ({ page }) => {
+  await mockJobApi(page);
+  await page.goto(`/jobs/${JOB_ID}`);
+  const row = page.getByRole('button', { name: domainAt(1), exact: true });
+  await row.click();
+  const panel = page.getByRole('complementary', { name: domainAt(1) });
+  await panel.getByRole('button', { name: 'Shortlist' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
+  // The dialog returned focus into the panel; closing the panel goes back to the row.
+  await expect(panel.getByRole('button', { name: 'Shortlist' })).toBeFocused();
+  await panel.getByRole('button', { name: 'Close panel' }).click();
+  await expect(panel).toHaveCount(0);
+  await expect(row).toBeFocused();
+});
+
+test('the detail panel resizes from its edge with the keyboard', async ({ page }) => {
+  await mockJobApi(page);
+  await page.goto(`/jobs/${JOB_ID}?d=${domainAt(1)}`);
+  const panel = page.getByRole('complementary', { name: domainAt(1) });
+  await expect(panel).toBeVisible();
+  const before = (await panel.boundingBox())!.width;
+  const handle = panel.getByRole('separator', { name: 'Resize panel' });
+  await handle.focus();
+  await page.keyboard.press('ArrowLeft');
+  await page.keyboard.press('ArrowLeft');
+  await expect.poll(async () => (await panel.boundingBox())!.width).toBe(before + 32);
+  await page.reload();
+  // The width is remembered for the next panel.
+  await expect.poll(async () => (await page.getByRole('complementary', { name: domainAt(1) }).boundingBox())?.width).toBe(before + 32);
 });
 
 test('changing the filter clears the selection', async ({ page }) => {

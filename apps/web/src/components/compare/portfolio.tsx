@@ -11,19 +11,20 @@ import { PRICE_KIND } from '@/lib/labels';
 import { formatDate, formatMoney, plural } from '@/lib/format';
 import { qk, useProviders } from '@/lib/queries';
 import { CheckedAt } from '../domain/time';
-import { EmptyState, ErrorState, SectionTitle } from '../states';
+import { ErrorState, SectionTitle } from '../states';
 import { ConfirmDialog } from '../ui/alert-dialog';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/input';
 import { SkeletonRows } from '../ui/skeleton';
 import { SwitchField } from '../ui/switch';
+import { Workspace } from './shared';
 
 type ImportResult = OperationResponse<'importPortfolio'>['data'];
 type ComparisonRow = OperationResponse<'comparePortfolio'>['data'][number];
 
 const MAX_TEXT = 2_000_000;
-const thClass = 'pb-2 pr-4 text-xs font-medium text-muted-foreground';
-const tdClass = 'py-2 pr-4 align-top';
+const thClass = 'pb-1.5 pr-3 text-left text-xs font-medium text-muted-foreground';
+const tdClass = 'py-1.5 pr-3 align-top';
 
 function UserMoney({ money }: { money: PortfolioEntry['renewalPrice'] }) {
   return money ? <span className="font-mono tabular">{formatMoney(money.amount, money.currency)}</span> : <span className="text-muted-foreground">Not entered</span>;
@@ -48,10 +49,10 @@ function ImportForm() {
   const submit = () => (replace ? setConfirmReplace(true) : run.mutate());
 
   return (
-    <section aria-label="Import">
+    <section aria-label="Import" className="flex min-w-0 flex-col lg:min-h-0 lg:flex-1">
       <SectionTitle>Import</SectionTitle>
       <form
-        className="flex max-w-3xl flex-col gap-3"
+        className="flex min-w-0 flex-col gap-2 lg:min-h-0 lg:flex-1"
         onSubmit={(event) => {
           event.preventDefault();
           if (text.trim()) submit();
@@ -61,7 +62,7 @@ function ImportForm() {
           <label htmlFor="portfolio-csv" className="text-xs font-medium text-muted-foreground">
             CSV
           </label>
-          <Button size="sm" variant="quiet" onClick={() => fileInput.current?.click()}>
+          <Button size="sm" variant="quiet" className="-mr-2" onClick={() => fileInput.current?.click()}>
             <FileUp />
             Choose file
           </Button>
@@ -90,25 +91,25 @@ function ImportForm() {
           spellCheck={false}
           placeholder="domain,registrar,renewalDate,renewalPrice,currency,notes"
           onChange={(e) => setText(e.target.value)}
-          className="min-h-32 font-mono text-[13px]"
+          className="min-h-32 font-mono text-[13px] lg:max-h-80 lg:min-h-24 lg:flex-1 lg:resize-none"
         />
-        <SwitchField id="portfolio-replace" label="Replace existing entries" checked={replace} onCheckedChange={setReplace} className="max-w-sm" />
+        <SwitchField id="portfolio-replace" label="Replace existing entries" checked={replace} onCheckedChange={setReplace} />
         <div>
-          <Button type="submit" variant="primary" disabled={!text.trim() || text.length > MAX_TEXT || run.isPending}>
+          <Button type="submit" size="sm" variant="primary" disabled={!text.trim() || text.length > MAX_TEXT || run.isPending}>
             <Upload />
             Import
           </Button>
         </div>
       </form>
       {result ? (
-        <div className="mt-6 max-w-3xl text-sm" data-testid="import-result">
+        <div className="relative mt-4 max-h-56 shrink-0 overflow-y-auto text-sm" data-testid="import-result">
           <p>
             {plural(result.imported, 'domain')} imported, {plural(result.updated, 'entry', 'entries')} updated
             {result.rejected.length ? `, ${plural(result.rejected.length, 'row')} rejected` : ''}
           </p>
           {result.rejected.length > 0 ? (
             <div className="relative -mx-1 mt-3 overflow-x-auto px-1">
-              <table className="w-full min-w-[30rem] text-left text-sm">
+              <table className="w-full table-fixed text-left text-sm">
                 <thead>
                   <tr>
                     {['Row', 'Input', 'Reason'].map((h) => (
@@ -170,10 +171,10 @@ function Entries() {
       ) : entries.isError ? (
         <ErrorState error={entries.error} onRetry={() => entries.refetch()} />
       ) : rows.length === 0 ? (
-        <EmptyState className="py-6 text-left">No portfolio entries.</EmptyState>
+        <p className="text-sm text-muted-foreground">No portfolio entries.</p>
       ) : (
         <div className="relative -mx-1 overflow-x-auto px-1">
-          <table className="w-full min-w-[40rem] text-left text-sm">
+          <table className="w-full min-w-[32rem] text-left text-sm">
             <thead>
               <tr>
                 {['Domain', 'Registrar', 'Renewal date', 'Renewal price', 'Notes', ''].map((h, i) => (
@@ -227,7 +228,7 @@ function Entries() {
 function ComparisonBlock({ row, names }: { row: ComparisonRow; names: Map<string, string> }) {
   const { entry } = row;
   return (
-    <article aria-label={entry.domain} data-testid="portfolio-comparison" className="grid gap-x-10 gap-y-4 lg:grid-cols-[16rem_minmax(0,1fr)]">
+    <article aria-label={entry.domain} data-testid="portfolio-comparison" className="grid gap-x-8 gap-y-3 xl:grid-cols-[14rem_minmax(0,1fr)]">
       <div className="text-sm">
         <h4 className="mb-2 font-mono font-semibold">
           <Link href={`/domains/${encodeURIComponent(entry.domain)}`} className="underline-offset-4 hover:underline">
@@ -252,7 +253,7 @@ function ComparisonBlock({ row, names }: { row: ComparisonRow; names: Map<string
           <p className="text-sm text-muted-foreground">No retained renewal or transfer prices.</p>
         ) : (
           <div className="relative -mx-1 overflow-x-auto px-1">
-            <table className="w-full min-w-[34rem] text-left text-sm">
+            <table className="w-full min-w-[28rem] text-left text-sm">
               <thead>
                 <tr>
                   {['Provider', 'Renewal', 'Transfer', 'Observed'].map((h) => (
@@ -317,9 +318,9 @@ function Comparison() {
       ) : comparison.isError ? (
         <ErrorState error={comparison.error} onRetry={() => comparison.refetch()} />
       ) : rows.length === 0 ? (
-        <EmptyState className="py-6 text-left">Nothing to compare.</EmptyState>
+        <p className="text-sm text-muted-foreground">Nothing to compare.</p>
       ) : (
-        <div className="flex flex-col gap-10">
+        <div className="flex flex-col gap-8">
           {rows.map((row) => (
             <ComparisonBlock key={row.entry.id} row={row} names={names} />
           ))}
@@ -339,10 +340,11 @@ function Comparison() {
 /** Domains you own, with your renewal facts kept apart from observed provider prices. Read-only. */
 export function Portfolio() {
   return (
-    <div className="flex flex-col gap-12">
-      <ImportForm />
-      <Entries />
-      <Comparison />
-    </div>
+    <Workspace form={<ImportForm />}>
+      <div className="flex flex-col gap-8 pb-2">
+        <Entries />
+        <Comparison />
+      </div>
+    </Workspace>
   );
 }

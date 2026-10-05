@@ -33,8 +33,8 @@ export function Segmented<T extends string>({
           value={option.value}
           disabled={option.disabled}
           className={cn(
-            'rounded-[5px] px-3 text-sm text-muted-foreground transition-colors hover:text-foreground disabled:opacity-45 data-[state=checked]:bg-background data-[state=checked]:font-medium data-[state=checked]:text-foreground data-[state=checked]:shadow-sm',
-            size === 'sm' ? 'h-7' : 'h-8',
+            'rounded-[5px] px-2.5 text-sm text-muted-foreground transition-colors hover:text-foreground disabled:opacity-45 data-[state=checked]:bg-background data-[state=checked]:font-medium data-[state=checked]:text-foreground data-[state=checked]:shadow-sm',
+            size === 'sm' ? 'h-6' : 'h-7',
           )}
         >
           {option.label}

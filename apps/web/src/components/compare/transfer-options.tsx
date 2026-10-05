@@ -12,8 +12,8 @@ import { ErrorState, SectionTitle } from '../states';
 import { SkeletonRows } from '../ui/skeleton';
 import { OutLink } from './shared';
 
-const thClass = 'pb-2 pr-4 text-xs font-medium text-muted-foreground';
-const tdClass = 'py-2.5 pr-4 align-top';
+const thClass = 'pb-1.5 pr-3 text-left text-xs font-medium text-muted-foreground';
+const tdClass = 'py-1.5 pr-3 align-top';
 
 function Amount({ money }: { money: Money | null }) {
   return money ? <span className="font-mono tabular">{formatMoney(money.amount, money.currency)}</span> : <span className="text-muted-foreground">Unknown</span>;
@@ -40,12 +40,19 @@ function DomainTransferOptions({ domain, names }: { domain: string; names: Map<s
         <p className="text-sm text-muted-foreground">No retained transfer prices.</p>
       ) : (
         <div className="relative -mx-1 overflow-x-auto px-1">
-          <table className="w-full min-w-[56rem] text-left text-sm">
+          <table className="w-full min-w-[36rem] table-fixed text-left text-sm">
+            <colgroup>
+              <col className="w-[22%]" />
+              <col className="w-[18%]" />
+              <col className="w-[14%]" />
+              <col className="w-[16%]" />
+              <col />
+            </colgroup>
             <thead>
               <tr>
-                {['Provider', 'Transfer', 'Renewal', 'Observed', 'Known eligibility', 'Unknown eligibility', ''].map((h, i) => (
-                  <th key={i} scope="col" className={thClass}>
-                    {h || <span className="sr-only">Transfer page</span>}
+                {['Provider', 'Transfer', 'Renewal', 'Observed', 'Eligibility'].map((h) => (
+                  <th key={h} scope="col" className={thClass}>
+                    {h}
                   </th>
                 ))}
               </tr>
@@ -56,8 +63,13 @@ function DomainTransferOptions({ domain, names }: { domain: string; names: Map<s
                 return (
                   <tr key={`${option.providerId}-${option.observedAt}`}>
                     <td className={tdClass}>
-                      <span className="font-medium">{name}</span>
+                      <span className="block truncate font-medium">{name}</span>
                       <span className="block text-xs text-muted-foreground">{PRICE_KIND[option.kind]}</span>
+                      {option.destination ? (
+                        <span className="block text-xs">
+                          <OutLink href={option.destination} label="Transfer page" provider={name} />
+                        </span>
+                      ) : null}
                     </td>
                     <td className={tdClass}>
                       <Amount money={option.transfer} />
@@ -73,27 +85,24 @@ function DomainTransferOptions({ domain, names }: { domain: string; names: Map<s
                     </td>
                     <td className={tdClass}>
                       {option.eligibility.known.length ? (
-                        <ul className="max-w-56 font-mono text-xs">
+                        <ul className="font-mono text-xs">
                           {option.eligibility.known.map((fact) => (
-                            <li key={fact}>{fact}</li>
+                            <li key={fact} className="break-all">
+                              {fact}
+                            </li>
                           ))}
                         </ul>
                       ) : (
-                        <span className="text-muted-foreground">None known</span>
+                        <span className="block text-xs text-muted-foreground">None known</span>
                       )}
-                    </td>
-                    <td className={tdClass}>
                       {option.eligibility.unknown.length ? (
-                        <ul className="max-w-56 text-xs text-muted-foreground">
+                        <ul className="mt-0.5 text-xs text-muted-foreground">
                           {option.eligibility.unknown.map((fact) => (
-                            <li key={fact}>{fact}</li>
+                            <li key={fact}>Unknown: {fact}</li>
                           ))}
                         </ul>
-                      ) : (
-                        <span className="text-muted-foreground">None</span>
-                      )}
+                      ) : null}
                     </td>
-                    <td className={tdClass}>{option.destination ? <OutLink href={option.destination} label="Transfer page" provider={name} /> : null}</td>
                   </tr>
                 );
               })}
@@ -109,7 +118,7 @@ export function TransferOptions({ domains }: { domains: string[] }) {
   const providers = useProviders();
   const names = new Map((providers.data ?? []).map((p) => [p.id, p.name]));
   return (
-    <section aria-label="Transfer options" className="flex flex-col gap-8">
+    <section aria-label="Transfer options" className="flex flex-col gap-6">
       <SectionTitle className="mb-0">Transfer options</SectionTitle>
       {domains.map((domain) => (
         <DomainTransferOptions key={domain} domain={domain} names={names} />

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
-import { BackButton } from '@/components/back-button';
-import { DomainDetail } from '@/components/domain/domain-detail';
+import { DomainPage } from '@/components/domain/domain-detail';
 
 type Props = { params: Promise<{ name: string }> };
 
@@ -17,12 +16,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: domainFrom(name) };
 }
 
-export default async function DomainPage({ params }: Props) {
+export default async function Page({ params }: Props) {
   const { name } = await params;
-  return (
-    <div className="max-w-4xl">
-      <BackButton fallback="/jobs" />
-      <DomainDetail name={domainFrom(name)} variant="page" />
-    </div>
-  );
+  const domain = domainFrom(name);
+  return <DomainPage key={domain} name={domain} />;
 }

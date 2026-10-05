@@ -13,7 +13,7 @@ export function HistoryExportMenu({ label, disabled, onJson, onCsv }: { label: s
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button size="sm" variant="secondary" className="h-9" disabled={disabled} aria-label={label}>
+        <Button size="sm" variant="secondary" disabled={disabled} aria-label={label}>
           <Download />
           Export
         </Button>

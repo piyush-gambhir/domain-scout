@@ -60,8 +60,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     else setDrawerOpen((open) => !open);
   };
 
+  // At lg and up the shell is exactly the window and never scrolls as a document; pages fill <main>
+  // and only their growing-data panes scroll. Below lg the page scrolls normally where it must.
   return (
-    <div className="flex min-h-dvh">
+    <div data-shell className="flex min-h-dvh lg:h-dvh lg:overflow-hidden">
       <a
         href="#main"
         className="fixed left-3 top-3 z-[60] -translate-y-20 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground focus:translate-y-0"
@@ -71,7 +73,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <DesktopSidebar collapsed={collapsed} onToggle={toggleSidebar} onOpenPalette={() => setPaletteOpen(true)} />
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col lg:min-h-0">
         <div className="sticky top-0 z-30 flex h-12 items-center gap-1 bg-background/90 px-2 backdrop-blur md:hidden">
           <DialogPrimitive.Root open={drawerOpen} onOpenChange={setDrawerOpen}>
             <DialogPrimitive.Trigger asChild>
@@ -108,7 +110,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Button>
         </div>
 
-        <main id="main" tabIndex={-1} className="min-w-0 flex-1 px-4 pb-24 pt-6 outline-none md:px-8 md:pt-8">
+        <main id="main" tabIndex={-1} className="relative flex min-w-0 flex-1 flex-col outline-none lg:min-h-0 lg:overflow-y-auto">
           {children}
         </main>
       </div>

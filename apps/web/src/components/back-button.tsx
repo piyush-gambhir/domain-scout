@@ -11,7 +11,7 @@ export function BackButton({ fallback, label = 'Back' }: { fallback: string; lab
     <Button
       size="sm"
       variant="quiet"
-      className="-ml-3 mb-3"
+      className="-ml-2 px-2"
       onClick={() => (window.history.length > 1 ? router.back() : router.push(fallback))}
     >
       <ArrowLeft />

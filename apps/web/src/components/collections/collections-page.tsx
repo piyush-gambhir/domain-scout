@@ -11,7 +11,7 @@ import { api } from '@/lib/api';
 import { formatMoney, plural } from '@/lib/format';
 import { qk, useCollections, useCriteria } from '@/lib/queries';
 import { RelativeTime } from '../domain/time';
-import { EmptyState, ErrorState, PageHeader, SectionTitle } from '../states';
+import { EmptyState, ErrorState, Page, PageHeader, ScrollPane, SectionTitle } from '../states';
 import { ConfirmDialog } from '../ui/alert-dialog';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogFooter } from '../ui/dialog';
@@ -68,7 +68,7 @@ function CriteriaRow({ criteria, onDelete }: { criteria: SavedCriteria; onDelete
   const router = useRouter();
   const target = criteria.generation ? `/discover?criteria=${criteria.id}` : `/scan?criteria=${criteria.id}`;
   return (
-    <li className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 rounded-lg px-3 py-3 hover:bg-hover">
+    <li className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 rounded-md px-2.5 py-1.5 hover:bg-hover">
       <div className="min-w-0">
         <p className="truncate font-medium">{criteria.name}</p>
         <p className="truncate text-xs text-muted-foreground">
@@ -81,7 +81,7 @@ function CriteriaRow({ criteria, onDelete }: { criteria: SavedCriteria; onDelete
         </p>
       </div>
       <div className="flex items-center gap-1">
-        <Button size="sm" variant="secondary" onClick={() => router.push(target)}>
+        <Button size="sm" variant="ghost" onClick={() => router.push(target)}>
           <RotateCcw />
           Restore
         </Button>
@@ -110,60 +110,68 @@ export function CollectionsPage() {
   });
 
   return (
-    <>
+    <Page>
       <PageHeader
         title="Shortlists"
+        meta={collections.data ? <span className="font-mono text-muted-foreground tabular">{collections.data.length}</span> : null}
         actions={
-          <Button variant="primary" onClick={() => setCreateOpen(true)}>
+          <Button size="sm" variant="primary" onClick={() => setCreateOpen(true)}>
             <Plus />
             New shortlist
           </Button>
         }
       />
-      {collections.isPending ? (
-        <SkeletonRows rows={5} />
-      ) : collections.isError ? (
-        <ErrorState error={collections.error} onRetry={() => collections.refetch()} />
-      ) : collections.data.length === 0 ? (
-        <EmptyState>No shortlists yet.</EmptyState>
-      ) : (
-        <ul className="flex flex-col gap-0.5" aria-label="Shortlists">
-          {collections.data.map((collection) => (
-            <li key={collection.id}>
-              <Link
-                href={`/collections/${collection.id}`}
-                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 rounded-lg px-3 py-3 transition-colors hover:bg-hover"
-              >
-                <span className="min-w-0">
-                  <span className="block truncate font-medium">{collection.name}</span>
-                  {collection.notes ? <span className="block truncate text-xs text-muted-foreground">{collection.notes}</span> : null}
-                </span>
-                <span className="text-right text-xs text-muted-foreground">
-                  <span className="block font-mono tabular">{plural(collection.entryCount, 'domain')}</span>
-                  <RelativeTime iso={collection.updatedAt} />
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className="flex flex-col gap-8 lg:min-h-0 lg:flex-1 lg:flex-row lg:gap-10">
+        <section aria-label="Shortlists" className="flex min-w-0 flex-col lg:min-h-0 lg:flex-[3]">
+          <SectionTitle className="px-2.5">Shortlists</SectionTitle>
+          {collections.isPending ? (
+            <SkeletonRows rows={5} />
+          ) : collections.isError ? (
+            <ErrorState error={collections.error} onRetry={() => collections.refetch()} />
+          ) : collections.data.length === 0 ? (
+            <EmptyState>No shortlists yet.</EmptyState>
+          ) : (
+            <ScrollPane>
+              <ul className="flex flex-col" aria-label="Shortlist list">
+                {collections.data.map((collection) => (
+                  <li key={collection.id}>
+                    <Link
+                      href={`/collections/${collection.id}`}
+                      className="focus-inset grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-6 rounded-md px-2.5 py-1.5 transition-colors hover:bg-hover"
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate font-medium">{collection.name}</span>
+                        {collection.notes ? <span className="block truncate text-xs text-muted-foreground">{collection.notes}</span> : null}
+                      </span>
+                      <span className="font-mono text-xs text-muted-foreground tabular">{plural(collection.entryCount, 'domain')}</span>
+                      <RelativeTime iso={collection.updatedAt} className="w-24 text-right text-xs text-muted-foreground" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </ScrollPane>
+          )}
+        </section>
 
-      <section className="mt-12" aria-label="Saved criteria">
-        <SectionTitle>Saved criteria</SectionTitle>
-        {criteria.isPending ? (
-          <SkeletonRows rows={3} />
-        ) : criteria.isError ? (
-          <ErrorState error={criteria.error} onRetry={() => criteria.refetch()} />
-        ) : criteria.data.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No saved criteria.</p>
-        ) : (
-          <ul className="flex flex-col gap-0.5">
-            {criteria.data.map((item) => (
-              <CriteriaRow key={item.id} criteria={item} onDelete={() => setDeleting(item)} />
-            ))}
-          </ul>
-        )}
-      </section>
+        <section className="flex min-w-0 flex-col lg:min-h-0 lg:flex-[2]" aria-label="Saved criteria">
+          <SectionTitle className="px-2.5">Saved criteria</SectionTitle>
+          {criteria.isPending ? (
+            <SkeletonRows rows={3} />
+          ) : criteria.isError ? (
+            <ErrorState error={criteria.error} onRetry={() => criteria.refetch()} />
+          ) : criteria.data.length === 0 ? (
+            <EmptyState>No saved criteria.</EmptyState>
+          ) : (
+            <ScrollPane>
+              <ul className="flex flex-col">
+                {criteria.data.map((item) => (
+                  <CriteriaRow key={item.id} criteria={item} onDelete={() => setDeleting(item)} />
+                ))}
+              </ul>
+            </ScrollPane>
+          )}
+        </section>
+      </div>
 
       <CreateCollectionDialog open={createOpen} onOpenChange={setCreateOpen} />
       <ConfirmDialog
@@ -174,6 +182,6 @@ export function CollectionsPage() {
         pending={deleteCriteria.isPending}
         onConfirm={() => deleting && deleteCriteria.mutate(deleting.id)}
       />
-    </>
+    </Page>
   );
 }

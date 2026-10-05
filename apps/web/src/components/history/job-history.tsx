@@ -15,7 +15,7 @@ import { useDebounced } from '@/lib/use-debounced';
 import { cn } from '@/lib/utils';
 import { useJobStarted } from '../actions/use-job-started';
 import { RelativeTime } from '../domain/time';
-import { EmptyState, ErrorState } from '../states';
+import { EmptyState, ErrorState, ScrollPane } from '../states';
 import { StatusLabel } from '../status';
 import { ConfirmDialog } from '../ui/alert-dialog';
 import { HistoryExportMenu, downloadJobHistoryCsv, downloadJobHistoryJson } from './history-export';
@@ -43,22 +43,24 @@ function HistoryRow({ entry, onDelete }: { entry: HistoryEntry; onDelete: () => 
   });
   return (
     <li
-      className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 gap-y-1 rounded-lg px-3 py-3 transition-colors hover:bg-hover sm:grid-cols-[minmax(0,1fr)_9rem_12rem_auto]"
+      className="grid min-h-row grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 gap-y-0.5 rounded-md px-2.5 py-1 transition-colors hover:bg-hover sm:grid-cols-[minmax(0,1fr)_8rem_11rem_auto]"
       data-testid="history-row"
     >
       <div className="min-w-0">
-        <Link href={`/jobs/${entry.jobId}`} className="block truncate font-medium underline-offset-4 hover:underline">
-          {entry.label ?? jobTypeLabel(entry.type)}
-        </Link>
-        <p className="truncate text-xs text-muted-foreground">
-          {entry.label ? `${jobTypeLabel(entry.type)} · ` : ''}
-          <RelativeTime iso={entry.createdAt} />
-          {entry.extensions.length ? <span className="font-mono"> · {entry.extensions.map((e) => `.${e}`).join(' ')}</span> : null}
+        <p className="flex min-w-0 items-baseline gap-2">
+          <Link href={`/jobs/${entry.jobId}`} className="truncate rounded-sm font-medium underline-offset-4 hover:underline">
+            {entry.label ?? jobTypeLabel(entry.type)}
+          </Link>
+          <span className="min-w-0 truncate text-xs text-muted-foreground">
+            {entry.label ? `${jobTypeLabel(entry.type)} · ` : ''}
+            <RelativeTime iso={entry.createdAt} />
+            {entry.extensions.length ? <span className="font-mono"> · {entry.extensions.map((e) => `.${e}`).join(' ')}</span> : null}
+          </span>
         </p>
       </div>
       <span className="hidden text-right font-mono text-xs text-muted-foreground tabular sm:block">
         {plural(entry.total, 'item')}
-        {entry.unresolved ? <span className="block">{formatCount(entry.unresolved)} unresolved</span> : null}
+        {entry.unresolved ? <span> · {formatCount(entry.unresolved)} unresolved</span> : null}
       </span>
       <StatusLabel status={jobStateStatus(entry.state)} className="hidden text-sm sm:inline-flex" />
       <div className="row-span-2 flex items-center gap-1 sm:row-span-1">
@@ -146,47 +148,51 @@ export function JobHistory() {
   });
 
   return (
-    <section aria-label="Job history">
-      <div className="mb-4 flex flex-wrap items-center gap-2" role="search" aria-label="Filter history">
-        <div className="relative w-full sm:w-72">
-          <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input type="search" aria-label="Search history" placeholder="Label or domain" value={q} onChange={(e) => setQ(e.target.value)} className="pl-9" />
+    <section aria-label="Job history" className="flex min-w-0 flex-col gap-3 lg:min-h-0 lg:flex-1">
+      <div className="flex shrink-0 flex-wrap items-center gap-1.5" role="search" aria-label="Filter history">
+        <div className="relative w-full sm:w-64">
+          <Search aria-hidden className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input type="search" aria-label="Search history" placeholder="Label or domain" value={q} onChange={(e) => setQ(e.target.value)} className="pl-8" />
         </div>
         <Select
           aria-label="Type"
           value={type}
           onValueChange={setType}
-          className="w-44"
+          className="w-40"
           options={[{ value: ANY, label: 'All types' }, ...Object.entries(JOB_TYPE).map(([value, label]) => ({ value, label }))]}
         />
-        {total !== null ? <span className="text-sm text-muted-foreground sm:ml-auto">{plural(total, 'job')}</span> : null}
-        <HistoryExportMenu
-          label="Export job history"
-          disabled={!exportable}
-          onJson={() => downloadJobHistoryJson(query, loaded())}
-          onCsv={() => downloadJobHistoryCsv(query, loaded())}
-        />
+        <div className="ml-auto flex items-center gap-1.5">
+          {total !== null ? <span className="px-1 text-sm text-muted-foreground tabular">{plural(total, 'job')}</span> : null}
+          <HistoryExportMenu
+            label="Export job history"
+            disabled={!exportable}
+            onJson={() => downloadJobHistoryJson(query, loaded())}
+            onCsv={() => downloadJobHistoryCsv(query, loaded())}
+          />
+        </div>
       </div>
       {history.isPending ? (
-        <SkeletonRows rows={6} />
+        <SkeletonRows rows={8} />
       ) : history.isError ? (
         <ErrorState error={history.error} onRetry={() => history.refetch()} />
       ) : rows.length === 0 ? (
         <EmptyState>{search || type !== ANY ? 'No jobs match.' : 'No jobs yet.'}</EmptyState>
       ) : (
-        <ul className={cn('flex flex-col gap-0.5 transition-opacity', history.isPlaceholderData && 'opacity-60')} aria-label="Jobs">
-          {rows.map((entry) => (
-            <HistoryRow key={entry.jobId} entry={entry} onDelete={() => setDeleting(entry)} />
-          ))}
-        </ul>
+        <ScrollPane>
+          <ul className={cn('flex flex-col transition-opacity', history.isPlaceholderData && 'opacity-60')} aria-label="Jobs">
+            {rows.map((entry) => (
+              <HistoryRow key={entry.jobId} entry={entry} onDelete={() => setDeleting(entry)} />
+            ))}
+          </ul>
+          {history.hasNextPage ? (
+            <div className="flex justify-center py-2">
+              <Button variant="ghost" disabled={history.isFetchingNextPage} onClick={() => history.fetchNextPage()}>
+                Load more
+              </Button>
+            </div>
+          ) : null}
+        </ScrollPane>
       )}
-      {history.hasNextPage ? (
-        <div className="mt-4 flex justify-center">
-          <Button variant="ghost" disabled={history.isFetchingNextPage} onClick={() => history.fetchNextPage()}>
-            Load more
-          </Button>
-        </div>
-      ) : null}
       <ConfirmDialog
         open={deleting !== null}
         onOpenChange={(open) => !open && setDeleting(null)}

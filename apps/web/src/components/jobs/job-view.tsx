@@ -9,6 +9,7 @@ import {
   Bell,
   BookmarkPlus,
   Camera,
+  ChevronDown,
   CircleStop,
   Download,
   Ellipsis,
@@ -31,7 +32,7 @@ import { formatCount, plural } from '@/lib/format';
 import { qk, useCollections } from '@/lib/queries';
 import { useIdempotency } from '@/lib/use-idempotency';
 import { isTerminal, useLiveJob } from '@/lib/use-job';
-import { useIsDesktop } from '@/lib/use-media-query';
+import { useIsWide } from '@/lib/use-media-query';
 import { cn, uniq } from '@/lib/utils';
 import { ArtifactDialogsHost, type ArtifactRequest } from '../actions/artifact-host';
 import { DiagnosticsDialog, NameCheckDialog } from '../actions/enrichment-dialogs';
@@ -42,13 +43,13 @@ import type { DomainTarget, ScopeInput, ScopeOption } from '../actions/types';
 import { useJobStarted } from '../actions/use-job-started';
 import { WatchDialog } from '../actions/watch-dialog';
 import { MAX_COMPARE_DOMAINS } from '../compare/shared';
-import { DomainDetail } from '../domain/domain-detail';
+import { DomainDock, type DomainTab } from '../domain/domain-detail';
 import { RelativeTime } from '../domain/time';
-import { EmptyState, ErrorState, PageHeader } from '../states';
+import { Crumb, EmptyState, ErrorState, Page, PageHeader } from '../states';
 import { StatusLabel } from '../status';
 import { Button } from '../ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { Sheet } from '../ui/sheet';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Skeleton, SkeletonRows } from '../ui/skeleton';
 import { ResultFilters, describeFilter, filterFromParams, filterToParams, filterToQuery, isFiltered } from './filters';
 import { ResultsTable } from './results-table';
@@ -60,79 +61,74 @@ const MAX_BULK_DOMAINS = 10_000;
 
 type DialogName = 'shortlist' | 'providers' | 'names' | 'diagnostics' | 'watch' | 'criteria' | null;
 
-function Progress({ job, activeOutcomes, onOutcome }: { job: Job; activeOutcomes: string[]; onOutcome: (outcome: string) => void }) {
-  const { counters } = job;
-  const percent = counters.total ? Math.round((counters.finished / counters.total) * 1000) / 10 : 0;
+/** Outcome counts that double as filter toggles; they sit inline in the page header. */
+function OutcomeChips({ job, activeOutcomes, onOutcome }: { job: Job; activeOutcomes: string[]; onOutcome: (outcome: string) => void }) {
   const operation = JOB_OPERATION[job.type];
-  const outcomes = Object.entries(counters.outcomes).filter(([, count]) => count > 0);
+  const outcomes = Object.entries(job.counters.outcomes).filter(([, count]) => count > 0);
+  if (outcomes.length === 0) return null;
   return (
-    <section aria-label="Progress" className="mb-8 flex flex-col gap-4">
-      <div
-        role="progressbar"
-        aria-label="Completed"
-        aria-valuemin={0}
-        aria-valuemax={counters.total}
-        aria-valuenow={counters.finished}
-        className="h-1.5 w-full overflow-hidden rounded-full bg-input"
-      >
-        <div className="h-full rounded-full bg-primary transition-[width] duration-500 motion-reduce:transition-none" style={{ width: `${percent}%` }} />
-      </div>
-      <dl className="flex flex-wrap gap-x-8 gap-y-3" data-testid="job-counters">
-        {(
-          [
-            ['Completed', `${formatCount(counters.finished)} / ${formatCount(counters.total)}`],
-            ['Pending', formatCount(counters.pending + counters.running)],
-            ['Unresolved', formatCount(counters.unresolved)],
-            ...(counters.interrupted ? [['Interrupted', formatCount(counters.interrupted)] as const] : []),
-          ] as const
-        ).map(([label, value]) => (
-          <div key={label} className="flex flex-col">
-            <dt className="text-xs text-muted-foreground">{label}</dt>
-            <dd className="font-mono text-lg tabular">{value}</dd>
-          </div>
-        ))}
-      </dl>
-      {outcomes.length > 0 ? (
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter by outcome">
-          {outcomes.map(([outcome, count]) => {
-            const active = activeOutcomes.includes(outcome);
-            return (
-              <button
-                key={outcome}
-                type="button"
-                aria-pressed={active}
-                onClick={() => onOutcome(outcome)}
-                className={cn('inline-flex h-8 items-center gap-2 rounded-md px-2.5 text-sm transition-colors', active ? 'bg-selected font-medium' : 'hover:bg-hover')}
-              >
-                <StatusLabel status={outcomeStatus(operation, outcome)} />
-                <span className="font-mono text-xs text-muted-foreground tabular">{formatCount(count)}</span>
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
-      {job.nextRetryAt ? (
-        <p className="text-sm text-muted-foreground">
-          Some sources are cooling down. Next retry <RelativeTime iso={job.nextRetryAt} />.
-        </p>
-      ) : null}
-    </section>
+    <div className="flex flex-wrap items-center gap-0.5 text-sm text-foreground" role="group" aria-label="Filter by outcome">
+      {outcomes.map(([outcome, count]) => {
+        const active = activeOutcomes.includes(outcome);
+        return (
+          <button
+            key={outcome}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onOutcome(outcome)}
+            className={cn(
+              'inline-flex h-control items-center gap-1.5 rounded-md px-2 transition-colors',
+              active ? 'bg-selected font-medium' : 'hover:bg-hover',
+            )}
+          >
+            <StatusLabel status={outcomeStatus(operation, outcome)} />
+            <span className="font-mono text-xs text-muted-foreground tabular">{formatCount(count)}</span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
-function Destinations({ destinations }: { destinations: string[] }) {
-  const [open, setOpen] = useState(false);
-  if (destinations.length === 0) return null;
-  const shown = open ? destinations : destinations.slice(0, 3);
+/** Thin progress line under the header, only while the job runs. */
+function ProgressLine({ job }: { job: Job }) {
+  const { counters } = job;
+  const percent = counters.total ? Math.round((counters.finished / counters.total) * 1000) / 10 : 0;
   return (
-    <p className="text-sm text-muted-foreground">
-      Destinations: <span className="font-mono text-[13px] text-foreground">{shown.join(', ')}</span>
-      {destinations.length > 3 ? (
-        <button type="button" className="ml-2 rounded-sm underline underline-offset-4" onClick={() => setOpen((v) => !v)}>
-          {open ? 'Less' : `${destinations.length - 3} more`}
+    <div
+      role="progressbar"
+      aria-label="Completed"
+      aria-valuemin={0}
+      aria-valuemax={counters.total}
+      aria-valuenow={counters.finished}
+      className="-mt-2 h-0.5 w-full shrink-0 overflow-hidden rounded-full bg-input"
+    >
+      <div className="h-full rounded-full bg-primary transition-[width] duration-500 motion-reduce:transition-none" style={{ width: `${percent}%` }} />
+    </div>
+  );
+}
+
+/** "3 destinations" that opens the list of hosts this job sends names to. */
+function Destinations({ destinations }: { destinations: string[] }) {
+  if (destinations.length === 0) return null;
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button type="button" className="inline-flex h-6 items-center gap-1 rounded-sm underline-offset-4 hover:text-foreground hover:underline">
+          {plural(destinations.length, 'destination')}
+          <ChevronDown aria-hidden className="size-3.5" />
         </button>
-      ) : null}
-    </p>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-auto max-w-[min(32rem,calc(100vw-2rem))]">
+        <ul aria-label="Destinations" className="flex flex-col gap-1 font-mono text-xs">
+          {destinations.map((destination) => (
+            <li key={destination} className="break-all">
+              {destination}
+            </li>
+          ))}
+        </ul>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -140,7 +136,8 @@ export function JobView({ jobId }: { jobId: string }) {
   const router = useRouter();
   const client = useQueryClient();
   const searchParams = useSearchParams();
-  const isDesktop = useIsDesktop();
+  const isWide = useIsWide();
+  const [detailTab, setDetailTab] = useState<DomainTab>('overview');
   const started = useJobStarted();
   const retryIdempotency = useIdempotency();
   const searchRef = useRef<HTMLInputElement>(null);
@@ -158,13 +155,10 @@ export function JobView({ jobId }: { jobId: string }) {
   // Name checks are about names and catalog refreshes about providers; neither has domain subjects.
   const domainJob = job.data?.type !== 'name_check' && job.data?.type !== 'catalog_refresh';
 
-  const setUrl = useCallback(
-    (params: URLSearchParams) => {
-      const query = params.toString();
-      window.history.replaceState(null, '', query ? `?${query}` : window.location.pathname);
-    },
-    [],
-  );
+  const setUrl = useCallback((params: URLSearchParams) => {
+    const query = params.toString();
+    window.history.replaceState(null, '', query ? `?${query}` : window.location.pathname);
+  }, []);
   const updateFilter = useCallback(
     (patch: Partial<ResultFilter>) => {
       const current = filterFromParams(new URLSearchParams(window.location.search));
@@ -177,7 +171,11 @@ export function JobView({ jobId }: { jobId: string }) {
   const results = useInfiniteQuery({
     queryKey: qk.jobResults(jobId, filter),
     queryFn: ({ pageParam, signal }) =>
-      api.call('listJobResults', { params: { id: jobId }, query: { ...filterToQuery(filter), cursor: pageParam, limit: PAGE_SIZE }, signal }),
+      api.call('listJobResults', {
+        params: { id: jobId },
+        query: { ...filterToQuery(filter), cursor: pageParam, limit: PAGE_SIZE },
+        signal,
+      }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last.nextCursor ?? undefined,
     placeholderData: (previous) => previous,
@@ -253,7 +251,12 @@ export function JobView({ jobId }: { jobId: string }) {
     mutationFn: async () => {
       const body = { domains: await target.resolveDomains() };
       if (body.domains.length === 0) throw new Error('Nothing selected.');
-      return (await api.call('createRecheck', { body, idempotencyKey: retryIdempotency.keyFor({ recheck: body }) })).data;
+      return (
+        await api.call('createRecheck', {
+          body,
+          idempotencyKey: retryIdempotency.keyFor({ recheck: body }),
+        })
+      ).data;
     },
     onSuccess: (created) => {
       retryIdempotency.reset();
@@ -289,7 +292,9 @@ export function JobView({ jobId }: { jobId: string }) {
     },
     onSuccess: (criteria) => {
       void client.invalidateQueries({ queryKey: qk.criteria });
-      toast.success(`Saved ${criteria.name}`, { action: { label: 'Shortlists', onClick: () => router.push('/collections') } });
+      toast.success(`Saved ${criteria.name}`, {
+        action: { label: 'Shortlists', onClick: () => router.push('/collections') },
+      });
     },
   });
 
@@ -304,7 +309,13 @@ export function JobView({ jobId }: { jobId: string }) {
   const retry = useMutation({
     mutationFn: async () => {
       const body = { unresolvedOnly: true };
-      return (await api.call('retryJob', { params: { id: jobId }, body, idempotencyKey: retryIdempotency.keyFor({ retry: jobId }) })).data;
+      return (
+        await api.call('retryJob', {
+          params: { id: jobId },
+          body,
+          idempotencyKey: retryIdempotency.keyFor({ retry: jobId }),
+        })
+      ).data;
     },
     onSuccess: (created) => {
       retryIdempotency.reset();
@@ -327,15 +338,21 @@ export function JobView({ jobId }: { jobId: string }) {
     },
     {
       value: 'filter',
-      label: isFiltered(filter) ? `Current filter (${total === null ? 'all matching' : formatCount(total)})` : `Current view (${total === null ? 'all' : formatCount(total)})`,
+      label: isFiltered(filter)
+        ? `Current filter (${total === null ? 'all matching' : formatCount(total)})`
+        : `Current view (${total === null ? 'all' : formatCount(total)})`,
       build: async () => ({ kind: 'filter', jobId, filter }),
     },
-    { value: 'job', label: `Whole job (${formatCount(job.data?.counters.total ?? 0)})`, build: async () => ({ kind: 'job', jobId }) },
+    {
+      value: 'job',
+      label: `Whole job (${formatCount(job.data?.counters.total ?? 0)})`,
+      build: async () => ({ kind: 'job', jobId }),
+    },
   ];
 
   const openItem = useCallback(
     (item: JobItem) => {
-      if (!isDesktop) {
+      if (!isWide) {
         router.push(`/domains/${encodeURIComponent(item.subject)}`);
         return;
       }
@@ -343,30 +360,30 @@ export function JobView({ jobId }: { jobId: string }) {
       params.set('d', item.subject);
       setUrl(params);
     },
-    [isDesktop, router, setUrl],
+    [isWide, router, setUrl],
   );
   const canOpen = useCallback((item: JobItem) => item.operation !== 'name_check' && item.operation !== 'catalog', []);
-  const closeDetail = () => {
+  const closeDetail = useCallback(() => {
     const params = new URLSearchParams(window.location.search);
     params.delete('d');
     setUrl(params);
-  };
+  }, [setUrl]);
 
   if (job.isPending) {
     return (
-      <>
-        <Skeleton className="mb-6 h-7 w-56" />
-        <Skeleton className="mb-8 h-1.5 w-full" />
-        <SkeletonRows rows={10} />
-      </>
+      <Page>
+        <Skeleton className="h-control w-72" />
+        <Skeleton className="h-control w-full" />
+        <SkeletonRows rows={12} />
+      </Page>
     );
   }
   if (job.isError) {
     return (
-      <>
-        <PageHeader title="Job" />
+      <Page>
+        <PageHeader title="Job" leading={<JobsCrumb />} />
         <ErrorState error={job.error} onRetry={() => job.refetch()} />
-      </>
+      </Page>
     );
   }
 
@@ -383,72 +400,118 @@ export function JobView({ jobId }: { jobId: string }) {
     .sort()
     .map((s) => ({ value: s, label: `.${s}` }));
   const activeItem = detailName ? rows.find((r) => r.subject === detailName) : undefined;
-  const panelOpen = Boolean(detailName) && isDesktop;
-  // Icon-only on small screens and beside the detail panel; labels stay available to screen readers.
-  const toolbarLabel = panelOpen ? 'sr-only' : 'max-sm:sr-only';
-  const toolbarButton = panelOpen ? 'px-2' : 'max-sm:px-2';
+  const panelOpen = Boolean(detailName) && isWide;
   const allLoadedSelected = rows.length > 0 && rows.every((r) => selection.isSelected(r.id));
+  const toggleOutcome = (outcome: string) => {
+    const current = new Set(filter.outcomes ?? []);
+    if (current.has(outcome)) current.delete(outcome);
+    else current.add(outcome);
+    updateFilter({ outcomes: current.size ? [...current] : undefined });
+  };
+  const unresolvedOnly = filter.resolved === false;
+  const { counters } = data;
 
   return (
-    <>
-      <Link href="/jobs" className="mb-3 inline-block rounded-sm text-sm text-muted-foreground hover:text-foreground">
-        Jobs
-      </Link>
-      <PageHeader
-        title={data.label ?? jobTypeLabel(data.type)}
-        actions={
-          <>
-            {canCancel ? (
-              <Button size="sm" variant="secondary" disabled={cancel.isPending} onClick={() => cancel.mutate()}>
-                <CircleStop />
-                Cancel
-              </Button>
-            ) : null}
-            {canResume ? (
-              <Button size="sm" variant="primary" disabled={resume.isPending} onClick={() => resume.mutate()}>
-                <Play />
-                Resume
-              </Button>
-            ) : null}
-            {canRetry ? (
-              <Button size="sm" variant="secondary" disabled={retry.isPending} onClick={() => retry.mutate()}>
-                <RotateCcw />
-                Retry unresolved
-              </Button>
-            ) : null}
-            <Button size="sm" variant="secondary" onClick={() => setArtifact({ kind: 'export', defaultScope: 'filter' })}>
-              <Download />
-              Export
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="icon-sm" variant="secondary" aria-label="More job actions">
-                  <Ellipsis />
+    <div className="flex min-w-0 flex-1 lg:min-h-0">
+      <Page>
+        <PageHeader
+          leading={<JobsCrumb />}
+          title={data.label ?? jobTypeLabel(data.type)}
+          meta={<StatusLabel status={state} className="font-medium" />}
+          actions={
+            <>
+              {canCancel ? (
+                <Button size="sm" variant="secondary" disabled={cancel.isPending} onClick={() => cancel.mutate()}>
+                  <CircleStop />
+                  Cancel
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onSelect={() => setArtifact({ kind: 'snapshot', defaultScope: 'filter' })}>
-                  <Camera />
-                  Snapshot
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setDialog('criteria')}>
-                  <Save />
-                  Save criteria
-                </DropdownMenuItem>
-                {data.type === 'registry_scan' ? (
-                  <DropdownMenuItem onSelect={() => router.push(`/scan?job=${data.id}`)}>
-                    <Undo2 />
-                    Edit input as new scan
+              ) : null}
+              {canResume ? (
+                <Button size="sm" variant="primary" disabled={resume.isPending} onClick={() => resume.mutate()}>
+                  <Play />
+                  Resume
+                </Button>
+              ) : null}
+              {canRetry ? (
+                <Button size="sm" variant="secondary" disabled={retry.isPending} onClick={() => retry.mutate()}>
+                  <RotateCcw />
+                  Retry unresolved
+                </Button>
+              ) : null}
+              <Button size="sm" variant="secondary" onClick={() => setArtifact({ kind: 'export', defaultScope: 'filter' })}>
+                <Download />
+                Export
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="icon-sm" variant="secondary" aria-label="More job actions">
+                    <Ellipsis />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onSelect={() => setArtifact({ kind: 'snapshot', defaultScope: 'filter' })}>
+                    <Camera />
+                    Snapshot
                   </DropdownMenuItem>
-                ) : null}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </>
-        }
-      >
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-          <StatusLabel status={state} className="font-medium" />
-          <span className="text-muted-foreground">
+                  <DropdownMenuItem onSelect={() => setDialog('criteria')}>
+                    <Save />
+                    Save criteria
+                  </DropdownMenuItem>
+                  {data.type === 'registry_scan' ? (
+                    <DropdownMenuItem onSelect={() => router.push(`/scan?job=${data.id}`)}>
+                      <Undo2 />
+                      Edit input as new scan
+                    </DropdownMenuItem>
+                  ) : null}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          }
+        >
+          {/* Key numbers and the outcome breakdown at body size; type, times and destinations muted after them. */}
+          <dl className="flex items-center gap-x-3 text-sm text-muted-foreground" data-testid="job-counters">
+            <div className="flex items-baseline gap-1">
+              <dt className="sr-only">Completed</dt>
+              <dd className="font-mono text-foreground tabular">
+                {formatCount(counters.finished)}/{formatCount(counters.total)}
+              </dd>
+            </div>
+            {counters.pending + counters.running > 0 ? (
+              <div className="flex items-baseline gap-1">
+                <dd className="font-mono tabular">{formatCount(counters.pending + counters.running)}</dd>
+                <dt>pending</dt>
+              </div>
+            ) : null}
+            {counters.interrupted ? (
+              <div className="flex items-baseline gap-1">
+                <dd className="font-mono tabular">{formatCount(counters.interrupted)}</dd>
+                <dt>interrupted</dt>
+              </div>
+            ) : null}
+            <div className="flex items-baseline gap-1">
+              {counters.unresolved > 0 ? (
+                <button
+                  type="button"
+                  aria-pressed={unresolvedOnly}
+                  onClick={() => updateFilter({ resolved: unresolvedOnly ? undefined : false })}
+                  className={cn(
+                    '-mx-1 inline-flex h-control items-baseline gap-1 rounded-md px-1 leading-8 transition-colors',
+                    unresolvedOnly ? 'bg-selected text-foreground' : 'hover:bg-hover hover:text-foreground',
+                  )}
+                >
+                  <dd className="font-mono tabular">{formatCount(counters.unresolved)}</dd>
+                  <dt>unresolved</dt>
+                </button>
+              ) : (
+                <>
+                  <dd className="font-mono tabular">0</dd>
+                  <dt>unresolved</dt>
+                </>
+              )}
+            </div>
+          </dl>
+          <OutcomeChips job={data} activeOutcomes={filter.outcomes ?? []} onOutcome={toggleOutcome} />
+          <span>
             {jobTypeLabel(data.type)} · created <RelativeTime iso={data.createdAt} />
             {data.finishedAt ? (
               <>
@@ -457,151 +520,133 @@ export function JobView({ jobId }: { jobId: string }) {
               </>
             ) : null}
           </span>
-          {data.input.extensions.length ? (
-            <span className="font-mono text-[13px] text-muted-foreground">{data.input.extensions.map((e) => `.${e}`).join(' ')}</span>
+          {data.input.extensions.length ? <span className="font-mono">{data.input.extensions.map((e) => `.${e}`).join(' ')}</span> : null}
+          <Destinations destinations={data.destinations} />
+          {data.nextRetryAt ? (
+            <span>
+              Some sources are cooling down. Next retry <RelativeTime iso={data.nextRetryAt} />.
+            </span>
           ) : null}
-        </div>
-        <Destinations destinations={data.destinations} />
-      </PageHeader>
+        </PageHeader>
+        {running ? <ProgressLine job={data} /> : null}
 
-      <Progress
-        job={data}
-        activeOutcomes={filter.outcomes ?? []}
-        onOutcome={(outcome) => {
-          const current = new Set(filter.outcomes ?? []);
-          if (current.has(outcome)) current.delete(outcome);
-          else current.add(outcome);
-          updateFilter({ outcomes: current.size ? [...current] : undefined });
-        }}
-      />
+        <ResultFilters
+          filter={filter}
+          onChange={updateFilter}
+          outcomeOptions={outcomeChoices}
+          suffixOptions={suffixChoices}
+          showConfirmations={domainJob}
+          collections={(collections.data ?? []).map((c) => ({ value: c.id, label: c.name }))}
+          searchRef={searchRef}
+          count={total === null ? plural(rows.length, 'result') : plural(total, 'result')}
+        />
 
-      <ResultFilters
-        filter={filter}
-        onChange={updateFilter}
-        outcomeOptions={outcomeChoices}
-        suffixOptions={suffixChoices}
-        showConfirmations={domainJob}
-        collections={(collections.data ?? []).map((c) => ({ value: c.id, label: c.name }))}
-        searchRef={searchRef}
-      />
-
-      <div className="mb-2 mt-5 flex min-h-8 flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground" aria-live="polite">
-        <span>{total === null ? plural(rows.length, 'result') : plural(total, 'result')}</span>
-        {selectedCount > 0 && selection.mode === 'ids' && allLoadedSelected && !results.isPlaceholderData && total !== null && total > rows.length ? (
-          <Button size="sm" variant="link" className="text-foreground" onClick={selection.selectAllMatching}>
-            Select all {formatCount(total)} matching
-          </Button>
-        ) : null}
-        {selection.mode === 'all' && selectedCount > 0 ? <span className="text-foreground">All matching results selected</span> : null}
-      </div>
-
-      {results.isError ? (
-        <ErrorState error={results.error} onRetry={() => results.refetch()} />
-      ) : results.isPending ? (
-        <SkeletonRows rows={10} />
-      ) : rows.length === 0 ? (
-        <EmptyState>{isFiltered(filter) ? 'No results match these filters.' : running ? 'Results appear as checks finish.' : 'No results.'}</EmptyState>
-      ) : (
-        <div
-          className={cn('transition-opacity', results.isPlaceholderData && 'opacity-60')}
-          // Rows from the previous filter stay visible while the new one loads, but cannot be acted on.
-          inert={results.isPlaceholderData}
-          aria-busy={results.isPlaceholderData}
-        >
-          <ResultsTable
-            rows={rows}
-            total={total}
-            hasNextPage={results.hasNextPage}
-            fetchNextPage={() => void results.fetchNextPage()}
-            isFetchingNextPage={results.isFetchingNextPage}
-            selection={selection}
-            activeId={activeItem?.id ?? null}
-            showTarget={operation !== 'registry' || data.type === 'watch'}
-            canOpen={canOpen}
-            onOpen={openItem}
-          />
-        </div>
-      )}
-
-      {selectedCount > 0 ? (
-        <div
-          role="toolbar"
-          aria-label="Selected results"
-          className={cn(
-            'fixed bottom-4 z-50 flex max-w-[calc(100vw-1.5rem)] flex-nowrap items-center gap-0.5 rounded-xl bg-popover p-1.5 shadow-[0_8px_40px_rgb(0_0_0/0.18)] dark:shadow-[0_8px_40px_rgb(0_0_0/0.7)]',
-            // Centered over the main column; beside the detail panel when it is open.
-            panelOpen ? 'left-[calc(var(--sidebar-width)+1rem)]' : 'left-1/2 -translate-x-1/2 md:left-[calc(50%+var(--sidebar-width)/2)]',
+        {/* Below lg the page scrolls; the table keeps a window-tall pane of its own. */}
+        <div className="@container/pane relative flex min-h-0 flex-1 flex-col max-lg:h-[calc(100dvh-4rem)] max-lg:flex-none">
+          {results.isError ? (
+            <ErrorState error={results.error} onRetry={() => results.refetch()} />
+          ) : results.isPending ? (
+            <SkeletonRows rows={12} />
+          ) : rows.length === 0 ? (
+            <EmptyState>{isFiltered(filter) ? 'No results match these filters.' : running ? 'Results appear as checks finish.' : 'No results.'}</EmptyState>
+          ) : (
+            <div
+              className={cn('flex min-h-0 flex-1 flex-col transition-opacity', results.isPlaceholderData && 'opacity-60')}
+              // Rows from the previous filter stay visible while the new one loads, but cannot be acted on.
+              inert={results.isPlaceholderData}
+              aria-busy={results.isPlaceholderData}
+            >
+              <ResultsTable
+                rows={rows}
+                total={total}
+                hasNextPage={results.hasNextPage}
+                fetchNextPage={() => void results.fetchNextPage()}
+                isFetchingNextPage={results.isFetchingNextPage}
+                selection={selection}
+                activeId={activeItem?.id ?? null}
+                showTarget={operation !== 'registry' || data.type === 'watch'}
+                canOpen={canOpen}
+                onOpen={openItem}
+                bottomInset={selectedCount > 0 ? 64 : 0}
+              />
+            </div>
           )}
-        >
-          <span className="whitespace-nowrap px-2.5 text-sm font-medium tabular">{formatCount(selectedCount)} selected</span>
-          {domainJob ? (
-            <>
-              <Button size="sm" variant="ghost" className={toolbarButton} aria-label={panelOpen ? 'Shortlist' : undefined} onClick={() => setDialog('shortlist')}>
-                <BookmarkPlus />
-                <span className={toolbarLabel}>Shortlist</span>
-              </Button>
-              <Button size="sm" variant="ghost" className={toolbarButton} aria-label={panelOpen ? 'Recheck' : undefined} disabled={recheck.isPending} onClick={() => recheck.mutate()}>
-                <RotateCw />
-                <span className={toolbarLabel}>Recheck</span>
-              </Button>
-              <Button size="sm" variant="ghost" className={toolbarButton} aria-label={panelOpen ? 'Quotes' : undefined} onClick={() => setDialog('providers')}>
-                <Tag />
-                <span className={toolbarLabel}>Quotes</span>
-              </Button>
-            </>
-          ) : null}
-          <Button
-            size="sm"
-            variant="ghost"
-            className={toolbarButton}
-            aria-label={panelOpen ? 'Export' : undefined}
-            onClick={() => setArtifact({ kind: 'export', defaultScope: 'selection' })}
-          >
-            <Download />
-            <span className={toolbarLabel}>Export</span>
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="sm" variant="ghost" className={toolbarButton} aria-label="More actions for selected results">
-                <Ellipsis />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="top">
+
+          {selectedCount > 0 ? (
+            <div
+              role="toolbar"
+              aria-label="Selected results"
+              className={cn(
+                'z-30 flex max-w-[calc(100%-1rem)] flex-nowrap items-center gap-0.5 overflow-x-auto rounded-xl bg-popover p-1.5 shadow-[0_8px_40px_rgb(0_0_0/0.18)] dark:shadow-[0_8px_40px_rgb(0_0_0/0.7)]',
+                // Floats over the bottom of the table pane, centered on it, so it never covers the docked panel.
+                'absolute bottom-3 left-1/2 -translate-x-1/2 max-lg:fixed max-lg:bottom-4 max-lg:max-w-[calc(100vw-1.5rem)] md:max-lg:left-[calc(50%+var(--sidebar-width)/2)]',
+              )}
+            >
+              <span className="whitespace-nowrap px-2 text-sm font-medium tabular">{formatCount(selectedCount)} selected</span>
+              {selection.mode === 'ids' && allLoadedSelected && !results.isPlaceholderData && total !== null && total > rows.length ? (
+                <Button size="sm" variant="link" className="px-1.5 text-muted-foreground" onClick={selection.selectAllMatching}>
+                  Select all {formatCount(total)} matching
+                </Button>
+              ) : null}
+              {selection.mode === 'all' ? <span className="whitespace-nowrap px-1.5 text-xs text-muted-foreground">All matching</span> : null}
               {domainJob ? (
                 <>
-                  <DropdownMenuItem onSelect={() => setDialog('names')}>
-                    <Fingerprint />
-                    Name checks
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => setDialog('diagnostics')}>
-                    <Stethoscope />
-                    Diagnostics
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => setDialog('watch')}>
-                    <Bell />
-                    Watch
-                  </DropdownMenuItem>
-                  <DropdownMenuItem disabled={compare.isPending} onSelect={() => compare.mutate()}>
-                    <Scale />
-                    Compare prices
-                  </DropdownMenuItem>
+                  <ToolbarButton label="Shortlist" onClick={() => setDialog('shortlist')}>
+                    <BookmarkPlus />
+                  </ToolbarButton>
+                  <ToolbarButton label="Recheck" disabled={recheck.isPending} onClick={() => recheck.mutate()}>
+                    <RotateCw />
+                  </ToolbarButton>
+                  <ToolbarButton label="Quotes" onClick={() => setDialog('providers')}>
+                    <Tag />
+                  </ToolbarButton>
                 </>
               ) : null}
-              <DropdownMenuItem onSelect={() => setArtifact({ kind: 'snapshot', defaultScope: 'selection' })}>
-                <Camera />
-                Snapshot
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button size="icon-sm" variant="quiet" aria-label="Clear selection" onClick={selection.clear}>
-            <X />
-          </Button>
+              <ToolbarButton label="Export" onClick={() => setArtifact({ kind: 'export', defaultScope: 'selection' })}>
+                <Download />
+              </ToolbarButton>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="icon-sm" variant="ghost" aria-label="More actions for selected results">
+                    <Ellipsis />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="top">
+                  {domainJob ? (
+                    <>
+                      <DropdownMenuItem onSelect={() => setDialog('names')}>
+                        <Fingerprint />
+                        Name checks
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => setDialog('diagnostics')}>
+                        <Stethoscope />
+                        Diagnostics
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => setDialog('watch')}>
+                        <Bell />
+                        Watch
+                      </DropdownMenuItem>
+                      <DropdownMenuItem disabled={compare.isPending} onSelect={() => compare.mutate()}>
+                        <Scale />
+                        Compare prices
+                      </DropdownMenuItem>
+                    </>
+                  ) : null}
+                  <DropdownMenuItem onSelect={() => setArtifact({ kind: 'snapshot', defaultScope: 'selection' })}>
+                    <Camera />
+                    Snapshot
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button size="icon-sm" variant="quiet" aria-label="Clear selection" onClick={selection.clear}>
+                <X />
+              </Button>
+            </div>
+          ) : null}
         </div>
-      ) : null}
+      </Page>
 
-      <Sheet open={panelOpen} onOpenChange={(open) => !open && closeDetail()} title={detailName ?? ''}>
-        {detailName ? <DomainDetail key={detailName} name={detailName} variant="panel" /> : null}
-      </Sheet>
+      {panelOpen && detailName ? <DomainDock name={detailName} tab={detailTab} onTab={setDetailTab} onClose={closeDetail} /> : null}
 
       <ShortlistDialog open={dialog === 'shortlist'} onOpenChange={(o) => setDialog(o ? 'shortlist' : null)} target={target} />
       <ProviderRequestDialog
@@ -628,6 +673,26 @@ export function JobView({ jobId }: { jobId: string }) {
         pending={saveCriteria.isPending}
         onSave={(choice) => saveCriteria.mutateAsync(choice)}
       />
-    </>
+    </div>
+  );
+}
+
+function JobsCrumb() {
+  return (
+    <Crumb>
+      <Link href="/jobs" className="rounded-sm hover:text-foreground">
+        Jobs
+      </Link>
+    </Crumb>
+  );
+}
+
+/** Icon plus label; the label hides when the table pane is narrow (a docked panel is open) and stays the accessible name. */
+function ToolbarButton({ label, children, ...props }: { label: string; children: React.ReactNode } & Omit<React.ComponentProps<typeof Button>, 'children'>) {
+  return (
+    <Button size="sm" variant="ghost" className="px-2 @2xl/pane:px-2.5" {...props}>
+      {children}
+      <span className="sr-only @2xl/pane:not-sr-only">{label}</span>
+    </Button>
   );
 }

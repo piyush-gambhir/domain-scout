@@ -19,7 +19,7 @@ import { Field } from '../ui/label';
 import { Segmented } from '../ui/segmented';
 import { Select } from '../ui/select';
 import { SkeletonRows } from '../ui/skeleton';
-import { DomainsField, OutLink, ProviderFilter, usableDomains } from './shared';
+import { DomainsField, OutLink, ProviderFilter, Workspace, usableDomains } from './shared';
 
 const MISSING_LABEL: Record<string, string> = {
   registration: 'registration price',
@@ -39,8 +39,8 @@ function capitalize(text: string): string {
 const DEFAULT = '__default__';
 const ORIGINAL = '__original__';
 
-const thClass = 'pb-2 pr-4 text-xs font-medium text-muted-foreground';
-const tdClass = 'py-2.5 pr-4 align-top';
+const thClass = 'pb-1.5 pr-3 text-left text-xs font-medium text-muted-foreground';
+const tdClass = 'py-1.5 pr-3 align-top';
 
 function Money({ amount, currency }: { amount: string | null; currency: string | null }) {
   if (amount === null) return <span className="text-muted-foreground">Unknown</span>;
@@ -72,7 +72,15 @@ function ComparisonTable({ comparison, domain, names }: { comparison: Comparison
         <p className="text-sm text-muted-foreground">No retained offers.</p>
       ) : (
         <div className="relative -mx-1 overflow-x-auto px-1">
-          <table className="w-full min-w-[54rem] text-left text-sm">
+          <table className="w-full min-w-[38rem] table-fixed text-left text-sm">
+            <colgroup>
+              <col className="w-[24%]" />
+              <col />
+              <col />
+              <col className="w-[14%]" />
+              <col className="w-[16%]" />
+              <col className="w-[15%]" />
+            </colgroup>
             <thead>
               <tr>
                 <th scope="col" className={thClass}>
@@ -91,13 +99,7 @@ function ComparisonTable({ comparison, domain, names }: { comparison: Comparison
                   Missing
                 </th>
                 <th scope="col" className={thClass}>
-                  Rank
-                </th>
-                <th scope="col" className={thClass}>
                   Observed
-                </th>
-                <th scope="col" className={thClass}>
-                  <span className="sr-only">Purchase</span>
                 </th>
               </tr>
             </thead>
@@ -110,11 +112,22 @@ function ComparisonTable({ comparison, domain, names }: { comparison: Comparison
                 return (
                   <tr key={`${row.providerId}-${row.offerId ?? 'none'}`} data-testid="comparison-row" className={cn(cheapest && 'bg-hover')}>
                     <td className={cn(tdClass, 'rounded-l-md pl-2')}>
-                      <span className="font-medium">{name}</span>
-                      <span className="block text-xs text-muted-foreground">{row.kind ? PRICE_KIND[row.kind] : 'No offer'}</span>
+                      <span className="block truncate font-medium">{name}</span>
+                      <span className="block text-xs text-muted-foreground">
+                        {row.kind ? PRICE_KIND[row.kind] : 'No offer'}
+                        {' · '}
+                        {row.rank === null ? (
+                          'Not ranked'
+                        ) : (
+                          <>
+                            Rank <span className="font-mono tabular">{row.rank}</span>
+                            {row.subtotalOnly ? ' by subtotal' : ''}
+                          </>
+                        )}
+                      </span>
                       {cheapest ? <span className="block text-xs font-semibold">Cheapest total in {row.currency}</span> : null}
                       {lowestSubtotal ? (
-                        <span className="block max-w-44 text-xs">
+                        <span className="block text-xs">
                           <span className="font-semibold">Lowest subtotal in {row.currency}</span>
                           <span className="text-muted-foreground">, tax or fees unknown</span>
                         </span>
@@ -128,7 +141,7 @@ function ComparisonTable({ comparison, domain, names }: { comparison: Comparison
                         </span>
                       ) : null}
                       {row.fx ? (
-                        <span className="block max-w-52 text-xs text-muted-foreground">
+                        <span className="block text-xs text-muted-foreground">
                           Converted from {row.nativeCurrency} at {row.fx.rate} ({row.fx.source}, {formatDateTime(row.fx.observedAt)})
                         </span>
                       ) : null}
@@ -156,28 +169,16 @@ function ComparisonTable({ comparison, domain, names }: { comparison: Comparison
                       )}
                     </td>
                     <td className={tdClass}>
-                      {row.missing.length ? (
-                        <span className="block max-w-44">{capitalize(row.missing.map((m) => MISSING_LABEL[m] ?? m).join(', '))}</span>
-                      ) : (
-                        <span className="text-muted-foreground">Nothing</span>
-                      )}
+                      {row.missing.length ? <span className="block">{capitalize(row.missing.map((m) => MISSING_LABEL[m] ?? m).join(', '))}</span> : <span className="text-muted-foreground">Nothing</span>}
                       {!row.complete ? <span className="block text-xs text-muted-foreground">Incomplete</span> : null}
                     </td>
-                    <td className={cn(tdClass, 'font-mono tabular')}>
-                      {row.rank === null ? (
-                        <span className="font-sans text-muted-foreground">Not ranked</span>
-                      ) : (
-                        <>
-                          {row.rank}
-                          {row.subtotalOnly ? <span className="block font-sans text-xs text-muted-foreground">by subtotal</span> : null}
-                        </>
-                      )}
-                    </td>
-                    <td className={tdClass}>
-                      {row.observedAt ? <CheckedAt iso={row.observedAt} freshness={row.freshness} /> : <span className="text-muted-foreground">Unknown</span>}
-                    </td>
                     <td className={cn(tdClass, 'rounded-r-md')}>
-                      {row.destination ? <OutLink href={row.destination} label="Open" provider={name} /> : null}
+                      {row.observedAt ? <CheckedAt iso={row.observedAt} freshness={row.freshness} /> : <span className="text-muted-foreground">Unknown</span>}
+                      {row.destination ? (
+                        <span className="block">
+                          <OutLink href={row.destination} label="Open" provider={name} />
+                        </span>
+                      ) : null}
                     </td>
                   </tr>
                 );
@@ -265,36 +266,28 @@ export function CostComparison({
   const target = { count: domains?.length ?? 0, resolveDomains: async () => domains ?? [] };
 
   return (
-    <div className="flex flex-col gap-8">
-      <form
-        className="flex flex-col gap-4"
-        onSubmit={(event) => {
-          event.preventDefault();
-          const request = build();
-          if (!request) return;
-          // The same request again means "reload": newly retained quotes or FX rates may change it.
-          if (submitted && JSON.stringify(request) === JSON.stringify(submitted)) void comparison.refetch();
-          else setSubmitted(request);
-        }}
-      >
-        <DomainsField value={domainsText} onChange={onDomainsText} />
-        <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
-          <Field label="Horizon" htmlFor={`horizon-${path}`}>
-            <Select
-              id={`horizon-${path}`}
-              value={String(horizonYears)}
-              onValueChange={(v) => setHorizon(Number(v))}
-              className="w-28"
-              options={Array.from({ length: 10 }, (_, i) => ({ value: String(i + 1), label: plural(i + 1, 'year') }))}
-            />
-          </Field>
+    <Workspace
+      form={
+        <form
+          className="flex min-w-0 flex-col gap-3 lg:min-h-0 lg:flex-1"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const request = build();
+            if (!request) return;
+            // The same request again means "reload": newly retained quotes or FX rates may change it.
+            if (submitted && JSON.stringify(request) === JSON.stringify(submitted)) void comparison.refetch();
+            else setSubmitted(request);
+          }}
+        >
+          <DomainsField value={domainsText} onChange={onDomainsText} className="lg:min-h-0 lg:flex-1" />
           {path === 'registration' ? (
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1">
               <span className="text-xs font-medium text-muted-foreground">Purchase path</span>
               <Segmented
                 aria-label="Purchase path"
                 value={purchasePath}
                 onValueChange={setPurchasePath}
+                className="self-start"
                 options={[
                   { value: 'new_registration', label: 'New registration' },
                   { value: 'renewal', label: 'Renewal' },
@@ -302,30 +295,48 @@ export function CostComparison({
               />
             </div>
           ) : null}
-          <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-medium text-muted-foreground">Providers</span>
-            <ProviderFilter providers={(providers.data ?? []).map((p) => ({ id: p.id, name: p.name }))} value={providerIds} onChange={setProviderIds} />
+          <div className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-2">
+            <Field label="Horizon" htmlFor={`horizon-${path}`}>
+              <Select
+                id={`horizon-${path}`}
+                value={String(horizonYears)}
+                onValueChange={(v) => setHorizon(Number(v))}
+                options={Array.from({ length: 10 }, (_, i) => ({ value: String(i + 1), label: plural(i + 1, 'year') }))}
+              />
+            </Field>
+            <Field label="Currency" htmlFor={`currency-${path}`}>
+              <Select id={`currency-${path}`} value={currency} onValueChange={setCurrency} options={currencyOptions} />
+            </Field>
           </div>
-          <Field label="Currency" htmlFor={`currency-${path}`}>
-            <Select id={`currency-${path}`} value={currency} onValueChange={setCurrency} options={currencyOptions} className="w-48" />
-          </Field>
-          <Button type="submit" variant="primary" disabled={!domains}>
-            <Scale />
-            Compare
-          </Button>
-          <Button variant="secondary" disabled={!domains} onClick={() => setQuoteOpen(true)}>
-            <Tag />
-            {path === 'transfer' ? 'Request transfer prices' : 'Request quotes'}
-          </Button>
-        </div>
-      </form>
-
-      {submitted === null ? null : comparison.isPending ? (
-        <SkeletonRows rows={4} />
+          <div className="flex flex-col gap-1">
+            <span className="text-xs font-medium text-muted-foreground">Providers</span>
+            <ProviderFilter
+              providers={(providers.data ?? []).filter((p) => p.kind === 'registrar' || providerIds.includes(p.id)).map((p) => ({ id: p.id, name: p.name }))}
+              value={providerIds}
+              onChange={setProviderIds}
+            />
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <Button type="submit" size="sm" variant="primary" disabled={!domains}>
+              <Scale />
+              Compare
+            </Button>
+            <Button size="sm" variant="secondary" disabled={!domains} onClick={() => setQuoteOpen(true)}>
+              <Tag />
+              {path === 'transfer' ? 'Request transfer prices' : 'Request quotes'}
+            </Button>
+          </div>
+        </form>
+      }
+    >
+      {submitted === null ? (
+        <EmptyState>Nothing compared yet.</EmptyState>
+      ) : comparison.isPending ? (
+        <SkeletonRows rows={6} />
       ) : comparison.isError ? (
         <ErrorState error={comparison.error} onRetry={() => comparison.refetch()} />
       ) : (
-        <div className={cn('flex flex-col gap-10 transition-opacity', comparison.isFetching && 'opacity-60')}>
+        <div className={cn('flex flex-col gap-8 pb-2 transition-opacity', comparison.isFetching && 'opacity-60')}>
           <p className="text-sm text-muted-foreground">
             {plural(comparison.data.horizonYears, 'year')} horizon
             {comparison.data.currency ? ` in ${comparison.data.currency}` : ', original currencies'}
@@ -345,7 +356,7 @@ export function CostComparison({
           ) : null}
         </div>
       )}
-      {submitted && children ? children(submitted.domains) : null}
+      {submitted && children ? <div className="mt-8">{children(submitted.domains)}</div> : null}
       <ProviderRequestDialog
         key={path}
         open={quoteOpen}
@@ -353,6 +364,6 @@ export function CostComparison({
         target={target}
         defaultOperation={path === 'transfer' ? 'transfer' : 'quote'}
       />
-    </div>
+    </Workspace>
   );
 }

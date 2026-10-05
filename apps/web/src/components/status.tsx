@@ -25,7 +25,7 @@ export function StatusDot({ tone, unresolved, className }: { tone: Tone; unresol
 /** Status color plus its text label, always together. */
 export function StatusLabel({ status, className, textClassName }: { status: StatusInfo; className?: string; textClassName?: string }) {
   return (
-    <span className={cn('inline-flex min-w-0 items-center gap-1.5', className)}>
+    <span className={cn('inline-flex min-w-0 max-w-full items-center gap-1.5', className)}>
       <StatusDot tone={status.tone} unresolved={status.unresolved} />
       <span className={cn('truncate', textClassName)}>{status.label}</span>
     </span>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { PageHeader } from '../states';
+import { Page, PageHeader } from '../states';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Aftermarket } from './aftermarket';
 import { CostComparison } from './cost-comparison';
@@ -10,6 +10,7 @@ import { Portfolio } from './portfolio';
 import { TransferOptions } from './transfer-options';
 
 const TABS = ['registration', 'transfer', 'aftermarket', 'portfolio'] as const;
+const panelClass = 'flex min-w-0 flex-col data-[state=inactive]:hidden lg:min-h-0 lg:flex-1';
 type Tab = (typeof TABS)[number];
 
 /** Registration, transfer, aftermarket and portfolio costs, kept as separate purchase paths. */
@@ -35,30 +36,34 @@ export function ComparePage() {
   };
 
   return (
-    <>
-      <PageHeader title="Compare" />
-      <Tabs value={tab} onValueChange={select}>
-        <TabsList aria-label="Purchase path">
-          <TabsTrigger value="registration">Registration</TabsTrigger>
-          <TabsTrigger value="transfer">Transfer</TabsTrigger>
-          <TabsTrigger value="aftermarket">Aftermarket</TabsTrigger>
-          <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
-        </TabsList>
-        <TabsContent value="registration">
+    <Page>
+      <Tabs value={tab} onValueChange={select} className="flex min-w-0 flex-1 flex-col gap-section lg:min-h-0">
+        <PageHeader
+          title="Compare"
+          meta={
+            <TabsList aria-label="Purchase path">
+              <TabsTrigger value="registration">Registration</TabsTrigger>
+              <TabsTrigger value="transfer">Transfer</TabsTrigger>
+              <TabsTrigger value="aftermarket">Aftermarket</TabsTrigger>
+              <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
+            </TabsList>
+          }
+        />
+        <TabsContent value="registration" className={panelClass}>
           <CostComparison path="registration" domainsText={domainsText} onDomainsText={setDomainsText} autoRun={autoRun} />
         </TabsContent>
-        <TabsContent value="transfer">
+        <TabsContent value="transfer" className={panelClass}>
           <CostComparison path="transfer" domainsText={domainsText} onDomainsText={setDomainsText} autoRun={autoRun}>
             {(domains) => <TransferOptions domains={domains} />}
           </CostComparison>
         </TabsContent>
-        <TabsContent value="aftermarket">
+        <TabsContent value="aftermarket" className={panelClass}>
           <Aftermarket domainsText={domainsText} onDomainsText={setDomainsText} autoRun={autoRun} />
         </TabsContent>
-        <TabsContent value="portfolio">
+        <TabsContent value="portfolio" className={panelClass}>
           <Portfolio />
         </TabsContent>
       </Tabs>
-    </>
+    </Page>
   );
 }

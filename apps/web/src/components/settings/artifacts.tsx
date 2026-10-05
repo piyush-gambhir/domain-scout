@@ -10,7 +10,7 @@ import { formatBytes, plural } from '@/lib/format';
 import { qk } from '@/lib/queries';
 import { apiDownloadUrl } from '../actions/artifact-dialogs';
 import { RelativeTime } from '../domain/time';
-import { EmptyState, ErrorState, SectionTitle } from '../states';
+import { EmptyState, ErrorState, ScrollPane, SectionTitle } from '../states';
 import { ConfirmDialog } from '../ui/alert-dialog';
 import { Button } from '../ui/button';
 import { SkeletonRows } from '../ui/skeleton';
@@ -24,7 +24,7 @@ const SCOPE_LABEL: Record<string, string> = {
   all: 'Everything',
 };
 
-const rowClass = 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 rounded-lg px-3 py-2.5 hover:bg-hover';
+const rowClass = 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 rounded-md px-2.5 py-1.5 hover:bg-hover';
 
 function DownloadLink({ href, label, description }: { href: string; label: string; description: string }) {
   return (
@@ -68,17 +68,18 @@ export function ArtifactSettings() {
   });
 
   return (
-    <section aria-label="Artifacts" className="flex flex-col gap-10">
-      <div>
-        <SectionTitle>Exports</SectionTitle>
+    <section aria-label="Artifacts" className="flex min-w-0 flex-col gap-8 lg:min-h-0 lg:flex-1 xl:flex-row">
+      <div className="flex min-w-0 flex-col lg:min-h-0 lg:flex-1">
+        <SectionTitle className="px-2.5">Exports</SectionTitle>
         {exports.isPending ? (
           <SkeletonRows rows={3} />
         ) : exports.isError ? (
           <ErrorState error={exports.error} onRetry={() => exports.refetch()} />
         ) : exportRows.length === 0 ? (
-          <EmptyState className="py-4 text-left">No exports.</EmptyState>
+          <EmptyState>No exports.</EmptyState>
         ) : (
-          <ul className="flex flex-col gap-0.5" aria-label="Exports">
+          <ScrollPane>
+          <ul className="flex flex-col" aria-label="Exports">
             {exportRows.map((item) => (
               <li key={item.id} className={rowClass} data-testid="export-row">
                 <div className="min-w-0">
@@ -97,24 +98,26 @@ export function ArtifactSettings() {
               </li>
             ))}
           </ul>
+          {exports.hasNextPage ? (
+            <Button variant="ghost" className="mt-2" disabled={exports.isFetchingNextPage} onClick={() => exports.fetchNextPage()}>
+              Load more
+            </Button>
+          ) : null}
+          </ScrollPane>
         )}
-        {exports.hasNextPage ? (
-          <Button variant="ghost" className="mt-2" disabled={exports.isFetchingNextPage} onClick={() => exports.fetchNextPage()}>
-            Load more
-          </Button>
-        ) : null}
       </div>
 
-      <div>
-        <SectionTitle>Snapshots</SectionTitle>
+      <div className="flex min-w-0 flex-col lg:min-h-0 lg:flex-1">
+        <SectionTitle className="px-2.5">Snapshots</SectionTitle>
         {snapshots.isPending ? (
           <SkeletonRows rows={3} />
         ) : snapshots.isError ? (
           <ErrorState error={snapshots.error} onRetry={() => snapshots.refetch()} />
         ) : snapshotRows.length === 0 ? (
-          <EmptyState className="py-4 text-left">No snapshots.</EmptyState>
+          <EmptyState>No snapshots.</EmptyState>
         ) : (
-          <ul className="flex flex-col gap-0.5" aria-label="Snapshots">
+          <ScrollPane>
+          <ul className="flex flex-col" aria-label="Snapshots">
             {snapshotRows.map((item) => {
               const included = [item.include.evidence && 'evidence', item.include.registration && 'registration', item.include.prices && 'prices', item.include.notes && 'notes'].filter(Boolean);
               return (
@@ -136,12 +139,13 @@ export function ArtifactSettings() {
               );
             })}
           </ul>
+          {snapshots.hasNextPage ? (
+            <Button variant="ghost" className="mt-2" disabled={snapshots.isFetchingNextPage} onClick={() => snapshots.fetchNextPage()}>
+              Load more
+            </Button>
+          ) : null}
+          </ScrollPane>
         )}
-        {snapshots.hasNextPage ? (
-          <Button variant="ghost" className="mt-2" disabled={snapshots.isFetchingNextPage} onClick={() => snapshots.fetchNextPage()}>
-            Load more
-          </Button>
-        ) : null}
       </div>
 
       <ConfirmDialog

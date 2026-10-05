@@ -9,9 +9,10 @@ import { api } from '@/lib/api';
 import { useWatchEvents } from '@/lib/events';
 import { WATCH_STATE } from '@/lib/labels';
 import { formatCount, formatInterval, plural } from '@/lib/format';
+import { cn } from '@/lib/utils';
 import { qk, useUnreadNoticeCount } from '@/lib/queries';
 import { RelativeTime } from '../domain/time';
-import { EmptyState, ErrorState, PageHeader, SectionTitle } from '../states';
+import { EmptyState, ErrorState, Page, PageHeader, ScrollPane, SectionTitle } from '../states';
 import { StatusLabel } from '../status';
 import { Button } from '../ui/button';
 import { SkeletonRows } from '../ui/skeleton';
@@ -31,31 +32,31 @@ export function MissedRuns({ count }: { count: number }) {
   return <StatusLabel status={{ label: plural(count, 'missed run'), tone: 'caution', unresolved: true }} />;
 }
 
+const WATCH_GRID = 'grid-cols-[minmax(0,1fr)_auto] lg:grid-cols-[minmax(0,1fr)_7rem_7.5rem_7.5rem_7.5rem]';
+
 function WatchRow({ watch }: { watch: Watch }) {
   return (
-    <li
-      className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 gap-y-2 rounded-lg px-3 py-3 transition-colors hover:bg-hover lg:grid-cols-[minmax(0,1fr)_7rem_8rem_8rem_auto]"
-      data-testid="watch-row"
-    >
+    <li className={`grid ${WATCH_GRID} min-h-row items-center gap-x-4 gap-y-1 rounded-md px-2.5 py-1 transition-colors hover:bg-hover`} data-testid="watch-row">
       <div className="min-w-0">
-        <Link href={`/monitoring/${watch.id}`} className="block truncate font-medium underline-offset-4 hover:underline">
+        <Link href={`/monitoring/${watch.id}`} className="block truncate rounded-sm font-medium underline-offset-4 hover:underline">
           {watch.name}
         </Link>
-        <p className="flex flex-wrap gap-x-2 text-xs text-muted-foreground">
+        <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
           <span className="font-mono tabular">{plural(watch.domains.length, 'domain')}</span>
           <span>· {formatInterval(watch.intervalMinutes)}</span>
           {watch.unreadNotices > 0 ? <span className="font-medium text-foreground">· {formatCount(watch.unreadNotices)} unread</span> : null}
+          {watch.missedRuns > 0 ? (
+            <span className="inline-flex items-center gap-1" title="Missed while the backend was stopped">
+              · <MissedRuns count={watch.missedRuns} />
+            </span>
+          ) : null}
         </p>
       </div>
-      <StatusLabel status={WATCH_STATE[watch.state] ?? { label: watch.state, tone: 'muted' }} className="text-sm max-lg:hidden" />
-      <div className="text-xs max-lg:hidden">
-        <p className="text-muted-foreground">Last run</p>
-        <RelativeTime iso={watch.lastRunAt} className={watch.lastRunAt ? '' : 'text-muted-foreground'} />
-      </div>
-      <div className="text-xs max-lg:hidden">
-        <p className="text-muted-foreground">Next run</p>
+      <StatusLabel status={WATCH_STATE[watch.state] ?? { label: watch.state, tone: 'muted' }} className="max-lg:hidden" />
+      <RelativeTime iso={watch.lastRunAt} className={cn('text-xs max-lg:hidden', watch.lastRunAt ? '' : 'text-muted-foreground')} />
+      <span className="text-xs max-lg:hidden">
         <NextRun watch={watch} />
-      </div>
+      </span>
       <div className="row-span-2 flex items-center justify-end lg:row-span-1">
         <WatchActions watch={watch} compact />
       </div>
@@ -67,14 +68,7 @@ function WatchRow({ watch }: { watch: Watch }) {
             <NextRun watch={watch} />
           </span>
         )}
-        {watch.missedRuns > 0 ? <MissedRuns count={watch.missedRuns} /> : null}
       </p>
-      {watch.missedRuns > 0 ? (
-        <p className="col-span-full text-xs max-lg:hidden">
-          <MissedRuns count={watch.missedRuns} />
-          <span className="text-muted-foreground"> while the backend was stopped</span>
-        </p>
-      ) : null}
     </li>
   );
 }
@@ -93,43 +87,64 @@ export function MonitoringPage() {
   const rows = watches.data?.pages.flatMap((p) => p.data) ?? [];
 
   return (
-    <>
+    <Page>
       <PageHeader
         title="Monitor"
+        meta={
+          watches.data ? (
+            <span className="text-muted-foreground">
+              <span className="font-mono tabular">{formatCount(rows.length)}</span> {rows.length === 1 ? 'watch' : 'watches'}
+              {unread > 0 ? (
+                <>
+                  {' · '}
+                  <span className="font-mono text-foreground tabular">{formatCount(unread)}</span> unread
+                </>
+              ) : null}
+            </span>
+          ) : null
+        }
         actions={
-          <Button variant="primary" onClick={() => setCreating(true)}>
+          <Button size="sm" variant="primary" onClick={() => setCreating(true)}>
             <Plus />
             New watch
           </Button>
         }
       />
-      <section aria-label="Watches">
-        <SectionTitle>Watches</SectionTitle>
-        {watches.isPending ? (
-          <SkeletonRows rows={4} />
-        ) : watches.isError ? (
-          <ErrorState error={watches.error} onRetry={() => watches.refetch()} />
-        ) : rows.length === 0 ? (
-          <EmptyState className="py-6 text-left">No watches yet.</EmptyState>
-        ) : (
-          <ul className="flex flex-col gap-0.5" aria-label="Watch list">
-            {rows.map((watch) => (
-              <WatchRow key={watch.id} watch={watch} />
-            ))}
-          </ul>
-        )}
-        {watches.hasNextPage ? (
-          <div className="mt-3 flex justify-center">
-            <Button variant="ghost" disabled={watches.isFetchingNextPage} onClick={() => watches.fetchNextPage()}>
-              Load more
-            </Button>
+      <div className="flex flex-col gap-8 lg:min-h-0 lg:flex-1">
+        <section aria-label="Watches" className="flex min-w-0 flex-col lg:max-h-[45%] lg:min-h-0 lg:shrink-0">
+          <div className={`grid ${WATCH_GRID} h-8 shrink-0 items-center gap-x-4 px-2.5 text-xs font-medium text-muted-foreground`}>
+            <SectionTitle className="mb-0 text-sm text-foreground">Watches</SectionTitle>
+            <span className="max-lg:hidden">State</span>
+            <span className="max-lg:hidden">Last run</span>
+            <span className="max-lg:hidden">Next run</span>
+            <span className="max-lg:hidden" />
           </div>
-        ) : null}
-      </section>
-      <div className="mt-12">
-        <NoticeFeed unreadCount={unread} />
+          {watches.isPending ? (
+            <SkeletonRows rows={4} />
+          ) : watches.isError ? (
+            <ErrorState error={watches.error} onRetry={() => watches.refetch()} />
+          ) : rows.length === 0 ? (
+            <EmptyState>No watches yet.</EmptyState>
+          ) : (
+            <ScrollPane>
+              <ul className="flex flex-col" aria-label="Watch list">
+                {rows.map((watch) => (
+                  <WatchRow key={watch.id} watch={watch} />
+                ))}
+              </ul>
+              {watches.hasNextPage ? (
+                <div className="flex justify-center py-2">
+                  <Button variant="ghost" disabled={watches.isFetchingNextPage} onClick={() => watches.fetchNextPage()}>
+                    Load more
+                  </Button>
+                </div>
+              ) : null}
+            </ScrollPane>
+          )}
+        </section>
+        <NoticeFeed unreadCount={unread} className="lg:min-h-0 lg:flex-1" />
       </div>
       <WatchFormDialog open={creating} onOpenChange={setCreating} />
-    </>
+    </Page>
   );
 }

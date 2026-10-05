@@ -5,7 +5,6 @@ import { ArrowDownNarrowWide, ArrowUpWideNarrow, ChevronDown, Search, SlidersHor
 import type { ConfirmationStatus, JobOperation, ResultFilter } from '@domain-scout/contracts';
 import { formatMoney } from '@/lib/format';
 import { confirmationStatus, outcomeStatus } from '@/lib/labels';
-import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
 import { Input } from '../ui/input';
@@ -141,36 +140,14 @@ export function MultiSelect({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button size="sm" variant={selected.size ? 'primary' : 'secondary'} className="h-9">
+        <Button size="sm" variant={selected.size ? 'primary' : 'secondary'}>
           {label}
           {selected.size ? <span className="font-mono text-xs tabular">{selected.size}</span> : null}
           <ChevronDown className="opacity-70" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-60 p-1">
-        {options.length === 0 ? <p className="p-2 text-sm text-muted-foreground">No options.</p> : null}
-        <ul className="flex flex-col">
-          {options.map((option) => {
-            const id = `ms-${label}-${option.value}`;
-            return (
-              <li key={option.value}>
-                <label htmlFor={id} className="flex h-8 items-center gap-2.5 rounded-md px-2 text-sm hover:bg-hover">
-                  <Checkbox
-                    id={id}
-                    checked={selected.has(option.value)}
-                    onCheckedChange={(checked) => {
-                      const next = new Set(selected);
-                      if (checked === true) next.add(option.value);
-                      else next.delete(option.value);
-                      onChange(next.size ? [...next] : undefined);
-                    }}
-                  />
-                  <span className="truncate">{option.label}</span>
-                </label>
-              </li>
-            );
-          })}
-        </ul>
+        <CheckList idPrefix={`ms-${label}`} options={options} selected={selected} onChange={onChange} />
         {selected.size ? (
           <Button size="sm" variant="quiet" className="mt-1 w-full" onClick={() => onChange(undefined)}>
             Clear
@@ -181,35 +158,104 @@ export function MultiSelect({
   );
 }
 
+function CheckList({
+  idPrefix,
+  options,
+  selected,
+  onChange,
+}: {
+  idPrefix: string;
+  options: { value: string; label: string }[];
+  selected: Set<string>;
+  onChange: (value: string[] | undefined) => void;
+}) {
+  if (options.length === 0) return <p className="p-2 text-sm text-muted-foreground">No options.</p>;
+  return (
+    <ul className="flex flex-col">
+      {options.map((option) => {
+        const id = `${idPrefix}-${option.value}`;
+        return (
+          <li key={option.value}>
+            <label htmlFor={id} className="flex h-8 items-center gap-2.5 rounded-md px-2 text-sm hover:bg-hover">
+              <Checkbox
+                id={id}
+                checked={selected.has(option.value)}
+                onCheckedChange={(checked) => {
+                  const next = new Set(selected);
+                  if (checked === true) next.add(option.value);
+                  else next.delete(option.value);
+                  onChange(next.size ? [...next] : undefined);
+                }}
+              />
+              <span className="truncate">{option.label}</span>
+            </label>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+const groupLabel = 'mb-1 text-xs font-medium text-muted-foreground';
+
 function MoreFiltersBody({
   filter,
   onChange,
   collections,
+  showConfirmations,
 }: {
   filter: ResultFilter;
   onChange: (patch: Partial<ResultFilter>) => void;
   collections: { value: string; label: string }[];
+  showConfirmations: boolean;
 }) {
   // Mounted only while the popover is open, so the draft always starts from the active filter.
   const [maxPrice, setMaxPrice] = useState(filter.maxPrice ?? '');
   const priceInvalid = maxPrice !== '' && !/^\d+(\.\d+)?$/.test(maxPrice);
+  const resolved = filter.resolved === undefined ? 'all' : filter.resolved ? 'resolved' : 'unresolved';
   return (
     <>
-      <Field label="Max name length" htmlFor="f-maxlen">
-        <Input
-          id="f-maxlen"
-          type="number"
-          inputMode="numeric"
-          min={1}
-          max={63}
-          value={filter.maxLength ?? ''}
-          onChange={(e) => {
-            const n = Number(e.target.value);
-            onChange({ maxLength: e.target.value && Number.isInteger(n) && n >= 1 && n <= 63 ? n : undefined });
-          }}
+      <div>
+        <p className={groupLabel}>Resolution</p>
+        <Segmented
+          aria-label="Resolution"
+          value={resolved}
+          onValueChange={(value) => onChange({ resolved: value === 'all' ? undefined : value === 'resolved' })}
+          options={[
+            { value: 'all', label: 'All' },
+            { value: 'resolved', label: 'Resolved' },
+            { value: 'unresolved', label: 'Unresolved' },
+          ]}
         />
-      </Field>
-      <div className="grid grid-cols-[1fr_5.5rem] gap-2">
+      </div>
+      {showConfirmations || filter.confirmations?.length ? (
+        <fieldset>
+          <legend className={groupLabel}>Provider confirmation</legend>
+          <div className="-mx-2">
+            <CheckList
+              idPrefix="f-confirmation"
+              options={CONFIRMATION_OPTIONS}
+              selected={new Set(filter.confirmations ?? [])}
+              onChange={(confirmations) => onChange({ confirmations: confirmations as ConfirmationStatus[] | undefined })}
+            />
+          </div>
+        </fieldset>
+      ) : null}
+      <div className="grid grid-cols-[5.5rem_minmax(0,1fr)_4.5rem] gap-2">
+        <Field label="Max length" htmlFor="f-maxlen">
+          <Input
+            id="f-maxlen"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={63}
+            value={filter.maxLength ?? ''}
+            onChange={(e) => {
+              const n = Number(e.target.value);
+              onChange({ maxLength: e.target.value && Number.isInteger(n) && n >= 1 && n <= 63 ? n : undefined });
+            }}
+          />
+        </Field>
         <Field label="Max first-year price" htmlFor="f-maxprice">
           <Input
             id="f-maxprice"
@@ -260,32 +306,42 @@ function MoreFiltersBody({
   );
 }
 
+/** Less common filters: resolution, provider confirmation, length, price cap and shortlist. */
 function MoreFilters({
   filter,
   onChange,
   collections,
+  showConfirmations,
 }: {
   filter: ResultFilter;
   onChange: (patch: Partial<ResultFilter>) => void;
   collections: { value: string; label: string }[];
+  showConfirmations: boolean;
 }) {
-  const active = [filter.maxLength, filter.maxPrice, filter.collectionId || filter.inCollection !== undefined].filter(Boolean).length;
+  const active = [
+    filter.resolved !== undefined,
+    filter.confirmations?.length,
+    filter.maxLength,
+    filter.maxPrice,
+    filter.collectionId || filter.inCollection !== undefined,
+  ].filter(Boolean).length;
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button size="sm" variant={active ? 'primary' : 'secondary'} className="h-9">
+        <Button size="sm" variant={active ? 'primary' : 'secondary'} aria-label={active ? `More filters, ${active} active` : 'More filters'}>
           <SlidersHorizontal />
           More
           {active ? <span className="font-mono text-xs tabular">{active}</span> : null}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="flex w-72 flex-col gap-4 p-4">
-        <MoreFiltersBody filter={filter} onChange={onChange} collections={collections} />
+      <PopoverContent className="flex w-80 flex-col gap-4 p-3">
+        <MoreFiltersBody filter={filter} onChange={onChange} collections={collections} showConfirmations={showConfirmations} />
       </PopoverContent>
     </Popover>
   );
 }
 
+/** Search, the common filters, the result count and sort in one row. */
 export function ResultFilters({
   filter,
   onChange,
@@ -294,6 +350,7 @@ export function ResultFilters({
   showConfirmations,
   collections,
   searchRef,
+  count,
 }: {
   filter: ResultFilter;
   onChange: (patch: Partial<ResultFilter>) => void;
@@ -303,6 +360,8 @@ export function ResultFilters({
   showConfirmations: boolean;
   collections: { value: string; label: string }[];
   searchRef: React.RefObject<HTMLInputElement | null>;
+  /** "1,500 results", shown before the sort control. */
+  count: React.ReactNode;
 }) {
   const [q, setQ] = useState(filter.q ?? '');
   const onChangeRef = useRef(onChange);
@@ -314,60 +373,22 @@ export function ResultFilters({
     return () => clearTimeout(timer);
   }, [q]);
 
-  const resolved = filter.resolved === undefined ? 'all' : filter.resolved ? 'resolved' : 'unresolved';
   const order = filter.order ?? 'asc';
 
   return (
-    <div className="flex flex-wrap items-center gap-2" role="search" aria-label="Filter results">
-      <div className="relative w-full sm:w-64">
-        <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          ref={searchRef}
-          type="search"
-          aria-label="Search results"
-          placeholder="Search"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          className="pl-9"
-        />
+    <div className="flex shrink-0 flex-wrap items-center gap-1.5" role="search" aria-label="Filter results">
+      <div className="relative w-full sm:w-44 xl:w-56">
+        <Search aria-hidden className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input ref={searchRef} type="search" aria-label="Search results" placeholder="Search" value={q} onChange={(e) => setQ(e.target.value)} className="pl-8" />
       </div>
       <MultiSelect label="Outcome" options={outcomeOptions} value={filter.outcomes} onChange={(outcomes) => onChange({ outcomes })} />
       <MultiSelect label="Extension" options={suffixOptions} value={filter.suffixes} onChange={(suffixes) => onChange({ suffixes })} />
-      {showConfirmations || filter.confirmations?.length ? (
-        <MultiSelect
-          label="Confirmation"
-          options={CONFIRMATION_OPTIONS}
-          value={filter.confirmations}
-          onChange={(confirmations) => onChange({ confirmations: confirmations as ConfirmationStatus[] | undefined })}
-        />
-      ) : null}
-      <Segmented
-        aria-label="Resolution"
-        value={resolved}
-        onValueChange={(value) => onChange({ resolved: value === 'all' ? undefined : value === 'resolved' })}
-        options={[
-          { value: 'all', label: 'All' },
-          { value: 'resolved', label: 'Resolved' },
-          { value: 'unresolved', label: 'Unresolved' },
-        ]}
-      />
-      <MoreFilters filter={filter} onChange={onChange} collections={collections} />
-      <div className="flex items-center gap-1 sm:ml-auto">
-        <Select aria-label="Sort by" value={filter.sort ?? 'input'} onValueChange={(sort) => onChange({ sort: sort as Sort })} options={SORTS} className="h-9 w-36" />
-        <Button
-          size="icon"
-          variant="secondary"
-          aria-label={order === 'asc' ? 'Ascending, switch to descending' : 'Descending, switch to ascending'}
-          onClick={() => onChange({ order: order === 'asc' ? 'desc' : 'asc' })}
-        >
-          {order === 'asc' ? <ArrowDownNarrowWide /> : <ArrowUpWideNarrow />}
-        </Button>
-      </div>
+      <MoreFilters filter={filter} onChange={onChange} collections={collections} showConfirmations={showConfirmations} />
       {isFiltered(filter) ? (
         <Button
           size="sm"
           variant="quiet"
-          className={cn('h-9')}
+          aria-label="Clear filters"
           onClick={() => {
             setQ('');
             onChange({
@@ -386,9 +407,23 @@ export function ResultFilters({
           }}
         >
           <X />
-          Clear filters
+          Clear
         </Button>
       ) : null}
+      <div className="ml-auto flex items-center gap-1.5">
+        <span className="whitespace-nowrap px-1 text-sm text-muted-foreground tabular" aria-live="polite">
+          {count}
+        </span>
+        <Select aria-label="Sort by" value={filter.sort ?? 'input'} onValueChange={(sort) => onChange({ sort: sort as Sort })} options={SORTS} className="w-32" />
+        <Button
+          size="icon"
+          variant="secondary"
+          aria-label={order === 'asc' ? 'Ascending, switch to descending' : 'Descending, switch to ascending'}
+          onClick={() => onChange({ order: order === 'asc' ? 'desc' : 'asc' })}
+        >
+          {order === 'asc' ? <ArrowDownNarrowWide /> : <ArrowUpWideNarrow />}
+        </Button>
+      </div>
     </div>
   );
 }

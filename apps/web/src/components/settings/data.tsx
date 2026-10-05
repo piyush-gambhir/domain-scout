@@ -31,7 +31,7 @@ export const CATEGORY_LABEL: Record<DataCategory, string> = {
   artifacts: 'Exports and snapshots',
 };
 
-const rowClass = 'flex min-h-9 items-center gap-3 rounded-md px-2 text-sm hover:bg-hover';
+const rowClass = 'flex min-h-8 items-center gap-2.5 rounded-md px-2 text-sm hover:bg-hover';
 
 export function DataSettings() {
   const client = useQueryClient();
@@ -84,7 +84,7 @@ export function DataSettings() {
       ) : inventory.isError ? (
         <ErrorState error={inventory.error} onRetry={() => inventory.refetch()} />
       ) : (
-        <div className="flex max-w-2xl flex-col gap-10">
+        <div className="flex max-w-3xl flex-col gap-5">
           <Facts
             items={[
               ['Location', <span key="d" className="break-all font-mono text-[13px]">{inventory.data.dataDir}</span>],
@@ -94,7 +94,7 @@ export function DataSettings() {
 
           <fieldset>
             <legend className="mb-2 text-xs font-medium text-muted-foreground">Delete local data</legend>
-            <ul className="grid gap-0.5 sm:grid-cols-2" aria-label="Categories">
+            <ul className="grid sm:grid-cols-2 xl:grid-cols-3" aria-label="Categories">
               {inventory.data.categories.map(({ category, count }) => (
                 <li key={category}>
                   <label htmlFor={`del-${category}`} className={rowClass}>
@@ -114,7 +114,7 @@ export function DataSettings() {
           {categories.has('collections') && (collections.data?.length ?? 0) > 0 ? (
             <fieldset>
               <legend className="mb-2 text-xs font-medium text-muted-foreground">Only these shortlists</legend>
-              <ul className="grid gap-0.5 sm:grid-cols-2" aria-label="Shortlists to delete">
+              <ul className="relative grid max-h-48 overflow-y-auto sm:grid-cols-2 xl:grid-cols-3" aria-label="Shortlists to delete">
                 {collections.data!.map((collection) => (
                   <li key={collection.id}>
                     <label htmlFor={`del-c-${collection.id}`} className={rowClass}>
@@ -133,12 +133,11 @@ export function DataSettings() {
             </fieldset>
           ) : null}
 
-          <Field label="Only records from before" htmlFor="del-before" className="max-w-56">
-            <Input id="del-before" type="date" value={before} onChange={(e) => setBefore(e.target.value)} />
-          </Field>
-
-          <div>
-            <Button variant="danger" disabled={chosen.length === 0} onClick={() => setConfirming(true)}>
+          <div className="flex flex-wrap items-end gap-3">
+            <Field label="Only records from before" htmlFor="del-before" className="w-48">
+              <Input id="del-before" type="date" value={before} onChange={(e) => setBefore(e.target.value)} />
+            </Field>
+            <Button size="sm" variant="danger" disabled={chosen.length === 0} onClick={() => setConfirming(true)}>
               <Trash />
               Delete selected data
             </Button>

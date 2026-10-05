@@ -14,7 +14,7 @@ export function TabsTrigger({ className, ...props }: React.ComponentProps<typeof
   return (
     <TabsPrimitive.Trigger
       className={cn(
-        'h-8 rounded-[5px] px-3 text-sm text-muted-foreground transition-colors hover:text-foreground disabled:opacity-45 data-[state=active]:bg-background data-[state=active]:font-medium data-[state=active]:text-foreground data-[state=active]:shadow-sm',
+        'h-7 rounded-[5px] px-2.5 text-sm text-muted-foreground transition-colors hover:text-foreground disabled:opacity-45 data-[state=active]:bg-background data-[state=active]:font-medium data-[state=active]:text-foreground data-[state=active]:shadow-sm',
         className,
       )}
       {...props}
@@ -23,5 +23,5 @@ export function TabsTrigger({ className, ...props }: React.ComponentProps<typeof
 }
 
 export function TabsContent({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Content>) {
-  return <TabsPrimitive.Content className={cn('mt-8 outline-none', className)} {...props} />;
+  return <TabsPrimitive.Content className={cn('outline-none', className)} {...props} />;
 }
