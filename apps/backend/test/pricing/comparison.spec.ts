@@ -128,23 +128,40 @@ describe('rankRows', () => {
     const eur = computeRow(offer({ currency: 'EUR' }), false, opts({ providerId: 'eur' }));
     const incomplete = computeRow(offer({ renewal: { amount: null, years: 1 } }), false, opts({ providerId: 'incomplete' }));
     const expired = computeRow(offer({ registration: { amount: '1.00', years: 1 }, freshness: 'expired' }), false, opts({ providerId: 'expired' }));
-    const { cheapest } = rankRows([a, b, c, eur, incomplete, expired]);
+    const { cheapest, lowestSubtotal } = rankRows([a, b, c, eur, incomplete, expired]);
     expect([a.rank, b.rank, c.rank, eur.rank, incomplete.rank, expired.rank]).toEqual([1, 1, 3, 1, null, null]);
-    expect(cheapest).toEqual([
+    // Fees and tax are unknown on every row, so these are base subtotals, never a confirmed cheapest total.
+    expect(cheapest).toEqual([]);
+    expect(lowestSubtotal).toEqual([
       { domain: 'xq7mz9brandtest.com', currency: 'USD', providerId: 'a', horizonTotal: '49.00' },
       { domain: 'xq7mz9brandtest.com', currency: 'USD', providerId: 'b', horizonTotal: '49.00' },
       { domain: 'xq7mz9brandtest.com', currency: 'EUR', providerId: 'eur', horizonTotal: '50.00' },
     ]);
   });
 
-  it('does not claim a cheapest total across different fee bases', () => {
+  it('does not claim a lowest subtotal across different fee bases', () => {
     const withFees = computeRow(offer({ fees: { icann: '0.20', other: [], tax: 'unknown' } }), false, opts({ providerId: 'fees' }));
     const without = computeRow(offer({ registration: { amount: '5.00', years: 1 } }), false, opts({ providerId: 'nofees' }));
-    const { cheapest, limits } = rankRows([withFees, without]);
+    const { cheapest, lowestSubtotal, limits } = rankRows([withFees, without]);
     expect(cheapest).toEqual([]);
-    expect(limits[0]).toContain('different fee or tax bases');
+    expect(lowestSubtotal).toEqual([]);
+    expect(limits[0]).toContain('no single lowest subtotal');
     expect(withFees.rank).toBe(1);
     expect(without.rank).toBe(1);
+  });
+
+  it('unknown fees and tax never produce a confirmed cheapest total (audit 6, P04)', () => {
+    // A cheaper row with fees and tax both unknown against a dearer row with known fees and tax.
+    const subtotal = computeRow(offer({ registration: { amount: '1.00', years: 1 } }), false, opts({ providerId: 'subtotal' }));
+    const confirmed = computeRow(offer({ fees: { icann: '0.20', other: [], tax: 'included' } }), false, opts({ providerId: 'confirmed' }));
+    expect(subtotal).toMatchObject({ complete: true, subtotalOnly: true });
+    expect(subtotal.missing.sort()).toEqual(['fees', 'tax']);
+    const { cheapest, lowestSubtotal } = rankRows([subtotal, confirmed]);
+    expect(cheapest).toEqual([{ domain: 'xq7mz9brandtest.com', currency: 'USD', providerId: 'confirmed', horizonTotal: '50.60' }]);
+    expect(lowestSubtotal).toEqual([{ domain: 'xq7mz9brandtest.com', currency: 'USD', providerId: 'subtotal', horizonTotal: '41.00' }]);
+    // Each ranks only within its own basis.
+    expect([subtotal.rank, confirmed.rank]).toEqual([1, 1]);
+    expect(rankRows([computeRow(offer({ fees: { icann: null, other: [], tax: 'unknown' } }), false, opts())]).cheapest).toEqual([]);
   });
 });
 
@@ -180,7 +197,10 @@ describe('POST /comparisons', () => {
     expect(cloudflare).toMatchObject({ kind: 'exact_quote', horizonTotal: '25.71', complete: true, rank: 1, destination: 'https://domains.cloudflare.com/' });
     // The Porkbun row carries the Porkbun catalog price and the Porkbun link, never another provider's.
     expect(porkbun).toMatchObject({ kind: 'published', complete: false, rank: null, destination: `https://porkbun.com/checkout/search?q=${DOMAIN}` });
-    expect(comparison.cheapest).toEqual([{ domain: DOMAIN, currency: 'USD', providerId: 'cloudflare', horizonTotal: '25.71' }]);
+    // Cloudflare does not state tax, so its total is a base subtotal and no confirmed cheapest total exists.
+    expect(cloudflare.subtotalOnly).toBe(true);
+    expect(comparison.cheapest).toEqual([]);
+    expect(comparison.lowestSubtotal).toEqual([{ domain: DOMAIN, currency: 'USD', providerId: 'cloudflare', horizonTotal: '25.71' }]);
     // Providers without any price stay visible.
     expect(comparison.rows.find((r) => r.providerId === 'hostinger')).toMatchObject({ offerId: null, horizonTotal: null });
     for (const row of comparison.rows) {
@@ -201,6 +221,23 @@ describe('POST /comparisons', () => {
     const offers = (await t.api.get(`/domains/${DOMAIN}/offers`).expect(200)).body.data as Offer[];
     expect(offers.find((o) => o.providerId === 'porkbun')?.freshness).toBe('fresh');
     expect(offers.find((o) => o.providerId === 'cloudflare')?.freshness).toBe('stale');
+  });
+
+  it('omitted horizon and currency come from settings; an explicit null currency keeps original currencies', async () => {
+    await t.api.patch('/settings').send({ comparison: { horizonYears: 5, currency: 'EUR' } }).expect(200);
+    try {
+      const configured = ComparisonResponse.parse((await t.api.post('/comparisons').send({ domains: [DOMAIN], providerIds: ['cloudflare'] }).expect(200)).body).data;
+      expect(configured).toMatchObject({ horizonYears: 5, currency: 'EUR' });
+      expect(configured.rows[0]!.missing).toContain('fx_rate');
+      const native = ComparisonResponse.parse(
+        (await t.api.post('/comparisons').send({ domains: [DOMAIN], providerIds: ['cloudflare'], horizonYears: 2, currency: null }).expect(200)).body,
+      ).data;
+      expect(native).toMatchObject({ horizonYears: 2, currency: null });
+      expect(native.rows[0]).toMatchObject({ currency: 'USD', fx: null });
+      expect(native.rows[0]!.missing).not.toContain('fx_rate');
+    } finally {
+      await t.api.patch('/settings').send({ comparison: { horizonYears: 3, currency: null } }).expect(200);
+    }
   });
 
   it('rejects malformed domains and unknown providers', async () => {

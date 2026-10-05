@@ -1,33 +1,65 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "stream",
+  "agentGuidance": false,
   "tasks": {
     "generate": {
-      "dependsOn": ["^generate"],
-      "outputs": ["openapi.json", "internal/api/**"]
+      "dependsOn": [
+        "^generate"
+      ],
+      "outputs": [
+        "openapi.json",
+        "internal/api/**"
+      ]
     },
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**", "!.next/dev/**", "bin/**"],
-      "env": ["NEXT_PUBLIC_*"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "!.next/cache/**",
+        "!.next/dev/**",
+        "bin/**"
+      ],
+      "env": [
+        "NEXT_PUBLIC_*"
+      ]
     },
     "typecheck": {
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "^build"
+      ]
     },
     "lint": {
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "^build"
+      ]
     },
     "test": {
-      "dependsOn": ["^build"],
-      "env": ["DOMAIN_SCOUT_LIVE_TESTS"]
+      "dependsOn": [
+        "^build"
+      ],
+      "env": [
+        "DOMAIN_SCOUT_LIVE_TESTS"
+      ]
     },
     "test:e2e": {
-      "dependsOn": ["build", "^build"],
+      "dependsOn": [
+        "build",
+        "^build"
+      ],
       "cache": false,
-      "env": ["PLAYWRIGHT_BROWSERS_PATH", "CI"]
+      "env": [
+        "PLAYWRIGHT_BROWSERS_PATH",
+        "CI"
+      ]
     },
     "dev": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "cache": false,
       "persistent": true
     },

@@ -158,6 +158,7 @@ export const HistoryEntry = z
     total: z.number().int(),
     unresolved: z.number().int(),
     extensions: z.array(z.string()),
+    destinations: z.array(z.string()).meta({ description: 'External destinations the job contacts' }),
     resumable: z.boolean(),
   })
   .meta({ id: 'HistoryEntry' });

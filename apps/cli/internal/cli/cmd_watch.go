@@ -57,7 +57,7 @@ func (a *App) watchesCmd() *cobra.Command {
 	cf.StringSliceVar(&providers, "providers", nil, "providers to query for confirmations and quotes")
 	cf.BoolVar(&noRegistry, "no-registry", false, "skip registry checks")
 	cf.BoolVar(&catalogPrices, "catalog-prices", false, "track published suffix prices (no names are sent)")
-	cf.IntVar(&interval, "interval", 1440, "check interval in minutes (15 or more)")
+	cf.IntVar(&interval, "interval", 0, "check interval in minutes, 15 or more (default: settings monitoring.defaultIntervalMinutes)")
 
 	var (
 		uName      string
@@ -114,7 +114,7 @@ func (a *App) watchesCmd() *cobra.Command {
 	uf.StringSliceVar(&uProviders, "providers", nil, "replace providers (empty clears)")
 	uf.BoolVar(&uRegistry, "registry", true, "include registry checks")
 	uf.BoolVar(&uCatalog, "catalog-prices", false, "track published suffix prices")
-	uf.IntVar(&uInterval, "interval", 1440, "check interval in minutes")
+	uf.IntVar(&uInterval, "interval", 0, "check interval in minutes (15 or more)")
 
 	show := a.idCmd("show <watch-id>", "One watch", "watch id", watchView,
 		func(ctx context.Context, g *api.Client, id api.Uuid) (*http.Response, error) {
@@ -198,12 +198,23 @@ func (a *App) noticesCmd() *cobra.Command {
 	list.Flags().BoolVar(&unread, "unread", false, "only unread notices")
 
 	var all bool
+	var readWatch string
 	read := a.newCmd("read [notice-ids...]", "Mark notices read", cobra.ArbitraryArgs,
 		func(ctx context.Context, cmd *cobra.Command, args []string) error {
 			if all == (len(args) > 0) {
 				return usageErr("pass notice ids or --all")
 			}
 			body := api.NoticesMarkRead{}
+			if readWatch != "" {
+				if !all {
+					return usageErr("--watch applies only with --all")
+				}
+				id, err := parseID(readWatch, "watch id")
+				if err != nil {
+					return err
+				}
+				body.WatchId = &id
+			}
 			if all {
 				body.All = ptr(true)
 			} else {
@@ -217,6 +228,7 @@ func (a *App) noticesCmd() *cobra.Command {
 				return g.MarkNoticesRead(ctx, body)
 			})
 		})
-	read.Flags().BoolVar(&all, "all", false, "mark every notice read")
+	read.Flags().BoolVar(&all, "all", false, "mark every notice read (only one watch's with --watch)")
+	read.Flags().StringVar(&readWatch, "watch", "", "with --all: only notices of this watch id")
 	return group("notices", "Watch change notices", list, read)
 }

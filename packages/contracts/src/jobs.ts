@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AsciiDomain, CurrencyCode, DecimalString, Suffix, Timestamp, Uuid, envelope, page } from './common.js';
+import { AsciiDomain, CurrencyCode, DecimalString, Freshness, Suffix, Timestamp, Uuid, envelope, page } from './common.js';
 import { InputSource } from './inputs.js';
 import { RegistryObservation, RegistryOutcome } from './registry.js';
 import { ConfirmationStatus, ProviderConfirmation, ProviderId } from './providers.js';
@@ -102,6 +102,10 @@ export const BestPrice = z
     currency: CurrencyCode,
     kind: PriceKind,
     years: z.number().int(),
+    offerId: Uuid,
+    source: z.string().meta({ description: 'Catalog source label' }),
+    observedAt: Timestamp,
+    freshness: Freshness,
   })
   .meta({ id: 'BestPrice', description: 'Lowest known first-year registration price among enabled providers; never a confirmed total' });
 
@@ -184,7 +188,7 @@ const DiagnosticsJob = z
     label: z.string().max(200).optional(),
     domains: z.array(AsciiDomain).min(1).max(10_000),
     checks: z.array(DiagnosticCheck).min(1),
-    resolver: Resolver.default('system'),
+    resolver: Resolver.optional().meta({ description: 'Defaults to settings.diagnostics.resolver' }),
   })
   .meta({ id: 'DiagnosticsJobRequest' });
 

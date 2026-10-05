@@ -445,21 +445,6 @@ func (e DiagnosticsJobRequestType) Valid() bool {
 	}
 }
 
-// Defines values for DiagnosticsJobRequestInputType.
-const (
-	DiagnosticsJobRequestInputTypeDiagnostics DiagnosticsJobRequestInputType = "diagnostics"
-)
-
-// Valid indicates whether the value is a known member of the DiagnosticsJobRequestInputType enum.
-func (e DiagnosticsJobRequestInputType) Valid() bool {
-	switch e {
-	case DiagnosticsJobRequestInputTypeDiagnostics:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for DomainEvidenceProvidersPurchaseKind.
 const (
 	DomainEvidenceProvidersPurchaseKindDashboard DomainEvidenceProvidersPurchaseKind = "dashboard"
@@ -595,6 +580,7 @@ const (
 	SourceCooldown EventType = "source.cooldown"
 	StreamReset    EventType = "stream.reset"
 	WatchChanged   EventType = "watch.changed"
+	WatchDeleted   EventType = "watch.deleted"
 )
 
 // Valid indicates whether the value is a known member of the EventType enum.
@@ -619,6 +605,8 @@ func (e EventType) Valid() bool {
 	case StreamReset:
 		return true
 	case WatchChanged:
+		return true
+	case WatchDeleted:
 		return true
 	default:
 		return false
@@ -2149,12 +2137,14 @@ type AftermarketListing struct {
 
 // AftermarketSource defines model for AftermarketSource.
 type AftermarketSource struct {
-	Id                  string  `json:"id"`
-	Name                string  `json:"name"`
-	Reason              *string `json:"reason"`
-	RequiresCredentials bool    `json:"requiresCredentials"`
-	SearchUrlTemplate   *string `json:"searchUrlTemplate"`
-	Supported           bool    `json:"supported"`
+	// ApiHosts Hosts that receive domain names during lookups
+	ApiHosts            []string `json:"apiHosts"`
+	Id                  string   `json:"id"`
+	Name                string   `json:"name"`
+	Reason              *string  `json:"reason"`
+	RequiresCredentials bool     `json:"requiresCredentials"`
+	SearchUrlTemplate   *string  `json:"searchUrlTemplate"`
+	Supported           bool     `json:"supported"`
 }
 
 // AftermarketSourceListResponse defines model for AftermarketSourceListResponse.
@@ -2207,12 +2197,20 @@ type BestPrice struct {
 	// Currency ISO 4217 currency code
 	Currency CurrencyCode `json:"currency"`
 
+	// Freshness fresh: inside the freshness window; stale: older than the window; expired: past a provider-supplied quote expiry
+	Freshness Freshness `json:"freshness"`
+
 	// Kind published: a provider catalog price for the suffix; estimated: derived, e.g. future renewal; exact_quote: provider response for one exact name
-	Kind PriceKind `json:"kind"`
+	Kind       PriceKind `json:"kind"`
+	ObservedAt Timestamp `json:"observedAt"`
+	OfferId    Uuid      `json:"offerId"`
 
 	// ProviderId Provider identifier, e.g. porkbun, hostinger, register-si
 	ProviderId ProviderId `json:"providerId"`
-	Years      int        `json:"years"`
+
+	// Source Catalog source label
+	Source string `json:"source"`
+	Years  int    `json:"years"`
 }
 
 // BootstrapCode defines model for BootstrapCode.
@@ -2400,7 +2398,7 @@ type CollectionScopeKind string
 
 // Comparison defines model for Comparison.
 type Comparison struct {
-	// Cheapest Cheapest complete comparable row per domain and currency
+	// Cheapest Cheapest confirmed total per domain and currency: complete rows with known fees and tax only
 	Cheapest []struct {
 		// Currency ISO 4217 currency code
 		Currency CurrencyCode `json:"currency"`
@@ -2414,20 +2412,35 @@ type Comparison struct {
 	} `json:"cheapest"`
 
 	// Currency ISO 4217 currency code
-	Currency     *string         `json:"currency"`
-	GeneratedAt  Timestamp       `json:"generatedAt"`
-	HorizonYears int             `json:"horizonYears"`
-	Limits       []string        `json:"limits"`
+	Currency     *string   `json:"currency"`
+	GeneratedAt  Timestamp `json:"generatedAt"`
+	HorizonYears int       `json:"horizonYears"`
+	Limits       []string  `json:"limits"`
+
+	// LowestSubtotal Lowest base subtotal per domain and currency where fees or tax are unknown; never a confirmed total
+	LowestSubtotal []struct {
+		// Currency ISO 4217 currency code
+		Currency CurrencyCode `json:"currency"`
+		Domain   AsciiDomain  `json:"domain"`
+
+		// HorizonTotal Exact decimal amount as a string
+		HorizonTotal DecimalString `json:"horizonTotal"`
+
+		// ProviderId Provider identifier, e.g. porkbun, hostinger, register-si
+		ProviderId ProviderId `json:"providerId"`
+	} `json:"lowestSubtotal"`
 	PurchasePath PurchasePath    `json:"purchasePath"`
 	Rows         []ComparisonRow `json:"rows"`
 }
 
 // ComparisonRequest defines model for ComparisonRequest.
 type ComparisonRequest struct {
-	// Currency Comparison currency; requires an attributed FX rate
-	Currency     *CurrencyCode `json:"currency,omitempty"`
-	Domains      []AsciiDomain `json:"domains"`
-	HorizonYears int           `json:"horizonYears"`
+	// Currency Comparison currency; omitted uses settings.comparison.currency, null keeps original currencies. Conversion requires an attributed FX rate.
+	Currency *string       `json:"currency,omitempty"`
+	Domains  []AsciiDomain `json:"domains"`
+
+	// HorizonYears Defaults to settings.comparison.horizonYears
+	HorizonYears *int          `json:"horizonYears,omitempty"`
 	ProviderIds  *[]ProviderId `json:"providerIds,omitempty"`
 	PurchasePath PurchasePath  `json:"purchasePath"`
 	Region       *string       `json:"region,omitempty"`
@@ -2435,9 +2448,11 @@ type ComparisonRequest struct {
 
 // ComparisonRequestInput defines model for ComparisonRequestInput.
 type ComparisonRequestInput struct {
-	// Currency Comparison currency; requires an attributed FX rate
-	Currency     *CurrencyCode `json:"currency,omitempty"`
-	Domains      []AsciiDomain `json:"domains"`
+	// Currency Comparison currency; omitted uses settings.comparison.currency, null keeps original currencies. Conversion requires an attributed FX rate.
+	Currency *string       `json:"currency,omitempty"`
+	Domains  []AsciiDomain `json:"domains"`
+
+	// HorizonYears Defaults to settings.comparison.horizonYears
 	HorizonYears *int          `json:"horizonYears,omitempty"`
 	ProviderIds  *[]ProviderId `json:"providerIds,omitempty"`
 	PurchasePath *PurchasePath `json:"purchasePath,omitempty"`
@@ -2494,7 +2509,7 @@ type ComparisonRow struct {
 	// ProviderId Provider identifier, e.g. porkbun, hostinger, register-si
 	ProviderId ProviderId `json:"providerId"`
 
-	// Rank Rank among complete comparable rows in the same currency; null when not rankable
+	// Rank Rank by horizon amount among rows with known registration and renewal in the same currency and path. When subtotalOnly is true the rank compares base subtotals, not confirmed totals. Null when not rankable.
 	Rank *int `json:"rank"`
 
 	// SubtotalOnly True when tax or fees are unknown, so the total is a base subtotal
@@ -2692,43 +2707,27 @@ type DiagnosticOutcome string
 
 // DiagnosticsJobBody defines model for DiagnosticsJobBody.
 type DiagnosticsJobBody struct {
-	Checks   []DiagnosticCheck `json:"checks"`
-	Domains  []AsciiDomain     `json:"domains"`
-	Label    *string           `json:"label,omitempty"`
-	Resolver Resolver          `json:"resolver"`
-}
+	Checks  []DiagnosticCheck `json:"checks"`
+	Domains []AsciiDomain     `json:"domains"`
+	Label   *string           `json:"label,omitempty"`
 
-// DiagnosticsJobBodyInput defines model for DiagnosticsJobBodyInput.
-type DiagnosticsJobBodyInput struct {
-	Checks   []DiagnosticCheck `json:"checks"`
-	Domains  []AsciiDomain     `json:"domains"`
-	Label    *string           `json:"label,omitempty"`
-	Resolver *Resolver         `json:"resolver,omitempty"`
+	// Resolver Defaults to settings.diagnostics.resolver
+	Resolver *Resolver `json:"resolver,omitempty"`
 }
 
 // DiagnosticsJobRequest defines model for DiagnosticsJobRequest.
 type DiagnosticsJobRequest struct {
-	Checks   []DiagnosticCheck         `json:"checks"`
-	Domains  []AsciiDomain             `json:"domains"`
-	Label    *string                   `json:"label,omitempty"`
-	Resolver Resolver                  `json:"resolver"`
+	Checks  []DiagnosticCheck `json:"checks"`
+	Domains []AsciiDomain     `json:"domains"`
+	Label   *string           `json:"label,omitempty"`
+
+	// Resolver Defaults to settings.diagnostics.resolver
+	Resolver *Resolver                 `json:"resolver,omitempty"`
 	Type     DiagnosticsJobRequestType `json:"type"`
 }
 
 // DiagnosticsJobRequestType defines model for DiagnosticsJobRequest.Type.
 type DiagnosticsJobRequestType string
-
-// DiagnosticsJobRequestInput defines model for DiagnosticsJobRequestInput.
-type DiagnosticsJobRequestInput struct {
-	Checks   []DiagnosticCheck              `json:"checks"`
-	Domains  []AsciiDomain                  `json:"domains"`
-	Label    *string                        `json:"label,omitempty"`
-	Resolver *Resolver                      `json:"resolver,omitempty"`
-	Type     DiagnosticsJobRequestInputType `json:"type"`
-}
-
-// DiagnosticsJobRequestInputType defines model for DiagnosticsJobRequestInput.Type.
-type DiagnosticsJobRequestInputType string
 
 // DomainEvent SSE data payload; payload schema depends on type
 type DomainEvent struct {
@@ -2882,8 +2881,8 @@ type ExportArtifactInputFormat string
 
 // ExportCreate defines model for ExportCreate.
 type ExportCreate struct {
-	// CandidatesOnly TXT only: keep names with no registry record or a positive provider confirmation
-	CandidatesOnly bool               `json:"candidatesOnly"`
+	// CandidatesOnly TXT only: keep names with no registry record or a positive provider confirmation. Defaults to true for TXT; set false to include every name in scope. Ignored for CSV and JSON.
+	CandidatesOnly *bool              `json:"candidatesOnly,omitempty"`
 	Fields         *[]ExportField     `json:"fields,omitempty"`
 	Format         ExportCreateFormat `json:"format"`
 	IncludeNotes   bool               `json:"includeNotes"`
@@ -2897,7 +2896,7 @@ type ExportCreateFormat string
 
 // ExportCreateInput defines model for ExportCreateInput.
 type ExportCreateInput struct {
-	// CandidatesOnly TXT only: keep names with no registry record or a positive provider confirmation
+	// CandidatesOnly TXT only: keep names with no registry record or a positive provider confirmation. Defaults to true for TXT; set false to include every name in scope. Ignored for CSV and JSON.
 	CandidatesOnly *bool                   `json:"candidatesOnly,omitempty"`
 	Fields         *[]ExportField          `json:"fields,omitempty"`
 	Format         ExportCreateInputFormat `json:"format"`
@@ -3147,16 +3146,19 @@ type HealthResponse struct {
 
 // HistoryEntry defines model for HistoryEntry.
 type HistoryEntry struct {
-	CreatedAt  Timestamp  `json:"createdAt"`
-	Extensions []string   `json:"extensions"`
-	FinishedAt *time.Time `json:"finishedAt"`
-	JobId      Uuid       `json:"jobId"`
-	Label      *string    `json:"label"`
-	Resumable  bool       `json:"resumable"`
-	State      string     `json:"state"`
-	Total      int        `json:"total"`
-	Type       JobType    `json:"type"`
-	Unresolved int        `json:"unresolved"`
+	CreatedAt Timestamp `json:"createdAt"`
+
+	// Destinations External destinations the job contacts
+	Destinations []string   `json:"destinations"`
+	Extensions   []string   `json:"extensions"`
+	FinishedAt   *time.Time `json:"finishedAt"`
+	JobId        Uuid       `json:"jobId"`
+	Label        *string    `json:"label"`
+	Resumable    bool       `json:"resumable"`
+	State        string     `json:"state"`
+	Total        int        `json:"total"`
+	Type         JobType    `json:"type"`
+	Unresolved   int        `json:"unresolved"`
 }
 
 // HistoryListResponse defines model for HistoryListResponse.
@@ -3524,6 +3526,9 @@ type NoticeType string
 type NoticesMarkRead struct {
 	All *bool   `json:"all,omitempty"`
 	Ids *[]Uuid `json:"ids,omitempty"`
+
+	// WatchId With all: mark only this watch's notices read
+	WatchId *Uuid `json:"watchId,omitempty"`
 }
 
 // Offer defines model for Offer.
@@ -4664,11 +4669,13 @@ type WatchCreate struct {
 	Domains []AsciiDomain `json:"domains"`
 
 	// IncludeCatalogPrices Refresh published catalogs of the selected providers; requires providerIds
-	IncludeCatalogPrices bool         `json:"includeCatalogPrices"`
-	IncludeRegistry      bool         `json:"includeRegistry"`
-	IntervalMinutes      int          `json:"intervalMinutes"`
-	Name                 string       `json:"name"`
-	ProviderIds          []ProviderId `json:"providerIds"`
+	IncludeCatalogPrices bool `json:"includeCatalogPrices"`
+	IncludeRegistry      bool `json:"includeRegistry"`
+
+	// IntervalMinutes Defaults to settings.monitoring.defaultIntervalMinutes
+	IntervalMinutes *int         `json:"intervalMinutes,omitempty"`
+	Name            string       `json:"name"`
+	ProviderIds     []ProviderId `json:"providerIds"`
 }
 
 // WatchCreateInput defines model for WatchCreateInput.
@@ -4676,11 +4683,19 @@ type WatchCreateInput struct {
 	Domains []AsciiDomain `json:"domains"`
 
 	// IncludeCatalogPrices Refresh published catalogs of the selected providers; requires providerIds
-	IncludeCatalogPrices *bool         `json:"includeCatalogPrices,omitempty"`
-	IncludeRegistry      *bool         `json:"includeRegistry,omitempty"`
-	IntervalMinutes      *int          `json:"intervalMinutes,omitempty"`
-	Name                 string        `json:"name"`
-	ProviderIds          *[]ProviderId `json:"providerIds,omitempty"`
+	IncludeCatalogPrices *bool `json:"includeCatalogPrices,omitempty"`
+	IncludeRegistry      *bool `json:"includeRegistry,omitempty"`
+
+	// IntervalMinutes Defaults to settings.monitoring.defaultIntervalMinutes
+	IntervalMinutes *int          `json:"intervalMinutes,omitempty"`
+	Name            string        `json:"name"`
+	ProviderIds     *[]ProviderId `json:"providerIds,omitempty"`
+}
+
+// WatchDeletedPayload Carries no watch details, so deleted names never return to replay
+type WatchDeletedPayload struct {
+	DeletedAt Timestamp `json:"deletedAt"`
+	WatchId   Uuid      `json:"watchId"`
 }
 
 // WatchListResponse defines model for WatchListResponse.
@@ -5026,7 +5041,7 @@ type PutCriteriaJSONRequestBody = SavedCriteriaCreateInput
 type DeleteDataJSONRequestBody = DataDelete
 
 // CreateDiagnosticsJSONRequestBody defines body for CreateDiagnostics for application/json ContentType.
-type CreateDiagnosticsJSONRequestBody = DiagnosticsJobBodyInput
+type CreateDiagnosticsJSONRequestBody = DiagnosticsJobBody
 
 // CreateExportJSONRequestBody defines body for CreateExport for application/json ContentType.
 type CreateExportJSONRequestBody = ExportCreateInput
@@ -5573,15 +5588,15 @@ func (t *CreateJobRequestInput) MergeNameCheckJobRequest(v NameCheckJobRequest) 
 	return err
 }
 
-// AsDiagnosticsJobRequestInput returns the union data inside the CreateJobRequestInput as a DiagnosticsJobRequestInput
-func (t CreateJobRequestInput) AsDiagnosticsJobRequestInput() (DiagnosticsJobRequestInput, error) {
-	var body DiagnosticsJobRequestInput
+// AsDiagnosticsJobRequest returns the union data inside the CreateJobRequestInput as a DiagnosticsJobRequest
+func (t CreateJobRequestInput) AsDiagnosticsJobRequest() (DiagnosticsJobRequest, error) {
+	var body DiagnosticsJobRequest
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromDiagnosticsJobRequestInput overwrites any union data inside the CreateJobRequestInput as the provided DiagnosticsJobRequestInput
-func (t *CreateJobRequestInput) FromDiagnosticsJobRequestInput(v DiagnosticsJobRequestInput) error {
+// FromDiagnosticsJobRequest overwrites any union data inside the CreateJobRequestInput as the provided DiagnosticsJobRequest
+func (t *CreateJobRequestInput) FromDiagnosticsJobRequest(v DiagnosticsJobRequest) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -5591,8 +5606,8 @@ func (t *CreateJobRequestInput) FromDiagnosticsJobRequestInput(v DiagnosticsJobR
 	return err
 }
 
-// MergeDiagnosticsJobRequestInput performs a merge with any union data inside the CreateJobRequestInput, using the provided DiagnosticsJobRequestInput
-func (t *CreateJobRequestInput) MergeDiagnosticsJobRequestInput(v DiagnosticsJobRequestInput) error {
+// MergeDiagnosticsJobRequest performs a merge with any union data inside the CreateJobRequestInput, using the provided DiagnosticsJobRequest
+func (t *CreateJobRequestInput) MergeDiagnosticsJobRequest(v DiagnosticsJobRequest) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -5624,7 +5639,7 @@ func (t CreateJobRequestInput) ValueByDiscriminator() (interface{}, error) {
 	case "aftermarket":
 		return t.AsAftermarketJobRequest()
 	case "diagnostics":
-		return t.AsDiagnosticsJobRequestInput()
+		return t.AsDiagnosticsJobRequest()
 	case "name_check":
 		return t.AsNameCheckJobRequest()
 	case "provider_check":

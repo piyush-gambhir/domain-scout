@@ -13,8 +13,9 @@ import { Clock } from '../core/clock.js';
 import { AppError } from '../core/errors.js';
 import { decodeCursor, encodeCursor } from '../core/envelope.js';
 import { JobResults } from '../core/ports.js';
+import { CURRENT_PUBLISHED, LATEST_FETCH_CTE, LATEST_FETCH_JOIN } from '../pricing/current-catalog.js';
 import { Database, json } from '../storage/database.js';
-import { hydrateObservation, hydrateOffer, type ObservationRow, type OfferRow } from '../storage/evidence.js';
+import { freshnessOf, hydrateObservation, hydrateOffer, type ObservationRow, type OfferRow } from '../storage/evidence.js';
 import { SettingsService } from '../system/settings.service.js';
 import { JobStore, type ItemEvidenceRefs, type ItemRow } from './job-store.js';
 import { ResultQueryBuilder, type ResultKey } from './results.query.js';
@@ -23,13 +24,19 @@ const CHUNK = 500;
 const DEFAULT_LIMIT = 200;
 const MAX_LIMIT = 1000;
 
+/** A best_prices row joined with the current offer it was derived from. */
 interface BestPriceRow {
-  suffix: string;
-  currency: string;
-  provider_id: string;
-  amount: string;
-  years: number;
-  kind: 'published' | 'estimated' | 'exact_quote';
+  bp_suffix: string;
+  bp_currency: string;
+  bp_provider_id: string;
+  bp_amount: string;
+  bp_years: number;
+  bp_kind: 'published' | 'estimated' | 'exact_quote';
+  id: string;
+  observed_at: string;
+  stale_at: string;
+  quote_expires_at: string | null;
+  payload_json: string;
 }
 
 interface CursorShape {
@@ -113,7 +120,9 @@ export class JobResultsService implements JobResults {
     rows.forEach((row, n) => {
       if (row.registry_observation_id) observationIds.add(row.registry_observation_id);
       for (const id of refs[n]!.observations ?? []) observationIds.add(id);
-      for (const id of refs[n]!.offers ?? []) offerIds.add(id);
+      // A catalog item links its whole price list (hundreds of offers); it is browsable through the
+      // provider catalog endpoint, so results and result.observed events stay small.
+      if (row.operation !== 'catalog') for (const id of refs[n]!.offers ?? []) offerIds.add(id);
     });
     const observations = new Map<string, ObservationRow>();
     for (const chunk of chunks([...observationIds])) {
@@ -126,14 +135,27 @@ export class JobResultsService implements JobResults {
       for (const row of this.db.all<OfferRow>(`SELECT * FROM offers WHERE id IN (${marks(chunk)})`, chunk)) offers.set(row.id, row);
     }
 
+    // The offer behind each best price is the provider's current published row for the suffix,
+    // currency and term (the selection recomputeBestPrices uses), so price age and source survive.
     const best = new Map<string, BestPriceRow>();
     const suffixes = [...new Set(rows.map((r) => r.suffix).filter((s): s is string => s !== null))];
     for (const chunk of chunks(suffixes)) {
       for (const row of this.db.all<BestPriceRow>(
-        `SELECT * FROM best_prices WHERE currency = ? AND suffix IN (${marks(chunk)})`,
+        `WITH ${LATEST_FETCH_CTE},
+         picked AS (
+           SELECT bp.suffix AS bp_suffix, bp.currency AS bp_currency, bp.provider_id AS bp_provider_id, bp.amount AS bp_amount,
+                  bp.years AS bp_years, bp.kind AS bp_kind, o.id, o.observed_at, o.stale_at, o.quote_expires_at, o.payload_json,
+                  ROW_NUMBER() OVER (PARTITION BY bp.suffix ORDER BY o.observed_at DESC, o.rowid DESC) AS rn
+           FROM best_prices bp
+           JOIN offers o ON o.provider_id = bp.provider_id AND o.suffix = bp.suffix AND o.currency = bp.currency AND o.term_years = bp.years
+             AND o.domain IS NULL AND o.kind = 'published' AND o.purchase_path = 'new_registration'
+           ${LATEST_FETCH_JOIN}
+           WHERE bp.currency = ? AND bp.suffix IN (${marks(chunk)}) AND ${CURRENT_PUBLISHED}
+         )
+         SELECT * FROM picked WHERE rn = 1`,
         [currency, ...chunk],
       )) {
-        best.set(row.suffix, row);
+        best.set(row.bp_suffix, row);
       }
     }
 
@@ -202,7 +224,17 @@ export class JobResultsService implements JobResults {
         finishedAt: row.finished_at,
         evidence,
         bestPrice: price
-          ? { providerId: price.provider_id, amount: price.amount, currency: price.currency, kind: price.kind, years: price.years }
+          ? {
+              providerId: price.bp_provider_id,
+              amount: price.bp_amount,
+              currency: price.bp_currency,
+              kind: price.bp_kind,
+              years: price.bp_years,
+              offerId: price.id,
+              source: json.parse<{ source?: { label?: string } }>(price.payload_json, {}).source?.label ?? price.bp_provider_id,
+              observedAt: price.observed_at,
+              freshness: freshnessOf(price.stale_at, now, price.quote_expires_at),
+            }
           : null,
         collectionIds: collections.get(row.subject) ?? [],
       };

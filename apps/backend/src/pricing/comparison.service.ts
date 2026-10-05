@@ -22,7 +22,8 @@ export class ComparisonService {
   create(request: ComparisonRequest): Comparison {
     const horizonYears = request.horizonYears ?? this.settings.get().comparison.horizonYears;
     const path: PurchasePath = request.purchasePath ?? 'new_registration';
-    const currency = request.currency ?? this.settings.get().comparison.currency ?? null;
+    // Omitted uses the configured comparison currency; an explicit null keeps original currencies.
+    const currency = request.currency === undefined ? this.settings.get().comparison.currency : request.currency;
     const fxRates = this.settings.get().fxRates;
     const rows: ComparisonRow[] = [];
     let sawPublished = false;
@@ -61,14 +62,14 @@ export class ComparisonService {
     );
 
     const limits = [
-      'Totals exclude taxes; rows marked subtotalOnly also exclude fees whose amounts are unknown.',
+      'Rows marked subtotalOnly leave out tax or fees whose amounts are unknown: they rank only as base subtotals (lowestSubtotal), never as a confirmed cheapest total.',
       'Future renewal prices are estimates based on current renewal prices.',
       'Rows are ranked only within the same domain, currency and fee/tax basis; incomplete, expired and unpriced rows stay visible but unranked.',
       ...ranked.limits,
     ];
     if (sawPublished) limits.push('Published catalog prices assume a standard name and are not exact-name quotes.');
     if (currency) limits.push(`Conversion to ${currency} uses only rates configured in settings, with their source and time.`);
-    return { horizonYears, purchasePath: path, currency, generatedAt: this.clock.iso(), rows: ranked.rows, cheapest: ranked.cheapest, limits };
+    return { horizonYears, purchasePath: path, currency, generatedAt: this.clock.iso(), rows: ranked.rows, cheapest: ranked.cheapest, lowestSubtotal: ranked.lowestSubtotal, limits };
   }
 
   /** Requested providers, or enabled named providers plus directory entries that list the suffix. */

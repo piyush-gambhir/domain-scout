@@ -11,6 +11,7 @@ import type {
 } from '@domain-scout/contracts';
 import { Clock } from '../core/clock.js';
 import { InputPreviewer } from '../core/ports.js';
+import { CURRENT_PUBLISHED, LATEST_FETCH_CTE, LATEST_FETCH_JOIN } from '../pricing/current-catalog.js';
 import { Database } from '../storage/database.js';
 import { hydrateObservation, hydrateOffer, type ObservationRow, type OfferRow } from '../storage/evidence.js';
 
@@ -99,18 +100,20 @@ export class EvidenceReader {
 
   /**
    * Newest offer per provider, purchase path, kind, currency, region, term and promotion, for the
-   * exact domain and for its suffix catalog. Different scopes stay separate rows.
+   * exact domain and for its suffix catalog. Different scopes stay separate rows. Suffix prices use
+   * the same current-catalog selection as the offers API, so a superseded catalog never returns.
    */
   latestOffers(domain: string, suffix: string): Offer[] {
     const now = this.clock.now();
     return this.db
       .all<OfferRow & { rn: number }>(
-        `SELECT * FROM (
+        `WITH ${LATEST_FETCH_CTE}
+         SELECT * FROM (
            SELECT o.*, ROW_NUMBER() OVER (
-             PARTITION BY provider_id, purchase_path, kind, currency, IFNULL(region, ''), IFNULL(domain, ''), term_years, promotional
-             ORDER BY observed_at DESC, id DESC) AS rn
-           FROM offers o
-           WHERE domain = ? OR (domain IS NULL AND suffix = ?)
+             PARTITION BY o.provider_id, o.purchase_path, o.kind, o.currency, IFNULL(o.region, ''), IFNULL(o.domain, ''), o.term_years, o.promotional
+             ORDER BY o.observed_at DESC, o.id DESC) AS rn
+           FROM offers o ${LATEST_FETCH_JOIN}
+           WHERE o.domain = ? OR (o.domain IS NULL AND o.suffix = ? AND ${CURRENT_PUBLISHED})
          ) WHERE rn = 1
          ORDER BY provider_id, purchase_path, observed_at DESC`,
         [domain, suffix],

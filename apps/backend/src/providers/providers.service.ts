@@ -271,7 +271,10 @@ export class ProvidersService implements OnModuleInit {
     const latest = this.db.get<FetchRow>('SELECT * FROM catalog_fetches WHERE provider_id = ? ORDER BY fetched_at DESC, rowid DESC LIMIT 1', [manifest.id]);
     const lastError = latest && latest.status === 'failed' ? json.parse<Reason | null>(latest.error_json, null) : null;
     if (!ok) return { suffixCount: 0, fetchedAt: null, staleAt: null, freshness: null, source: latest?.source ?? null, lastError };
-    const staleAt = new Date(Date.parse(ok.fetched_at) + this.settings.get().freshness.catalogHours * 3_600_000).toISOString();
+    // The deadline stored with the catalog's offers at ingestion is authoritative, so status agrees
+    // with the offers after a settings change. A catalog without priced entries has none stored.
+    const stored = this.db.get<{ stale_at: string | null }>('SELECT MIN(stale_at) AS stale_at FROM offers WHERE catalog_fetch_id = ?', [ok.id])?.stale_at;
+    const staleAt = stored ?? new Date(Date.parse(ok.fetched_at) + this.settings.get().freshness.catalogHours * 3_600_000).toISOString();
     return {
       suffixCount: ok.suffix_count,
       fetchedAt: ok.fetched_at,

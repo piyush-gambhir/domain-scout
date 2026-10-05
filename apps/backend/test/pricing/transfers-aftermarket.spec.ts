@@ -68,9 +68,12 @@ describe('transfer options and aftermarket (F01-F03, scenario 14)', () => {
   it('lists provider sources and link-only marketplaces', async () => {
     const sources = Sources.parse((await t.api.get('/aftermarket/sources').expect(200)).body).data;
     expect(sources.filter((s) => s.supported).map((s) => s.id).sort()).toEqual(['dynadot', 'namecom', 'porkbun']);
+    // Supported lookups disclose names to the provider API host, the same host the handler records.
+    expect(sources.find((s) => s.id === 'porkbun')?.apiHosts).toEqual(['api.porkbun.com']);
+    for (const source of sources.filter((s) => s.supported)) expect(source.apiHosts).toHaveLength(1);
     for (const id of ['sedo', 'afternic', 'dan', 'atom']) {
       const source = sources.find((s) => s.id === id)!;
-      expect(source).toMatchObject({ supported: false, requiresCredentials: false });
+      expect(source).toMatchObject({ supported: false, requiresCredentials: false, apiHosts: [] });
       expect(source.reason).toBeTruthy();
     }
   });

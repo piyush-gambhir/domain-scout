@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { CloudflareAdapter } from '../../src/providers/adapters/cloudflare.js';
 import { DynadotAdapter } from '../../src/providers/adapters/dynadot.js';
-import { GoDaddyAdapter } from '../../src/providers/adapters/godaddy.js';
+import { GoDaddyAdapter, godaddyOffer } from '../../src/providers/adapters/godaddy.js';
+import { scrubSecrets } from '../../src/providers/adapters/http.js';
+import { computeRow } from '../../src/pricing/comparison.js';
 import { HostingerAdapter, parseHostingerCatalog } from '../../src/providers/adapters/hostinger.js';
 import { parseXml } from '../../src/providers/adapters/xml.js';
 import { NamecheapAdapter } from '../../src/providers/adapters/namecheap.js';
@@ -234,6 +236,45 @@ describe('GoDaddy adapter', () => {
     const offer = (await adapter.quote(adapterContext(t, creds), DOMAIN)).offers[0]!;
     expect(offer.premium).toEqual({ status: 'confirmed', registration: '2500.00', renewal: '60.00' });
     expect(offer.fees.other).toEqual([{ label: 'ONE_TIME_PREMIUM_DOMAIN_PURCHASE', amount: '15.00' }]);
+  });
+
+  it('keeps a fee in another currency out of totals instead of adding it unconverted (audit 8)', () => {
+    const offer = godaddyOffer({
+      domain: DOMAIN.ascii,
+      available: true,
+      definitive: true,
+      inventory: 'REGISTRY',
+      error: null,
+      prices: [
+        {
+          term: 'YEAR',
+          period: 1,
+          price: { currencyCode: 'USD', value: 1000 },
+          renewalPrice: { currencyCode: 'USD', value: 1000 },
+          fees: [
+            { type: 'ICANN', fee: { currencyCode: 'EUR', value: 200 } },
+            { type: 'SETUP', fee: { currencyCode: 'USD', value: 50 } },
+          ],
+        },
+      ],
+    })!;
+    expect(offer.currency).toBe('USD');
+    expect(offer.fees.other).toEqual([
+      { label: 'ICANN (EUR 2.00, not converted to USD)', amount: null },
+      { label: 'SETUP', amount: '0.50' },
+    ]);
+    const row = computeRow({ ...offer, id: '11111111-1111-4111-8111-111111111111', providerId: 'godaddy', domain: DOMAIN.ascii, suffix: 'com', observedAt: '2026-10-05T12:00:00.000Z', staleAt: '2026-10-05T12:15:00.000Z', freshness: 'fresh', destination: null }, false, {
+      domain: DOMAIN.ascii,
+      providerId: 'godaddy',
+      path: 'new_registration',
+      horizonYears: 1,
+      currency: null,
+      fxRates: [],
+      destination: null,
+    });
+    // USD 10 plus the USD 0.50 fee; the EUR fee stays unknown, so the row is a subtotal, never USD 12.
+    expect(row).toMatchObject({ currency: 'USD', initialCommitment: '10.50', horizonTotal: '10.50', subtotalOnly: true });
+    expect(row.missing).toContain('fees');
   });
 
   it('treats per-item errors as unknown and 401 as auth', async () => {
@@ -536,6 +577,23 @@ describe('review regressions', () => {
     const body = fixture('namecheap', 'check-available', { domain: DOMAIN.ascii }).body + '<ApiResponse Status="ERROR"><Errors><Error Number="1">x</Error></Errors></ApiResponse>';
     const t = new FakeTransport().on(/domains.check/, { status: 200, headers: {}, body });
     expect((await rejects(new NamecheapAdapter().check(adapterContext(t, { apiUser: 'u', apiKey: 'nc_key_000001', clientIp: '198.51.100.7' }), DOMAIN))).kind).toBe('bad_response');
+  });
+});
+
+describe('secret scrubbing', () => {
+  it('removes configured values and common credential shapes but keeps ordinary text', () => {
+    expect(scrubSecrets('key a/b+c=d123 and a%2Fb%2Bc%3Dd123', ['a/b+c=d123'])).toBe('key [redacted] and [redacted]');
+    expect(scrubSecrets('https://bob:pw123456@host.test/x?apikey=K1&ApiUser=me&page=2#token=T9')).toBe(
+      'https://[redacted]@host.test/x?apikey=[redacted]&ApiUser=[redacted]&page=2#token=[redacted]',
+    );
+    expect(scrubSecrets('Authorization: Bearer abc.DEF-123_xyz')).toBe('Authorization: Bearer [redacted]');
+    expect(scrubSecrets('Basic dXNlcjpwYXNzd29yZA==')).toBe('Basic [redacted]');
+    expect(scrubSecrets('sso-key KEY123:SECRET456 sent')).toBe('sso-key [redacted] sent');
+    expect(scrubSecrets('keys pk1_abcdef123 and sk1_zyxwvu987')).toBe('keys [redacted] and [redacted]');
+    expect(scrubSecrets(`jwt eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.c2lnbmF0dXJl end`)).toBe('jwt [redacted] end');
+    for (const text of ['Basic registration', 'Token expired', 'monkey=1', 'GoDaddy v3 check-availability (indicative, cached)', 'https://porkbun.com/checkout/search?q=example.com']) {
+      expect(scrubSecrets(text)).toBe(text);
+    }
   });
 });
 

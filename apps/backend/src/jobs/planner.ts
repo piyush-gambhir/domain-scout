@@ -4,6 +4,7 @@ import type { CreateJobRequestParsed, JobOperation, JobType, NormalizedDomain } 
 import { AppError } from '../core/errors.js';
 import type { CatalogJobRequest, WatchJobRequest } from '../core/ports.js';
 import { Database } from '../storage/database.js';
+import { SettingsService } from '../system/settings.service.js';
 import { JOBS_ENGINE_OPTIONS, type JobsEngineOptions } from './engine-options.js';
 import type { JobInputSummary, StoredJobInput } from './job-store.js';
 import { OptionalPorts } from './optional-ports.js';
@@ -50,6 +51,7 @@ export class JobPlanner {
     private readonly ports: OptionalPorts,
     private readonly db: Database,
     @Inject(JOBS_ENGINE_OPTIONS) private readonly options: JobsEngineOptions,
+    private readonly settings: SettingsService,
   ) {}
 
   plan(request: SubmitRequest): JobPlan {
@@ -112,11 +114,14 @@ export class JobPlanner {
         const domains = this.domains(request.domains);
         const checks = unique(request.checks);
         const items = domains.flatMap((d) => checks.map((c) => this.domainItem(d, 'diagnostic', c)));
+        // Fixed at planning so recorded destinations, source budgets and a later resume all use the
+        // resolver that was configured when the job was submitted.
+        const resolver = request.resolver ?? this.settings.get().diagnostics.resolver;
         return {
           type: 'diagnostics',
           label,
           watchId: null,
-          input: { ...request, recheck: false, summary: summary({ checks, rows: domains.length }) },
+          input: { ...request, resolver, recheck: false, summary: summary({ checks, rows: domains.length }) },
           items,
         };
       }

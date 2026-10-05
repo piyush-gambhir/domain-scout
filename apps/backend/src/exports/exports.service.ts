@@ -70,12 +70,14 @@ export class ExportsService {
     let fields: ExportField[];
     let content: string;
     let itemCount = records.length;
+    // TXT is a plain candidate list: it keeps candidates only unless the request opts out explicitly.
+    const candidatesOnly = body.format === 'txt' && body.candidatesOnly !== false;
     if (body.format === 'txt') {
       fields = ['domain'];
       if (body.fields?.length) warnings.push('TXT exports contain names only; chosen fields are ignored');
-      if (body.candidatesOnly) records = records.filter(isCandidate);
+      if (candidatesOnly) records = records.filter(isCandidate);
       const names = [...new Set(records.map((r) => r.domain))];
-      content = txt(names, { createdAt, label: resolution.label, candidatesOnly: body.candidatesOnly });
+      content = txt(names, { createdAt, label: resolution.label, candidatesOnly });
       itemCount = names.length;
     } else {
       if (body.candidatesOnly) warnings.push('candidatesOnly applies to TXT exports only and was ignored');
@@ -99,7 +101,7 @@ export class ExportsService {
     const options: ExportOptions = {
       fields,
       includeNotes: body.includeNotes,
-      candidatesOnly: body.candidatesOnly,
+      candidatesOnly,
       downloadName,
       resolved: resolution.resolved,
     };

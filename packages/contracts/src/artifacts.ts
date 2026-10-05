@@ -65,8 +65,11 @@ export const ExportCreate = z
     includeNotes: z.boolean().default(false),
     candidatesOnly: z
       .boolean()
-      .default(false)
-      .meta({ description: 'TXT only: keep names with no registry record or a positive provider confirmation' }),
+      .optional()
+      .meta({
+        description:
+          'TXT only: keep names with no registry record or a positive provider confirmation. Defaults to true for TXT; set false to include every name in scope. Ignored for CSV and JSON.',
+      }),
   })
   .meta({ id: 'ExportCreate' });
 export type ExportCreate = z.input<typeof ExportCreate>;

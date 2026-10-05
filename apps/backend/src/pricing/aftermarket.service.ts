@@ -12,6 +12,8 @@ export interface AftermarketSourceView {
   name: string;
   supported: boolean;
   requiresCredentials: boolean;
+  /** Hosts that receive domain names during lookups; empty for link-only marketplaces. */
+  apiHosts: string[];
   searchUrlTemplate: string | null;
   reason: string | null;
 }
@@ -39,6 +41,8 @@ export class AftermarketService {
         name: `${m.name} aftermarket`,
         supported: true,
         requiresCredentials: m.capabilities.aftermarket.requiresCredentials,
+        // Listing lookups send the name to the provider API host (the aftermarket handler's destination).
+        apiHosts: m.apiHost ? [m.apiHost] : [],
         searchUrlTemplate: null,
         reason: m.capabilities.aftermarket.notes,
       }));
@@ -47,6 +51,7 @@ export class AftermarketService {
       name: m.name,
       supported: false,
       requiresCredentials: false,
+      apiHosts: [],
       // The website only: no search template was verified for these marketplaces.
       searchUrlTemplate: m.website,
       reason: m.reason,

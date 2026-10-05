@@ -5,6 +5,7 @@ import { TERMINAL_JOB_STATES, type DataCategory } from '@domain-scout/contracts'
 import { APP_CONFIG, type AppConfig } from '../core/config.js';
 import { AppError } from '../core/errors.js';
 import { EventsService } from '../events/events.service.js';
+import { deleteWatchRows } from '../monitoring/watch-records.js';
 import { runtimePaths } from '../runtime/paths.js';
 import { Database, json } from '../storage/database.js';
 import { DATABASE_FILE } from '../storage/storage.module.js';
@@ -19,6 +20,9 @@ import { DATABASE_FILE } from '../storage/storage.module.js';
  * - collections: shortlists and their entries; criteria: saved criteria and extension presets
  * - watches: watches with their runs and notices; portfolio: imported portfolio entries
  * - artifacts: export and snapshot records and their files under <dataDir>/artifacts
+ *
+ * Deleting evidence or prices also removes the copies other records carry: notices whose before or
+ * after evidence is gone, and events whose payload repeats deleted evidence, prices or notices.
  */
 const COUNT_SQL: Record<DataCategory, string> = {
   jobs: 'SELECT COUNT(*) AS n FROM jobs',
@@ -99,8 +103,8 @@ export class DataService {
     this.db.exec('PRAGMA secure_delete = ON');
     let deleted: { category: DataCategory; count: number }[];
     try {
-      deleted = this.db.transaction(() =>
-        categories.map((category) => {
+      deleted = this.db.transaction(() => {
+        const counts = categories.map((category) => {
           if (category === 'artifacts') {
             const result = this.deleteArtifactRows(before);
             artifactFiles.push(...result.files);
@@ -108,8 +112,10 @@ export class DataService {
             return { category, count: result.count };
           }
           return { category, count: this.deleteCategory(category, before, input.collectionIds) };
-        }),
-      );
+        });
+        this.deleteCopies(categories);
+        return counts;
+      });
     } catch (error) {
       if (/FOREIGN KEY/i.test((error as Error).message)) {
         throw AppError.conflict('Deletion would break references from other records; nothing was deleted');
@@ -169,6 +175,24 @@ export class DataService {
     }
   }
 
+  /**
+   * Removes copies of deleted evidence: notices that compare it, then events repeating it (including
+   * notice.created for those notices). Event deletion advances the replay watermark, so a client
+   * resuming from an older cursor gets stream.reset instead of a gap.
+   */
+  private deleteCopies(categories: DataCategory[]) {
+    const evidence = categories.some((c) => OBSERVATION_KINDS[c]);
+    const prices = categories.includes('price_history');
+    if (!evidence && !prices) return;
+    const missing = (column: 'before_json' | 'after_json') => `
+      (json_extract(${column}, '$.kind') IN ('registry', 'confirmation')
+        AND NOT EXISTS (SELECT 1 FROM observations o WHERE o.id = json_extract(notices.${column}, '$.id')))
+      OR (json_extract(${column}, '$.kind') = 'offer'
+        AND NOT EXISTS (SELECT 1 FROM offers f WHERE f.id = json_extract(notices.${column}, '$.id')))`;
+    this.db.run(`DELETE FROM notices WHERE ${missing('before_json')} OR ${missing('after_json')}`);
+    this.events.deleteOrphanedCopies({ evidence, prices, notices: true });
+  }
+
   /** Finished jobs only; running work belongs to the jobs engine. Items and idempotency keys cascade. */
   private deleteJobs(before: string | null): number {
     const states = TERMINAL_JOB_STATES as readonly string[];
@@ -190,10 +214,7 @@ export class DataService {
   private deleteWatches(before: string | null): number {
     const ids = this.ids(`SELECT id FROM watches${before ? ' WHERE created_at < ?' : ''}`, before ? [before] : []);
     let count = 0;
-    for (const chunk of chunks(ids)) {
-      this.events.deleteFor({ watchIds: chunk });
-      count += this.db.run(`DELETE FROM watches WHERE id IN (${chunk.map(() => '?').join(',')})`, chunk).changes;
-    }
+    for (const chunk of chunks(ids)) count += deleteWatchRows(this.db, this.events, chunk);
     return count;
   }
 

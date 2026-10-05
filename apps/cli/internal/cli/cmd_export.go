@@ -51,14 +51,20 @@ func (a *App) exportCmd() *cobra.Command {
 			if !f.Valid() {
 				return usageErr("--format must be txt, csv or json")
 			}
-			if candidatesOnly && f != api.ExportCreateInputFormatTxt {
+			// Tri-state: unset lets the backend default (TXT keeps candidates only); an explicit
+			// --candidates-only=false includes every name in scope.
+			candidatesSet := cmd.Flags().Changed("candidates-only")
+			if candidatesSet && f != api.ExportCreateInputFormatTxt {
 				return usageErr("--candidates-only applies only to --format txt")
 			}
 			scope, err := sf.build(a)
 			if err != nil {
 				return err
 			}
-			body := api.ExportCreateInput{Format: f, Scope: scope, IncludeNotes: ptr(includeNotes), CandidatesOnly: ptr(candidatesOnly)}
+			body := api.ExportCreateInput{Format: f, Scope: scope, IncludeNotes: ptr(includeNotes)}
+			if candidatesSet {
+				body.CandidatesOnly = ptr(candidatesOnly)
+			}
 			if len(fields) > 0 {
 				fs := make([]api.ExportField, len(fields))
 				for i, s := range fields {
@@ -105,7 +111,7 @@ func (a *App) exportCmd() *cobra.Command {
 	fl.StringVar(&format, "format", "csv", "txt, csv or json")
 	fl.StringSliceVar(&fields, "fields", nil, "export fields (default: the backend's standard set)")
 	fl.BoolVar(&includeNotes, "include-notes", false, "include private notes")
-	fl.BoolVar(&candidatesOnly, "candidates-only", false, "TXT only: names with no registry record or a positive provider confirmation")
+	fl.BoolVar(&candidatesOnly, "candidates-only", true, "TXT only: keep names with no registry record or a positive provider confirmation; --candidates-only=false includes every name in scope")
 	fl.StringVar(&out, "out", "", "write the file here and print the export envelope; default writes the file to stdout")
 
 	var lp pageFlags

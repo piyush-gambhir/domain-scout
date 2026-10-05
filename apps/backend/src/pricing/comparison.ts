@@ -210,11 +210,16 @@ function basis(row: ComparisonRow): string {
   return `${row.currency}|fees:${row.missing.includes('fees') ? 'unknown' : 'known'}|tax:${row.missing.includes('tax') ? 'unknown' : 'known'}`;
 }
 
+type Lowest = { domain: string; currency: string; providerId: string; horizonTotal: string };
+
 /**
  * Ranks complete, unexpired rows per domain within one comparable basis (competition ranking:
- * ties share a rank). Returns the cheapest rows per domain and currency when a single basis exists.
+ * ties share a rank). Rows whose fees or tax are unknown rank only against rows with the same
+ * basis, as base subtotals. `cheapest` holds confirmed totals only (known fees and tax);
+ * `lowestSubtotal` holds the lowest base subtotal per domain and currency when a single subtotal
+ * basis exists. Neither is claimed across different bases.
  */
-export function rankRows(rows: ComparisonRow[]): { rows: ComparisonRow[]; cheapest: { domain: string; currency: string; providerId: string; horizonTotal: string }[]; limits: string[] } {
+export function rankRows(rows: ComparisonRow[]): { rows: ComparisonRow[]; cheapest: Lowest[]; lowestSubtotal: Lowest[]; limits: string[] } {
   const groups = new Map<string, ComparisonRow[]>();
   for (const row of rows) {
     if (!row.complete || row.horizonTotal === null || row.currency === null || row.freshness === 'expired') continue;
@@ -231,23 +236,29 @@ export function rankRows(rows: ComparisonRow[]): { rows: ComparisonRow[]; cheape
       row.rank = rank;
     });
   }
-  const cheapest: { domain: string; currency: string; providerId: string; horizonTotal: string }[] = [];
+  const cheapest: Lowest[] = [];
+  const lowestSubtotal: Lowest[] = [];
   const limits: string[] = [];
-  const byDomainCurrency = new Map<string, ComparisonRow[][]>();
+  // Per domain and currency: the confirmed-total group (at most one basis) and the subtotal groups.
+  const byDomainCurrency = new Map<string, { confirmed: ComparisonRow[] | null; subtotals: ComparisonRow[][] }>();
   for (const [key, list] of groups) {
     const domain = key.split('\u0000')[0]!;
     const k = `${domain}\u0000${list[0]!.currency}`;
-    byDomainCurrency.set(k, [...(byDomainCurrency.get(k) ?? []), list]);
+    const entry = byDomainCurrency.get(k) ?? { confirmed: null, subtotals: [] };
+    if (list[0]!.subtotalOnly) entry.subtotals.push(list);
+    else entry.confirmed = list;
+    byDomainCurrency.set(k, entry);
   }
-  for (const [k, lists] of byDomainCurrency) {
+  const lowest = (list: ComparisonRow[], domain: string, currency: string) =>
+    list.filter((r) => r.rank === 1).map((row) => ({ domain, currency, providerId: row.providerId, horizonTotal: row.horizonTotal! }));
+  for (const [k, entry] of byDomainCurrency) {
     const [domain, currency] = k.split('\u0000') as [string, string];
-    if (lists.length > 1) {
-      limits.push(`${domain} (${currency}): complete rows use different fee or tax bases, so no single cheapest total is claimed`);
-      continue;
-    }
-    for (const row of lists[0]!.filter((r) => r.rank === 1)) {
-      cheapest.push({ domain, currency, providerId: row.providerId, horizonTotal: row.horizonTotal! });
+    if (entry.confirmed) cheapest.push(...lowest(entry.confirmed, domain, currency));
+    if (entry.subtotals.length > 1) {
+      limits.push(`${domain} (${currency}): subtotal rows leave out different fees or tax, so no single lowest subtotal is claimed`);
+    } else if (entry.subtotals.length === 1) {
+      lowestSubtotal.push(...lowest(entry.subtotals[0]!, domain, currency));
     }
   }
-  return { rows, cheapest, limits };
+  return { rows, cheapest, lowestSubtotal, limits };
 }

@@ -10,7 +10,7 @@ import { ProviderError, type AdapterContext, type CheckResult, type DomainParts,
 import type { ProviderManifest } from './manifest.js';
 import { ProvidersService, describeFailure, missingCredentialsMessage } from './providers.service.js';
 import { LINK_ONLY_MARKETPLACES } from './marketplaces.js';
-import { confirmationRecord, offerRecord } from './records.js';
+import { confirmationRecord, offerRecord, scrubDraft } from './records.js';
 
 const CAPABILITY_BY_OPERATION: Partial<Record<JobOperation, CapabilityName>> = {
   provider_check: 'exactCheck',
@@ -150,8 +150,12 @@ abstract class ProviderOperation implements OperationHandler {
     return { kind: 'observation', row: write };
   }
 
-  /** Published prices stay suffix-level (domain null); exact quotes belong to the domain. */
-  protected offer(manifest: ProviderManifest, domain: DomainParts, draft: OfferDraft, ctx: OperationContext): EvidenceWrite {
+  /**
+   * Published prices stay suffix-level (domain null); exact quotes belong to the domain. Provider
+   * text is scrubbed of secrets and the offer validated before it becomes evidence.
+   */
+  protected offer(manifest: ProviderManifest, actx: AdapterContext, domain: DomainParts, raw: OfferDraft, ctx: OperationContext): EvidenceWrite {
+    const draft = scrubDraft(raw, (text) => actx.http.scrub(text));
     const now = ctx.now();
     const exact = draft.kind !== 'published';
     const staleAt = new Date(
@@ -211,7 +215,7 @@ export class QuoteHandler extends ProviderOperation {
     const evidence: EvidenceWrite[] = [];
     // The quote response also states availability: keep it as its own confirmation evidence.
     if (check && check.status !== 'unknown') evidence.push(this.confirmation(manifest, domain, check, ctx));
-    for (const draft of offers) evidence.push(this.offer(manifest, domain, draft, ctx));
+    for (const draft of offers) evidence.push(this.offer(manifest, actx, domain, draft, ctx));
     const status = check?.status ?? 'unknown';
     const outcome = offers.length ? 'quoted' : status === 'available' ? 'no_price' : status;
     const error =
@@ -242,7 +246,7 @@ export class TransferHandler extends ProviderOperation {
       const outcome = result.reason.code === 'not_transferable' ? 'not_transferable' : 'no_price';
       return finish(this.operation, outcome, { error: { code: outcome, message: actx.http.scrub(result.reason.message), retryable: false } });
     }
-    return finish(this.operation, 'quoted', { evidence: offers.map((d) => this.offer(manifest, domain, d, ctx)) });
+    return finish(this.operation, 'quoted', { evidence: offers.map((d) => this.offer(manifest, actx, domain, d, ctx)) });
   }
 }
 
@@ -283,11 +287,11 @@ export class AftermarketHandler extends ProviderOperation {
     const payload: Omit<AftermarketListing, 'freshness'> = {
       id,
       domain: domain.ascii,
-      marketplace: listing.marketplace,
+      marketplace: actx.http.scrub(listing.marketplace),
       providerId: manifest.id,
       status: listing.status,
       price: listing.price,
-      url: listing.url,
+      url: listing.url === null ? null : actx.http.scrub(listing.url),
       observedAt,
       source: `${manifest.name} (${actx.http.scrub(listing.reason.message)})`,
       caveat: LISTING_CAVEAT,
@@ -350,6 +354,8 @@ export class CatalogHandler implements OperationHandler {
     const result = await this.catalogs.refresh(this.providerId(item), ctx.signal);
     const retryable = result.error?.retryable ?? false;
     return finish('catalog', result.outcome, {
+      // The catalog service writes the offers with its fetch; linking them lets watches detect price changes.
+      ...(result.offerIds.length ? { reused: { offerIds: result.offerIds } } : {}),
       error: result.error,
       retryable,
       cooldownUntil: result.outcome === 'rate_limited' ? result.retryAt : null,

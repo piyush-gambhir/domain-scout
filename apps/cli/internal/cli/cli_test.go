@@ -961,3 +961,89 @@ func TestServiceStartRejectsBadPort(t *testing.T) {
 		expectCode(t, r, ExitUsage)
 	}
 }
+
+func TestRejectedCredentialsAreAccessExit(t *testing.T) {
+	f := newFakeAPI(t)
+	f.reply("POST", "/api/v1/quotes", 201, envelope(jobJSON(jobSpec{typ: "quote", state: "queued", total: 2})))
+	f.reply("GET", "/api/v1/jobs/"+jobID, 200, envelope(jobJSON(jobSpec{
+		typ: "quote", state: "completed_with_errors", total: 2, finished: 2, unresolv: 2,
+		outcomes: `{"credentials_invalid":1,"timeout":1}`,
+	})))
+	f.reply("GET", "/api/v1/jobs/"+jobID+"/results", 200, page([]string{itemJSON("acme.com", "credentials_invalid", false)}, ""))
+	r := newHarness(t).api(f, "quote", "acme.com", "--providers", "porkbun", "--wait")
+	expectCode(t, r, ExitAccess)
+	if !strings.Contains(r.stdout, "credentials_invalid") || !strings.Contains(r.stderr, "1 credentials_invalid") {
+		t.Fatalf("results must still print: stdout %q stderr %q", r.stdout, r.stderr)
+	}
+}
+
+// Settings decide horizon, currency, resolver, watch interval and the TXT
+// candidate filter; the CLI sends them only when the user asks.
+func TestSettingsBackedDefaultsAreSentOnlyWhenGiven(t *testing.T) {
+	f := newFakeAPI(t)
+	f.reply("POST", "/api/v1/comparisons", 200, envelope(`{}`))
+	f.reply("POST", "/api/v1/diagnostics", 201, envelope(jobJSON(jobSpec{typ: "diagnostics", state: "queued", total: 1})))
+	f.reply("POST", "/api/v1/watches", 201, envelope(`{}`))
+	f.reply("POST", "/api/v1/exports", 201, exportArtifact(`{"kind":"all"}`))
+	f.on("GET", "/api/v1/exports/"+exportID+"/download", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.Write([]byte("a.com\n"))
+	})
+	run := func(method, path string, args ...string) map[string]any {
+		t.Helper()
+		expectCode(t, newHarness(t).api(f, args...), ExitOK)
+		reqs := f.requests(method, path)
+		return decodeJSON(t, string(reqs[len(reqs)-1].body))
+	}
+
+	body := run("POST", "/api/v1/comparisons", "compare", "acme.com")
+	if _, ok := body["horizonYears"]; ok {
+		t.Fatalf("horizon sent without --horizon: %v", body)
+	}
+	if _, ok := body["currency"]; ok {
+		t.Fatalf("currency sent without --currency: %v", body)
+	}
+	body = run("POST", "/api/v1/comparisons", "compare", "acme.com", "--horizon", "5", "--currency", "EUR")
+	if body["horizonYears"] != float64(5) || body["currency"] != "EUR" {
+		t.Fatalf("explicit values not sent: %v", body)
+	}
+	body = run("POST", "/api/v1/comparisons", "compare", "acme.com", "--currency", "original")
+	if v, ok := body["currency"]; !ok || v != nil {
+		t.Fatalf("--currency original must send null: %v", body)
+	}
+
+	body = run("POST", "/api/v1/diagnostics", "diagnose", "acme.com", "--checks", "dns")
+	if _, ok := body["resolver"]; ok {
+		t.Fatalf("resolver sent without --resolver: %v", body)
+	}
+	if body = run("POST", "/api/v1/diagnostics", "diagnose", "acme.com", "--checks", "dns", "--resolver", "google"); body["resolver"] != "google" {
+		t.Fatalf("explicit resolver not sent: %v", body)
+	}
+
+	body = run("POST", "/api/v1/watches", "watches", "create", "acme.com", "--name", "W")
+	if _, ok := body["intervalMinutes"]; ok {
+		t.Fatalf("interval sent without --interval: %v", body)
+	}
+
+	body = run("POST", "/api/v1/exports", "export", "--scope", "all", "--format", "txt")
+	if _, ok := body["candidatesOnly"]; ok {
+		t.Fatalf("candidatesOnly sent by default: %v", body)
+	}
+	if body = run("POST", "/api/v1/exports", "export", "--scope", "all", "--format", "txt", "--candidates-only=false"); body["candidatesOnly"] != false {
+		t.Fatalf("--candidates-only=false not sent: %v", body)
+	}
+}
+
+func TestNoticesReadAllForOneWatch(t *testing.T) {
+	f := newFakeAPI(t)
+	f.reply("POST", "/api/v1/notices/read", 200, envelope(`{"ok":true}`))
+	expectCode(t, newHarness(t).api(f, "notices", "read", "--all", "--watch", otherJobID), ExitOK)
+	body := decodeJSON(t, string(f.requests("POST", "/api/v1/notices/read")[0].body))
+	if body["all"] != true || body["watchId"] != otherJobID {
+		t.Fatalf("body %v", body)
+	}
+	expectCode(t, newHarness(t).api(f, "notices", "read", jobID, "--watch", otherJobID), ExitUsage)
+	if len(f.requests("POST", "/api/v1/notices/read")) != 1 {
+		t.Fatal("usage errors must not reach the API")
+	}
+}

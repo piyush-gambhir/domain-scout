@@ -62,6 +62,18 @@ function toCheck(parsed: GoDaddyAvailability): CheckResult {
     : { status: 'unavailable', premium, reason: reason('provider_unavailable', `GoDaddy reported unavailable (${how})`) };
 }
 
+/**
+ * One purchase fee. Fee amounts carry their own currency; a fee in another currency than the price
+ * keeps its original amount and currency in the label and stays unknown in totals (no conversion).
+ */
+function fee(f: Record<string, unknown>, currency: string): { label: string; amount: string | null } {
+  const label = str(f.type) ?? 'fee';
+  const amount = money(f.fee);
+  if (!amount) return { label, amount: null };
+  if (amount.currency !== currency) return { label: `${label} (${amount.currency} ${amount.amount}, not converted to ${currency})`, amount: null };
+  return { label, amount: amount.amount };
+}
+
 /** Offer from the shortest-term price entry, exported for fixture tests. */
 export function godaddyOffer(parsed: GoDaddyAvailability): OfferDraft | null {
   const terms = parsed.prices
@@ -74,9 +86,7 @@ export function godaddyOffer(parsed: GoDaddyAvailability): OfferDraft | null {
   const period = Math.max(1, Math.floor(term.period as number));
   // renewalPrice is "absent when renewal pricing is unavailable or identical": absence stays unknown.
   const renewal = money(term.renewalPrice);
-  const fees = Array.isArray(term.fees)
-    ? term.fees.filter(isRecord).map((f) => ({ label: str(f.type) ?? 'fee', amount: money(f.fee)?.amount ?? null }))
-    : [];
+  const fees = Array.isArray(term.fees) ? term.fees.filter(isRecord).map((f) => fee(f, price.currency)) : [];
   const premium = parsed.inventory === 'REGISTRY_PREMIUM' || parsed.inventory === 'PREMIUM';
   return draft({
     // PREMIUM inventory is a third-party marketplace listing (Afternic), not a new registration.

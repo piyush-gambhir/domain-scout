@@ -173,12 +173,23 @@ func (p *progressReporter) counters(state string, c api.JobCounters) {
 	p.app.progress("%s: %d/%d finished, %d unresolved", state, c.Finished, c.Total, c.Unresolved)
 }
 
-// jobExit maps a finished job to the exit code contract. Missing provider
-// access (any credential_required item) wins over unresolved items.
+// accessOutcomes are item outcomes meaning provider access is missing or was
+// rejected (the provider handlers' credential_required and credentials_invalid).
+var accessOutcomes = []string{"credential_required", "credentials_invalid"}
+
+// jobExit maps a finished job to the exit code contract. Missing or rejected
+// provider access wins over unresolved items.
 func jobExit(job *api.Job) error {
-	if n := job.Counters.Outcomes["credential_required"]; n > 0 {
+	var parts []string
+	for _, outcome := range accessOutcomes {
+		if n := job.Counters.Outcomes[outcome]; n > 0 {
+			parts = append(parts, fmt.Sprintf("%d %s", n, outcome))
+		}
+	}
+	if len(parts) > 0 {
 		return &exitError{code: ExitAccess, note: true, msg: fmt.Sprintf(
-			"job %s: %d item(s) finished credential_required. Configure the provider with 'domain-scout providers configure'.", job.Id, n)}
+			"job %s: item(s) finished %s. Configure or test the provider with 'domain-scout providers configure' and 'domain-scout providers test'.",
+			job.Id, strings.Join(parts, ", "))}
 	}
 	switch job.State {
 	case api.JobStateCompleted:

@@ -1,8 +1,66 @@
 import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { JobItemListResponse, ResultFilter, type JobItem } from '@domain-scout/contracts';
+import { ExportResponse, JobItemListResponse, ResultFilter, SnapshotResponse, type JobItem } from '@domain-scout/contracts';
 import type { JobItemRecord, OperationContext, OperationResult } from '../../src/jobs/operation.js';
+import { EvidenceRepository } from '../../src/storage/evidence.js';
 import { createJobsApp, fakeHandler, registryResult, type JobsTestApp } from './helpers.js';
+
+const HOUR = 3_600_000;
+
+/** A published catalog price (suffix-level offer) plus the best_prices row derived from it. */
+function publishedPrice(t: JobsTestApp, suffix: string, currency: string, amount: string, observedAt: string): string {
+  const id = randomUUID();
+  const staleAt = new Date(Date.parse(observedAt) + 24 * HOUR).toISOString();
+  const source = { label: `Porkbun pricing (${currency})`, url: null };
+  const payload = {
+    id,
+    providerId: 'porkbun',
+    domain: null,
+    suffix,
+    purchasePath: 'new_registration',
+    kind: 'published',
+    currency,
+    region: null,
+    registration: { amount, years: 1 },
+    minYears: null,
+    renewal: { amount: null, years: 1 },
+    transfer: { amount: null, includesYears: null },
+    fees: { icann: null, other: [], tax: 'unknown' },
+    premium: { status: 'unknown', registration: null, renewal: null },
+    promotion: null,
+    observedAt,
+    publishedAt: null,
+    quoteExpiresAt: null,
+    staleAt,
+    source,
+    destination: null,
+  };
+  t.app.get(EvidenceRepository).insertOffer({
+    id,
+    providerId: 'porkbun',
+    domain: null,
+    suffix,
+    purchasePath: 'new_registration',
+    kind: 'published',
+    currency,
+    region: null,
+    termYears: 1,
+    promotional: false,
+    registration: amount,
+    renewal: null,
+    transfer: null,
+    observedAt,
+    staleAt,
+    quoteExpiresAt: null,
+    catalogFetchId: null,
+    payload,
+  });
+  t.db.run(
+    `INSERT INTO best_prices (suffix, currency, provider_id, amount, years, kind, observed_at) VALUES (?, ?, 'porkbun', ?, 1, 'published', ?)`,
+    [suffix, currency, amount, observedAt],
+  );
+  return id;
+}
 
 const OUTCOMES: Record<string, string> = {
   'ab.com': 'no_record',
@@ -54,6 +112,8 @@ describe('job results', () => {
   let jobId: string;
   let checkJobId: string;
   let collectionId: string;
+  let priceAt: string;
+  const offerIds = new Map<string, string>();
   const subjects = (items: JobItem[]) => items.map((i) => i.subject);
   const get = async (query: string) => JobItemListResponse.parse((await t.api.get(`/jobs/${jobId}/results?${query}`).expect(200)).body);
 
@@ -66,17 +126,15 @@ describe('job results', () => {
     const job = t.jobs.submit({ type: 'registry_scan', input: { domains: Object.keys(OUTCOMES), format: 'auto', extensions: [] }, recheck: false });
     jobId = job.id;
     await t.finished(jobId);
-    const now = new Date().toISOString();
+    const now = t.clock.iso();
+    priceAt = now;
     for (const [suffix, currency, amount] of [
       ['com', 'USD', '10.50'],
       ['io', 'USD', '35.00'],
       ['dev', 'USD', '12.00'],
       ['com', 'EUR', '9.00'],
     ] as const) {
-      t.db.run(
-        `INSERT INTO best_prices (suffix, currency, provider_id, amount, years, kind, observed_at) VALUES (?, ?, 'porkbun', ?, 1, 'published', ?)`,
-        [suffix, currency, amount, now],
-      );
+      offerIds.set(`${suffix}:${currency}`, publishedPrice(t, suffix, currency, amount, now));
     }
     collectionId = randomUUID();
     t.db.run(`INSERT INTO collections (id, name, created_at, updated_at) VALUES (?, 'Shortlist', ?, ?)`, [collectionId, now, now]);
@@ -99,7 +157,17 @@ describe('job results', () => {
     const ab = page.data[0]!;
     expect(ab).toMatchObject({ state: 'finished', outcome: 'no_record', resolved: true, attempts: 1, target: null, error: null });
     expect(ab.evidence.registry).toMatchObject({ domain: 'ab.com', outcome: 'no_record', freshness: 'fresh', reused: false });
-    expect(ab.bestPrice).toEqual({ providerId: 'porkbun', amount: '10.50', currency: 'USD', kind: 'published', years: 1 });
+    expect(ab.bestPrice).toEqual({
+      providerId: 'porkbun',
+      amount: '10.50',
+      currency: 'USD',
+      kind: 'published',
+      years: 1,
+      offerId: offerIds.get('com:USD'),
+      source: 'Porkbun pricing (USD)',
+      observedAt: priceAt,
+      freshness: 'fresh',
+    });
     expect(ab.collectionIds).toEqual([collectionId]);
     expect(page.data[4]!.bestPrice).toBeNull();
     expect(page.data[2]).toMatchObject({ outcome: 'inconclusive', resolved: false });
@@ -186,6 +254,44 @@ describe('job results', () => {
     const listed = t.results.list(jobId, ResultFilter.parse({}), null, 2);
     expect(listed.total).toBe(5);
     expect(listed.items).toHaveLength(2);
+  });
+
+  it('filtered exports use the filter price currency, like the results view (audit 9)', async () => {
+    const view = await get('maxPrice=9.5&priceCurrency=EUR');
+    expect(view.data.map((i) => [i.subject, i.bestPrice?.amount, i.bestPrice?.currency])).toEqual([
+      ['ab.com', '9.00', 'EUR'],
+      ['c.com', '9.00', 'EUR'],
+    ]);
+    const scope = { kind: 'filter', jobId, filter: { maxPrice: '9.5', priceCurrency: 'EUR' } };
+    const created = ExportResponse.parse((await t.api.post('/exports').send({ format: 'json', scope }).expect(201)).body).data;
+    const doc = JSON.parse((await t.api.get(`/exports/${created.id}/download`).expect(200)).text);
+    expect(doc.items.map((i: Record<string, string>) => [i.domain, i.registration, i.currency])).toEqual([
+      ['ab.com', '9.00', 'EUR'],
+      ['c.com', '9.00', 'EUR'],
+    ]);
+  });
+
+  it('best prices keep their offer, source and age in results, exports and snapshots (audit 10)', async () => {
+    t.clock.advance(25 * HOUR);
+    try {
+      const [ab] = (await get('q=ab.com')).data;
+      expect(ab!.bestPrice).toMatchObject({ offerId: offerIds.get('com:USD'), observedAt: priceAt, freshness: 'stale', source: 'Porkbun pricing (USD)' });
+      const created = ExportResponse.parse(
+        (await t.api.post('/exports').send({ format: 'csv', scope: { kind: 'selection', itemIds: [ab!.id] }, fields: ['domain', 'registration', 'priceObservedAt'] }).expect(201))
+          .body,
+      ).data;
+      const csv = (await t.api.get(`/exports/${created.id}/download`).expect(200)).text;
+      expect(csv).toContain(`ab.com,10.50,${priceAt}`);
+      const snapshot = SnapshotResponse.parse(
+        (await t.api.post('/snapshots').send({ title: 'Prices', scope: { kind: 'selection', itemIds: [ab!.id] } }).expect(201)).body,
+      ).data;
+      const doc = JSON.parse((await t.api.get(`/snapshots/${snapshot.id}/download?format=json`).expect(200)).text);
+      expect(doc.items[0].prices).toEqual([
+        expect.objectContaining({ registration: '10.50', observedAt: priceAt, freshnessAtCreation: 'stale', source: 'Porkbun pricing (USD)' }),
+      ]);
+    } finally {
+      t.clock.advance(-25 * HOUR);
+    }
   });
 
   it('marks reused cached registry evidence', async () => {

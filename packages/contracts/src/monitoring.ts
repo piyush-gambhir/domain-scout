@@ -38,7 +38,13 @@ export const WatchCreate = z
       .boolean()
       .default(false)
       .meta({ description: 'Refresh published catalogs of the selected providers; requires providerIds' }),
-    intervalMinutes: z.number().int().min(15).max(60 * 24 * 30).default(1440),
+    intervalMinutes: z
+      .number()
+      .int()
+      .min(15)
+      .max(60 * 24 * 30)
+      .optional()
+      .meta({ description: 'Defaults to settings.monitoring.defaultIntervalMinutes' }),
   })
   .meta({ id: 'WatchCreate' });
 export const WatchPatch = z
@@ -110,5 +116,9 @@ export const NoticeQuery = z.object({
 });
 
 export const NoticesMarkRead = z
-  .object({ ids: z.array(Uuid).optional(), all: z.boolean().optional() })
+  .object({
+    ids: z.array(Uuid).optional(),
+    all: z.boolean().optional(),
+    watchId: Uuid.optional().meta({ description: 'With all: mark only this watch\'s notices read' }),
+  })
   .meta({ id: 'NoticesMarkRead' });

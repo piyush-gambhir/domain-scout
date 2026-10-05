@@ -57,7 +57,20 @@ function item(jobId: string, domain: string, outcome: string): JobItem {
     startedAt: T0,
     finishedAt: T0,
     evidence: { registry: registry(domain, outcome), confirmation: null, offers: [], nameCheck: null, diagnostic: null, listing: null },
-    bestPrice: outcome === 'no_record' ? { providerId: 'porkbun', amount: '10.37', currency: 'USD', kind: 'published', years: 1 } : null,
+    bestPrice:
+      outcome === 'no_record'
+        ? {
+            providerId: 'porkbun',
+            amount: '10.37',
+            currency: 'USD',
+            kind: 'published',
+            years: 1,
+            offerId: '22222222-2222-4222-8222-222222222222',
+            source: 'Porkbun pricing',
+            observedAt: '2026-10-04T12:00:00.000Z',
+            freshness: 'fresh',
+          }
+        : null,
     collectionIds: [],
   };
 }
@@ -114,7 +127,7 @@ describe('exports', () => {
     expect(csvRows(filtered.body).map((r) => r[0])).toEqual(['bravo.com', 'charlie.io', 'echo.com']);
     expect(filtered.meta.itemCount).toBe(3);
 
-    const selected = await exportOf({ format: 'txt', scope: { kind: 'selection', itemIds: [items[3]!.id, items[0]!.id] } });
+    const selected = await exportOf({ format: 'txt', candidatesOnly: false, scope: { kind: 'selection', itemIds: [items[3]!.id, items[0]!.id] } });
     expect(txtNames(selected.body)).toEqual(['delta.com', 'alpha.com']);
 
     const job = await exportOf({ format: 'json', scope: { kind: 'job', jobId } });
@@ -160,7 +173,7 @@ describe('exports', () => {
     items[1] = { ...items[1]!, outcome: 'no_record' };
   });
 
-  it('labels TXT lists as uncertain candidates and filters candidates on request', async () => {
+  it('labels TXT lists as uncertain candidates and keeps only candidates unless asked not to (audit 15)', async () => {
     const collection = (await http.post('/api/v1/collections').send({ name: 'TXT' }).expect(201)).body.data;
     await http.post(`/api/v1/collections/${collection.id}/entries`).send({ domains: ['hotel.com', 'india.com', 'juliet.com'] }).expect(200);
     fx.registry('hotel.com', 'no_record', '2026-10-05T11:50:00.000Z');
@@ -168,16 +181,29 @@ describe('exports', () => {
     fx.confirmation('india.com', 'porkbun', 'available', '2026-10-05T11:51:00.000Z');
     fx.registry('juliet.com', 'rate_limited', '2026-10-05T11:50:00.000Z');
 
-    const all = await exportOf({ format: 'txt', scope: { kind: 'collection', collectionId: collection.id } });
-    const header = all.body.split('\n').filter((l) => l.startsWith('#')).join('\n');
+    // Default TXT: india.com stays (a provider confirmed it available); registered and unresolved names do not.
+    const byDefault = await exportOf({ format: 'txt', scope: { kind: 'collection', collectionId: collection.id } });
+    const header = byDefault.body.split('\n').filter((l) => l.startsWith('#')).join('\n');
     expect(header).toContain('not a list of guaranteed registrable names');
     expect(header).toContain('no registration record');
-    expect(txtNames(all.body)).toEqual(['hotel.com', 'india.com', 'juliet.com']);
-    expect(all.headers['content-type']).toBe('text/plain; charset=utf-8');
+    expect(txtNames(byDefault.body)).toEqual(['hotel.com', 'india.com']);
+    expect(byDefault.body).toContain('# Kept only names with no registry record or a positive provider confirmation');
+    expect(byDefault.headers['content-type']).toBe('text/plain; charset=utf-8');
 
-    const candidates = await exportOf({ format: 'txt', candidatesOnly: true, scope: { kind: 'collection', collectionId: collection.id } });
-    expect(txtNames(candidates.body)).toEqual(['hotel.com', 'india.com']);
-    expect(candidates.body).toContain('# Kept only names with no registry record or a positive provider confirmation');
+    const explicit = await exportOf({ format: 'txt', candidatesOnly: true, scope: { kind: 'collection', collectionId: collection.id } });
+    expect(txtNames(explicit.body)).toEqual(['hotel.com', 'india.com']);
+
+    const all = await exportOf({ format: 'txt', candidatesOnly: false, scope: { kind: 'collection', collectionId: collection.id } });
+    expect(txtNames(all.body)).toEqual(['hotel.com', 'india.com', 'juliet.com']);
+    expect(all.body).toContain('# Includes every name in scope');
+
+    // The candidate filter is TXT-only: CSV keeps every row and warns only when it was asked for.
+    const csvDefault = await exportOf({ format: 'csv', scope: { kind: 'collection', collectionId: collection.id } });
+    expect(csvRows(csvDefault.body).map((r) => r[0])).toEqual(['hotel.com', 'india.com', 'juliet.com']);
+    expect(csvDefault.meta.warnings.join(' ')).not.toContain('candidatesOnly');
+    const csvAsked = await exportOf({ format: 'csv', candidatesOnly: true, scope: { kind: 'collection', collectionId: collection.id } });
+    expect(csvRows(csvAsked.body)).toHaveLength(3);
+    expect(csvAsked.meta.warnings.join(' ')).toContain('candidatesOnly applies to TXT exports only');
   });
 
   it('escapes spreadsheet formulas and only includes notes when asked', async () => {

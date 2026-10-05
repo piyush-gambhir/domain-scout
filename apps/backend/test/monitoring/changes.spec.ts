@@ -235,4 +235,21 @@ describe('watch change detection', () => {
     const current = WatchResponse.parse((await http.get(`/api/v1/watches/${w.id}`).expect(200)).body).data;
     expect(current.unreadNotices).toBe(0);
   });
+
+  it('marks only one watch\'s notices read with all and watchId', async () => {
+    fx.registry('example.com', 'no_record', '2026-10-05T11:00:00.000Z');
+    fx.registry('other.com', 'no_record', '2026-10-05T11:00:00.000Z');
+    const a = await watch();
+    const b = await watch({ domains: ['other.com'] });
+    run(a.id, (at) => fx.registry('example.com', 'registered', at));
+    run(b.id, (at) => fx.registry('other.com', 'registered', at));
+    const start = t.get(EventsService).latestId();
+
+    await http.post('/api/v1/notices/read').send({ all: true, watchId: a.id }).expect(200);
+    const unread = NoticeListResponse.parse((await http.get('/api/v1/notices?unread=true').expect(200)).body).data;
+    expect(unread.map((n) => n.watchId)).toEqual([b.id]);
+    const changed = t.get(EventsService).read(start, { types: ['watch.changed'] }).map((e) => (e.payload as Watch).id);
+    expect(changed).toEqual([a.id]);
+    await http.post('/api/v1/notices/read').send({ all: true, watchId: '00000000-0000-4000-8000-000000000009' }).expect(404);
+  });
 });

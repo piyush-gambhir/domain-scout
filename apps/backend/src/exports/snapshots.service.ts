@@ -200,9 +200,9 @@ export class SnapshotsService {
           years: record.bestPrice.years,
           registration: record.bestPrice.amount,
           renewal: null,
-          observedAt: null,
-          freshnessAtCreation: null,
-          source: null,
+          observedAt: record.bestPrice.observedAt,
+          freshnessAtCreation: record.bestPrice.freshness,
+          source: record.bestPrice.source,
         });
       }
     }

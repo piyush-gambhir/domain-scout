@@ -3520,7 +3520,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DiagnosticsJobBodyInput"
+                "$ref": "#/components/schemas/DiagnosticsJobBody"
               }
             }
           }
@@ -10285,7 +10285,7 @@
             }
           },
           "horizonYears": {
-            "default": 3,
+            "description": "Defaults to settings.comparison.horizonYears",
             "type": "integer",
             "minimum": 1,
             "maximum": 10
@@ -10305,12 +10305,10 @@
             }
           },
           "currency": {
-            "description": "Comparison currency; requires an attributed FX rate",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CurrencyCode"
-              }
-            ]
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "Comparison currency; omitted uses settings.comparison.currency, null keeps original currencies. Conversion requires an attributed FX rate.",
+            "nullable": true
           },
           "region": {
             "type": "string"
@@ -10318,7 +10316,6 @@
         },
         "required": [
           "domains",
-          "horizonYears",
           "purchasePath"
         ]
       },
@@ -10334,7 +10331,7 @@
             }
           },
           "horizonYears": {
-            "default": 3,
+            "description": "Defaults to settings.comparison.horizonYears",
             "type": "integer",
             "minimum": 1,
             "maximum": 10
@@ -10354,12 +10351,10 @@
             }
           },
           "currency": {
-            "description": "Comparison currency; requires an attributed FX rate",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CurrencyCode"
-              }
-            ]
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "Comparison currency; omitted uses settings.comparison.currency, null keeps original currencies. Conversion requires an attributed FX rate.",
+            "nullable": true
           },
           "region": {
             "type": "string"
@@ -10493,7 +10488,7 @@
           },
           "rank": {
             "nullable": true,
-            "description": "Rank among complete comparable rows in the same currency; null when not rankable",
+            "description": "Rank by horizon amount among rows with known registration and renewal in the same currency and path. When subtotalOnly is true the rank compares base subtotals, not confirmed totals. Null when not rankable.",
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
@@ -10598,7 +10593,34 @@
                 "horizonTotal"
               ]
             },
-            "description": "Cheapest complete comparable row per domain and currency"
+            "description": "Cheapest confirmed total per domain and currency: complete rows with known fees and tax only"
+          },
+          "lowestSubtotal": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "domain": {
+                  "$ref": "#/components/schemas/AsciiDomain"
+                },
+                "currency": {
+                  "$ref": "#/components/schemas/CurrencyCode"
+                },
+                "providerId": {
+                  "$ref": "#/components/schemas/ProviderId"
+                },
+                "horizonTotal": {
+                  "$ref": "#/components/schemas/DecimalString"
+                }
+              },
+              "required": [
+                "domain",
+                "currency",
+                "providerId",
+                "horizonTotal"
+              ]
+            },
+            "description": "Lowest base subtotal per domain and currency where fees or tax are unknown; never a confirmed total"
           },
           "limits": {
             "type": "array",
@@ -10614,6 +10636,7 @@
           "generatedAt",
           "rows",
           "cheapest",
+          "lowestSubtotal",
           "limits"
         ]
       },
@@ -11150,6 +11173,13 @@
           "requiresCredentials": {
             "type": "boolean"
           },
+          "apiHosts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Hosts that receive domain names during lookups"
+          },
           "searchUrlTemplate": {
             "nullable": true,
             "type": "string"
@@ -11164,6 +11194,7 @@
           "name",
           "supported",
           "requiresCredentials",
+          "apiHosts",
           "searchUrlTemplate",
           "reason"
         ]
@@ -11867,6 +11898,19 @@
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
+          },
+          "offerId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "source": {
+            "type": "string",
+            "description": "Catalog source label"
+          },
+          "observedAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/Freshness"
           }
         },
         "required": [
@@ -11874,7 +11918,11 @@
           "amount",
           "currency",
           "kind",
-          "years"
+          "years",
+          "offerId",
+          "source",
+          "observedAt",
+          "freshness"
         ],
         "description": "Lowest known first-year registration price among enabled providers; never a confirmed total"
       },
@@ -12314,51 +12362,7 @@
             }
           },
           "resolver": {
-            "default": "system",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Resolver"
-              }
-            ]
-          }
-        },
-        "required": [
-          "type",
-          "domains",
-          "checks",
-          "resolver"
-        ]
-      },
-      "DiagnosticsJobRequestInput": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "diagnostics"
-            ]
-          },
-          "label": {
-            "type": "string",
-            "maxLength": 200
-          },
-          "domains": {
-            "minItems": 1,
-            "maxItems": 10000,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AsciiDomain"
-            }
-          },
-          "checks": {
-            "minItems": 1,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DiagnosticCheck"
-            }
-          },
-          "resolver": {
-            "default": "system",
+            "description": "Defaults to settings.diagnostics.resolver",
             "allOf": [
               {
                 "$ref": "#/components/schemas/Resolver"
@@ -12430,7 +12434,7 @@
             "$ref": "#/components/schemas/NameCheckJobRequest"
           },
           {
-            "$ref": "#/components/schemas/DiagnosticsJobRequestInput"
+            "$ref": "#/components/schemas/DiagnosticsJobRequest"
           }
         ],
         "discriminator": {
@@ -12442,7 +12446,7 @@
             "transfer": "#/components/schemas/TransferJobRequest",
             "aftermarket": "#/components/schemas/AftermarketJobRequest",
             "name_check": "#/components/schemas/NameCheckJobRequest",
-            "diagnostics": "#/components/schemas/DiagnosticsJobRequestInput"
+            "diagnostics": "#/components/schemas/DiagnosticsJobRequest"
           }
         }
       },
@@ -12555,44 +12559,7 @@
             }
           },
           "resolver": {
-            "default": "system",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Resolver"
-              }
-            ]
-          }
-        },
-        "required": [
-          "domains",
-          "checks",
-          "resolver"
-        ]
-      },
-      "DiagnosticsJobBodyInput": {
-        "type": "object",
-        "properties": {
-          "label": {
-            "type": "string",
-            "maxLength": 200
-          },
-          "domains": {
-            "minItems": 1,
-            "maxItems": 10000,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AsciiDomain"
-            }
-          },
-          "checks": {
-            "minItems": 1,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DiagnosticCheck"
-            }
-          },
-          "resolver": {
-            "default": "system",
+            "description": "Defaults to settings.diagnostics.resolver",
             "allOf": [
               {
                 "$ref": "#/components/schemas/Resolver"
@@ -14322,7 +14289,7 @@
             "type": "boolean"
           },
           "intervalMinutes": {
-            "default": 1440,
+            "description": "Defaults to settings.monitoring.defaultIntervalMinutes",
             "type": "integer",
             "minimum": 15,
             "maximum": 43200
@@ -14333,8 +14300,7 @@
           "domains",
           "includeRegistry",
           "providerIds",
-          "includeCatalogPrices",
-          "intervalMinutes"
+          "includeCatalogPrices"
         ]
       },
       "WatchCreateInput": {
@@ -14370,7 +14336,7 @@
             "type": "boolean"
           },
           "intervalMinutes": {
-            "default": 1440,
+            "description": "Defaults to settings.monitoring.defaultIntervalMinutes",
             "type": "integer",
             "minimum": 15,
             "maximum": 43200
@@ -14649,6 +14615,14 @@
           },
           "all": {
             "type": "boolean"
+          },
+          "watchId": {
+            "description": "With all: mark only this watch's notices read",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Uuid"
+              }
+            ]
           }
         }
       },
@@ -14660,6 +14634,7 @@
           "result.observed",
           "quote.observed",
           "watch.changed",
+          "watch.deleted",
           "notice.created",
           "source.cooldown",
           "catalog.updated",
@@ -14717,6 +14692,22 @@
           "oldestEventId"
         ],
         "description": "The replay cursor expired; refetch state before continuing"
+      },
+      "WatchDeletedPayload": {
+        "type": "object",
+        "properties": {
+          "watchId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "deletedAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "watchId",
+          "deletedAt"
+        ],
+        "description": "Carries no watch details, so deleted names never return to replay"
       },
       "CatalogUpdatedPayload": {
         "type": "object",
@@ -15038,16 +15029,14 @@
             "type": "boolean"
           },
           "candidatesOnly": {
-            "default": false,
-            "description": "TXT only: keep names with no registry record or a positive provider confirmation",
+            "description": "TXT only: keep names with no registry record or a positive provider confirmation. Defaults to true for TXT; set false to include every name in scope. Ignored for CSV and JSON.",
             "type": "boolean"
           }
         },
         "required": [
           "format",
           "scope",
-          "includeNotes",
-          "candidatesOnly"
+          "includeNotes"
         ]
       },
       "ExportCreateInput": {
@@ -15075,8 +15064,7 @@
             "type": "boolean"
           },
           "candidatesOnly": {
-            "default": false,
-            "description": "TXT only: keep names with no registry record or a positive provider confirmation",
+            "description": "TXT only: keep names with no registry record or a positive provider confirmation. Defaults to true for TXT; set false to include every name in scope. Ignored for CSV and JSON.",
             "type": "boolean"
           }
         },
@@ -16502,6 +16490,13 @@
               "type": "string"
             }
           },
+          "destinations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "External destinations the job contacts"
+          },
           "resumable": {
             "type": "boolean"
           }
@@ -16516,6 +16511,7 @@
           "total",
           "unresolved",
           "extensions",
+          "destinations",
           "resumable"
         ]
       },

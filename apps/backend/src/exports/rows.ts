@@ -57,7 +57,7 @@ export function pickPrice(record: ScopedRecord): PriceSummary | null {
       registration: record.bestPrice.amount,
       renewal: null,
       currency: record.bestPrice.currency,
-      observedAt: null,
+      observedAt: record.bestPrice.observedAt,
     };
   }
   return null;

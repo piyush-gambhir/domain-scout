@@ -11,6 +11,7 @@ export const EventType = z
     'result.observed',
     'quote.observed',
     'watch.changed',
+    'watch.deleted',
     'notice.created',
     'source.cooldown',
     'catalog.updated',
@@ -39,6 +40,10 @@ export const StreamResetPayload = z
   .object({ reason: z.string(), oldestEventId: z.string().nullable() })
   .meta({ id: 'StreamResetPayload', description: 'The replay cursor expired; refetch state before continuing' });
 
+export const WatchDeletedPayload = z
+  .object({ watchId: Uuid, deletedAt: Timestamp })
+  .meta({ id: 'WatchDeletedPayload', description: 'Carries no watch details, so deleted names never return to replay' });
+
 export const CatalogUpdatedPayload = z
   .object({ providerId: z.string(), suffixCount: z.number().int(), fetchedAt: Timestamp })
   .meta({ id: 'CatalogUpdatedPayload' });
@@ -49,6 +54,7 @@ export const EventPayloads = {
   'result.observed': JobItem,
   'quote.observed': Offer,
   'watch.changed': Watch,
+  'watch.deleted': WatchDeletedPayload,
   'notice.created': Notice,
   'source.cooldown': SourceCooldownPayload,
   'catalog.updated': CatalogUpdatedPayload,

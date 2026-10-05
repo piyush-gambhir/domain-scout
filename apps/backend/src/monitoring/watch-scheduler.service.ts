@@ -118,15 +118,22 @@ export class WatchScheduler implements OnModuleInit, OnApplicationBootstrap, OnM
   /**
    * Startup recovery: close runs left over from the previous process, record intervals missed
    * while stopped, and start at most one catch-up run per overdue watch.
+   *
+   * Runs whose job already reached a terminal state (it may have finished just before the process
+   * stopped, before its completion was recorded) are finished normally first, so their changes are
+   * still detected. Only runs whose job is not terminal are cancelled; a terminal one whose
+   * processing failed stays open for the next tick to retry.
    */
   recoverAfterDowntime() {
+    this.reconcileActiveRuns({ closeMissing: false });
     const now = this.clock.iso();
+    const terminal = TERMINAL_JOB_STATES.map(() => '?').join(',');
     this.db.transaction(() => {
       this.db.run(
         `UPDATE watch_runs SET status = 'cancelled', finished_at = ?,
            note = TRIM(IFNULL(note || ' ', '') || 'The backend stopped before this run finished.')
-         WHERE ${ACTIVE_RUN}`,
-        [now],
+         WHERE ${ACTIVE_RUN} AND (job_id IS NULL OR job_id NOT IN (SELECT id FROM jobs WHERE state IN (${terminal})))`,
+        [now, ...TERMINAL_JOB_STATES],
       );
     });
     const overdue = this.db.all<WatchRow>(
@@ -281,9 +288,11 @@ export class WatchScheduler implements OnModuleInit, OnApplicationBootstrap, OnM
 
   /**
    * Close runs whose job already finished (in case a completion notification was missed), whose
-   * job was deleted (job_id set to NULL by the foreign key) or no longer exists.
+   * job was deleted (job_id set to NULL by the foreign key) or no longer exists. With
+   * `closeMissing: false` only finished jobs are processed.
    */
-  private reconcileActiveRuns() {
+  private reconcileActiveRuns(options: { closeMissing?: boolean } = {}) {
+    const closeMissing = options.closeMissing ?? true;
     const runs = this.db.all<RunRow>(`SELECT * FROM watch_runs WHERE ${ACTIVE_RUN}`);
     for (const run of runs) {
       let job: Job | null = null;
@@ -296,8 +305,10 @@ export class WatchScheduler implements OnModuleInit, OnApplicationBootstrap, OnM
         }
       }
       if (job && TERMINAL_JOB_STATES.includes(job.state)) {
-        this.onJobFinished(job);
-      } else if (!job) {
+        // One failing run must not hold back the others; it stays open and is retried next tick.
+        const finished = job;
+        this.safely(() => this.onJobFinished(finished));
+      } else if (!job && closeMissing) {
         this.db.transaction(() => {
           this.db.run(`UPDATE watch_runs SET status = 'cancelled', finished_at = ?, note = ? WHERE id = ?`, [
             this.clock.iso(),
@@ -328,7 +339,9 @@ export function nextSlotAfter(scheduledFor: string, intervalMinutes: number, now
   return new Date(start + steps * intervalMs).toISOString();
 }
 
+/** Appends `b` unless the note already says it (a job can be reported finished more than once). */
 function joinNotes(a: string | null, b: string | null): string | null {
+  if (a && b && a.includes(b)) return a;
   const parts = [a, b].filter((p): p is string => !!p);
   return parts.length ? parts.join(' ') : null;
 }

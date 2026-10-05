@@ -44,8 +44,11 @@ export interface OperationResult {
   resolved: boolean;
   /** Evidence to persist atomically with the item update. */
   evidence: EvidenceWrite[];
-  /** Fresh evidence reused instead of querying again. */
-  reused?: { registryObservationId?: string; observationIds?: string[] };
+  /**
+   * Existing evidence to link to the item without writing it: fresh cache hits, or rows a handler
+   * persisted itself (catalog refreshes write their offers with the catalog fetch).
+   */
+  reused?: { registryObservationId?: string; observationIds?: string[]; offerIds?: string[] };
   error?: { code: string; message: string; retryable: boolean } | null;
   /** Transient failure eligible for automatic retry with backoff (network error, 5xx, timeout). */
   retryable?: boolean;

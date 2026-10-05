@@ -10,6 +10,7 @@ import { MonitoringModule } from '../../src/monitoring/monitoring.module.js';
 import { WatchScheduler } from '../../src/monitoring/watch-scheduler.service.js';
 import { EventsService } from '../../src/events/events.service.js';
 import { Database } from '../../src/storage/database.js';
+import { SettingsService } from '../../src/system/settings.service.js';
 import { createModuleApp, type ModuleApp } from '../evidence/harness.js';
 import { FakeDirectory, FakeLifecycle, FakePreviewer, fakeJobsProvider, type FakeJobs } from '../evidence/fakes.js';
 
@@ -70,6 +71,13 @@ describe('watch scheduling', () => {
     await ctx.http.post('/api/v1/watches').send({ name: 'x', domains: ['example.com'], includeRegistry: false }).expect(400);
     await ctx.http.post('/api/v1/watches').send({ name: 'x', domains: ['example.com'], intervalMinutes: 5 }).expect(400);
     await ctx.http.post('/api/v1/watches').send({ name: 'x', domains: ['example.com'], includeCatalogPrices: true }).expect(400);
+  });
+
+  it('uses the configured default interval when a watch omits it', async () => {
+    ctx.t.get(SettingsService).patch({ monitoring: { defaultIntervalMinutes: 60 } });
+    const res = await ctx.http.post('/api/v1/watches').send({ name: 'Hourly', domains: ['example.com'] }).expect(201);
+    expect(WatchResponse.parse(res.body).data.intervalMinutes).toBe(60);
+    expect((await createWatch(ctx.http, { intervalMinutes: 30 })).intervalMinutes).toBe(30);
   });
 
   it('submits due watches through the job engine once per interval', async () => {

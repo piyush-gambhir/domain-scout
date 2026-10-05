@@ -109,10 +109,19 @@ export const OfferListResponse = page(Offer, 'OfferListResponse');
 export const ComparisonRequest = z
   .object({
     domains: z.array(AsciiDomain).min(1).max(500),
-    horizonYears: z.number().int().min(1).max(10).default(3),
+    horizonYears: z
+      .number()
+      .int()
+      .min(1)
+      .max(10)
+      .optional()
+      .meta({ description: 'Defaults to settings.comparison.horizonYears' }),
     purchasePath: PurchasePath.default('new_registration'),
     providerIds: z.array(ProviderId).optional(),
-    currency: CurrencyCode.optional().meta({ description: 'Comparison currency; requires an attributed FX rate' }),
+    currency: CurrencyCode.nullable().optional().meta({
+      description:
+        'Comparison currency; omitted uses settings.comparison.currency, null keeps original currencies. Conversion requires an attributed FX rate.',
+    }),
     region: z.string().optional(),
   })
   .meta({ id: 'ComparisonRequest' });
@@ -142,7 +151,10 @@ export const ComparisonRow = z
     subtotalOnly: z.boolean().meta({ description: 'True when tax or fees are unknown, so the total is a base subtotal' }),
     complete: z.boolean(),
     missing: z.array(MissingPriceField),
-    rank: z.number().int().nullable().meta({ description: 'Rank among complete comparable rows in the same currency; null when not rankable' }),
+    rank: z.number().int().nullable().meta({
+      description:
+        'Rank by horizon amount among rows with known registration and renewal in the same currency and path. When subtotalOnly is true the rank compares base subtotals, not confirmed totals. Null when not rankable.',
+    }),
     freshness: Freshness.nullable(),
     observedAt: Timestamp.nullable(),
     destination: z.string().nullable(),
@@ -160,7 +172,10 @@ export const Comparison = z
     rows: z.array(ComparisonRow),
     cheapest: z
       .array(z.object({ domain: AsciiDomain, currency: CurrencyCode, providerId: ProviderId, horizonTotal: DecimalString }))
-      .meta({ description: 'Cheapest complete comparable row per domain and currency' }),
+      .meta({ description: 'Cheapest confirmed total per domain and currency: complete rows with known fees and tax only' }),
+    lowestSubtotal: z
+      .array(z.object({ domain: AsciiDomain, currency: CurrencyCode, providerId: ProviderId, horizonTotal: DecimalString }))
+      .meta({ description: 'Lowest base subtotal per domain and currency where fees or tax are unknown; never a confirmed total' }),
     limits: z.array(z.string()),
   })
   .meta({ id: 'Comparison' });

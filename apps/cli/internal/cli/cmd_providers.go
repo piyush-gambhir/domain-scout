@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -409,17 +410,22 @@ func (a *App) compareCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if horizon < 1 || horizon > 10 {
-				return usageErr("--horizon must be between 1 and 10 years")
-			}
 			pp := api.PurchasePath(path)
 			if !pp.Valid() {
 				return usageErr("--path must be new_registration, renewal, transfer or aftermarket")
 			}
-			body := api.ComparisonRequestInput{Domains: ds, HorizonYears: ptr(horizon), PurchasePath: &pp, Region: optStr(region)}
-			if currency != "" {
+			// Horizon and currency are sent only when given, so the backend applies the settings.
+			body := api.ComparisonRequestInput{Domains: ds, PurchasePath: &pp, Region: optStr(region)}
+			if cmd.Flags().Changed("horizon") {
+				if horizon < 1 || horizon > 10 {
+					return usageErr("--horizon must be between 1 and 10 years")
+				}
+				body.HorizonYears = ptr(horizon)
+			}
+			original := currency == "original"
+			if currency != "" && !original {
 				if !currencyRe.MatchString(currency) {
-					return usageErr("--currency must be an ISO 4217 code such as USD")
+					return usageErr("--currency must be an ISO 4217 code such as USD, or original")
 				}
 				body.Currency = &currency
 			}
@@ -431,14 +437,25 @@ func (a *App) compareCmd() *cobra.Command {
 				body.ProviderIds = &ids
 			}
 			return a.show(ctx, comparisonView, func(ctx context.Context, g *api.Client) (*http.Response, error) {
-				return g.CreateComparison(ctx, body)
+				if !original {
+					return g.CreateComparison(ctx, body)
+				}
+				// An explicit null keeps original currencies even when settings name one.
+				raw, err := json.Marshal(struct {
+					api.ComparisonRequestInput
+					Currency *string `json:"currency"`
+				}{ComparisonRequestInput: body})
+				if err != nil {
+					return nil, err
+				}
+				return g.CreateComparisonWithBody(ctx, "application/json", bytes.NewReader(raw))
 			})
 		})
 	fl := cmd.Flags()
 	fl.StringVarP(&file, "file", "f", "", "file with domains; - reads stdin")
-	fl.IntVar(&horizon, "horizon", 3, "comparison horizon in years (1-10)")
+	fl.IntVar(&horizon, "horizon", 0, "comparison horizon in years, 1-10 (default: settings comparison.horizonYears)")
 	fl.StringVar(&path, "path", "new_registration", "purchase path: new_registration, renewal, transfer or aftermarket")
-	fl.StringVar(&currency, "currency", "", "comparison currency (requires an attributed FX rate in settings)")
+	fl.StringVar(&currency, "currency", "", "comparison currency, ISO 4217, converted with an attributed FX rate from settings; original keeps each offer's currency (default: settings comparison.currency)")
 	fl.StringSliceVar(&providers, "providers", nil, "limit to these provider ids")
 	fl.StringVar(&region, "region", "", "pricing region")
 	return cmd
@@ -559,15 +576,20 @@ func (a *App) diagnoseCmd() *cobra.Command {
 					return usageErr("unknown --checks value %q: use dns, nameservers, dnssec, tls or http", s)
 				}
 			}
-			rv := api.Resolver(resolver)
-			if !rv.Valid() {
-				return usageErr("--resolver must be system, cloudflare or google")
+			// Sent only when given, so the backend applies settings diagnostics.resolver.
+			var rv *api.Resolver
+			if resolver != "" {
+				r := api.Resolver(resolver)
+				if !r.Valid() {
+					return usageErr("--resolver must be system, cloudflare or google")
+				}
+				rv = &r
 			}
 			ds, err := a.domains(args, file)
 			if err != nil {
 				return err
 			}
-			body := api.DiagnosticsJobBodyInput{Domains: ds, Checks: cs, Resolver: &rv, Label: optStr(label)}
+			body := api.DiagnosticsJobBody{Domains: ds, Checks: cs, Resolver: rv, Label: optStr(label)}
 			k := keyOrNew(key)
 			return a.submit(ctx, wait, func(ctx context.Context, g *api.Client) (*http.Response, error) {
 				return g.CreateDiagnostics(ctx, &api.CreateDiagnosticsParams{IdempotencyKey: &k}, body)
@@ -576,7 +598,7 @@ func (a *App) diagnoseCmd() *cobra.Command {
 	fl := cmd.Flags()
 	fl.StringVarP(&file, "file", "f", "", "file with domains; - reads stdin")
 	fl.StringSliceVar(&checks, "checks", nil, "checks to run: dns, nameservers, dnssec, tls, http (required)")
-	fl.StringVar(&resolver, "resolver", "system", "system, cloudflare or google")
+	fl.StringVar(&resolver, "resolver", "", "system, cloudflare or google (default: settings diagnostics.resolver)")
 	fl.StringVar(&label, "label", "", "job label")
 	fl.BoolVar(&wait, "wait", false, "wait for the job to finish, then print all results")
 	idempotencyFlag(cmd, &key)

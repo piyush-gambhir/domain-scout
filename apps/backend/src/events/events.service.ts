@@ -175,6 +175,44 @@ export class EventsService {
     return total;
   }
 
+  /**
+   * Deletes events whose payload copies evidence, catalog fetches or notices that no longer exist,
+   * so scoped data deletion leaves no replayable copy. `evidence` covers observations (registry,
+   * confirmations, listings, name checks, diagnostics), `prices` covers offers, best prices and
+   * catalog fetches, `notices` covers notice.created. Call inside the deleting transaction. Returns
+   * the count.
+   */
+  deleteOrphanedCopies(scope: { evidence?: boolean; prices?: boolean; notices?: boolean }): number {
+    const conditions: string[] = [];
+    const missingObservation = (path: string) =>
+      `(json_extract(payload_json, '${path}') IS NOT NULL
+        AND NOT EXISTS (SELECT 1 FROM observations o WHERE o.id = json_extract(events.payload_json, '${path}')))`;
+    if (scope.evidence) {
+      const paths = ['registry', 'confirmation', 'listing', 'nameCheck', 'diagnostic'].map((k) => `$.evidence.${k}.id`);
+      conditions.push(`(type = 'result.observed' AND (${paths.map(missingObservation).join(' OR ')}))`);
+    }
+    if (scope.prices) {
+      conditions.push(
+        `(type = 'quote.observed' AND NOT EXISTS (SELECT 1 FROM offers f WHERE f.id = json_extract(events.payload_json, '$.id')))`,
+        `(type = 'result.observed' AND (
+           EXISTS (SELECT 1 FROM json_each(events.payload_json, '$.evidence.offers') e
+                   WHERE NOT EXISTS (SELECT 1 FROM offers f WHERE f.id = json_extract(e.value, '$.id')))
+           OR (json_extract(payload_json, '$.bestPrice') IS NOT NULL
+               AND NOT EXISTS (SELECT 1 FROM offers f WHERE f.id = json_extract(events.payload_json, '$.bestPrice.offerId')))))`,
+        `(type = 'catalog.updated' AND NOT EXISTS (SELECT 1 FROM catalog_fetches c
+           WHERE c.provider_id = json_extract(events.payload_json, '$.providerId')
+             AND c.fetched_at = json_extract(events.payload_json, '$.fetchedAt')))`,
+      );
+    }
+    if (scope.notices) {
+      conditions.push(`(type = 'notice.created' AND NOT EXISTS (SELECT 1 FROM notices n WHERE n.id = json_extract(events.payload_json, '$.id')))`);
+    }
+    if (conditions.length === 0) return 0;
+    const ids = this.db.all<{ id: number }>(`DELETE FROM events WHERE ${conditions.join(' OR ')} RETURNING id`);
+    if (ids.length) this.markDeleted(ids.reduce((max, row) => Math.max(max, row.id), 0));
+    return ids.length;
+  }
+
   /** Deletes every event (used when all jobs and watches are removed). Returns the count. */
   deleteAll(): number {
     const maxId = this.db.get<{ id: number | null }>('SELECT MAX(id) AS id FROM events')?.id;

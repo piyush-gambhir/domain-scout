@@ -148,6 +148,31 @@ describe('job planning', () => {
     expect(JSON.parse(stored.input_json).resolver).toBe('cloudflare');
   });
 
+  it('defaults an omitted diagnostics resolver to the configured setting at planning time', async () => {
+    t = await createJobsApp();
+    t.registry.use(
+      fakeHandler({
+        operation: 'diagnostic',
+        sourceKey: (i) => `resolver:${String(i.jobInput.resolver)}`,
+        destination: (i) => `${String(i.jobInput.resolver)}.test`,
+      }),
+    );
+    t.settings.patch({ diagnostics: { resolver: 'google' } });
+    const configured = JobResponse.parse((await t.api.post('/diagnostics').send({ domains: ['a.com'], checks: ['dns'] }).expect(201)).body).data;
+    expect(configured.destinations).toEqual(['google.test']);
+    expect(items(t, configured.id).map((i) => i.source_key)).toEqual(['resolver:google']);
+    const stored = (id: string) => JSON.parse(t.db.get<{ input_json: string }>('SELECT input_json FROM jobs WHERE id = ?', [id])!.input_json);
+    expect(stored(configured.id).resolver).toBe('google');
+
+    // A later settings change does not alter the submitted job; an explicit resolver wins.
+    t.settings.patch({ diagnostics: { resolver: 'cloudflare' } });
+    expect(stored(configured.id).resolver).toBe('google');
+    const explicit = JobResponse.parse(
+      (await t.api.post('/diagnostics').send({ domains: ['a.com'], checks: ['dns'], resolver: 'system' }).expect(201)).body,
+    ).data;
+    expect(stored(explicit.id).resolver).toBe('system');
+  });
+
   it('plans internal catalog refresh and watch jobs', async () => {
     t = await createJobsApp();
     t.registry.use(

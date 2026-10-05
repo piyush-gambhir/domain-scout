@@ -5,6 +5,7 @@ import { decodeCursor, encodeCursor } from '../core/envelope.js';
 import { Database } from '../storage/database.js';
 import { hydrateOffer, type OfferRow } from '../storage/evidence.js';
 import { ProvidersService } from '../providers/providers.service.js';
+import { CURRENT_PUBLISHED, LATEST_FETCH_CTE, LATEST_FETCH_JOIN } from './current-catalog.js';
 
 export interface PricedOffer {
   offer: Offer;
@@ -28,37 +29,18 @@ export class OffersService {
     return { offer: hydrateOffer<Offer>(row, this.clock.now()), promotional: row.promotional === 1, staleAt: row.stale_at };
   }
 
-  /** A provider whose latest successful catalog omits the suffix no longer publishes a price for it. */
-  private listedByCatalog(providerId: string, suffix: string): boolean {
-    if (!this.providers.latestOkFetch(providerId)) return true;
-    return Boolean(this.db.get('SELECT 1 AS x FROM provider_suffixes WHERE provider_id = ? AND suffix = ?', [providerId, suffix]));
-  }
-
-  /**
-   * SQL condition (alias `o`, one bound parameter pair: fetch id, fetched_at) selecting published
-   * rows that are current for a provider: the latest successful catalog's rows, plus suffix-level
-   * prices recorded after it (e.g. alongside a quote). Without a successful catalog every row counts.
-   * A failed refresh adds no fetch, so the previous values stay and age into stale.
-   */
-  private currentPublished(providerId: string): { sql: string; params: string[] } {
-    const fetch = this.providers.latestOkFetch(providerId);
-    if (!fetch) return { sql: '1 = 1', params: [] };
-    return { sql: '(o.catalog_fetch_id = ? OR (o.catalog_fetch_id IS NULL AND o.observed_at > ?))', params: [fetch.id, fetch.fetched_at] };
-  }
-
   /** Current published variants (one per currency and term) for a provider and suffix, newest first. */
   publishedVariants(providerId: string, suffix: string): PricedOffer[] {
-    if (!this.listedByCatalog(providerId, suffix)) return [];
-    const current = this.currentPublished(providerId);
     const rows = this.db.all<Row>(
-      `WITH latest AS (
+      `WITH ${LATEST_FETCH_CTE},
+       latest AS (
          SELECT o.*, o.rowid AS rid, ROW_NUMBER() OVER (PARTITION BY o.currency, o.term_years ORDER BY o.observed_at DESC, o.rowid DESC) AS rn
-         FROM offers o
+         FROM offers o ${LATEST_FETCH_JOIN}
          WHERE o.provider_id = ? AND o.suffix = ? AND o.domain IS NULL AND o.kind = 'published' AND o.purchase_path = 'new_registration'
-           AND ${current.sql}
+           AND ${CURRENT_PUBLISHED}
        )
        SELECT * FROM latest WHERE rn = 1 ORDER BY observed_at DESC, rid DESC`,
-      [providerId, suffix, ...current.params],
+      [providerId, suffix],
     );
     return rows.map((r) => this.priced(r));
   }
@@ -90,22 +72,18 @@ export class OffersService {
     const params: (string | number)[] = [providerId];
     let filter = '';
     if (suffix) {
-      filter = 'AND suffix = ?';
+      filter = 'AND o.suffix = ?';
       params.push(suffix.toLowerCase().replace(/^\./, ''));
     }
-    const current = this.currentPublished(providerId);
-    const listed = this.providers.latestOkFetch(providerId)
-      ? 'AND EXISTS (SELECT 1 FROM provider_suffixes s WHERE s.provider_id = l.provider_id AND s.suffix = l.suffix)'
-      : '';
-    params.push(...current.params);
-    const base = `WITH latest AS (
+    const base = `WITH ${LATEST_FETCH_CTE},
+      latest AS (
         SELECT o.*, ROW_NUMBER() OVER (PARTITION BY o.suffix, o.currency, o.term_years ORDER BY o.observed_at DESC, o.rowid DESC) AS rn
-        FROM offers o
+        FROM offers o ${LATEST_FETCH_JOIN}
         WHERE o.provider_id = ? AND o.domain IS NULL AND o.kind = 'published' AND o.purchase_path = 'new_registration' ${filter}
-          AND ${current.sql}
+          AND ${CURRENT_PUBLISHED}
       )`;
-    const total = this.db.get<{ n: number }>(`${base} SELECT COUNT(*) AS n FROM latest l WHERE l.rn = 1 ${listed}`, params)?.n ?? 0;
-    const rows = this.db.all<Row>(`${base} SELECT * FROM latest l WHERE l.rn = 1 ${listed} ORDER BY l.suffix, l.currency, l.term_years LIMIT ? OFFSET ?`, [
+    const total = this.db.get<{ n: number }>(`${base} SELECT COUNT(*) AS n FROM latest l WHERE l.rn = 1`, params)?.n ?? 0;
+    const rows = this.db.all<Row>(`${base} SELECT * FROM latest l WHERE l.rn = 1 ORDER BY l.suffix, l.currency, l.term_years LIMIT ? OFFSET ?`, [
       ...params,
       limit,
       offset,

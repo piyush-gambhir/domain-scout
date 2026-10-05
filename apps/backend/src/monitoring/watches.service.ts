@@ -9,7 +9,17 @@ import { EventsService } from '../events/events.service.js';
 import { EvidenceReader } from '../evidence/evidence-reader.service.js';
 import { pageWindow } from '../evidence/paging.js';
 import { Database, json } from '../storage/database.js';
-import { addMinutes, toNotice, toRecord, toWatch, type NoticeRow, type WatchRecord, type WatchRow } from './watch-records.js';
+import { SettingsService } from '../system/settings.service.js';
+import {
+  addMinutes,
+  deleteWatchRows,
+  toNotice,
+  toRecord,
+  toWatch,
+  type NoticeRow,
+  type WatchRecord,
+  type WatchRow,
+} from './watch-records.js';
 
 type CreateBody = z.output<typeof WatchCreate>;
 type PatchBody = z.output<typeof WatchPatch>;
@@ -35,6 +45,7 @@ export class WatchesService {
     private readonly clock: Clock,
     private readonly events: EventsService,
     private readonly reader: EvidenceReader,
+    private readonly settings: SettingsService,
     @Optional() private readonly providers?: ProviderDirectory,
   ) {}
 
@@ -77,7 +88,7 @@ export class WatchesService {
           body.includeRegistry ? 1 : 0,
           json.stringify([...new Set(body.providerIds)]),
           body.includeCatalogPrices ? 1 : 0,
-          body.intervalMinutes,
+          body.intervalMinutes ?? this.settings.get().monitoring.defaultIntervalMinutes,
           now,
           now,
           // The first check is due right away so the watch has a fresh baseline.
@@ -122,11 +133,16 @@ export class WatchesService {
     });
   }
 
+  /**
+   * Removes the watch, its runs, notices and events. No event describes the deletion: the contract's
+   * only watch event carries the full watch, which would put the deleted names back into replay.
+   */
   delete(id: string) {
-    const watch = this.get(id);
+    this.record(id);
     this.db.transaction(() => {
-      this.db.run('DELETE FROM watches WHERE id = ?', [id]);
-      this.events.emit('watch.changed', { watchId: id }, watch);
+      deleteWatchRows(this.db, this.events, [id]);
+      // Not tagged with the watch id, so cleanup of that watch's events keeps this tombstone.
+      this.events.emit('watch.deleted', { watchId: null }, { watchId: id, deletedAt: this.clock.iso() });
     });
   }
 
@@ -197,22 +213,25 @@ export class WatchesService {
     return { items: rows.map(toNotice) as Notice[], nextCursor: page.next(rows.length, total), total };
   }
 
-  markRead(body: { ids?: string[]; all?: boolean }) {
+  /** Marks the given notices, or all of them, read; `watchId` narrows either selection to one watch. */
+  markRead(body: { ids?: string[]; all?: boolean; watchId?: string }) {
     if (!body.all && !body.ids?.length) throw AppError.invalid('Provide ids or all: true');
+    if (body.watchId) this.record(body.watchId);
+    const where = ['read_at IS NULL'];
+    const params: string[] = [];
+    if (!body.all) {
+      where.push(`id IN (${body.ids!.map(() => '?').join(',')})`);
+      params.push(...body.ids!);
+    }
+    if (body.watchId) {
+      where.push('watch_id = ?');
+      params.push(body.watchId);
+    }
+    const clause = where.join(' AND ');
     const now = this.clock.iso();
     this.db.transaction(() => {
-      const affected = body.all
-        ? this.db.all<{ watch_id: string }>('SELECT DISTINCT watch_id FROM notices WHERE read_at IS NULL')
-        : this.db.all<{ watch_id: string }>(
-            `SELECT DISTINCT watch_id FROM notices WHERE read_at IS NULL AND id IN (${body.ids!.map(() => '?').join(',')})`,
-            body.ids!,
-          );
-      if (body.all) this.db.run('UPDATE notices SET read_at = ? WHERE read_at IS NULL', [now]);
-      else
-        this.db.run(`UPDATE notices SET read_at = ? WHERE read_at IS NULL AND id IN (${body.ids!.map(() => '?').join(',')})`, [
-          now,
-          ...body.ids!,
-        ]);
+      const affected = this.db.all<{ watch_id: string }>(`SELECT DISTINCT watch_id FROM notices WHERE ${clause}`, params);
+      this.db.run(`UPDATE notices SET read_at = ? WHERE ${clause}`, [now, ...params]);
       for (const { watch_id } of affected) this.changed(watch_id);
     });
   }

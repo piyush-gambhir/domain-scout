@@ -13,6 +13,7 @@ export interface HistoryEntry {
   total: number;
   unresolved: number;
   extensions: string[];
+  destinations: string[];
   resumable: boolean;
 }
 
@@ -22,6 +23,7 @@ interface JobRow {
   label: string | null;
   state: string;
   input_json: string;
+  destinations_json: string;
   total: number;
   unresolved: number;
   created_at: string;
@@ -67,7 +69,7 @@ export class HistoryService {
       pageParams.push(cursor.createdAt, cursor.createdAt, cursor.id);
     }
     const rows = this.db.all<JobRow>(
-      `SELECT j.id, j.type, j.label, j.state, j.input_json, j.total, j.unresolved, j.created_at, j.finished_at,
+      `SELECT j.id, j.type, j.label, j.state, j.input_json, j.destinations_json, j.total, j.unresolved, j.created_at, j.finished_at,
          (j.state IN ('interrupted', 'cancelled') AND EXISTS (
            SELECT 1 FROM job_items r WHERE r.job_id = j.id AND r.state IN ('pending', 'interrupted'))) AS resumable
        FROM jobs j ${pageWhere.length ? `WHERE ${pageWhere.join(' AND ')}` : ''}
@@ -90,6 +92,7 @@ export class HistoryService {
         total: row.total,
         unresolved: row.unresolved,
         extensions: declared.length ? declared : (fallback.get(row.id) ?? []),
+        destinations: json.parse<string[]>(row.destinations_json, []),
         resumable: row.resumable === 1,
       };
     });

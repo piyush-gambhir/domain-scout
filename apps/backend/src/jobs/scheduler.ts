@@ -90,14 +90,11 @@ class JobRun {
   constructor(
     readonly id: string,
     readonly type: JobType,
-    readonly watchId: string | null,
+    /** Cleared when the watch is deleted mid-run (see JobScheduler.refs). */
+    public watchId: string | null,
     readonly input: StoredJobInput,
     public snap: RunSnapshot,
   ) {}
-
-  get refs() {
-    return { jobId: this.id, watchId: this.watchId };
-  }
 }
 
 /**
@@ -339,7 +336,7 @@ export class JobScheduler {
           const { counters, nextRetryAt } = this.store.recount(run.id);
           this.store.saveRun(run.id, { state, counters, startedAt: run.snap.startedAt, finishedAt: now, nextRetryAt }, now);
           const updated = this.store.job(run.id);
-          this.events.emit('job.updated', run.refs, updated);
+          this.events.emit('job.updated', this.refs(run), updated);
           return updated;
         });
         this.lifecycle.notify(job);
@@ -838,6 +835,7 @@ export class JobScheduler {
         refs.reusedRegistry = true;
       }
       observations.push(...(result.reused?.observationIds ?? []));
+      offers.push(...(result.reused?.offerIds ?? []));
       if (observations.length) refs.observations = observations;
       if (offers.length) refs.offers = offers;
       this.db.run(
@@ -860,9 +858,9 @@ export class JobScheduler {
       if (cooldown) this.persistCooldown(run, sourceKey, cooldown, now);
       const [observed] = this.results.byIds([item.id]);
       if (observed) {
-        this.events.emit('result.observed', run.refs, observed);
+        this.events.emit('result.observed', this.refs(run), observed);
         for (const offer of observed.evidence.offers) {
-          if (offer.kind === 'exact_quote') this.events.emit('quote.observed', run.refs, offer);
+          if (offer.kind === 'exact_quote') this.events.emit('quote.observed', this.refs(run), offer);
         }
       }
       this.progress(run, next.counters);
@@ -924,7 +922,7 @@ export class JobScheduler {
           [error, until, now, now, row.id],
         );
       }
-      for (const observed of this.results.byIds(rows.map((r) => r.id))) this.events.emit('result.observed', run.refs, observed);
+      for (const observed of this.results.byIds(rows.map((r) => r.id))) this.events.emit('result.observed', this.refs(run), observed);
       this.progress(run, next.counters);
     });
     return rows.length === this.options.sweepBatchSize;
@@ -937,7 +935,7 @@ export class JobScheduler {
        ON CONFLICT(source_key) DO UPDATE SET until = excluded.until, reason = excluded.reason, updated_at = excluded.updated_at`,
       [key, cooldown.iso, cooldown.reason, now],
     );
-    this.events.emit('source.cooldown', run.refs, { sourceId: key, until: cooldown.iso, reason: cooldown.reason });
+    this.events.emit('source.cooldown', this.refs(run), { sourceId: key, until: cooldown.iso, reason: cooldown.reason });
   }
 
   /** After a committed write: the cooldown is durable and applies to scheduling. */
@@ -985,7 +983,7 @@ export class JobScheduler {
     this.db.transaction(() => {
       write?.();
       this.store.saveRun(run.id, next, now);
-      if (emitUpdated) this.events.emit('job.updated', run.refs, this.store.job(run.id));
+      if (emitUpdated) this.events.emit('job.updated', this.refs(run), this.store.job(run.id));
     });
     run.snap = next;
   }
@@ -994,7 +992,19 @@ export class JobScheduler {
     const t = performance.now();
     if (t - run.lastProgress < this.options.progressIntervalMs) return;
     run.lastProgress = t;
-    this.events.emit('job.progress', run.refs, { jobId: run.id, counters });
+    this.events.emit('job.progress', this.refs(run), { jobId: run.id, counters });
+  }
+
+  /**
+   * Event refs for a run. Deleting a watch sets its jobs' watch_id to NULL; a running job re-reads it
+   * so its later events stop referencing the deleted watch. Call inside the emitting transaction.
+   */
+  private refs(run: JobRun): { jobId: string; watchId: string | null } {
+    if (run.watchId !== null) {
+      const row = this.db.get<{ watch_id: string | null }>('SELECT watch_id FROM jobs WHERE id = ?', [run.id]);
+      if (row && row.watch_id === null) run.watchId = null;
+    }
+    return { jobId: run.id, watchId: run.watchId };
   }
 
   private source(key: string): SourceState {

@@ -21,12 +21,13 @@ const NAMECHEAP_ENV = {
 const CLOUDFLARE_ENV = { DOMAIN_SCOUT_CLOUDFLARE_ACCOUNT_ID: 'acc0123', DOMAIN_SCOUT_CLOUDFLARE_API_TOKEN: 'cf_handler_token_0001' };
 const PORKBUN_ENV = { DOMAIN_SCOUT_PORKBUN_API_KEY: 'pk1_handlerkey_0001', DOMAIN_SCOUT_PORKBUN_SECRET_API_KEY: 'sk1_handlersecret_0001' };
 const HOSTINGER_ENV = { DOMAIN_SCOUT_HOSTINGER_API_TOKEN: 'hostinger_handler_token_0001' };
+const GODADDY_ENV = { DOMAIN_SCOUT_GODADDY_PAT: 'gd_handler_pat_0001' };
 const DOMAIN = 'xq7mz9brandtest.com';
 
 describe('provider handlers', () => {
   let t: ProvidersTestApp;
   beforeAll(async () => {
-    t = await createProvidersApp({ ...PORKBUN_ENV, ...HOSTINGER_ENV, ...NAMECHEAP_ENV, ...CLOUDFLARE_ENV });
+    t = await createProvidersApp({ ...PORKBUN_ENV, ...HOSTINGER_ENV, ...NAMECHEAP_ENV, ...CLOUDFLARE_ENV, ...GODADDY_ENV });
   });
   afterAll(() => t.close());
   afterEach(() => t.transport.reset());
@@ -151,6 +152,26 @@ describe('provider handlers', () => {
     t.transport.on(/domain-check/, { status: 200, headers: {}, body: cf });
     const echoed = await t.app.get(ProviderCheckHandler).execute(jobItem('provider_check', DOMAIN, 'cloudflare', 'com'), operationContext(t));
     expect(serialized(echoed)).not.toContain(cfToken);
+  });
+
+  it('scrubs credentials echoed in a successful quote before it becomes stored evidence (audit 1)', async () => {
+    const pat = GODADDY_ENV.DOMAIN_SCOUT_GODADDY_PAT;
+    const otherToken = 'Q'.repeat(28);
+    const body = JSON.parse(fixture('godaddy', 'availability-premium', { domain: DOMAIN }).body);
+    body.prices[0].fees = [
+      { type: `PREMIUM_FEE for ${pat}`, fee: { currencyCode: 'USD', value: 1500 } },
+      { type: `RETRY with Bearer ${otherToken}`, fee: { currencyCode: 'USD', value: 100 } },
+    ];
+    t.transport.on(/check-availability/, { status: 200, headers: {}, body: JSON.stringify(body) });
+    const result = await t.app.get(QuoteHandler).execute(jobItem('quote', DOMAIN, 'godaddy', 'com'), operationContext(t));
+    expect(result).toMatchObject({ outcome: 'quoted', resolved: true });
+    expect(serialized(result)).not.toContain(pat);
+    expect(serialized(result)).not.toContain(otherToken);
+    const offer = result.evidence.find((e) => e.kind === 'offer')!.row as unknown as { payload: Offer };
+    expect(offer.payload.fees.other).toEqual([
+      { label: 'PREMIUM_FEE for [redacted]', amount: '15.00' },
+      { label: 'RETRY with Bearer [redacted]', amount: '1.00' },
+    ]);
   });
 
   it('an offer without the amount for its path is not a quote', async () => {

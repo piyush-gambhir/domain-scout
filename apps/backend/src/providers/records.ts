@@ -1,9 +1,32 @@
 import { randomUUID } from 'node:crypto';
-import type { Offer, ProviderConfirmation } from '@domain-scout/contracts';
+import { Offer, type ProviderConfirmation } from '@domain-scout/contracts';
 import type { ObservationWrite, OfferWrite } from '../storage/evidence.js';
-import type { CheckResult, OfferDraft } from './adapters/types.js';
+import { ProviderError, type CheckResult, type OfferDraft } from './adapters/types.js';
 
-/** Builds the stored offer row and its contract payload (payload omits computed freshness). */
+/**
+ * A draft with provider-supplied text scrubbed (source label and URL, fee labels, promotion text,
+ * region, listing destination). Providers can echo request parameters, including credentials, in
+ * successful responses too.
+ */
+export function scrubDraft<T extends OfferDraft>(draft: T, scrub: (text: string) => string): T {
+  const promotion = draft.promotion;
+  return {
+    ...draft,
+    region: draft.region === null ? null : scrub(draft.region),
+    fees: { ...draft.fees, other: draft.fees.other.map((fee) => ({ ...fee, label: scrub(fee.label) })) },
+    promotion: promotion
+      ? { ...promotion, description: scrub(promotion.description), restrictions: promotion.restrictions === null ? null : scrub(promotion.restrictions) }
+      : null,
+    source: { label: scrub(draft.source.label), url: draft.source.url === null ? null : scrub(draft.source.url) },
+    ...(draft.destination ? { destination: { ...draft.destination, url: scrub(draft.destination.url) } } : {}),
+  };
+}
+
+/**
+ * Builds the stored offer row and its contract payload (payload omits computed freshness). The
+ * payload must be a valid contract Offer: a malformed one (fractional years, a bad currency code)
+ * throws a bad_response ProviderError instead of being persisted.
+ */
 export function offerRecord(input: {
   providerId: string;
   domain: string | null;
@@ -39,6 +62,14 @@ export function offerRecord(input: {
     source: draft.source,
     destination: input.destination,
   };
+  const checked = Offer.safeParse({ ...payload, freshness: 'fresh' });
+  if (!checked.success) {
+    const issue = checked.error.issues[0]!;
+    throw new ProviderError(
+      'bad_response',
+      `${input.providerId} returned a malformed price for .${input.suffix}: ${issue.path.join('.') || 'offer'} ${issue.message}`,
+    );
+  }
   const write: OfferWrite = {
     id,
     providerId: input.providerId,

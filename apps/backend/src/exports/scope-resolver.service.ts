@@ -7,12 +7,16 @@ import {
   type Offer,
   type ProviderConfirmation,
   type RegistryObservation,
+  type ResultFilterParsed,
 } from '@domain-scout/contracts';
 import type { z } from 'zod';
 import { AppError } from '../core/errors.js';
 import { JobResults } from '../core/ports.js';
 import { EvidenceReader } from '../evidence/evidence-reader.service.js';
 import { Database } from '../storage/database.js';
+
+/** Largest page JobResults.list returns. */
+const FILTER_PAGE = 1000;
 
 /** Name-check, diagnostic or listing evidence carried by a job item, flattened for artifacts. */
 export interface OtherEvidence {
@@ -87,8 +91,8 @@ export class ScopeResolver {
         break;
       }
       case 'filter': {
-        const ids = this.jobResults().matchingIds(scope.jobId, ResultFilter.parse(scope.filter));
-        const items = this.jobResults().byIds(ids);
+        // The same pages the results view shows, so prices use the filter's priceCurrency.
+        const items = this.filteredItems(scope.jobId, ResultFilter.parse(scope.filter));
         records = items.map((item) => this.fromItem(item));
         itemIds = items.map((item) => item.id);
         label = `filtered results of job ${scope.jobId}`;
@@ -160,6 +164,18 @@ export class ScopeResolver {
       .map((r) => r.notes!)
       .filter((n) => n.trim() !== '');
     return notes.length ? notes.join(' | ') : null;
+  }
+
+  /** Every item matching the filter, in result order, hydrated exactly as the results view does. */
+  private filteredItems(jobId: string, filter: ResultFilterParsed): JobItem[] {
+    const items: JobItem[] = [];
+    let cursor: string | null = null;
+    do {
+      const page = this.jobResults().list(jobId, filter, cursor, FILTER_PAGE);
+      items.push(...page.items);
+      cursor = page.nextCursor;
+    } while (cursor);
+    return items;
   }
 
   private jobResults(): JobResults {

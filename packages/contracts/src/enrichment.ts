@@ -105,6 +105,7 @@ export const AftermarketSource = z
     name: z.string(),
     supported: z.boolean(),
     requiresCredentials: z.boolean(),
+    apiHosts: z.array(z.string()).meta({ description: 'Hosts that receive domain names during lookups' }),
     searchUrlTemplate: z.string().nullable(),
     reason: z.string().nullable(),
   })

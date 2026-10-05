@@ -3,10 +3,13 @@ import { existsSync, mkdirSync, mkdtempSync, rmSync, statSync, symlinkSync, writ
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { DataDeleteResponse, DataInventoryResponse } from '@domain-scout/contracts';
+import { DataDeleteResponse, DataInventoryResponse, type JobItem, type Notice } from '@domain-scout/contracts';
 import { EventsService } from '../../src/events/events.service.js';
 import { Database } from '../../src/storage/database.js';
+import { SseClient } from '../events/sse-client.js';
 import { createTestApp, type TestApp } from '../helpers.js';
+import { createJobsApp, fakeHandler, registryResult, type JobsTestApp } from '../jobs/helpers.js';
+import { offerWrite } from '../jobs/offer-fixture.js';
 import { count, seedItem, seedJob, seedObservation } from './seed.js';
 
 const OLD = '2026-01-01T00:00:00.000Z';
@@ -197,5 +200,131 @@ describe('data inventory and scoped deletion', () => {
     } finally {
       rmSync(outside, { recursive: true, force: true });
     }
+  });
+});
+
+/** Scoped evidence deletion against the real jobs engine (fake handlers, no network). */
+describe('evidence deletion removes replayable copies', () => {
+  let t: JobsTestApp;
+  afterEach(() => t?.close());
+
+  const del = async (body: object) => DataDeleteResponse.parse((await t.api.post('/data/delete').send(body).expect(200)).body).data.deleted;
+  const scan = async (domains: string[]) =>
+    t.finished(t.jobs.submit({ type: 'registry_scan', input: { domains, format: 'auto', extensions: [] }, recheck: false }).id);
+  const registryId = (domain: string) =>
+    t.db.get<{ id: string }>("SELECT id FROM observations WHERE kind = 'registry' AND subject = ?", [domain])!.id;
+  const resultEvents = () => t.events.read(0, { types: ['result.observed'] }, 100_000).map((e) => e.payload as JobItem);
+
+  /** A watch with one notice comparing two pieces of evidence, plus its notice.created event. */
+  function seedNotice(watchId: string, before: { kind: string; id: string }, after: { kind: string; id: string }) {
+    const at = t.clock.iso();
+    const ref = (r: { kind: string; id: string }) => ({ ...r, observedAt: at, source: 'test', value: 'x' });
+    const notice = {
+      id: randomUUID(),
+      watchId,
+      domain: 'old.com',
+      type: 'availability_changed' as const,
+      summary: 'old.com: registry changed from registered to no registry record',
+      before: ref(before),
+      after: ref(after),
+      createdAt: at,
+      readAt: null,
+    };
+    t.db.transaction(() => {
+      t.db.run(
+        `INSERT INTO notices (id, watch_id, domain, type, summary, before_json, after_json, dedupe_key, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [notice.id, watchId, notice.domain, notice.type, notice.summary, JSON.stringify(notice.before), JSON.stringify(notice.after), notice.id, at],
+      );
+      t.events.emit('notice.created', { watchId }, notice);
+    });
+    return notice.id;
+  }
+
+  it('deletes events and notices copying deleted registry evidence, keeps newer copies and resets old cursors', async () => {
+    t = await createJobsApp();
+    t.registry.use(fakeHandler({ operation: 'registry', execute: (item, ctx) => registryResult(item, ctx, 'no_record') }));
+    const oldJob = await scan(['old.com']);
+    t.clock.advance(24 * 60 * 60_000);
+    const cutoff = t.clock.iso();
+    t.clock.advance(60_000);
+    await scan(['new.com', 'newer.com']);
+    const [oldObs, newObs, newerObs] = [registryId('old.com'), registryId('new.com'), registryId('newer.com')];
+    const watchId = randomUUID();
+    t.db.run(
+      `INSERT INTO watches (id, name, domains_json, interval_minutes, state, created_at, updated_at) VALUES (?, 'w', '["old.com"]', 60, 'active', ?, ?)`,
+      [watchId, cutoff, cutoff],
+    );
+    const staleNotice = seedNotice(watchId, { kind: 'registry', id: oldObs }, { kind: 'registry', id: newObs });
+    const keptNotice = seedNotice(watchId, { kind: 'registry', id: newObs }, { kind: 'registry', id: newerObs });
+    const oldEvent = t.events.read(0, { jobId: oldJob.id, types: ['result.observed'] })[0]!;
+    expect((oldEvent.payload as JobItem).evidence.registry?.outcome).toBe('no_record');
+
+    expect(await del({ categories: ['registry_evidence'], before: cutoff })).toEqual([{ category: 'registry_evidence', count: 1 }]);
+
+    expect(resultEvents().map((item) => item.evidence.registry?.id)).toEqual([newObs, newerObs]);
+    expect(JSON.stringify(t.events.read(0, {}, 100_000))).not.toContain(oldObs);
+    expect(t.db.all<{ id: string }>('SELECT id FROM notices').map((r) => r.id)).toEqual([keptNotice]);
+    const noticeEvents = t.events.read(0, { types: ['notice.created'] }).map((e) => (e.payload as Notice).id);
+    expect(noticeEvents).toEqual([keptNotice]);
+    expect(noticeEvents).not.toContain(staleNotice);
+    // The old job itself stays (only its evidence copy went).
+    expect(t.events.read(0, { jobId: oldJob.id, types: ['job.updated'] }).length).toBeGreaterThan(0);
+
+    // A client resuming from before the deleted event is told to refetch instead of missing it.
+    expect(t.events.deletedThrough()).toBeGreaterThanOrEqual(Number(oldEvent.eventId));
+    const client = await SseClient.open(`${await t.listen()}/api/v1/events?after=${Number(oldEvent.eventId) - 1}`, {
+      Authorization: `Bearer ${t.token}`,
+    });
+    try {
+      await client.waitFor((messages) => messages.length > 0);
+      expect(client.messages[0]).toMatchObject({ event: 'stream.reset' });
+      expect(client.messages[0]!.json.payload.reason).toBe('cursor_expired');
+    } finally {
+      client.close();
+    }
+  });
+
+  it('deletes quote, result, catalog and notice copies of deleted prices', async () => {
+    t = await createJobsApp();
+    t.registry.use(
+      fakeHandler({ operation: 'registry', execute: (item, ctx) => registryResult(item, ctx, 'no_record') }),
+      fakeHandler({
+        operation: 'quote',
+        execute: (item, ctx) => ({
+          outcome: 'quoted',
+          resolved: true,
+          evidence: [
+            { kind: 'offer', row: offerWrite({ providerId: item.target, domain: item.subject, suffix: item.suffix!, registration: '10.00', observedAt: ctx.now().toISOString() }) },
+          ],
+        }),
+      }),
+    );
+    await scan(['kept.com']);
+    const quoteJob = await t.finished(t.jobs.submit({ type: 'quote', domains: ['old.com'], providerIds: ['porkbun'] }).id);
+    const offerId = t.db.get<{ id: string }>('SELECT id FROM offers')!.id;
+    const fetchedAt = t.clock.iso();
+    const watchId = randomUUID();
+    t.db.transaction(() => {
+      t.db.run("INSERT INTO catalog_fetches (id, provider_id, status, fetched_at, suffix_count, source) VALUES (?, 'porkbun', 'ok', ?, 1, 'test')", [
+        randomUUID(),
+        fetchedAt,
+      ]);
+      t.events.emit('catalog.updated', {}, { providerId: 'porkbun', suffixCount: 1, fetchedAt });
+      t.db.run(
+        `INSERT INTO watches (id, name, domains_json, interval_minutes, state, created_at, updated_at) VALUES (?, 'w', '["old.com"]', 60, 'active', ?, ?)`,
+        [watchId, fetchedAt, fetchedAt],
+      );
+    });
+    seedNotice(watchId, { kind: 'offer', id: offerId }, { kind: 'offer', id: offerId });
+    expect(t.events.read(0, { types: ['quote.observed', 'catalog.updated', 'notice.created'] })).toHaveLength(3);
+
+    await del({ categories: ['price_history'] });
+
+    expect(t.events.read(0, { types: ['quote.observed', 'catalog.updated', 'notice.created'] })).toEqual([]);
+    expect(t.events.read(0, { jobId: quoteJob.id, types: ['result.observed'] })).toEqual([]);
+    expect(resultEvents().map((item) => item.subject)).toEqual(['kept.com']);
+    expect(t.db.get<{ n: number }>('SELECT COUNT(*) AS n FROM notices')!.n).toBe(0);
+    expect(JSON.stringify(t.events.read(0, {}, 100_000))).not.toContain(offerId);
   });
 });

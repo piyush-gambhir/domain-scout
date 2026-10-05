@@ -32,14 +32,9 @@ export class ProviderHttp {
     }
   }
 
-  /** Replaces every configured secret (and its URL-encoded form) with a placeholder. */
+  /** Replaces every configured secret (and its URL-encoded form) and common secret shapes with a placeholder. */
   scrub(text: string): string {
-    let out = text;
-    for (const secret of this.options.secrets) {
-      if (!secret || secret.length < 4) continue;
-      for (const form of new Set([secret, encodeURIComponent(secret)])) out = out.split(form).join('[redacted]');
-    }
-    return out;
+    return scrubSecrets(text, this.options.secrets);
   }
 
   now(): Date {
@@ -83,6 +78,38 @@ export class ProviderHttp {
     if (status >= 500) throw new ProviderError('transient', `${provider} server error (HTTP ${status})${suffix}`, { status });
     throw new ProviderError('rejected', `${provider} rejected the request (HTTP ${status})${suffix}`, { status });
   }
+}
+
+const REDACTED = '[redacted]';
+
+/**
+ * Credential shapes a provider could echo in its own text even when the configured value differs
+ * (an older key, a token for another account): URL userinfo, credential-named query parameters,
+ * Authorization schemes and well-known key prefixes.
+ */
+const SECRET_SHAPES: [RegExp, string][] = [
+  [/\b([a-z][a-z0-9+.-]*:\/\/)[^\s/?#@]+@/gi, `$1${REDACTED}@`],
+  [
+    /(?<![a-z0-9_-])((?:api[_-]?(?:key|secret|token|user)|secret(?:[_-]?api)?[_-]?key|secret|(?:access|auth|refresh|bearer)[_-]?token|token|password|passwd|pwd|key|sign(?:ature)?[_-]?key|signature|client[_-]?secret|pat)=)[^&\s#"'<>]+/gi,
+    `$1${REDACTED}`,
+  ],
+  [/\b(Bearer)\s+[A-Za-z0-9._~+/=-]{6,}/g, `$1 ${REDACTED}`],
+  [/\b(Basic)\s+(?=[A-Za-z0-9+/]*[0-9+/])[A-Za-z0-9+/]{12,}={0,2}/g, `$1 ${REDACTED}`],
+  [/\b(sso-key)\s+[A-Za-z0-9_-]+:[A-Za-z0-9_-]+/g, `$1 ${REDACTED}`],
+  [/\b(?:pk1|sk1)_[A-Za-z0-9_]{6,}/g, REDACTED],
+  [/\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})/g, REDACTED],
+  [/\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]+/g, REDACTED],
+];
+
+/** Removes configured secret values (raw and URL-encoded) and common credential shapes from provider text. */
+export function scrubSecrets(text: string, secrets: readonly string[] = []): string {
+  let out = text;
+  for (const secret of secrets) {
+    if (!secret || secret.length < 4) continue;
+    for (const form of new Set([secret, encodeURIComponent(secret)])) out = out.split(form).join(REDACTED);
+  }
+  for (const [pattern, replacement] of SECRET_SHAPES) out = out.replace(pattern, replacement);
+  return out;
 }
 
 export function parseJson<T = unknown>(response: ProviderHttpResponse, provider: string): T {
