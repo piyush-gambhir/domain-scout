@@ -2,7 +2,7 @@
 
 Updated October 5, 2026. Piyush selected **Go for the CLI, NestJS for the backend, and Next.js for the frontend**. Next.js calls NestJS. All application processes and persistent data run locally. This replaces the earlier TypeScript CLI and React/Vite recommendation.
 
-The supporting choices below are engineering defaults for the handoff, rather than additional user mandates. Pin compatible package versions when implementing. No application dependencies have been installed and no application code has been written. [PRODUCT.md](PRODUCT.md) retains the complete scope; [BUILD_HANDOFF.md](BUILD_HANDOFF.md) specifies contracts, local lifecycle, storage, commands and verification without effort estimates or release phases.
+The supporting choices below are engineering defaults for the handoff, rather than additional user mandates. The application is now built; [Build-time decisions](#build-time-decisions) records where the implementation differs from these planning defaults and why. [PRODUCT.md](PRODUCT.md) retains the complete scope; [BUILD_HANDOFF.md](BUILD_HANDOFF.md) specifies contracts, local lifecycle, storage, commands and verification.
 
 ## Selected technologies
 
@@ -59,3 +59,19 @@ The full app requires Node. A Go binary alone does not embed the Nest/Next appli
 better-sqlite3 includes native components. Verify the selected driver/Node combination for every supported OS/architecture, and retain native assets in distribution. Use WAL, indexed reads, short transactions and bounded exports; deletion and shutdown must respect active WAL state. [Driver installation](https://github.com/WiseLibs/better-sqlite3#installation), [SQLite WAL](https://www.sqlite.org/wal.html).
 
 Packaged OS coverage is user-selected: macOS, Windows and Linux. Visual design is intentionally outside this planning pass. No registrar keys are available now: supported public capabilities work without them, and the console/settings plus CLI provide optional integration configuration. Authenticated live validation remains unverified until access is supplied. Research does not establish successful packaging or working integrations.
+
+## Build-time decisions
+
+Recorded October 5, 2026, when building started. Piyush chose Turborepo for the monorepo, a borderless monochrome UI with a collapsible icon and label sidebar, and Docker Compose for easy local runs. The rest are engineering decisions.
+
+| Area | Planning default | Built with | Reason |
+| --- | --- | --- | --- |
+| Monorepo | npm workspaces | pnpm 11 workspaces with Turborepo 2 | Piyush asked for Turborepo; pnpm matches his other Turborepo repositories. The Go CLI joins the task graph through a small `package.json` wrapper. |
+| SQLite driver | better-sqlite3 | Built-in `node:sqlite` (Node 24.11+) | No native module, so one backend payload works on every OS and architecture; the API is equally synchronous. |
+| NestJS | Nest 11 era defaults | Nest 12, ESM-only, Express adapter | Current major release; Express kept as planned. |
+| Backend tests | Jest | Vitest with SWC (decorator metadata) | Nest 12 is ESM-only; Vitest runs ESM natively. |
+| TypeScript | Unpinned | 5.9 | TypeScript 7 lacks the compiler API that Next.js, ESLint and test tooling use. |
+| Public schemas to OpenAPI | nestjs-zod | Zod 4 native JSON Schema plus a route table in `packages/contracts` | One table drives the backend route binding, request validation, the TypeScript client and the OpenAPI document; `XInput` components are emitted only where request and response forms differ. |
+| Tables | TanStack Table (unpinned) | TanStack Table 8 and TanStack Virtual 3 | Mature major version. |
+| Packaging | Native SQLite per platform | Platform-independent JS payload plus a Go binary per target | Follows from `node:sqlite`. Node.js 24.11+ must be installed on the target machine. |
+| Docker | Not planned | One container: backend on its own loopback, web on the only published port (host loopback), CLI included | Easy local runs without changing the local-only security model. |

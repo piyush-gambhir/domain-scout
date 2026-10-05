@@ -1,29 +1,87 @@
 # Domain Scout
 
-Domain Scout is a planned local utility for checking domain registration records, finding purchase options, and comparing pricing and related details where reliable data is available. Coding agents are the primary users; Piyush will use a visual interface.
+Local tool for checking domain registration records, finding purchase providers and comparing prices where reliable data exists. Coding agents use the Go CLI; people use the web UI. Both drive the same local backend, and nothing is hosted.
 
-Status: product and engineering plan finalized for the coding agent, without effort estimates or release phases. Go CLI, NestJS backend and Next.js frontend are selected. API contracts, module boundaries, storage, commands, public references and verification are in the build handoff. Visual design is intentionally outside this planning pass. Application implementation has not started.
+Registry results are evidence, not promises: "no record" means the registry returned no registration record when checked, not that a name can be bought. Prices carry their source, type and age, and unknown values stay unknown.
 
-Execution: local NestJS backend, Next.js browser frontend, Go CLI and SQLite storage, targeting macOS, Windows and Linux. No hosted infrastructure is required. Registry checks and supported public information need no keys; optional authenticated providers can be configured in app settings or through the CLI. MCP may be added afterward.
+Repository visibility: private. Open sourcing needs a separate explicit decision.
 
-Repository visibility: private. It should remain private during planning and implementation. Open sourcing may be considered after the complete workflow works, and requires a separate explicit decision.
+## Run with Docker
 
-The working name is Domain Scout. Its naming availability has not been checked.
+```sh
+docker compose up --build
+```
+
+Open the sign-in link printed in the logs (single use, valid 15 minutes). For a new link:
+
+```sh
+docker compose exec domain-scout open-url
+```
+
+The UI is published on `http://localhost:3000` only (loopback). The backend stays inside the container. Data persists in the `domain-scout-data` volume. Use another port with `DOMAIN_SCOUT_PORT=3100 docker compose up`.
+
+The CLI is available inside the container:
+
+```sh
+docker compose exec domain-scout domain-scout scan acme --tlds com,io --wait --output table
+```
+
+## Run from source
+
+Requires Node.js 24.11 or newer, pnpm 11 and Go 1.27.
+
+```sh
+pnpm install
+pnpm dev          # builds shared packages, runs backend and web in watch mode, opens a signed-in UI
+```
+
+`pnpm dev` keeps its state in `.dev-data/` so it never touches your real application data.
+
+Build everything and use the CLI against the default data directory:
+
+```sh
+pnpm build
+apps/cli/bin/domain-scout service start
+apps/cli/bin/domain-scout ui
+```
+
+Useful Turborepo tasks: `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm test:e2e`, `pnpm generate` (OpenAPI and the Go client). `pnpm package` builds distribution archives for macOS, Linux and Windows into `release/` (Node.js 24.11+ must be installed on the target machine).
+
+## CLI for agents
+
+JSON by default (the API envelope with `contractVersion`), `--output table` or `--output ndjson`. Data goes to stdout; progress and errors go to stderr. Commands never prompt.
+
+```sh
+domain-scout input preview --file names.txt --tlds com,io        # validate and expand, no network
+domain-scout scan --file names.txt --tlds com,io --wait          # registry lookups only
+domain-scout jobs results <job-id> --outcomes no_record --all
+domain-scout quote example.com --providers porkbun --wait         # explicit provider disclosure
+domain-scout export --scope filter --job <job-id> --outcomes no_record --format txt --out names.txt
+```
+
+Exit codes: 0 success, 1 local failure, 2 invalid usage, 3 completed with unresolved items, 4 provider access missing, 5 backend setup or version failure, 130 interrupted wait. Run `domain-scout --help` for the full command tree.
+
+## Provider keys
+
+Registry discovery and public catalogs need no keys. Optional provider integrations (exact checks and quotes) are configured in the UI under Providers, with `domain-scout providers configure`, or with environment variables such as `DOMAIN_SCOUT_PORKBUN_API_KEY`. Saved keys live in an owner-only file outside SQLite and are never returned by the API. Authenticated adapters are tested against documentation-derived fixtures only until real keys are supplied.
+
+## Repository layout
+
+| Path | What it is |
+| --- | --- |
+| `apps/backend` | NestJS 12 backend: jobs, registry lookups, providers, pricing, monitoring, exports, SQLite (`node:sqlite`) |
+| `apps/web` | Next.js 16 UI; forwards `/api/v1` to the backend |
+| `apps/cli` | Go CLI (`domain-scout`) with a client generated from the OpenAPI document |
+| `packages/contracts` | Zod schemas, route table and the generated `openapi.json` |
+| `packages/api-client` | Typed TypeScript client |
+| `scripts` | Dev launcher, container entry point, packaging |
 
 ## Project notes
 
-- [Findings](FINDINGS.md): feasibility, measured discovery coverage, existing projects, purchase information, and sources.
-- [Product requirements](PRODUCT.md): complete build scope, behavior defaults, UI and agent expectations, and acceptance scenarios.
-- [Product source review](SOURCE_REVIEW.md): feature ideas from 13 repositories and nine providers, recent activity, evidence limits, and our recommendations.
-- [Build handoff](BUILD_HANDOFF.md): start here for the next coding agent; contracts, modules, data, commands, public-project reference map and verification.
-- [Plan](PLAN.md): complete product summary, local fundamentals, workflows, boundaries and final decisions.
-- [Tech stack](TECH_STACK.md): selected Go/NestJS/Next.js technologies, supporting choices, sources and packaging tradeoffs.
-- [Existing-solution trial](TRIAL.md): local UI, CLI, and MCP evaluation of WhiteBite Domain Hunter, including observed gaps.
-- [Reference map](REFERENCES.md): existing code, protocol documentation, and provider APIs to inform our own product.
-- [Agent instructions](AGENTS.md): boundaries for continuing this project.
-
-An authorized trial of WhiteBite Domain Hunter is installed under `trials/`. Its UI, CLI, and MCP interface worked with public test domains. Piyush chose to make our own product using the references and lessons from this trial. We will design our own UI and provider workflow, and select reusable protocol components during planning.
-
-## Existing scaffold
-
-An untested Python scaffold was created earlier at `../domain-scanner/scanner.py` in the original local workspace, before the request to plan first. It remains outside this repository and has not been copied, modified, or adopted here.
+- [Build report](BUILD_REPORT.md): what was built, how it was verified, and what is not yet verified.
+- [Implementation guide](docs/IMPLEMENTATION.md): module ownership, contracts, runtime protocol and conventions.
+- [Product requirements](PRODUCT.md): scope, defaults and acceptance scenarios.
+- [Build handoff](BUILD_HANDOFF.md): contracts, modules, data, commands and verification plan.
+- [Tech stack](TECH_STACK.md): selected technologies and the build-time decisions.
+- [Plan](PLAN.md), [Findings](FINDINGS.md), [Source review](SOURCE_REVIEW.md), [Trial](TRIAL.md), [References](REFERENCES.md): research and planning record.
+- [Agent instructions](AGENTS.md): boundaries for anyone continuing the work.
