@@ -32,6 +32,8 @@ mkdirSync(out, { recursive: true });
 const payload = join(out, '.payload');
 const backendDir = join(payload, 'backend');
 run(pnpm, ['--filter', '@domain-scout/backend', 'deploy', '--prod', '--legacy', backendDir]);
+// `deploy --prod` also prunes dev dependencies from the workspace's own node_modules; restore them.
+run(pnpm, ['install', '--frozen-lockfile', '--offline']);
 
 const webDir = join(payload, 'web');
 cpSync(join(repo, 'apps/web/.next/standalone'), webDir, { recursive: true, dereference: true });
