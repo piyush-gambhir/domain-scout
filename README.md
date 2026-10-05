@@ -78,7 +78,7 @@ Registry discovery and public catalogs need no keys. Optional provider integrati
 
 ## Project notes
 
-- [Build report](BUILD_REPORT.md): what was built, how it was verified, and what is not yet verified.
+- [Build report](BUILD_REPORT.md): what was built, how it was verified, and what is still pending.
 - [Implementation guide](docs/IMPLEMENTATION.md): module ownership, contracts, runtime protocol and conventions.
 - [Product requirements](PRODUCT.md): scope, defaults and acceptance scenarios.
 - [Build handoff](BUILD_HANDOFF.md): contracts, modules, data, commands and verification plan.
