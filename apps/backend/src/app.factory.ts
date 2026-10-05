@@ -13,6 +13,9 @@ export function appOptions(config: AppConfig): NestApplicationOptions {
   return {
     logger: config.embedded ? false : ['error', 'warn', 'log'],
     bodyParser: false,
+    // Throw initialization errors (e.g. an unresolved provider) instead of aborting the process
+    // silently, which hides the cause when the logger is off in tests.
+    abortOnError: false,
     // Open SSE streams and keep-alive sockets must not hold app.close() open during a stop.
     forceCloseConnections: true,
   };
