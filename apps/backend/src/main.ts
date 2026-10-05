@@ -59,6 +59,7 @@ async function main() {
     startedAt: new Date().toISOString(),
     embedded: false,
     apiToken: loadOrCreateApiToken(paths.tokenFile),
+    bootstrapTtlMs: bootstrapTtlFromEnv(process.env.DOMAIN_SCOUT_BOOTSTRAP_TTL_SECONDS),
   };
 
   let app: NestExpressApplication | undefined;
@@ -136,3 +137,10 @@ async function main() {
 }
 
 await main();
+
+/** Optional longer bootstrap-code lifetime (60 to 3600 seconds), e.g. for a URL printed in container logs. */
+function bootstrapTtlFromEnv(value: string | undefined): number | undefined {
+  const seconds = Number(value);
+  if (!value || !Number.isFinite(seconds)) return undefined;
+  return Math.min(3600, Math.max(60, Math.round(seconds))) * 1000;
+}

@@ -1,0 +1,15 @@
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+**/test-results
+**/playwright-report
+**/*.tsbuildinfo
+apps/cli/bin
+.git
+.claude
+.dev-data
+release
+trials
+*.md
+!apps/**/README.md

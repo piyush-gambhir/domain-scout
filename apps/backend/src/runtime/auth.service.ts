@@ -28,6 +28,7 @@ export type RequestAuth = { kind: 'token' } | ({ kind: 'session' } & SessionInfo
 @Injectable()
 export class AuthService {
   private readonly apiToken: string;
+  private readonly bootstrapTtlMs: number;
 
   constructor(
     @Inject(APP_CONFIG) config: AppConfig,
@@ -35,6 +36,7 @@ export class AuthService {
     private readonly clock: Clock,
   ) {
     this.apiToken = config.apiToken ?? loadOrCreateApiToken(join(config.runtimeDir, 'api-token'));
+    this.bootstrapTtlMs = config.bootstrapTtlMs ?? BOOTSTRAP_CODE_TTL_MS;
   }
 
   verifyApiToken(candidate: string): boolean {
@@ -44,7 +46,7 @@ export class AuthService {
   createBootstrapCode(): { code: string; expiresAt: string } {
     const code = randomToken();
     const now = this.clock.iso();
-    const expiresAt = this.clock.plus(BOOTSTRAP_CODE_TTL_MS);
+    const expiresAt = this.clock.plus(this.bootstrapTtlMs);
     this.db.transaction(() => {
       this.db.run('DELETE FROM bootstrap_codes WHERE expires_at <= ? OR used_at IS NOT NULL', [now]);
       this.db.run('INSERT INTO bootstrap_codes (code_hash, created_at, expires_at) VALUES (?, ?, ?)', [

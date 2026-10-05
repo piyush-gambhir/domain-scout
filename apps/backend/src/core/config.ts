@@ -19,6 +19,8 @@ export interface AppConfig {
   apiToken?: string;
   /** Grace period for in-flight work during a graceful stop (default 5000 ms). */
   stopGraceMs?: number;
+  /** Lifetime of browser bootstrap codes (default 60 s). The container launcher prints a longer-lived one. */
+  bootstrapTtlMs?: number;
 }
 
 export const APP_CONFIG = Symbol('APP_CONFIG');

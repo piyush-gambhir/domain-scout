@@ -40,8 +40,9 @@ if (existsSync(join(repo, 'apps/web/public'))) {
   cpSync(join(repo, 'apps/web/public'), join(webDir, 'apps/web/public'), { recursive: true });
 }
 // Stable entry point for the CLI launcher: <lib>/web/server.js.
-writeFileSync(join(webDir, 'server.js'), "require('./apps/web/server.js');\n");
-writeFileSync(join(webDir, 'package.json'), JSON.stringify({ private: true, type: 'commonjs' }, null, 2));
+// Next emits an ESM server.js because apps/web is an ES module package.
+writeFileSync(join(webDir, 'server.js'), "import './apps/web/server.js';\n");
+writeFileSync(join(webDir, 'package.json'), JSON.stringify({ private: true, type: 'module' }, null, 2));
 
 for (const target of targets) {
   const [os, arch] = target.split('-');

@@ -1,0 +1,24 @@
+# Run Domain Scout locally:
+#   docker compose up --build
+# then open the sign-in link printed in the logs (or: docker compose exec domain-scout open-url).
+# The UI is published on this machine's loopback interface only. Data persists in the
+# `domain-scout-data` volume. The CLI is available inside the container:
+#   docker compose exec domain-scout domain-scout scan acme --tlds com,io --wait
+services:
+  domain-scout:
+    build:
+      context: .
+    image: domain-scout:local
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 20s
+    environment:
+      # Must match the host port below so the backend accepts the browser's Origin.
+      DOMAIN_SCOUT_PUBLIC_PORT: ${DOMAIN_SCOUT_PORT:-3000}
+    ports:
+      - "127.0.0.1:${DOMAIN_SCOUT_PORT:-3000}:3000"
+    volumes:
+      - domain-scout-data:/data
+
+volumes:
+  domain-scout-data:
