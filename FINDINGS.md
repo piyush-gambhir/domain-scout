@@ -2,6 +2,8 @@
 
 Research date: October 4, 2026. These notes preserve the investigation conducted before implementation was approved. Documentation and selected source files were reviewed; the shortlisted tools were not installed or tested.
 
+Follow-up, October 5: Domain Hunter has since been installed and tested locally. See [TRIAL.md](TRIAL.md) for evidence. Piyush chose our own product with a complete UI redesign and more purchase providers, including Hostinger. [REFERENCES.md](REFERENCES.md) records provider documentation checked during the follow-up. The original research statements below describe the earlier investigation.
+
 A local scanner can query registries directly, process large batches automatically, and export names with no registration record. Broad TLD discovery is already practical. Universal coverage, zero registry logging, and guaranteed registration at a stated price cannot be promised from public lookups alone.
 
 ## User goals
@@ -101,3 +103,10 @@ The proposed first version would show verified providers and purchase links, wit
 
 No large batches, unregistered-name cases, comparative accuracy benchmarks, browser CORS behavior, end-to-end purchase flows, or full TLD coverage were tested. No shortlisted tool was installed. No registrar received a candidate during this research.
 
+## Later planning updates
+
+The verification statement above describes the original October 4 research. The subsequent authorized local Domain Hunter trial exercised UI, CLI and MCP, including a synthetic negative lookup and optional provider enrichment. Its evidence and limitations are recorded separately in [TRIAL.md](TRIAL.md).
+
+On October 5, the product review expanded to 13 repositories and official documentation for nine providers. [SOURCE_REVIEW.md](SOURCE_REVIEW.md) records pinned revisions, recent activity, feature ideas and limits. Current Cloudflare documentation includes official availability/pricing APIs; that is distinct from the third-party price catalog used in the trial. [Cloudflare Registrar API](https://developers.cloudflare.com/registrar/registrar-api/).
+
+The complete feature and pricing plan is in [PRODUCT.md](PRODUCT.md), including provider coverage, a new UI, supported exact-name quotes, optional enrichment and acceptance scenarios. It has no effort estimates or release phases. These are planned requirements, not implemented capabilities; the tech stack is the next discussion.
