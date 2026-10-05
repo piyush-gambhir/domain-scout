@@ -141,7 +141,9 @@ for (const target of targets) {
     join(dir, 'README.txt'),
     `Domain Scout ${version} (${target})\n\nRequires Node.js 24.11 or newer on PATH (or DOMAIN_SCOUT_NODE).\n\n  bin/${exe} ui              open the web UI\n  bin/${exe} scan acme --tlds com,io --wait\n  bin/${exe} service stop\n`,
   );
-  run('tar', ['-czf', `${name}.tar.gz`, name], { cwd: out });
+  // macOS tar would otherwise embed Apple extended attributes that other platforms warn about.
+  const macTar = process.platform === 'darwin' ? ['--no-mac-metadata', '--no-xattrs'] : [];
+  run('tar', [...macTar, '-czf', `${name}.tar.gz`, name], { cwd: out, env: { ...process.env, COPYFILE_DISABLE: '1' } });
   console.log(`packaged ${name}.tar.gz`);
 }
 
