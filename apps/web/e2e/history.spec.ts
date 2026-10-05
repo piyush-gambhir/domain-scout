@@ -65,7 +65,7 @@ test('price history shows each comparable series with gaps left as gaps', async 
   const series = page.getByTestId('price-series');
   await expect(series).toHaveCount(2);
   const first = series.filter({ hasText: 'Porkbun' });
-  await expect(first).toContainText('New registration · USD · No region · 1 yr term · Standard');
+  await expect(first).toContainText('New registration · Published · USD · No region · 1 yr term · Standard');
   // Two separate line segments: the line never bridges the gap or the unknown amount.
   await expect(first.getByTestId('price-segment')).toHaveCount(2);
   await expect(first.getByTestId('price-gap')).toHaveCount(1);
