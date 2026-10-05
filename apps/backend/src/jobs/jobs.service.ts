@@ -94,7 +94,7 @@ export class JobsService implements JobSubmitter, JobLifecycle, OnModuleInit, On
   }
 
   get(jobId: string): Job {
-    return this.store.job(jobId);
+    return this.store.job(jobId, { includeText: true });
   }
 
   list(query: ListQuery) {
@@ -191,7 +191,7 @@ export class JobsService implements JobSubmitter, JobLifecycle, OnModuleInit, On
       if (existing.fingerprint !== fingerprint || !existing.job_id) {
         throw new AppError('idempotency_conflict', 'This Idempotency-Key was already used for a different request');
       }
-      return this.store.job(existing.job_id);
+      return this.store.job(existing.job_id, { includeText: true });
     }
     return create({ key, operation, fingerprint });
   }
@@ -268,7 +268,7 @@ export class JobsService implements JobSubmitter, JobLifecycle, OnModuleInit, On
       }
       this.events.emit('job.updated', { jobId, watchId: plan.watchId }, this.store.job(jobId));
     });
-    const job = this.store.job(jobId);
+    const job = this.store.job(jobId, { includeText: true });
     if (this.db.inTransaction) {
       // Submitted inside a caller's transaction (e.g. with watch-run bookkeeping): start only once that
       // transaction has settled, and only if the job was committed.

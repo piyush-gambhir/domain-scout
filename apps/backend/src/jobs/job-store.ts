@@ -132,8 +132,8 @@ export class JobStore {
     return row;
   }
 
-  job(id: string): Job {
-    return this.toJob(this.requireJobRow(id));
+  job(id: string, options: { includeText?: boolean } = {}): Job {
+    return this.toJob(this.requireJobRow(id), options);
   }
 
   input(row: JobRow): StoredJobInput {
@@ -146,7 +146,11 @@ export class JobStore {
     };
   }
 
-  toJob(row: JobRow): Job {
+  /**
+   * The restorable input text can be megabytes, so it is only included where a client asks for one
+   * job (GET /jobs/:id); lists and events carry `text: null`.
+   */
+  toJob(row: JobRow, options: { includeText?: boolean } = {}): Job {
     const input = this.input(row);
     return {
       id: row.id,
@@ -159,7 +163,7 @@ export class JobStore {
       updatedAt: row.updated_at,
       counters: countersOf(row),
       destinations: json.parse<string[]>(row.destinations_json, []),
-      input: { ...input.summary, text: restorableText(input) },
+      input: { ...input.summary, text: options.includeText ? restorableText(input) : null },
       watchId: row.watch_id,
       parentJobId: row.parent_job_id,
       nextRetryAt: row.next_retry_at,
