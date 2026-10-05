@@ -8,6 +8,7 @@ import { EvidenceReader } from '../evidence/evidence-reader.service.js';
 import { Database, json } from '../storage/database.js';
 import type { ObservationRow } from '../storage/evidence.js';
 import { toNotice, type NoticeRow, type WatchRecord } from './watch-records.js';
+import { comparableTerms } from '../pricing/comparable.js';
 
 type EvidenceRef = Notice['before'];
 type NoticeType = Notice['type'];
@@ -172,14 +173,19 @@ export class ChangeDetector {
     const column = PATH_AMOUNT[after.purchase_path] ?? 'registration';
     if (after[column] === null) return null;
     const scope = after.domain === null ? 'domain IS NULL AND suffix = ?' : 'domain = ?';
-    const before = this.db.get<OfferRowFull>(
-      `SELECT * FROM offers WHERE ${scope} AND provider_id = ? AND purchase_path = ? AND kind = ? AND currency = ?
-         AND IFNULL(region, '') = ? AND term_years = ? AND promotional = ? AND ${column} IS NOT NULL
-         AND (observed_at < ? OR (observed_at = ? AND id < ?))
-       ORDER BY observed_at DESC, id DESC LIMIT 1`,
-      [after.domain ?? after.suffix, after.provider_id, after.purchase_path, after.kind, after.currency, after.region ?? '',
-        after.term_years, after.promotional, after.observed_at, after.observed_at, after.id],
-    );
+    // Columns narrow the candidates; payload terms (renewal and transfer years, promotion conditions)
+    // must also match, so a changed campaign or term is never reported as a price change.
+    const terms = comparableTerms(after.promotional === 1, after.payload_json);
+    const before = this.db
+      .all<OfferRowFull>(
+        `SELECT * FROM offers WHERE ${scope} AND provider_id = ? AND purchase_path = ? AND kind = ? AND currency = ?
+           AND IFNULL(region, '') = ? AND term_years = ? AND promotional = ? AND ${column} IS NOT NULL
+           AND (observed_at < ? OR (observed_at = ? AND id < ?))
+         ORDER BY observed_at DESC, id DESC LIMIT 50`,
+        [after.domain ?? after.suffix, after.provider_id, after.purchase_path, after.kind, after.currency, after.region ?? '',
+          after.term_years, after.promotional, after.observed_at, after.observed_at, after.id],
+      )
+      .find((row) => comparableTerms(row.promotional === 1, row.payload_json) === terms);
     if (!before || sameAmount(before[column]!, after[column]!)) return null;
     const label = after.domain ?? `.${after.suffix}`;
     const beforeRef = offerRef(before);

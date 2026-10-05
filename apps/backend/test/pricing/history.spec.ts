@@ -128,8 +128,10 @@ describe('price history (H01-H03)', () => {
     };
     const spring = { description: 'Spring sale', requiresTermYears: null, expiresAt: '2026-11-01T00:00:00.000Z' };
     insert({ amount: '1.99', promotion: spring });
-    // Same campaign observed again, with restrictions text that is not part of the signature.
-    insert({ amount: '2.49', promotion: { ...spring, restrictions: 'New customers only' } });
+    // Same campaign observed again with identical conditions joins the same series.
+    insert({ amount: '2.49', promotion: spring });
+    // Customer or account restrictions are conditions too: a restricted variant is its own series.
+    insert({ amount: '1.79', promotion: { ...spring, restrictions: 'New customers only' } });
     insert({ amount: '0.99', promotion: { ...spring, requiresTermYears: 2 } });
     insert({ amount: '1.49', promotion: { ...spring, expiresAt: '2026-12-01T00:00:00.000Z' } });
     insert({ amount: '0.49', promotion: { description: 'First year coupon', requiresTermYears: null, expiresAt: null } });
@@ -139,7 +141,7 @@ describe('price history (H01-H03)', () => {
     const res = PriceHistoryResponse.parse((await t.api.get(`/price-history?domain=${domain}&providerId=dynadot`).expect(200)).body);
     const own = res.data.filter((s) => s.scope === domain);
     const amounts = own.map((s) => s.points.map((p) => p.registration)).sort((a, b) => a[0]!.localeCompare(b[0]!));
-    expect(amounts).toEqual([['0.49'], ['0.99'], ['1.49'], ['1.99', '2.49'], ['10.99'], ['9.99']]);
+    expect(amounts).toEqual([['0.49'], ['0.99'], ['1.49'], ['1.79'], ['1.99', '2.49'], ['10.99'], ['9.99']]);
     for (const series of own) {
       expect(new Set(series.points.map((p) => p.kind)).size).toBe(1);
       expect(series.kind).toBe(series.points[0]!.kind);
@@ -147,7 +149,8 @@ describe('price history (H01-H03)', () => {
     }
     // Promotional series name their campaign conditions; regular series carry none.
     const springSeries = own.find((s) => s.points[0]!.registration === '1.99')!;
-    expect(springSeries.promotion).toEqual({ description: 'Spring sale', requiresTermYears: null, expiresAt: '2026-11-01T00:00:00.000Z' });
+    expect(springSeries.promotion).toEqual({ description: 'Spring sale', requiresTermYears: null, expiresAt: '2026-11-01T00:00:00.000Z', restrictions: null });
+    expect(own.find((s) => s.points[0]!.registration === '1.79')!.promotion?.restrictions).toBe('New customers only');
     expect(own.find((s) => s.points[0]!.registration === '9.99')!.promotion).toBeNull();
     // Keys are stable across reads.
     const again = PriceHistoryResponse.parse((await t.api.get(`/price-history?domain=${domain}&providerId=dynadot`).expect(200)).body);

@@ -40,7 +40,7 @@ export const ExportField = z
   ])
   .meta({
     id: 'ExportField',
-    description: 'checks: name-check, diagnostic and listing evidence as "label: outcome (checked time)" entries',
+    description: 'checks: name-check, diagnostic and listing evidence as "label: outcome (checked time, source, reason)" entries',
   });
 export type ExportField = z.infer<typeof ExportField>;
 

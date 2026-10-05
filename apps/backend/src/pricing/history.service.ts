@@ -1,10 +1,10 @@
 import { Injectable, Optional } from '@nestjs/common';
-import { createHash } from 'node:crypto';
 import type { PriceSeries, PurchasePath } from '@domain-scout/contracts';
 import { decodeCursor, encodeCursor } from '../core/envelope.js';
 import { InputPreviewer } from '../core/ports.js';
 import { Database, json } from '../storage/database.js';
 import { requireDomain } from './domain.js';
+import { promotionSignature, type ComparablePayload } from './comparable.js';
 
 interface HistoryRow {
   id: string;
@@ -34,22 +34,7 @@ export interface HistoryQuery {
   limit: number;
 }
 
-interface HistoryPayload {
-  renewal?: { years?: number };
-  transfer?: { includesYears?: number | null };
-  promotion?: { description?: string; requiresTermYears?: number | null; expiresAt?: string | null } | null;
-}
-
-/**
- * Stable signature of a promotion's conditions (description, required term, expiry), so different
- * campaigns never share a trend. Regular prices and promotional rows without details stay distinct.
- */
-function promotionSignature(promotional: boolean, promotion: HistoryPayload['promotion']): string {
-  if (!promotional) return 'regular';
-  if (!promotion) return 'promo';
-  const conditions = JSON.stringify([promotion.description ?? '', promotion.requiresTermYears ?? null, promotion.expiresAt ?? null]);
-  return `promo:${createHash('sha256').update(conditions).digest('hex').slice(0, 16)}`;
-}
+type HistoryPayload = ComparablePayload;
 
 /**
  * Observed price history. Observations are grouped into comparable series (same provider, scope,
@@ -131,6 +116,7 @@ export class HistoryService {
                     description: payload.promotion.description ?? null,
                     requiresTermYears: payload.promotion.requiresTermYears ?? null,
                     expiresAt: payload.promotion.expiresAt ?? null,
+                    restrictions: payload.promotion.restrictions ?? null,
                   }
                 : null,
             points: [],

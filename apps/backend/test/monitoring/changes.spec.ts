@@ -206,6 +206,28 @@ describe('watch change detection', () => {
     });
   });
 
+  it('never reports a changed promotion or renewal term as a price change (W02)', async () => {
+    const spring = { description: 'Spring sale', requiresTermYears: null, expiresAt: '2026-11-01T00:00:00.000Z', restrictions: null };
+    const base = { providerId: 'porkbun', domain: 'example.com', suffix: 'com', promotional: true };
+    fx.offer({ ...base, registration: '5.00', promotion: spring, at: '2026-10-05T11:00:00.000Z' });
+    fx.offer({ ...base, registration: '20.00', renewal: '20.00', promotional: false, at: '2026-10-05T11:00:00.000Z' });
+    const w = await watch({ providerIds: ['porkbun'], includeRegistry: false });
+
+    run(w.id, (at) => {
+      // Different campaign conditions and a different renewal term are not comparable.
+      fx.offer({ ...base, registration: '3.00', promotion: { ...spring, restrictions: 'New customers only' }, at });
+      fx.offer({ ...base, registration: '4.00', promotion: { ...spring, requiresTermYears: 2 }, at });
+      fx.offer({ ...base, registration: '25.00', renewal: '40.00', renewalYears: 2, promotional: false, at });
+    });
+    expect(await notices()).toHaveLength(0);
+
+    // The same campaign at a new price is a comparable change.
+    run(w.id, (at) => fx.offer({ ...base, registration: '6.00', promotion: spring, at }));
+    const created = await notices();
+    expect(created).toHaveLength(1);
+    expect(created[0]).toMatchObject({ before: { value: '5.00 USD' }, after: { value: '6.00 USD' } });
+  });
+
   it('tracks catalog prices once per suffix when requested', async () => {
     fx.offer({ providerId: 'porkbun', domain: null, suffix: 'com', registration: '10.00', at: '2026-10-05T11:00:00.000Z' });
     const w = await watch({ domains: ['example.com', 'example2.com'], providerIds: ['porkbun'], includeCatalogPrices: true, includeRegistry: false });

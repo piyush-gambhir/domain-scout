@@ -2936,7 +2936,7 @@ type ExportCreateInput struct {
 // ExportCreateInputFormat defines model for ExportCreateInput.Format.
 type ExportCreateInputFormat string
 
-// ExportField checks: name-check, diagnostic and listing evidence as "label: outcome (checked time)" entries
+// ExportField checks: name-check, diagnostic and listing evidence as "label: outcome (checked time, source, reason)" entries
 type ExportField string
 
 // ExportListResponse defines model for ExportListResponse.
@@ -3822,6 +3822,7 @@ type PriceSeries struct {
 		Description       *string    `json:"description"`
 		ExpiresAt         *time.Time `json:"expiresAt"`
 		RequiresTermYears *int       `json:"requiresTermYears"`
+		Restrictions      *string    `json:"restrictions"`
 	} `json:"promotion"`
 	Promotional bool `json:"promotional"`
 

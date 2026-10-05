@@ -302,6 +302,8 @@ export class EvidenceFixtures {
     currency?: string;
     termYears?: number;
     promotional?: boolean;
+    promotion?: { description: string; requiresTermYears: number | null; expiresAt: string | null; restrictions: string | null } | null;
+    renewalYears?: number;
     purchasePath?: string;
     sourceUrl?: string | null;
   }) {
@@ -319,11 +321,11 @@ export class EvidenceFixtures {
       region: null,
       registration: { amount: o.registration, years: o.termYears ?? 1 },
       minYears: null,
-      renewal: { amount: o.renewal ?? null, years: 1 },
+      renewal: { amount: o.renewal ?? null, years: o.renewalYears ?? 1 },
       transfer: { amount: null, includesYears: null },
       fees: { icann: null, other: [], tax: 'unknown' },
       premium: { status: 'unknown', registration: null, renewal: null },
-      promotion: null,
+      promotion: o.promotion ? { ...o.promotion, eligibilityVerified: false } : null,
       observedAt: o.at,
       publishedAt: null,
       quoteExpiresAt: null,

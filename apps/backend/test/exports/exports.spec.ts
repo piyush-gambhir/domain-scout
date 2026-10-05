@@ -345,8 +345,8 @@ describe('exports', () => {
 
     // CSV carries the same checks in one cell when the field is requested.
     const csv = (await exportOf({ format: 'csv', scope: { kind: 'domains', domains: [domain] }, fields: ['domain', 'outcome', 'checks'] })).body;
-    expect(csv).toContain(`npm (npm name): exists (${at(-10)}); github (github name): not_found (${at(-20)})`);
-    expect(csv).toContain(`dns diagnostic: no_answer (${at(-8)})`);
+    expect(csv).toContain(`npm (npm name): exists (${at(-10)}, npm.test, npm said exists); github (github name): not_found (${at(-20)}, github.test, github said not_found)`);
+    expect(csv).toContain(`dns diagnostic: no_answer (${at(-8)}, resolver.test, dns no_answer)`);
 
     const collection = (await http.post('/api/v1/collections').send({ name: 'Checks' }).expect(201)).body.data;
     await http.post(`/api/v1/collections/${collection.id}/entries`).send({ domains: [domain] }).expect(200);

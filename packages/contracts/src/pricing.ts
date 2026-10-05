@@ -205,7 +205,12 @@ export const PriceSeries = z
     promotional: z.boolean(),
     kind: PriceKind.meta({ description: 'Price kind shared by every point in the series' }),
     promotion: z
-      .object({ description: z.string().nullable(), requiresTermYears: z.number().int().nullable(), expiresAt: Timestamp.nullable() })
+      .object({
+        description: z.string().nullable(),
+        requiresTermYears: z.number().int().nullable(),
+        expiresAt: Timestamp.nullable(),
+        restrictions: z.string().nullable(),
+      })
       .nullable()
       .meta({ description: 'Promotion conditions shared by every point; null for regular prices' }),
     points: z.array(PriceHistoryPoint),
