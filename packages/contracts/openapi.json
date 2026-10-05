@@ -13662,7 +13662,9 @@
             "$ref": "#/components/schemas/Uuid"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
           },
           "filter": {
             "nullable": true,
@@ -13741,7 +13743,9 @@
             "$ref": "#/components/schemas/Uuid"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
           },
           "filter": {
             "nullable": true,
@@ -13907,7 +13911,9 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
           },
           "filter": {
             "nullable": true,
@@ -13967,7 +13973,9 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
           },
           "filter": {
             "nullable": true,
@@ -14302,6 +14310,7 @@
           },
           "includeCatalogPrices": {
             "default": false,
+            "description": "Refresh published catalogs of the selected providers; requires providerIds",
             "type": "boolean"
           },
           "intervalMinutes": {
@@ -14349,6 +14358,7 @@
           },
           "includeCatalogPrices": {
             "default": false,
+            "description": "Refresh published catalogs of the selected providers; requires providerIds",
             "type": "boolean"
           },
           "intervalMinutes": {
@@ -14552,7 +14562,8 @@
             "$ref": "#/components/schemas/Uuid"
           },
           "domain": {
-            "type": "string"
+            "type": "string",
+            "description": "The domain, or `.<suffix>` for catalog price notices"
           },
           "type": {
             "$ref": "#/components/schemas/NoticeType"
@@ -15095,7 +15106,8 @@
             "maximum": 9007199254740991
           },
           "fileName": {
-            "type": "string"
+            "type": "string",
+            "description": "Download file name"
           },
           "sizeBytes": {
             "type": "integer",
@@ -15158,7 +15170,8 @@
             "maximum": 9007199254740991
           },
           "fileName": {
-            "type": "string"
+            "type": "string",
+            "description": "Download file name"
           },
           "sizeBytes": {
             "type": "integer",

@@ -133,7 +133,7 @@ export const GenerationThemeListResponse = page(GenerationTheme, 'GenerationThem
 export const SavedCriteria = z
   .object({
     id: Uuid,
-    name: z.string(),
+    name: z.string().min(1).max(200),
     filter: ResultFilter.nullable(),
     extensions: z.array(Suffix),
     providerIds: z.array(ProviderId),

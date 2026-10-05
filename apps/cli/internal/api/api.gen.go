@@ -2830,12 +2830,14 @@ type ExportArtifact struct {
 	CreatedAt Timestamp `json:"createdAt"`
 
 	// DownloadPath API path that returns the file
-	DownloadPath string               `json:"downloadPath"`
-	Fields       []ExportField        `json:"fields"`
-	FileName     string               `json:"fileName"`
-	Format       ExportArtifactFormat `json:"format"`
-	Id           Uuid                 `json:"id"`
-	ItemCount    int                  `json:"itemCount"`
+	DownloadPath string        `json:"downloadPath"`
+	Fields       []ExportField `json:"fields"`
+
+	// FileName Download file name
+	FileName  string               `json:"fileName"`
+	Format    ExportArtifactFormat `json:"format"`
+	Id        Uuid                 `json:"id"`
+	ItemCount int                  `json:"itemCount"`
 
 	// Scope Resolved to stable item and evidence ids when the export is created
 	Scope     ExportScope `json:"scope"`
@@ -2851,12 +2853,14 @@ type ExportArtifactInput struct {
 	CreatedAt Timestamp `json:"createdAt"`
 
 	// DownloadPath API path that returns the file
-	DownloadPath string                    `json:"downloadPath"`
-	Fields       []ExportField             `json:"fields"`
-	FileName     string                    `json:"fileName"`
-	Format       ExportArtifactInputFormat `json:"format"`
-	Id           Uuid                      `json:"id"`
-	ItemCount    int                       `json:"itemCount"`
+	DownloadPath string        `json:"downloadPath"`
+	Fields       []ExportField `json:"fields"`
+
+	// FileName Download file name
+	FileName  string                    `json:"fileName"`
+	Format    ExportArtifactInputFormat `json:"format"`
+	Id        Uuid                      `json:"id"`
+	ItemCount int                       `json:"itemCount"`
 
 	// Scope Resolved to stable item and evidence ids when the export is created
 	Scope     ExportScopeInput `json:"scope"`
@@ -3483,12 +3487,14 @@ type Notice struct {
 	After     EvidenceRef `json:"after"`
 	Before    EvidenceRef `json:"before"`
 	CreatedAt Timestamp   `json:"createdAt"`
-	Domain    string      `json:"domain"`
-	Id        Uuid        `json:"id"`
-	ReadAt    *time.Time  `json:"readAt"`
-	Summary   string      `json:"summary"`
-	Type      NoticeType  `json:"type"`
-	WatchId   Uuid        `json:"watchId"`
+
+	// Domain The domain, or `.<suffix>` for catalog price notices
+	Domain  string     `json:"domain"`
+	Id      Uuid       `json:"id"`
+	ReadAt  *time.Time `json:"readAt"`
+	Summary string     `json:"summary"`
+	Type    NoticeType `json:"type"`
+	WatchId Uuid       `json:"watchId"`
 }
 
 // NoticeListResponse defines model for NoticeListResponse.
@@ -4631,17 +4637,21 @@ type Watch struct {
 
 // WatchCreate defines model for WatchCreate.
 type WatchCreate struct {
-	Domains              []AsciiDomain `json:"domains"`
-	IncludeCatalogPrices bool          `json:"includeCatalogPrices"`
-	IncludeRegistry      bool          `json:"includeRegistry"`
-	IntervalMinutes      int           `json:"intervalMinutes"`
-	Name                 string        `json:"name"`
-	ProviderIds          []ProviderId  `json:"providerIds"`
+	Domains []AsciiDomain `json:"domains"`
+
+	// IncludeCatalogPrices Refresh published catalogs of the selected providers; requires providerIds
+	IncludeCatalogPrices bool         `json:"includeCatalogPrices"`
+	IncludeRegistry      bool         `json:"includeRegistry"`
+	IntervalMinutes      int          `json:"intervalMinutes"`
+	Name                 string       `json:"name"`
+	ProviderIds          []ProviderId `json:"providerIds"`
 }
 
 // WatchCreateInput defines model for WatchCreateInput.
 type WatchCreateInput struct {
-	Domains              []AsciiDomain `json:"domains"`
+	Domains []AsciiDomain `json:"domains"`
+
+	// IncludeCatalogPrices Refresh published catalogs of the selected providers; requires providerIds
 	IncludeCatalogPrices *bool         `json:"includeCatalogPrices,omitempty"`
 	IncludeRegistry      *bool         `json:"includeRegistry,omitempty"`
 	IntervalMinutes      *int          `json:"intervalMinutes,omitempty"`

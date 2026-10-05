@@ -78,7 +78,7 @@ export const ExportArtifact = z
     scope: ExportScope,
     fields: z.array(ExportField),
     itemCount: z.number().int(),
-    fileName: z.string(),
+    fileName: z.string().meta({ description: 'Download file name' }),
     sizeBytes: z.number().int(),
     createdAt: Timestamp,
     downloadPath: z.string().meta({ description: 'API path that returns the file' }),

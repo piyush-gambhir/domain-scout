@@ -34,7 +34,10 @@ export const WatchCreate = z
     domains: z.array(AsciiDomain).min(1).max(5000),
     includeRegistry: z.boolean().default(true),
     providerIds: z.array(ProviderId).default([]),
-    includeCatalogPrices: z.boolean().default(false),
+    includeCatalogPrices: z
+      .boolean()
+      .default(false)
+      .meta({ description: 'Refresh published catalogs of the selected providers; requires providerIds' }),
     intervalMinutes: z.number().int().min(15).max(60 * 24 * 30).default(1440),
   })
   .meta({ id: 'WatchCreate' });
@@ -87,7 +90,7 @@ export const Notice = z
   .object({
     id: Uuid,
     watchId: Uuid,
-    domain: z.string(),
+    domain: z.string().meta({ description: 'The domain, or `.<suffix>` for catalog price notices' }),
     type: NoticeType,
     summary: z.string(),
     before: EvidenceRef,
