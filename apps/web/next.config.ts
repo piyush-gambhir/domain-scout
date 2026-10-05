@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: repoRoot,
   turbopack: { root: repoRoot },
   poweredByHeader: false,
+  // No remote or optimized images: keeps the native `sharp` module out of the portable server bundle.
+  images: { unoptimized: true },
   // Loopback only: compression buys nothing and would buffer the SSE stream.
   compress: false,
   devIndicators: false,
