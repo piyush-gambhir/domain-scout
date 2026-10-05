@@ -6,7 +6,7 @@ Built October 5, 2026 on the local `build` branch (not pushed). This report sepa
 
 The full product scope in [PRODUCT.md](PRODUCT.md) is implemented across the backend, web UI and Go CLI, and runs locally with `docker compose up --build`, `pnpm dev`, or the packaged archives. Of the 80 numbered requirements, an independent requirement audit (gpt-6.1-sol, re-run after the final fixes) found 68 implemented and tested, 7 implemented but without a dedicated test, and 5 partial, with none missing. The partial and pending items are listed under [Pending work](#pending-work). Authenticated provider operations, WHOIS lookups and Windows were not verified live; see [Verification limits](#verification-limits).
 
-A UI/UX rework (workspace layout with a docked detail panel, compact density, no page scrolling at desktop sizes) was requested after the first full build and is in progress; this report will be updated when it lands.
+After the first full build the UI was reworked as Piyush requested: a workspace layout that fits the window, a docked detail panel and compact density. At 1440x900 and 1280x800 no page scrolls; only growing data (results, long lists) scrolls inside its own pane, which a Playwright layout spec checks on every route with large data.
 
 ## What was built
 
@@ -30,7 +30,7 @@ Build-time technology decisions are recorded in [TECH_STACK.md](TECH_STACK.md#bu
 | Backend (Vitest, real temporary SQLite, fake transports) | 820 tests in 49 files |
 | Contracts and API client (Vitest) | 6 and 5 tests |
 | Go CLI (`go test`, including `-race`) | 4 packages, all passing; one unexplained failure under heavy parallel load did not reproduce in 13 reruns |
-| Web (Playwright against the real backend, fixtures only where a test would reach the network) | 62 specs |
+| Web (Playwright against the real backend, fixtures only where a test would reach the network) | 147 tests, including 81 layout checks (no page scroll on every route at 1440x900 and 1280x800) |
 | Typecheck and lint (`pnpm turbo run typecheck lint`) | Clean |
 | `pnpm smoke` (CLI, API and web on one backend, live fixed set) | 14 of 14 checks |
 
