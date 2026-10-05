@@ -262,7 +262,7 @@ export const REGISTRAR_MANIFESTS: ProviderManifest[] = [
         'documented',
         true,
         SPACESHIP_DOCS,
-        'premiumPricing gives premium operation prices only, without a documented term: registration is recorded for one year and renewal stays unknown. Standard prices are not in the API.',
+        'premiumPricing gives premium operation prices only, without a documented term: they are kept as confirmed premium amounts while registration and renewal totals stay unknown, so these offers never rank. Standard prices are not in the API.',
       ),
       transfer: unsupported('Standard transfer prices are published only as HTML.'),
       aftermarket: unsupported('SellerHub lists only the account’s own listings.'),
