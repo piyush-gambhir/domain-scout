@@ -9,6 +9,7 @@ import {
   resultFilterToQuery,
   routes,
   ResultQuery,
+  type ResultFilter as ResultFilterInput,
 } from '../src/index.js';
 
 describe('OpenAPI document', () => {
@@ -37,7 +38,7 @@ describe('OpenAPI document', () => {
 
 describe('result filter', () => {
   it('round-trips through the query-string form', () => {
-    const filter = { q: 'acme', outcomes: ['no_record', 'registered'], suffixes: ['com', 'co.uk'], resolved: false, sort: 'price', order: 'desc' } as const;
+    const filter: ResultFilterInput = { q: 'acme', outcomes: ['no_record', 'registered'], suffixes: ['com', 'co.uk'], resolved: false, sort: 'price', order: 'desc' };
     const query = ResultQuery.parse(resultFilterToQuery(filter));
     expect(resultFilterFromQuery(query)).toEqual(ResultFilter.parse(filter));
   });

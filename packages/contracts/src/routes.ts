@@ -186,7 +186,7 @@ export const routes = {
   getSuffixCoverage: { method: 'get', path: '/coverage/:suffix', summary: 'Coverage for one suffix', tag: 'coverage', params: SuffixParams, response: SuffixCoverageResponse },
 
   // Providers
-  listProviders: { method: 'get', path: '/providers', summary: 'Providers, capabilities and readiness', tag: 'providers', response: ProviderListResponse },
+  listProviders: { method: 'get', path: '/providers', summary: 'Providers, capabilities and readiness', tag: 'providers', query: PageQuery, response: ProviderListResponse },
   getProvider: { method: 'get', path: '/providers/:id', summary: 'One provider', tag: 'providers', params: ProviderParams, response: ProviderResponse },
   patchProvider: { method: 'patch', path: '/providers/:id', summary: 'Enable, disable or prefer a provider', tag: 'providers', params: ProviderParams, body: ProviderPreferencesPatch, response: ProviderResponse },
   listProviderCatalog: { method: 'get', path: '/providers/:id/catalog', summary: 'Latest published suffix prices', tag: 'providers', params: ProviderParams, query: CatalogQuery, response: OfferListResponse },
@@ -207,9 +207,9 @@ export const routes = {
 
   // Evidence and cost
   getDomainEvidence: { method: 'get', path: '/domains/:name/evidence', summary: 'All retained evidence for a domain', tag: 'evidence', params: DomainParams, response: DomainEvidenceResponse },
-  listDomainOffers: { method: 'get', path: '/domains/:name/offers', summary: 'Catalog and quote offers matching a domain', tag: 'evidence', params: DomainParams, response: OfferListResponse },
-  listDomainTransferOptions: { method: 'get', path: '/domains/:name/transfer-options', summary: 'Read-only transfer comparison from retained data', tag: 'evidence', params: DomainParams, response: TransferOptionListResponse },
-  listDomainListings: { method: 'get', path: '/domains/:name/listings', summary: 'Retained aftermarket listing evidence', tag: 'evidence', params: DomainParams, response: AftermarketListResponse },
+  listDomainOffers: { method: 'get', path: '/domains/:name/offers', summary: 'Catalog and quote offers matching a domain', tag: 'evidence', params: DomainParams, query: PageQuery, response: OfferListResponse },
+  listDomainTransferOptions: { method: 'get', path: '/domains/:name/transfer-options', summary: 'Read-only transfer comparison from retained data', tag: 'evidence', params: DomainParams, query: PageQuery, response: TransferOptionListResponse },
+  listDomainListings: { method: 'get', path: '/domains/:name/listings', summary: 'Retained aftermarket listing evidence', tag: 'evidence', params: DomainParams, query: PageQuery, response: AftermarketListResponse },
   getRawDiagnostic: { method: 'get', path: '/observations/:id/raw', summary: 'Sanitized raw source response, when retained', tag: 'evidence', params: IdParams, response: RawDiagnosticResponse },
   getPriceHistory: { method: 'get', path: '/price-history', summary: 'Comparable observed price series', tag: 'evidence', query: PriceHistoryQuery, response: PriceHistoryResponse },
   createComparison: { method: 'post', path: '/comparisons', summary: 'Ownership cost comparison from retained offers', tag: 'evidence', body: ComparisonRequest, response: ComparisonResponse },
@@ -224,12 +224,12 @@ export const routes = {
   addCollectionEntries: { method: 'post', path: '/collections/:id/entries', summary: 'Add domains', tag: 'collections', params: IdParams, body: CollectionEntriesAdd, response: CollectionEntriesAddResponse },
   removeCollectionEntries: { method: 'post', path: '/collections/:id/entries/remove', summary: 'Remove domains', tag: 'collections', params: IdParams, body: CollectionEntriesRemove, response: AsciiDomainListResponse },
   patchCollectionEntry: { method: 'patch', path: '/collections/:id/entries/:domain', summary: 'Set entry notes', tag: 'collections', params: EntryParams, body: CollectionEntryPatch, response: OkResponse },
-  listCriteria: { method: 'get', path: '/criteria', summary: 'Saved search criteria', tag: 'collections', response: SavedCriteriaListResponse },
+  listCriteria: { method: 'get', path: '/criteria', summary: 'Saved search criteria', tag: 'collections', query: PageQuery, response: SavedCriteriaListResponse },
   createCriteria: { method: 'post', path: '/criteria', summary: 'Save criteria', tag: 'collections', body: SavedCriteriaCreate, response: SavedCriteriaResponse, status: 201 },
   getCriteria: { method: 'get', path: '/criteria/:id', summary: 'One saved criteria (restoring runs no queries)', tag: 'collections', params: CriteriaParams, response: SavedCriteriaResponse },
   putCriteria: { method: 'put', path: '/criteria/:id', summary: 'Replace saved criteria', tag: 'collections', params: CriteriaParams, body: SavedCriteriaCreate, response: SavedCriteriaResponse },
   deleteCriteria: { method: 'delete', path: '/criteria/:id', summary: 'Delete saved criteria', tag: 'collections', params: CriteriaParams, response: OkResponse },
-  listPresets: { method: 'get', path: '/presets', summary: 'Built-in and saved extension presets', tag: 'collections', response: ExtensionPresetListResponse },
+  listPresets: { method: 'get', path: '/presets', summary: 'Built-in and saved extension presets', tag: 'collections', query: PageQuery, response: ExtensionPresetListResponse },
   createPreset: { method: 'post', path: '/presets', summary: 'Save an extension preset', tag: 'collections', body: ExtensionPresetCreate, response: ExtensionPresetResponse, status: 201 },
   deletePreset: { method: 'delete', path: '/presets/:id', summary: 'Delete a saved extension preset', tag: 'collections', params: PresetParams, response: OkResponse },
 
@@ -238,14 +238,14 @@ export const routes = {
   listGenerationThemes: { method: 'get', path: '/generation/themes', summary: 'Bundled local theme word lists', tag: 'generation', response: GenerationThemeListResponse },
 
   // Monitoring
-  listWatches: { method: 'get', path: '/watches', summary: 'Watches', tag: 'monitoring', response: WatchListResponse },
+  listWatches: { method: 'get', path: '/watches', summary: 'Watches', tag: 'monitoring', query: PageQuery, response: WatchListResponse },
   createWatch: { method: 'post', path: '/watches', summary: 'Create a watch', tag: 'monitoring', body: WatchCreate, response: WatchResponse, status: 201 },
   getWatch: { method: 'get', path: '/watches/:id', summary: 'One watch', tag: 'monitoring', params: IdParams, response: WatchResponse },
   patchWatch: { method: 'patch', path: '/watches/:id', summary: 'Edit a watch', tag: 'monitoring', params: IdParams, body: WatchPatch, response: WatchResponse },
   deleteWatch: { method: 'delete', path: '/watches/:id', summary: 'Remove a watch (retained evidence is kept)', tag: 'monitoring', params: IdParams, response: OkResponse },
   pauseWatch: { method: 'post', path: '/watches/:id/pause', summary: 'Pause a watch', tag: 'monitoring', params: IdParams, response: WatchResponse },
   resumeWatch: { method: 'post', path: '/watches/:id/resume', summary: 'Resume a watch', tag: 'monitoring', params: IdParams, response: WatchResponse },
-  runWatch: { method: 'post', path: '/watches/:id/run', summary: 'Run a watch now', tag: 'monitoring', params: IdParams, response: JobResponse, status: 201, external: true },
+  runWatch: { method: 'post', path: '/watches/:id/run', summary: 'Run a watch now', tag: 'monitoring', params: IdParams, response: JobResponse, status: 201, idempotent: true, external: true },
   listWatchRuns: { method: 'get', path: '/watches/:id/runs', summary: 'Scheduled, missed and completed runs', tag: 'monitoring', params: IdParams, query: PageQuery, response: WatchRunListResponse },
   listNotices: { method: 'get', path: '/notices', summary: 'Change notices', tag: 'monitoring', query: NoticeQuery, response: NoticeListResponse },
   markNoticesRead: { method: 'post', path: '/notices/read', summary: 'Mark notices read', tag: 'monitoring', body: NoticesMarkRead, response: OkResponse },
@@ -254,7 +254,7 @@ export const routes = {
   listPortfolio: { method: 'get', path: '/portfolio', summary: 'Imported portfolio entries', tag: 'portfolio', query: PageQuery, response: PortfolioListResponse },
   importPortfolio: { method: 'post', path: '/portfolio/import', summary: 'Import owned domains with user-supplied renewal facts', tag: 'portfolio', body: PortfolioImport, response: PortfolioImportResponse },
   deletePortfolioEntry: { method: 'delete', path: '/portfolio/:id', summary: 'Remove a portfolio entry', tag: 'portfolio', params: IdParams, response: OkResponse },
-  comparePortfolio: { method: 'get', path: '/portfolio/comparison', summary: 'Compare renewal and transfer costs from retained data', tag: 'portfolio', response: PortfolioComparisonResponse },
+  comparePortfolio: { method: 'get', path: '/portfolio/comparison', summary: 'Compare renewal and transfer costs from retained data', tag: 'portfolio', query: PageQuery, response: PortfolioComparisonResponse },
 
   // History and data
   listHistory: { method: 'get', path: '/history', summary: 'Past jobs with restorable inputs', tag: 'history', query: HistoryQuery, response: HistoryListResponse },
@@ -263,13 +263,13 @@ export const routes = {
 
   // Artifacts
   createExport: { method: 'post', path: '/exports', summary: 'Create a TXT, CSV or JSON export with an explicit scope', tag: 'artifacts', body: ExportCreate, response: ExportResponse, status: 201 },
-  listExports: { method: 'get', path: '/exports', summary: 'Exports', tag: 'artifacts', response: ExportListResponse },
+  listExports: { method: 'get', path: '/exports', summary: 'Exports', tag: 'artifacts', query: PageQuery, response: ExportListResponse },
   getExport: { method: 'get', path: '/exports/:id', summary: 'Export metadata', tag: 'artifacts', params: IdParams, response: ExportResponse },
   downloadExport: { method: 'get', path: '/exports/:id/download', summary: 'Export file', tag: 'artifacts', params: IdParams, response: FileBody, produces: 'file' },
   deleteExport: { method: 'delete', path: '/exports/:id', summary: 'Delete an export file', tag: 'artifacts', params: IdParams, response: OkResponse },
   previewSnapshot: { method: 'post', path: '/snapshots/preview', summary: 'Inspect what a snapshot would contain', tag: 'artifacts', body: SnapshotCreate, response: SnapshotPreviewResponse },
   createSnapshot: { method: 'post', path: '/snapshots', summary: 'Create a self-contained local snapshot', tag: 'artifacts', body: SnapshotCreate, response: SnapshotResponse, status: 201 },
-  listSnapshots: { method: 'get', path: '/snapshots', summary: 'Snapshots', tag: 'artifacts', response: SnapshotListResponse },
+  listSnapshots: { method: 'get', path: '/snapshots', summary: 'Snapshots', tag: 'artifacts', query: PageQuery, response: SnapshotListResponse },
   getSnapshot: { method: 'get', path: '/snapshots/:id', summary: 'Snapshot metadata', tag: 'artifacts', params: IdParams, response: SnapshotResponse },
   downloadSnapshot: { method: 'get', path: '/snapshots/:id/download', summary: 'Snapshot HTML or JSON', tag: 'artifacts', params: IdParams, query: DownloadQuery, response: FileBody, produces: 'file' },
   deleteSnapshot: { method: 'delete', path: '/snapshots/:id', summary: 'Delete a snapshot', tag: 'artifacts', params: IdParams, response: OkResponse },

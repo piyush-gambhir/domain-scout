@@ -38,6 +38,8 @@ export const NameCheck = z
     destination: z.string().nullable(),
     httpStatus: z.number().int().nullable(),
     checkedAt: Timestamp,
+    staleAt: Timestamp,
+    freshness: Freshness,
     reason: Reason,
     detail: z.record(z.string(), z.unknown()).nullable(),
   })
@@ -67,6 +69,8 @@ export const Diagnostic = z
     outcome: DiagnosticOutcome,
     destination: z.string().meta({ description: 'Resolver or host contacted' }),
     checkedAt: Timestamp,
+    staleAt: Timestamp,
+    freshness: Freshness,
     reason: Reason,
     data: z.record(z.string(), z.unknown()).meta({ description: 'Observed answer, e.g. records, certificate fields or HTTP status' }),
   })

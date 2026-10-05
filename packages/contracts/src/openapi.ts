@@ -80,6 +80,36 @@ function rewriteRefs(value: unknown, map: (name: string) => string): unknown {
 }
 
 /**
+ * OpenAPI 3.0 `nullable` only applies when `type` is in the same schema object, so
+ * `{ nullable: true, allOf: [$ref] }` does not admit null for a primitive component. Inline primitive
+ * components (strings, numbers, enums) at nullable use sites. Nullable object references keep the
+ * allOf form, which generators (oapi-codegen) map to pointers; the backend validates with Zod.
+ */
+function inlineNullablePrimitives(schemas: Record<string, JsonSchema>, refName: (name: string) => string = (n) => n) {
+  const primitive = (name: string) => {
+    const target = schemas[refName(name)] ?? schemas[name];
+    return target && target.type !== undefined && target.type !== 'object' && !target.allOf && !target.oneOf ? target : null;
+  };
+  const visit = (node: unknown): unknown => {
+    if (Array.isArray(node)) return node.map(visit);
+    if (!node || typeof node !== 'object') return node;
+    const obj = node as JsonSchema;
+    const allOf = obj.allOf as JsonSchema[] | undefined;
+    if (obj.nullable === true && allOf?.length === 1 && typeof allOf[0]?.$ref === 'string') {
+      const target = primitive((allOf[0].$ref as string).slice(REF_PREFIX.length));
+      if (target) {
+        const { allOf: _a, ...rest } = obj;
+        return { ...target, ...rest, nullable: true };
+      }
+    }
+    const out: JsonSchema = {};
+    for (const [key, value] of Object.entries(obj)) out[key] = visit(value);
+    return out;
+  };
+  for (const id of Object.keys(schemas)) schemas[id] = visit(schemas[id]) as JsonSchema;
+}
+
+/**
  * Request bodies use the schema input form (fields with defaults are optional), responses use the
  * output form. An `XInput` component is emitted only where the two forms differ.
  */
@@ -105,6 +135,9 @@ function buildSchemas() {
       }
     }
   }
+
+  inlineNullablePrimitives(output);
+  inlineNullablePrimitives(input, strip);
 
   const inputName = (id: string) => (differs.has(id) ? `${id}${INPUT_SUFFIX}` : id);
   const inputSchema = (id: string) => rewriteRefs(input[id], (name) => inputName(strip(name))) as JsonSchema;

@@ -295,14 +295,18 @@ export const RecheckRequest = z
   })
   .meta({ id: 'RecheckRequest', description: 'Fresh registry checks for selected domains; prior evidence is kept' });
 
-/** Outcome strings that count as resolved per operation. Everything else finished is unresolved. */
+/**
+ * Outcome strings that count as resolved (a definitive answer) per operation. Everything else that
+ * finished is unresolved, including unsupported and credential_required: they are not answers, and
+ * retrying them can succeed after coverage or credentials change.
+ */
 export const RESOLVED_ITEM_OUTCOMES: Record<JobOperation, readonly string[]> = {
-  registry: ['registered', 'no_record', 'invalid', 'unsupported'] satisfies RegistryOutcome[],
+  registry: ['registered', 'no_record', 'invalid'] satisfies RegistryOutcome[],
   provider_check: ['available', 'unavailable', 'restricted'],
-  quote: ['quoted', 'unavailable', 'restricted', 'unsupported', 'credential_required'],
-  transfer: ['quoted', 'unsupported', 'credential_required'],
-  aftermarket: ['listed', 'not_listed', 'unsupported', 'credential_required'],
-  name_check: ['exists', 'not_found', 'unsupported'],
+  quote: ['quoted', 'unavailable', 'restricted'],
+  transfer: ['quoted'],
+  aftermarket: ['listed', 'not_listed'],
+  name_check: ['exists', 'not_found'],
   diagnostic: ['observed', 'no_answer'],
   catalog: ['updated', 'unchanged'],
 };

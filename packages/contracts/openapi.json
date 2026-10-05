@@ -2086,7 +2086,27 @@
         "tags": [
           "providers"
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Providers, capabilities and readiness",
@@ -3586,6 +3606,25 @@
               "minLength": 1,
               "maxLength": 253
             }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            }
           }
         ],
         "responses": {
@@ -3669,6 +3708,25 @@
               "minLength": 1,
               "maxLength": 253
             }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            }
           }
         ],
         "responses": {
@@ -3751,6 +3809,25 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 253
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
             }
           }
         ],
@@ -3941,6 +4018,25 @@
                   "$ref": "#/components/schemas/Timestamp"
                 }
               ]
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500
             }
           }
         ],
@@ -4899,7 +4995,27 @@
         "tags": [
           "collections"
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Saved search criteria",
@@ -5300,7 +5416,27 @@
         "tags": [
           "collections"
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Built-in and saved extension presets",
@@ -5689,7 +5825,27 @@
         "tags": [
           "monitoring"
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Watches",
@@ -6259,6 +6415,16 @@
             "required": true,
             "schema": {
               "$ref": "#/components/schemas/Uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "Replaying the same key and body returns the original job; a different body returns 409",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
             }
           }
         ],
@@ -6883,7 +7049,27 @@
         "tags": [
           "portfolio"
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Compare renewal and transfer costs from retained data",
@@ -7298,7 +7484,27 @@
         "tags": [
           "artifacts"
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Exports",
@@ -7773,7 +7979,27 @@
         "tags": [
           "artifacts"
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Snapshots",
@@ -8181,12 +8407,10 @@
             "type": "boolean"
           },
           "retryAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "details": {
             "nullable": true,
@@ -8693,29 +8917,23 @@
             "type": "string"
           },
           "createdAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "updatedAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
             "nullable": true,
-            "description": "Registry expiry date. A fact, not a drop prediction.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "description": "Registry expiry date. A fact, not a drop prediction."
           },
           "statuses": {
             "type": "array",
@@ -8797,12 +9015,10 @@
             "maximum": 9007199254740991
           },
           "retryAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "matchedName": {
             "nullable": true,
@@ -8867,12 +9083,12 @@
             "$ref": "#/components/schemas/CoverageStatus"
           },
           "protocol": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/RegistryProtocol"
-              }
-            ]
+            "type": "string",
+            "enum": [
+              "rdap",
+              "whois"
+            ],
+            "nullable": true
           },
           "endpoint": {
             "nullable": true,
@@ -8883,31 +9099,28 @@
             "type": "string"
           },
           "routing": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/RoutingSource"
-              }
-            ]
+            "type": "string",
+            "enum": [
+              "iana_bootstrap",
+              "curated"
+            ],
+            "description": "Where the registry destination for this suffix came from",
+            "nullable": true
           },
           "routingUpdatedAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "fixtureTested": {
             "type": "boolean"
           },
           "liveValidatedAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "liveValidation": {
             "type": "array",
@@ -8979,20 +9192,16 @@
         "type": "object",
         "properties": {
           "bootstrapPublishedAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "bootstrapFetchedAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "counts": {
             "type": "object",
@@ -9142,12 +9351,10 @@
             "type": "string"
           },
           "verifiedAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "notes": {
             "nullable": true,
@@ -9250,12 +9457,14 @@
             "type": "boolean"
           },
           "storage": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CredentialStorage"
-              }
-            ]
+            "type": "string",
+            "enum": [
+              "env",
+              "session",
+              "file"
+            ],
+            "description": "env: environment variables; session: kept in memory until the backend stops; file: owner-only local credential file",
+            "nullable": true
           },
           "storageLocation": {
             "nullable": true,
@@ -9281,20 +9490,19 @@
             }
           },
           "lastTestedAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "lastTestResult": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CredentialTestResult"
-              }
-            ]
+            "type": "string",
+            "enum": [
+              "ok",
+              "failed",
+              "not_testable"
+            ],
+            "nullable": true
           },
           "lastTestMessage": {
             "nullable": true,
@@ -9342,12 +9550,10 @@
             "type": "string"
           },
           "verifiedAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           }
         },
         "required": [
@@ -9366,28 +9572,26 @@
             "maximum": 9007199254740991
           },
           "fetchedAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "staleAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "freshness": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Freshness"
-              }
-            ]
+            "type": "string",
+            "enum": [
+              "fresh",
+              "stale",
+              "expired"
+            ],
+            "description": "fresh: inside the freshness window; stale: older than the window; expired: past a provider-supplied quote expiry",
+            "nullable": true
           },
           "source": {
             "nullable": true,
@@ -9726,13 +9930,10 @@
         "type": "object",
         "properties": {
           "amount": {
-            "nullable": true,
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
             "description": "Null means unknown, never zero",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/DecimalString"
-              }
-            ]
+            "nullable": true
           },
           "years": {
             "type": "integer",
@@ -9744,6 +9945,28 @@
         "required": [
           "amount",
           "years"
+        ]
+      },
+      "TransferLine": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "description": "Null means unknown, never zero",
+            "nullable": true
+          },
+          "includesYears": {
+            "nullable": true,
+            "description": "Registration years included with the transfer; 0 when none, null when unknown",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "amount",
+          "includesYears"
         ]
       },
       "Promotion": {
@@ -9763,12 +9986,10 @@
             "type": "string"
           },
           "expiresAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "eligibilityVerified": {
             "type": "boolean",
@@ -9793,13 +10014,12 @@
             "$ref": "#/components/schemas/ProviderId"
           },
           "domain": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 253,
+            "pattern": "^[a-z0-9-]+(\\.[a-z0-9-]+)+$",
             "nullable": true,
-            "description": "Null for suffix-level catalog prices",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AsciiDomain"
-              }
-            ]
+            "description": "Null for suffix-level catalog prices"
           },
           "suffix": {
             "$ref": "#/components/schemas/Suffix"
@@ -9831,18 +10051,16 @@
             "$ref": "#/components/schemas/PriceLine"
           },
           "transfer": {
-            "$ref": "#/components/schemas/PriceLine"
+            "$ref": "#/components/schemas/TransferLine"
           },
           "fees": {
             "type": "object",
             "properties": {
               "icann": {
-                "nullable": true,
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/DecimalString"
-                  }
-                ]
+                "type": "string",
+                "pattern": "^-?\\d+(\\.\\d+)?$",
+                "description": "Exact decimal amount as a string",
+                "nullable": true
               },
               "other": {
                 "type": "array",
@@ -9853,12 +10071,10 @@
                       "type": "string"
                     },
                     "amount": {
-                      "nullable": true,
-                      "allOf": [
-                        {
-                          "$ref": "#/components/schemas/DecimalString"
-                        }
-                      ]
+                      "type": "string",
+                      "pattern": "^-?\\d+(\\.\\d+)?$",
+                      "description": "Exact decimal amount as a string",
+                      "nullable": true
                     }
                   },
                   "required": [
@@ -9884,20 +10100,16 @@
                 "$ref": "#/components/schemas/PremiumStatus"
               },
               "registration": {
-                "nullable": true,
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/DecimalString"
-                  }
-                ]
+                "type": "string",
+                "pattern": "^-?\\d+(\\.\\d+)?$",
+                "description": "Exact decimal amount as a string",
+                "nullable": true
               },
               "renewal": {
-                "nullable": true,
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/DecimalString"
-                  }
-                ]
+                "type": "string",
+                "pattern": "^-?\\d+(\\.\\d+)?$",
+                "description": "Exact decimal amount as a string",
+                "nullable": true
               }
             },
             "required": [
@@ -9918,20 +10130,16 @@
             "$ref": "#/components/schemas/Timestamp"
           },
           "publishedAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "quoteExpiresAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "staleAt": {
             "$ref": "#/components/schemas/Timestamp"
@@ -10153,36 +10361,32 @@
             "$ref": "#/components/schemas/ProviderId"
           },
           "offerId": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Uuid"
-              }
-            ]
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
           },
           "kind": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/PriceKind"
-              }
-            ]
+            "type": "string",
+            "enum": [
+              "published",
+              "estimated",
+              "exact_quote"
+            ],
+            "description": "published: a provider catalog price for the suffix; estimated: derived, e.g. future renewal; exact_quote: provider response for one exact name",
+            "nullable": true
           },
           "currency": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CurrencyCode"
-              }
-            ]
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency code",
+            "nullable": true
           },
           "nativeCurrency": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CurrencyCode"
-              }
-            ]
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency code",
+            "nullable": true
           },
           "fx": {
             "nullable": true,
@@ -10205,12 +10409,10 @@
             ]
           },
           "initialCommitment": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/DecimalString"
-              }
-            ]
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "description": "Exact decimal amount as a string",
+            "nullable": true
           },
           "initialYears": {
             "nullable": true,
@@ -10219,13 +10421,10 @@
             "maximum": 9007199254740991
           },
           "horizonTotal": {
-            "nullable": true,
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
             "description": "Initial commitment plus current renewal for remaining years. Future renewals are estimates.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/DecimalString"
-              }
-            ]
+            "nullable": true
           },
           "prepaidBeyondHorizon": {
             "nullable": true,
@@ -10237,12 +10436,10 @@
                 "maximum": 9007199254740991
               },
               "amount": {
-                "nullable": true,
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/DecimalString"
-                  }
-                ]
+                "type": "string",
+                "pattern": "^-?\\d+(\\.\\d+)?$",
+                "description": "Exact decimal amount as a string",
+                "nullable": true
               }
             },
             "required": [
@@ -10271,20 +10468,20 @@
             "maximum": 9007199254740991
           },
           "freshness": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Freshness"
-              }
-            ]
+            "type": "string",
+            "enum": [
+              "fresh",
+              "stale",
+              "expired"
+            ],
+            "description": "fresh: inside the freshness window; stale: older than the window; expired: past a provider-supplied quote expiry",
+            "nullable": true
           },
           "observedAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "destination": {
             "nullable": true,
@@ -10331,12 +10528,10 @@
             "$ref": "#/components/schemas/PurchasePath"
           },
           "currency": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CurrencyCode"
-              }
-            ]
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "ISO 4217 currency code",
+            "nullable": true
           },
           "generatedAt": {
             "$ref": "#/components/schemas/Timestamp"
@@ -10419,28 +10614,22 @@
             "$ref": "#/components/schemas/PriceKind"
           },
           "registration": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/DecimalString"
-              }
-            ]
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "description": "Exact decimal amount as a string",
+            "nullable": true
           },
           "renewal": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/DecimalString"
-              }
-            ]
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "description": "Exact decimal amount as a string",
+            "nullable": true
           },
           "transfer": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/DecimalString"
-              }
-            ]
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "description": "Exact decimal amount as a string",
+            "nullable": true
           }
         },
         "required": [
@@ -10704,6 +10893,12 @@
           "checkedAt": {
             "$ref": "#/components/schemas/Timestamp"
           },
+          "staleAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/Freshness"
+          },
           "reason": {
             "$ref": "#/components/schemas/Reason"
           },
@@ -10722,6 +10917,8 @@
           "destination",
           "httpStatus",
           "checkedAt",
+          "staleAt",
+          "freshness",
           "reason",
           "detail"
         ]
@@ -10777,6 +10974,12 @@
           "checkedAt": {
             "$ref": "#/components/schemas/Timestamp"
           },
+          "staleAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/Freshness"
+          },
           "reason": {
             "$ref": "#/components/schemas/Reason"
           },
@@ -10793,6 +10996,8 @@
           "outcome",
           "destination",
           "checkedAt",
+          "staleAt",
+          "freshness",
           "reason",
           "data"
         ],
@@ -10821,12 +11026,10 @@
             "type": "string"
           },
           "providerId": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ProviderId"
-              }
-            ]
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$",
+            "description": "Provider identifier, e.g. porkbun, hostinger, register-si",
+            "nullable": true
           },
           "status": {
             "$ref": "#/components/schemas/ListingStatus"
@@ -11487,20 +11690,16 @@
             "$ref": "#/components/schemas/Timestamp"
           },
           "startedAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "finishedAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "updatedAt": {
             "$ref": "#/components/schemas/Timestamp"
@@ -11563,29 +11762,23 @@
             ]
           },
           "watchId": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Uuid"
-              }
-            ]
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
           },
           "parentJobId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
             "nullable": true,
-            "description": "Job this one retried or rechecked",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Uuid"
-              }
-            ]
+            "description": "Job this one retried or rechecked"
           },
           "nextRetryAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           }
         },
         "required": [
@@ -11671,12 +11864,11 @@
             "type": "string"
           },
           "suffix": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Suffix"
-              }
-            ]
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 253,
+            "pattern": "^[a-z0-9-]+(\\.[a-z0-9-]+)*$",
+            "nullable": true
           },
           "operation": {
             "$ref": "#/components/schemas/JobOperation"
@@ -11711,28 +11903,22 @@
             ]
           },
           "retryAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "startedAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "finishedAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "evidence": {
             "type": "object",
@@ -13795,12 +13981,10 @@
             "type": "boolean"
           },
           "createdAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           }
         },
         "required": [
@@ -13935,20 +14119,16 @@
             "$ref": "#/components/schemas/Timestamp"
           },
           "lastRunAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "nextRunAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "missedRuns": {
             "type": "integer",
@@ -13957,12 +14137,10 @@
             "description": "Intervals missed while the backend was stopped, since the last run"
           },
           "lastJobId": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Uuid"
-              }
-            ]
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
           },
           "unreadNotices": {
             "type": "integer",
@@ -14187,28 +14365,22 @@
             "$ref": "#/components/schemas/Timestamp"
           },
           "startedAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "finishedAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "jobId": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Uuid"
-              }
-            ]
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
           },
           "changes": {
             "type": "integer",
@@ -14337,12 +14509,10 @@
             "$ref": "#/components/schemas/Timestamp"
           },
           "readAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           }
         },
         "required": [
@@ -14506,20 +14676,16 @@
             "$ref": "#/components/schemas/Timestamp"
           },
           "jobId": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Uuid"
-              }
-            ]
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
           },
           "watchId": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Uuid"
-              }
-            ]
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "nullable": true
           },
           "payload": {}
         },
@@ -15737,12 +15903,10 @@
                 "maximum": 10
               },
               "currency": {
-                "nullable": true,
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/CurrencyCode"
-                  }
-                ]
+                "type": "string",
+                "pattern": "^[A-Z]{3}$",
+                "description": "ISO 4217 currency code",
+                "nullable": true
               }
             },
             "required": [
@@ -15905,12 +16069,10 @@
                 "maximum": 10
               },
               "currency": {
-                "nullable": true,
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/CurrencyCode"
-                  }
-                ]
+                "type": "string",
+                "pattern": "^[A-Z]{3}$",
+                "description": "ISO 4217 currency code",
+                "nullable": true
               }
             }
           },
@@ -16244,12 +16406,10 @@
             "$ref": "#/components/schemas/Timestamp"
           },
           "finishedAt": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              }
-            ]
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "nullable": true
           },
           "total": {
             "type": "integer",

@@ -63,6 +63,10 @@ export function createClient(options: ClientOptions = {}) {
     ...rest: {} extends OperationArgs<Op> ? [args?: OperationArgs<Op>] : [args: OperationArgs<Op>]
   ): Promise<OperationResponse<Op>> {
     const def = routes[operationId];
+    if ('produces' in def && def.produces === 'sse') {
+      // A stream never finishes as JSON; use url() with EventSource or a dedicated SSE reader.
+      throw new Error(`${operationId} is a server-sent event stream; open client.url('${operationId}') instead`);
+    }
     const a = (rest[0] ?? {}) as AnyArgs;
     const headers: Record<string, string> = { Accept: 'application/json', ...(options.headers?.() ?? {}) };
     if (a.body !== undefined) headers['Content-Type'] = 'application/json';

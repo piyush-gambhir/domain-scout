@@ -42,6 +42,19 @@ export const PriceLine = z
   .meta({ id: 'PriceLine' });
 export type PriceLine = z.infer<typeof PriceLine>;
 
+export const TransferLine = z
+  .object({
+    amount: DecimalString.nullable().meta({ description: 'Null means unknown, never zero' }),
+    includesYears: z
+      .number()
+      .int()
+      .min(0)
+      .nullable()
+      .meta({ description: 'Registration years included with the transfer; 0 when none, null when unknown' }),
+  })
+  .meta({ id: 'TransferLine' });
+export type TransferLine = z.infer<typeof TransferLine>;
+
 export const Promotion = z
   .object({
     description: z.string(),
@@ -65,7 +78,7 @@ export const Offer = z
     registration: PriceLine,
     minYears: z.number().int().min(1).nullable().meta({ description: 'Minimum required registration term' }),
     renewal: PriceLine,
-    transfer: PriceLine,
+    transfer: TransferLine,
     fees: z.object({
       icann: DecimalString.nullable(),
       other: z.array(z.object({ label: z.string(), amount: DecimalString.nullable() })),
@@ -188,6 +201,8 @@ export const PriceHistoryQuery = z.object({
   suffix: z.string().optional(),
   providerId: z.string().optional(),
   since: Timestamp.optional(),
+  cursor: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(500).default(100),
 });
 export const PriceHistoryResponse = page(PriceSeries, 'PriceHistoryResponse');
 
