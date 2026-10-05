@@ -37,7 +37,7 @@ describe('job planning', () => {
     expect(job.type).toBe('registry_scan');
     expect(job.state).toBe('queued');
     expect(job.label).toBe('First scan');
-    expect(job.input).toEqual({ extensions: ['io', 'dev'], providerIds: [], services: [], checks: [], rows: 4, text });
+    expect(job.input).toEqual({ extensions: ['io', 'dev'], providerIds: [], services: [], checks: [], rows: 4, text, format: 'auto', csvColumn: null });
     expect(job.counters).toMatchObject({ total: 3, pending: 3, finished: 0 });
     expect(job.destinations.sort()).toEqual(['https://rdap.com.test/', 'https://rdap.dev.test/', 'https://rdap.io.test/']);
     expect(items(t, job.id)).toEqual([

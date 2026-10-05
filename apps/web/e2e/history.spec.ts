@@ -71,7 +71,7 @@ test('price history shows each comparable series with gaps left as gaps', async 
   await expect(first.getByTestId('price-gap')).toHaveCount(1);
   await expect(first).toContainText('No observations from');
   await expect(first.getByRole('row').filter({ hasText: 'Unknown' })).toHaveCount(1);
-  await expect(series.filter({ hasText: 'Dynadot' })).toContainText('Promotional');
+  await expect(series.filter({ hasText: 'Dynadot' })).toContainText('Renewal sale');
 
   await page.getByLabel('Extension').fill('si');
   await expect(page.getByText('No comparable observations')).toBeVisible();

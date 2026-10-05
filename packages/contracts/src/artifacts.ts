@@ -35,9 +35,13 @@ export const ExportField = z
     'renewal',
     'currency',
     'priceObservedAt',
+    'checks',
     'notes',
   ])
-  .meta({ id: 'ExportField' });
+  .meta({
+    id: 'ExportField',
+    description: 'checks: name-check, diagnostic and listing evidence as "label: outcome (checked time)" entries',
+  });
 export type ExportField = z.infer<typeof ExportField>;
 
 export const DEFAULT_EXPORT_FIELDS: readonly ExportField[] = [

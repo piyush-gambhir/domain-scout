@@ -107,6 +107,15 @@ export function countersOf(row: JobRow): JobCounters {
   };
 }
 
+/** How a registry scan read its input, so a restore reads it the same way. */
+function inputReading(input: StoredJobInput): { format: 'auto' | 'lines' | 'csv' | null; csvColumn: string | null } {
+  if (input.type !== 'registry_scan') return { format: null, csvColumn: null };
+  const source = (input.input ?? {}) as { text?: string; format?: string; csvColumn?: string };
+  if (typeof source.text !== 'string') return { format: 'lines', csvColumn: null };
+  const format = source.format === 'csv' || source.format === 'lines' ? source.format : 'auto';
+  return { format, csvColumn: typeof source.csvColumn === 'string' ? source.csvColumn : null };
+}
+
 /** Original text that restores a registry scan: pasted text, else the submitted domain list. */
 function restorableText(input: StoredJobInput): string | null {
   if (input.type !== 'registry_scan') return null;
@@ -163,7 +172,7 @@ export class JobStore {
       updatedAt: row.updated_at,
       counters: countersOf(row),
       destinations: json.parse<string[]>(row.destinations_json, []),
-      input: { ...input.summary, text: options.includeText ? restorableText(input) : null },
+      input: { ...input.summary, text: options.includeText ? restorableText(input) : null, ...inputReading(input) },
       watchId: row.watch_id,
       parentJobId: row.parent_job_id,
       nextRetryAt: row.next_retry_at,

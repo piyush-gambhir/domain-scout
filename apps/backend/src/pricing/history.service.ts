@@ -124,6 +124,15 @@ export class HistoryService {
             region: row.region,
             termYears: row.term_years,
             promotional,
+            kind: row.kind,
+            promotion:
+              promotional && payload.promotion
+                ? {
+                    description: payload.promotion.description ?? null,
+                    requiresTermYears: payload.promotion.requiresTermYears ?? null,
+                    expiresAt: payload.promotion.expiresAt ?? null,
+                  }
+                : null,
             points: [],
             gaps: [],
           },

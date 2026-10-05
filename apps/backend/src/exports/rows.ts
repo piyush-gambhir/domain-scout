@@ -169,6 +169,9 @@ export function fieldValue(record: ScopedRecord, field: ExportField, price: Pric
       return price?.currency ?? null;
     case 'priceObservedAt':
       return price?.observedAt ?? null;
+    case 'checks':
+      // Each check keeps its own outcome and time; they never merge into the registry outcome.
+      return record.other.length ? record.other.map((c) => `${c.label}: ${c.outcome} (${c.checkedAt})`).join('; ') : null;
     case 'notes':
       return record.notes;
   }

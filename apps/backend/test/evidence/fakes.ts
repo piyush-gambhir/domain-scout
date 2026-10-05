@@ -200,7 +200,7 @@ export function makeJob(overrides: Partial<Job> = {}): Job {
     updatedAt: now,
     counters: { total: 0, pending: 0, running: 0, finished: 0, interrupted: 0, resolved: 0, unresolved: 0, outcomes: {} },
     destinations: [],
-    input: { extensions: [], providerIds: [], services: [], checks: [], rows: 0, text: null },
+    input: { extensions: [], providerIds: [], services: [], checks: [], rows: 0, text: null, format: null, csvColumn: null },
     watchId: null,
     parentJobId: null,
     nextRetryAt: null,

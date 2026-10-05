@@ -257,6 +257,16 @@ describe('job results', () => {
     await check('confirmations=unavailable', jobId, ['c.com']);
     await check('confirmations=unknown', jobId, []);
     await check('confirmations=available&outcomes=no_record&sort=domain&order=desc', jobId, ['ab.com']);
+    // Sorting uses the same evidence rule: available before unavailable, unconfirmed rows last.
+    const bySort = async (query: string) =>
+      subjects(JobItemListResponse.parse((await t.api.get(`/jobs/${jobId}/results?${query}`).expect(200)).body).data);
+    expect((await bySort('sort=confirmation')).slice(0, 2)).toEqual(['ab.com', 'c.com']);
+    expect((await bySort('sort=confirmation&order=desc')).slice(0, 2)).toEqual(['c.com', 'ab.com']);
+    const paged = JobItemListResponse.parse((await t.api.get(`/jobs/${jobId}/results?sort=confirmation&limit=1`).expect(200)).body);
+    const second = JobItemListResponse.parse(
+      (await t.api.get(`/jobs/${jobId}/results?sort=confirmation&limit=1&cursor=${paged.nextCursor}`).expect(200)).body,
+    );
+    expect([...subjects(paged.data), ...subjects(second.data)]).toEqual(['ab.com', 'c.com']);
 
     // A newer confirmation from another provider supersedes the older one for registry rows, while
     // provider-check items keep matching on the evidence they recorded themselves.

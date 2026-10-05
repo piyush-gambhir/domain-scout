@@ -342,6 +342,8 @@ export async function mockPriceHistory(page: Page) {
           region: null,
           termYears: 1,
           promotional: false,
+          kind: 'published',
+          promotion: null,
           points: [
             point(1, '2026-09-01T00:00:00.000Z', '10.37'),
             point(2, '2026-09-02T00:00:00.000Z', '10.37'),
@@ -360,6 +362,8 @@ export async function mockPriceHistory(page: Page) {
           region: null,
           termYears: 1,
           promotional: true,
+          kind: 'published',
+          promotion: { description: 'Renewal sale', requiresTermYears: null, expiresAt: null },
           points: [point(6, NOW, '9.99')],
           gaps: [],
         },

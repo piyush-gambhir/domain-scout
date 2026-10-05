@@ -721,6 +721,7 @@ func (e ExportCreateInputFormat) Valid() bool {
 // Defines values for ExportField.
 const (
 	ExportFieldCheckedAt       ExportField = "checkedAt"
+	ExportFieldChecks          ExportField = "checks"
 	ExportFieldConfirmation    ExportField = "confirmation"
 	ExportFieldCurrency        ExportField = "currency"
 	ExportFieldDomain          ExportField = "domain"
@@ -746,6 +747,8 @@ const (
 func (e ExportField) Valid() bool {
 	switch e {
 	case ExportFieldCheckedAt:
+		return true
+	case ExportFieldChecks:
 		return true
 	case ExportFieldConfirmation:
 		return true
@@ -1036,6 +1039,27 @@ func (e ItemState) Valid() bool {
 	case ItemStatePending:
 		return true
 	case ItemStateRunning:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for JobInputFormat.
+const (
+	JobInputFormatAuto  JobInputFormat = "auto"
+	JobInputFormatCsv   JobInputFormat = "csv"
+	JobInputFormatLines JobInputFormat = "lines"
+)
+
+// Valid indicates whether the value is a known member of the JobInputFormat enum.
+func (e JobInputFormat) Valid() bool {
+	switch e {
+	case JobInputFormatAuto:
+		return true
+	case JobInputFormatCsv:
+		return true
+	case JobInputFormatLines:
 		return true
 	default:
 		return false
@@ -1686,19 +1710,22 @@ func (e ResultFilterInputOrder) Valid() bool {
 
 // Defines values for ResultSort.
 const (
-	ResultSortCheckedAt ResultSort = "checkedAt"
-	ResultSortDomain    ResultSort = "domain"
-	ResultSortInput     ResultSort = "input"
-	ResultSortLength    ResultSort = "length"
-	ResultSortOutcome   ResultSort = "outcome"
-	ResultSortPrice     ResultSort = "price"
-	ResultSortSuffix    ResultSort = "suffix"
+	ResultSortCheckedAt    ResultSort = "checkedAt"
+	ResultSortConfirmation ResultSort = "confirmation"
+	ResultSortDomain       ResultSort = "domain"
+	ResultSortInput        ResultSort = "input"
+	ResultSortLength       ResultSort = "length"
+	ResultSortOutcome      ResultSort = "outcome"
+	ResultSortPrice        ResultSort = "price"
+	ResultSortSuffix       ResultSort = "suffix"
 )
 
 // Valid indicates whether the value is a known member of the ResultSort enum.
 func (e ResultSort) Valid() bool {
 	switch e {
 	case ResultSortCheckedAt:
+		return true
+	case ResultSortConfirmation:
 		return true
 	case ResultSortDomain:
 		return true
@@ -2909,7 +2936,7 @@ type ExportCreateInput struct {
 // ExportCreateInputFormat defines model for ExportCreateInput.Format.
 type ExportCreateInputFormat string
 
-// ExportField defines model for ExportField.
+// ExportField checks: name-check, diagnostic and listing evidence as "label: outcome (checked time)" entries
 type ExportField string
 
 // ExportListResponse defines model for ExportListResponse.
@@ -3281,11 +3308,15 @@ type Job struct {
 	FinishedAt   *time.Time `json:"finishedAt"`
 	Id           Uuid       `json:"id"`
 	Input        struct {
-		Checks      []string     `json:"checks"`
-		Extensions  []Suffix     `json:"extensions"`
-		ProviderIds []ProviderId `json:"providerIds"`
-		Rows        int          `json:"rows"`
-		Services    []string     `json:"services"`
+		Checks     []string `json:"checks"`
+		CsvColumn  *string  `json:"csvColumn"`
+		Extensions []Suffix `json:"extensions"`
+
+		// Format How the original input was read; restores CSV scans with the same column
+		Format      *JobInputFormat `json:"format"`
+		ProviderIds []ProviderId    `json:"providerIds"`
+		Rows        int             `json:"rows"`
+		Services    []string        `json:"services"`
 
 		// Text Original pasted input, kept to restore the scan
 		Text *string `json:"text"`
@@ -3301,6 +3332,9 @@ type Job struct {
 	UpdatedAt   Timestamp           `json:"updatedAt"`
 	WatchId     *openapi_types.UUID `json:"watchId"`
 }
+
+// JobInputFormat How the original input was read; restores CSV scans with the same column
+type JobInputFormat string
 
 // JobCounters defines model for JobCounters.
 type JobCounters struct {
@@ -3777,9 +3811,19 @@ type PriceSeries struct {
 	} `json:"gaps"`
 
 	// Key Comparable series key: provider, scope, path, currency, region, term, promotion
-	Key         string              `json:"key"`
-	Points      []PriceHistoryPoint `json:"points"`
-	Promotional bool                `json:"promotional"`
+	Key string `json:"key"`
+
+	// Kind Price kind shared by every point in the series
+	Kind   PriceKind           `json:"kind"`
+	Points []PriceHistoryPoint `json:"points"`
+
+	// Promotion Promotion conditions shared by every point; null for regular prices
+	Promotion *struct {
+		Description       *string    `json:"description"`
+		ExpiresAt         *time.Time `json:"expiresAt"`
+		RequiresTermYears *int       `json:"requiresTermYears"`
+	} `json:"promotion"`
+	Promotional bool `json:"promotional"`
 
 	// ProviderId Provider identifier, e.g. porkbun, hostinger, register-si
 	ProviderId   ProviderId   `json:"providerId"`
@@ -4085,7 +4129,7 @@ type ResultFilterInput struct {
 // ResultFilterInputOrder defines model for ResultFilterInput.Order.
 type ResultFilterInputOrder string
 
-// ResultSort defines model for ResultSort.
+// ResultSort confirmation orders available, restricted, unknown, unavailable, then items without a provider confirmation
 type ResultSort string
 
 // RetryRequest defines model for RetryRequest.

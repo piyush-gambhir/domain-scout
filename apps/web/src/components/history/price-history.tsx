@@ -39,10 +39,11 @@ function SeriesBlock({ series, providerName }: { series: PriceSeries; providerNa
         <span className="text-sm text-muted-foreground">
           {[
             PURCHASE_PATH[series.purchasePath],
+            PRICE_KIND[series.kind],
             series.currency,
             series.region ?? 'No region',
             `${series.termYears} yr term`,
-            series.promotional ? 'Promotional' : 'Standard',
+            series.promotional ? promotionLabel(series.promotion) : 'Standard',
           ].join(' · ')}
         </span>
       </header>
@@ -178,4 +179,13 @@ export function PriceHistory() {
       ) : null}
     </section>
   );
+}
+
+/** Campaign conditions keep promotional series distinguishable at a glance. */
+function promotionLabel(promotion: PriceSeries['promotion']): string {
+  if (!promotion) return 'Promotional';
+  const parts = [promotion.description ?? 'Promotional'];
+  if (promotion.requiresTermYears) parts.push(`requires ${promotion.requiresTermYears} yr`);
+  if (promotion.expiresAt) parts.push(`until ${formatDateTime(promotion.expiresAt)}`);
+  return parts.join(', ');
 }

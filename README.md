@@ -49,7 +49,7 @@ Useful Turborepo tasks: `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm test:e
 
 ## CLI for agents
 
-JSON by default (the API envelope with `contractVersion`), `--output table` or `--output ndjson`. Data goes to stdout; progress and errors go to stderr. Commands never prompt.
+JSON by default (the API envelope with `contractVersion`), `--output table`, or `--output ndjson` (one object per line, each carrying `contractVersion`). Data goes to stdout; progress and errors go to stderr. Commands never prompt. `pnpm smoke` runs an end-to-end check of the CLI, API and web against one backend (it scans only fixed test names).
 
 ```sh
 domain-scout input preview --file names.txt --tlds com,io        # validate and expand, no network

@@ -19,6 +19,16 @@ interface SortSpec {
 /** Registrable label length in visible characters: the Unicode text before the suffix, or the whole name. */
 const LABEL_LENGTH = `(CASE WHEN i.suffix IS NULL OR instr(i.unicode, '.') = 0 THEN length(i.unicode) ELSE instr(i.unicode, '.') - 1 END)`;
 
+const statusRank = (payload: string) =>
+  `CASE json_extract(${payload}, '$.status') WHEN 'available' THEN 0 WHEN 'restricted' THEN 1 WHEN 'unknown' THEN 2 WHEN 'unavailable' THEN 3 END`;
+
+/** Same evidence rule as the confirmations filter: the item's own confirmation, else the newest for its domain. */
+const CONFIRMATION_RANK = `COALESCE(
+  (SELECT ${statusRank('co.payload_json')} FROM json_each(i.evidence_json, '$.observations') je
+     CROSS JOIN observations co ON co.id = je.value WHERE co.kind = 'confirmation' LIMIT 1),
+  (SELECT ${statusRank('lc.payload_json')} FROM observations lc
+     WHERE lc.kind = 'confirmation' AND lc.subject = i.subject ORDER BY lc.observed_at DESC, lc.id DESC LIMIT 1))`;
+
 const SORTS: Record<ResultFilterParsed['sort'], SortSpec> = {
   input: { expr: null, fallback: '0' },
   domain: { expr: 'i.subject', fallback: "''" },
@@ -28,6 +38,7 @@ const SORTS: Record<ResultFilterParsed['sort'], SortSpec> = {
   checkedAt: { expr: 'COALESCE(ro.observed_at, i.finished_at)', fallback: "''" },
   // Decimal strings compare exactly as REAL for the 15 significant digits prices use.
   price: { expr: 'CAST(bp.amount AS REAL)', fallback: '0' },
+  confirmation: { expr: CONFIRMATION_RANK, fallback: '0' },
 };
 
 function escapeLike(value: string): string {

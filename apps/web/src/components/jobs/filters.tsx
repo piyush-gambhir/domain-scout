@@ -24,6 +24,7 @@ const SORTS: { value: Sort; label: string }[] = [
   { value: 'outcome', label: 'Outcome' },
   { value: 'checkedAt', label: 'Checked' },
   { value: 'price', label: 'Price' },
+  { value: 'confirmation', label: 'Provider confirmation' },
 ];
 
 const LIST_KEYS = ['outcomes', 'suffixes', 'states', 'confirmations'] as const;

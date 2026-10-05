@@ -232,7 +232,18 @@ export function ScanForm() {
     } else if (jobParam) {
       api
         .call('getJob', { params: { id: jobParam } })
-        .then(({ data }) => apply(fromRestore({ text: data.input.text ?? '', extensions: data.input.extensions, label: data.label ?? '' })))
+        .then(({ data }) =>
+          apply(
+            fromRestore({
+              text: data.input.text ?? '',
+              extensions: data.input.extensions,
+              label: data.label ?? '',
+              // Read the input the way the original scan did (e.g. the same CSV column).
+              format: data.input.format ?? undefined,
+              csvColumn: data.input.csvColumn ?? undefined,
+            }),
+          ),
+        )
         .catch(() => toast.error('Could not restore that scan.'));
     } else if (criteriaParam) {
       // Input, extensions, results filter, providers and budget come back; nothing runs.

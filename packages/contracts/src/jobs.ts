@@ -83,6 +83,11 @@ export const Job = z
       checks: z.array(z.string()),
       rows: z.number().int(),
       text: z.string().nullable().meta({ description: 'Original pasted input, kept to restore the scan' }),
+      format: z
+        .enum(['auto', 'lines', 'csv'])
+        .nullable()
+        .meta({ description: 'How the original input was read; restores CSV scans with the same column' }),
+      csvColumn: z.string().nullable(),
     }),
     watchId: Uuid.nullable(),
     parentJobId: Uuid.nullable().meta({ description: 'Job this one retried or rechecked' }),
@@ -216,8 +221,11 @@ export const JobListQuery = z.object({
 });
 
 export const ResultSort = z
-  .enum(['input', 'domain', 'suffix', 'length', 'outcome', 'checkedAt', 'price'])
-  .meta({ id: 'ResultSort' });
+  .enum(['input', 'domain', 'suffix', 'length', 'outcome', 'checkedAt', 'price', 'confirmation'])
+  .meta({
+    id: 'ResultSort',
+    description: 'confirmation orders available, restricted, unknown, unavailable, then items without a provider confirmation',
+  });
 
 /** One filter/sort specification shared by result views, CLI queries, exports and saved criteria. */
 export const ResultFilter = z
