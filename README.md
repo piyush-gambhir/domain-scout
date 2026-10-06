@@ -45,7 +45,7 @@ apps/cli/bin/domain-scout service start
 apps/cli/bin/domain-scout ui
 ```
 
-Useful Turborepo tasks: `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm test:e2e`, `pnpm generate` (OpenAPI and the Go client). `pnpm package` builds distribution archives for macOS, Linux and Windows into `release/` (Node.js 24.11+ must be installed on the target machine).
+Useful Turborepo tasks: `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm test:e2e`, `pnpm generate` (OpenAPI and the Go client). `pnpm smoke` checks the CLI, API and web against one backend; `pnpm acceptance` runs 1,200 names twice through the real CLI and backend against a local stub registry (cancel, resume, restart, export) without sending names anywhere. `pnpm package` builds distribution archives for macOS, Linux and Windows into `release/` (Node.js 24.11+ must be installed on the target machine).
 
 ## CLI for agents
 
@@ -60,6 +60,24 @@ domain-scout export --scope filter --job <job-id> --outcomes no_record --format 
 ```
 
 Exit codes: 0 success, 1 local failure, 2 invalid usage, 3 completed with unresolved items, 4 provider access missing, 5 backend setup or version failure, 130 interrupted wait. Run `domain-scout --help` for the full command tree.
+
+`domain-scout ui --job <job-id>` opens a CLI run in the UI. Runs started from the CLI, the UI, the API or a watch are labeled with their origin, so History shows agent runs next to your own searches.
+
+### MCP
+
+`domain-scout mcp` serves the same API as MCP tools over stdio (`scan`, `job_results`, `domain_evidence`, `suffix_prices`, `quote`, `shortlist_add` and more). Register it in an MCP client with the command `domain-scout` and args `["mcp"]`; see [apps/cli/README.md](apps/cli/README.md).
+
+## Using the UI
+
+| Page | For |
+| --- | --- |
+| Search | Type names or paste a list. Few names show as a name by extension grid, long lists as grouped results (Not registered, Taken, Couldn't check) with prices from the provider catalogs. Ideas mode generates candidates locally. |
+| Saved | Shortlists with fresh status, cost over several years by provider, quotes and Buy links |
+| Watching | Watched names and an inbox of changes (expiry, status, price) |
+| History | Recent searches from the UI and from agents, to reopen, resume or retry |
+| Settings | Provider keys, preferences (default extensions, currency, horizon), checks, coverage, data and service |
+
+"Not registered" means the registry had no record when checked. Confirm with a provider before buying.
 
 ## Provider keys
 
