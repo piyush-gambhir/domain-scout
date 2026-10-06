@@ -5,6 +5,7 @@ import { InputPreviewer } from '../core/ports.js';
 import { SettingsService } from '../system/settings.service.js';
 import { ProvidersService } from '../providers/providers.service.js';
 import { computeRow, rankRows } from './comparison.js';
+import { compare } from './money.js';
 import { requireDomain } from './domain.js';
 import { OffersService, type PricedOffer } from './offers.service.js';
 
@@ -53,10 +54,15 @@ export class ComparisonService {
 
     const ranked = rankRows(rows);
     const preferred = new Set(this.providers.manifests().filter((m) => this.providers.row(m.id).preferred === 1).map((m) => m.id));
+    // Ranked rows first; unranked rows (e.g. published prices with unknown premium status) still
+    // sort by their known amount within a currency so the cheapest appears first. A preference only
+    // breaks ties and never moves a provider above a cheaper comparable one.
+    const amount = (row: (typeof ranked.rows)[number]) => row.horizonTotal ?? row.initialCommitment;
     ranked.rows.sort(
       (a, b) =>
         a.domain.localeCompare(b.domain) ||
         (a.rank ?? Number.MAX_SAFE_INTEGER) - (b.rank ?? Number.MAX_SAFE_INTEGER) ||
+        byAmount(amount(a), a.currency, amount(b), b.currency) ||
         Number(preferred.has(b.providerId)) - Number(preferred.has(a.providerId)) ||
         a.providerId.localeCompare(b.providerId),
     );
@@ -104,4 +110,13 @@ export class ComparisonService {
     }
     return null;
   }
+}
+
+/** Orders known amounts ascending within one currency; unknown amounts and other currencies keep their place. */
+function byAmount(a: string | null, aCurrency: string | null, b: string | null, bCurrency: string | null): number {
+  if (a === null && b === null) return 0;
+  if (a === null) return 1;
+  if (b === null) return -1;
+  if (aCurrency !== bCurrency) return 0;
+  return compare(a, b);
 }
