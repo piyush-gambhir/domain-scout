@@ -2,6 +2,61 @@
   "description": "Authorized live validation results (fixed test set only: example.com, google.com, nic.si, bbc.co.uk and random 24-character lowercase labels), written by test/live/registry.live.spec.ts with DOMAIN_SCOUT_LIVE_TESTS=1 and DOMAIN_SCOUT_LIVE_RECORD=1.",
   "results": [
     {
+      "domain": "xroqlvcxpzuvjwvkvzbbsarp.ae",
+      "suffix": "ae",
+      "protocol": "whois",
+      "destination": "whois.aeda.net.ae:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:54.518Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "ncswpnpfbrgeqpjiylpobhzq.am",
+      "suffix": "am",
+      "protocol": "whois",
+      "destination": "whois.amnic.net:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:52.039Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "sxcepyttfwwalnpmpxddbqqb.at",
+      "suffix": "at",
+      "protocol": "whois",
+      "destination": "whois.nic.at:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:54.195Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "ckwjvwintlssnieiwpgjcizb.be",
+      "suffix": "be",
+      "protocol": "whois",
+      "destination": "whois.dns.be:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:50.919Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "pcpthvcxujtokoliccidcnvc.bg",
+      "suffix": "bg",
+      "protocol": "whois",
+      "destination": "whois.register.bg:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:53.921Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
       "domain": "yroddmwtccbjcvjeprlsalan.ch",
       "suffix": "ch",
       "protocol": "rdap",
@@ -10,6 +65,17 @@
       "observed": "no_record",
       "at": "2026-10-05T15:34:07.047Z",
       "httpStatus": 404,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "qmktvlkuoptsimpjuarthysk.cn",
+      "suffix": "cn",
+      "protocol": "whois",
+      "destination": "whois.cnnic.cn:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:50.748Z",
+      "httpStatus": null,
       "reason": "registry_not_found"
     },
     {
@@ -46,6 +112,17 @@
       "reason": "registry_not_found"
     },
     {
+      "domain": "ahfpgavfyidcgqadnmjqrtdg.co.za",
+      "suffix": "co.za",
+      "protocol": "whois",
+      "destination": "coza-whois.registry.net.za:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:56.051Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
       "domain": "example.com",
       "suffix": "com",
       "protocol": "rdap",
@@ -79,6 +156,17 @@
       "reason": "registry_not_found"
     },
     {
+      "domain": "ixljkvndxfmdaevrtuyucfog.de",
+      "suffix": "de",
+      "protocol": "whois",
+      "destination": "whois.denic.de:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:50.662Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
       "domain": "kezfavxgiaxygihfnbgjqxbz.dev",
       "suffix": "dev",
       "protocol": "rdap",
@@ -90,6 +178,182 @@
       "reason": "registry_not_found"
     },
     {
+      "domain": "pgynyudupikrtigfcgxegkvf.dk",
+      "suffix": "dk",
+      "protocol": "whois",
+      "destination": "whois.punktum.dk:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:50.935Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "aickafgdwfvbbfdlfemrkrcv.ee",
+      "suffix": "ee",
+      "protocol": "whois",
+      "destination": "whois.tld.ee:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:52.547Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "vvhvmbtxbnmxzvtpbochzfup.eu",
+      "suffix": "eu",
+      "protocol": "whois",
+      "destination": "whois.eu:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:50.939Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "hporbnbbiydbmhxjjzsilhuw.gg",
+      "suffix": "gg",
+      "protocol": "whois",
+      "destination": "whois.gg:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:51.669Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "uoxnsxhmfdlvbgufkyjwovhi.gl",
+      "suffix": "gl",
+      "protocol": "whois",
+      "destination": "whois.nic.gl:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:56.170Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "lhmtbgjcacscexqhjwckrotv.hk",
+      "suffix": "hk",
+      "protocol": "whois",
+      "destination": "whois.hkirc.hk:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:54.256Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "ozqoeyfqusjurrbzdxlznbbo.hr",
+      "suffix": "hr",
+      "protocol": "whois",
+      "destination": "whois.dns.hr:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:53.782Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "ovbpcuarjoabsmdwdlgjejul.hu",
+      "suffix": "hu",
+      "protocol": "whois",
+      "destination": "whois.nic.hu:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:54.589Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "xrlkonefeicgwrbdypaacyqy.ie",
+      "suffix": "ie",
+      "protocol": "whois",
+      "destination": "whois.weare.ie:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:52.230Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "velhtvstkuusvjlclbruhjeu.il",
+      "suffix": "il",
+      "protocol": "whois",
+      "destination": "whois.isoc.org.il:43",
+      "expected": "no_record",
+      "observed": "inconclusive",
+      "at": "2026-10-06T23:37:54.818Z",
+      "httpStatus": null,
+      "reason": "unrecognized_response"
+    },
+    {
+      "domain": "lolsmfsuiziglhhqudfklpki.im",
+      "suffix": "im",
+      "protocol": "whois",
+      "destination": "whois.nic.im:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:53.350Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "ccwqfxntjotibapzyfkhlpwu.io",
+      "suffix": "io",
+      "protocol": "whois",
+      "destination": "whois.nic.io:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:51.040Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "thfbaixyvuvndnseefuflqeo.it",
+      "suffix": "it",
+      "protocol": "whois",
+      "destination": "whois.nic.it:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:54.066Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "heajttplnitvkacfsekzswzx.je",
+      "suffix": "je",
+      "protocol": "whois",
+      "destination": "whois.je:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:55.692Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "sdqnyyravtoqiqiekauhtced.jp",
+      "suffix": "jp",
+      "protocol": "whois",
+      "destination": "whois.jprs.jp:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:50.772Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "riuuqntzvddrszbagddfdknn.la",
+      "suffix": "la",
+      "protocol": "whois",
+      "destination": "whois.nic.la:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:52.281Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
       "domain": "kuubiujfzsmgxmzbemsvqjkj.li",
       "suffix": "li",
       "protocol": "rdap",
@@ -98,6 +362,149 @@
       "observed": "no_record",
       "at": "2026-10-05T15:34:10.125Z",
       "httpStatus": 404,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "iqfhynhaaslrkxkhpbpoyzmb.lt",
+      "suffix": "lt",
+      "protocol": "whois",
+      "destination": "das.domreg.lt:4343",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:53.604Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "papoehawhhbukdjpdijkxnvl.lu",
+      "suffix": "lu",
+      "protocol": "whois",
+      "destination": "whois.dns.lu:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:52.344Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "bukawfugeoosyykvnpjhroiv.lv",
+      "suffix": "lv",
+      "protocol": "whois",
+      "destination": "whois.nic.lv:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:52.510Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "koabovevbradafqcossxnhaq.me",
+      "suffix": "me",
+      "protocol": "whois",
+      "destination": "whois.nic.me:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:38:01.338Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "hfcbyfkkmgmnmejfwmjuwmyf.mx",
+      "suffix": "mx",
+      "protocol": "whois",
+      "destination": "whois.mx:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:52.670Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "kdpvdulehxrkifytdropipxk.net.za",
+      "suffix": "net.za",
+      "protocol": "whois",
+      "destination": "net-whois.registry.net.za:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:38:02.696Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "wllmrffpwchthztddarcwrbc.nz",
+      "suffix": "nz",
+      "protocol": "whois",
+      "destination": "whois.irs.net.nz:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:51.625Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "yvijptevrxqxmhsmcoensopp.org.za",
+      "suffix": "org.za",
+      "protocol": "whois",
+      "destination": "org-whois.registry.net.za:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:59.239Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "rswnqdqwrabsphuerygzwuhv.rs",
+      "suffix": "rs",
+      "protocol": "whois",
+      "destination": "whois.rnids.rs:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:53.855Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "qiveicuwdzbxhdmihgvpgmrv.ru",
+      "suffix": "ru",
+      "protocol": "whois",
+      "destination": "whois.tcinet.ru:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:54.134Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "umnhrbxmonbniwqperebmmet.sa",
+      "suffix": "sa",
+      "protocol": "whois",
+      "destination": "whois.nic.net.sa:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:55.765Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "avbabjgkgtcjaollxkllpgbm.se",
+      "suffix": "se",
+      "protocol": "whois",
+      "destination": "whois.iis.se:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:50.949Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "ncxtuexewnvrzhusoctwthfr.sh",
+      "suffix": "sh",
+      "protocol": "whois",
+      "destination": "whois.nic.sh:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:55.814Z",
+      "httpStatus": null,
       "reason": "registry_not_found"
     },
     {
@@ -123,6 +530,39 @@
       "reason": "registry_record"
     },
     {
+      "domain": "vjinjllvejcdxygzvtgmiunb.sk",
+      "suffix": "sk",
+      "protocol": "whois",
+      "destination": "whois.sk-nic.sk:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:54.067Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "iljukronxmlqcmccvgalxgxs.so",
+      "suffix": "so",
+      "protocol": "whois",
+      "destination": "whois.nic.so:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:55.214Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "gqkywxjlenlgngeewfezmpsa.tr",
+      "suffix": "tr",
+      "protocol": "whois",
+      "destination": "whois.trabis.gov.tr:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:55.113Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
       "domain": "pfdotgyejuoiqbcqszwmrrdz.uk",
       "suffix": "uk",
       "protocol": "rdap",
@@ -132,279 +572,53 @@
       "at": "2026-10-05T13:57:18.670Z",
       "httpStatus": 404,
       "reason": "registry_not_found"
+    },
+    {
+      "domain": "kkgkfytlkmcabpbitkenczda.us",
+      "suffix": "us",
+      "protocol": "whois",
+      "destination": "whois.nic.us:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:54.248Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "sohkmpuitymzvjshiogxdheu.vc",
+      "suffix": "vc",
+      "protocol": "whois",
+      "destination": "whois.identitydigital.services:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:58.373Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "vqzixsedvnbxzjbcnrwozumm.web.za",
+      "suffix": "web.za",
+      "protocol": "whois",
+      "destination": "web-whois.registry.net.za:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:38:05.988Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
+    },
+    {
+      "domain": "hpympfnuxqrzhfcckkogatps.ws",
+      "suffix": "ws",
+      "protocol": "whois",
+      "destination": "whois.website.ws:43",
+      "expected": "no_record",
+      "observed": "no_record",
+      "at": "2026-10-06T23:37:52.092Z",
+      "httpStatus": null,
+      "reason": "registry_not_found"
     }
   ],
   "notRun": [
-    {
-      "suffix": "jp",
-      "destination": "whois.jprs.jp:43",
-      "reason": "outside the authorized live test set, and outbound TCP port 43 was blocked",
-      "at": "2026-10-05T13:30:00Z"
-    },
-    {
-      "suffix": "cn",
-      "destination": "whois.cnnic.cn:43",
-      "reason": "outside the authorized live test set, and outbound TCP port 43 was blocked",
-      "at": "2026-10-05T13:30:00Z"
-    },
-    {
-      "suffix": "eu",
-      "destination": "whois.eu:43",
-      "reason": "outside the authorized live test set, and outbound TCP port 43 was blocked",
-      "at": "2026-10-05T13:30:00Z"
-    },
-    {
-      "suffix": "de",
-      "destination": "whois.denic.de:43",
-      "reason": "timeout: whois.denic.de did not answer within 15000 ms",
-      "at": "2026-10-05T13:57:29.626Z"
-    },
-    {
-      "suffix": "io",
-      "destination": "whois.nic.io:43",
-      "reason": "timeout: whois.nic.io did not answer within 15000 ms",
-      "at": "2026-10-05T13:57:29.626Z"
-    },
-    {
-      "suffix": "be",
-      "destination": "whois.dns.be:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "se",
-      "destination": "whois.iis.se:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "dk",
-      "destination": "whois.punktum.dk:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "pt",
-      "destination": "whois.dns.pt:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "ie",
-      "destination": "whois.weare.ie:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "nz",
-      "destination": "whois.irs.net.nz:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "mx",
-      "destination": "whois.mx:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "gg",
-      "destination": "whois.gg:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "je",
-      "destination": "whois.je:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "sh",
-      "destination": "whois.nic.sh:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "vc",
-      "destination": "whois.identitydigital.services:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "me",
-      "destination": "whois.nic.me:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "am",
-      "destination": "whois.amnic.net:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "ws",
-      "destination": "whois.website.ws:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "la",
-      "destination": "whois.nic.la:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "gl",
-      "destination": "whois.nic.gl:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "im",
-      "destination": "whois.nic.im:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "lu",
-      "destination": "whois.dns.lu:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "ee",
-      "destination": "whois.tld.ee:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "lv",
-      "destination": "whois.nic.lv:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "lt",
-      "destination": "das.domreg.lt:4343",
-      "reason": "live checks in this pass covered only curated RDAP routes; DOMREG DAS on port 4343 was not tested from the development network",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "sk",
-      "destination": "whois.sk-nic.sk:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "hr",
-      "destination": "whois.dns.hr:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "rs",
-      "destination": "whois.rnids.rs:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "bg",
-      "destination": "whois.register.bg:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "hu",
-      "destination": "whois.nic.hu:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "us",
-      "destination": "whois.nic.us:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "it",
-      "destination": "whois.nic.it:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "at",
-      "destination": "whois.nic.at:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "hk",
-      "destination": "whois.hkirc.hk:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "ru",
-      "destination": "whois.tcinet.ru:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "tr",
-      "destination": "whois.trabis.gov.tr:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "il",
-      "destination": "whois.isoc.org.il:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "ae",
-      "destination": "whois.aeda.net.ae:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "sa",
-      "destination": "whois.nic.net.sa:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "so",
-      "destination": "whois.nic.so:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "co.za",
-      "destination": "coza-whois.registry.net.za:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "org.za",
-      "destination": "org-whois.registry.net.za:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "net.za",
-      "destination": "net-whois.registry.net.za:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "web.za",
-      "destination": "web-whois.registry.net.za:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
     {
       "suffix": "com.hk",
       "destination": "whois.hkirc.hk:43",
@@ -428,6 +642,12 @@
       "destination": "whois.nic.net.sa:43",
       "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
       "at": "2026-10-05T18:00:00Z"
+    },
+    {
+      "suffix": "pt",
+      "destination": "whois.dns.pt:43",
+      "reason": "timeout: whois.dns.pt did not answer within 15000 ms",
+      "at": "2026-10-06T23:39:11.517Z"
     }
   ]
 }

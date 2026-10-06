@@ -24,8 +24,8 @@ const httpsBootstrapTlds = new Set(
 
 const TESTED = [
   'ae', 'am', 'at', 'be', 'bg', 'ch', 'cn', 'co', 'co.il', 'co.uk', 'co.za', 'com', 'com.hk', 'com.sa', 'com.tr', 'de', 'dev', 'dk', 'ee', 'eu', 'gg', 'gl',
-  'hk', 'hr', 'hu', 'ie', 'im', 'io', 'it', 'je', 'jp', 'la', 'li', 'lt', 'lu', 'lv', 'me', 'mx', 'nz', 'pt', 'rs', 'ru', 'sa', 'se', 'sh', 'si', 'sk', 'so',
-  'tr', 'uk', 'us', 'vc', 'ws',
+  'hk', 'hr', 'hu', 'ie', 'im', 'io', 'it', 'je', 'jp', 'la', 'li', 'lt', 'lu', 'lv', 'me', 'mx', 'net.za', 'nz', 'org.za', 'pt', 'rs', 'ru', 'sa', 'se', 'sh', 'si', 'sk', 'so',
+  'tr', 'uk', 'us', 'vc', 'web.za', 'ws',
 ];
 
 describe('coverage counts', () => {
@@ -89,9 +89,11 @@ describe('coverage list and detail', () => {
       fixtureTested: true,
     });
     const de = SuffixCoverageResponse.parse((await t.api.get('/coverage/.DE').expect(200)).body).data;
-    expect(de).toMatchObject({ status: 'tested', protocol: 'whois', endpoint: 'whois.denic.de:43', routing: 'curated', liveValidatedAt: null });
+    expect(de).toMatchObject({ status: 'tested', protocol: 'whois', endpoint: 'whois.denic.de:43', routing: 'curated' });
+    // Validated live with a random label on 2026-10-06 when port 43 was reachable.
+    expect(de.liveValidatedAt).not.toBeNull();
     expect(de.notes).toContain('reconstructed');
-    expect(de.notes).toContain('Live validation not run');
+    expect(de.notes ?? '').not.toContain('Live validation not run');
     expect(de.eligibilityNotes[0]!.source).toContain('denic.de');
   });
 
@@ -113,16 +115,18 @@ describe('coverage list and detail', () => {
 
   it('describes a fixture-only ccTLD WHOIS suffix and its second-level registry routes honestly', async () => {
     const be = SuffixCoverageResponse.parse((await t.api.get('/coverage/be').expect(200)).body).data;
-    expect(be).toMatchObject({ status: 'tested', protocol: 'whois', endpoint: 'whois.dns.be:43', registryId: 'dns-belgium', routing: 'curated', liveValidatedAt: null });
+    expect(be).toMatchObject({ status: 'tested', protocol: 'whois', endpoint: 'whois.dns.be:43', registryId: 'dns-belgium', routing: 'curated' });
+    expect(be.liveValidatedAt).not.toBeNull();
     expect(be.notes).toContain('reconstructed');
-    expect(be.notes).toContain('port 43 was blocked');
+    expect(be.notes ?? '').not.toContain('port 43 was blocked');
     expect(be.notes).toContain('Second-level zones not routed: .ac.be');
 
     const coza = SuffixCoverageResponse.parse((await t.api.get('/coverage/co.za').expect(200)).body).data;
     expect(coza).toMatchObject({ tld: 'za', status: 'tested', endpoint: 'coza-whois.registry.net.za:43', registryId: 'zarc' });
     expect(coza.notes).not.toContain('Routed through');
     const orgza = SuffixCoverageResponse.parse((await t.api.get('/coverage/org.za').expect(200)).body).data;
-    expect(orgza).toMatchObject({ status: 'discovered', endpoint: 'org-whois.registry.net.za:43', fixtureTested: false });
+    expect(orgza).toMatchObject({ status: 'tested', endpoint: 'org-whois.registry.net.za:43', fixtureTested: false });
+    expect(orgza.liveValidatedAt).not.toBeNull();
 
     const coil = SuffixCoverageResponse.parse((await t.api.get('/coverage/co.il').expect(200)).body).data;
     expect(coil).toMatchObject({ status: 'tested', endpoint: 'whois.isoc.org.il:43' });
