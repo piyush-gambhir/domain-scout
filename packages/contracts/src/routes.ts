@@ -20,6 +20,8 @@ import {
   OfferListResponse,
   PriceHistoryQuery,
   PriceHistoryResponse,
+  SuffixPricesQuery,
+  SuffixPricesResponse,
 } from './pricing.js';
 import {
   AftermarketJobBody,
@@ -212,6 +214,7 @@ export const routes = {
   listDomainTransferOptions: { method: 'get', path: '/domains/:name/transfer-options', summary: 'Read-only transfer comparison from retained data', tag: 'evidence', params: DomainParams, query: PageQuery, response: TransferOptionListResponse },
   listDomainListings: { method: 'get', path: '/domains/:name/listings', summary: 'Retained aftermarket listing evidence', tag: 'evidence', params: DomainParams, query: PageQuery, response: AftermarketListResponse },
   getRawDiagnostic: { method: 'get', path: '/observations/:id/raw', summary: 'Sanitized raw source response, when retained', tag: 'evidence', params: IdParams, response: RawDiagnosticResponse },
+  listSuffixPrices: { method: 'get', path: '/prices', summary: 'Published prices per provider for several suffixes (no names are sent)', tag: 'evidence', query: SuffixPricesQuery, response: SuffixPricesResponse },
   getPriceHistory: { method: 'get', path: '/price-history', summary: 'Comparable observed price series', tag: 'evidence', query: PriceHistoryQuery, response: PriceHistoryResponse },
   createComparison: { method: 'post', path: '/comparisons', summary: 'Ownership cost comparison from retained offers', tag: 'evidence', body: ComparisonRequest, response: ComparisonResponse },
 

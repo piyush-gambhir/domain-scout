@@ -820,6 +820,15 @@
             }
           },
           {
+            "name": "origins",
+            "in": "query",
+            "required": false,
+            "description": "Comma-separated JobOrigin values",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "cursor",
             "in": "query",
             "required": false,
@@ -3940,6 +3949,99 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RawDiagnosticResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Local authorization failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Local resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting state or idempotency key reuse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Local execution temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/prices": {
+      "get": {
+        "operationId": "listSuffixPrices",
+        "summary": "Published prices per provider for several suffixes (no names are sent)",
+        "tags": [
+          "evidence"
+        ],
+        "parameters": [
+          {
+            "name": "suffixes",
+            "in": "query",
+            "required": true,
+            "description": "Comma-separated suffixes, e.g. com,io,co.uk",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "horizonYears",
+            "in": "query",
+            "required": false,
+            "description": "Defaults to settings.comparison.horizonYears",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Published prices per provider for several suffixes (no names are sent)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuffixPricesResponse"
                 }
               }
             }
@@ -7176,6 +7278,15 @@
             "name": "type",
             "in": "query",
             "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "origins",
+            "in": "query",
+            "required": false,
+            "description": "Comma-separated JobOrigin values, e.g. ui,cli",
             "schema": {
               "type": "string"
             }
@@ -10867,6 +10978,138 @@
           "observedAt"
         ]
       },
+      "SuffixPriceOffer": {
+        "type": "object",
+        "properties": {
+          "providerId": {
+            "$ref": "#/components/schemas/ProviderId"
+          },
+          "providerName": {
+            "type": "string"
+          },
+          "offerId": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PriceKind"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/CurrencyCode"
+          },
+          "registration": {
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "description": "Exact decimal amount as a string",
+            "nullable": true
+          },
+          "registrationYears": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "renewal": {
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "description": "Exact decimal amount as a string",
+            "nullable": true
+          },
+          "renewalYears": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "horizonYears": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "horizonTotal": {
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "description": "First-year price plus current yearly renewal for the remaining years; an estimate, null when renewal is unknown",
+            "nullable": true
+          },
+          "promotional": {
+            "type": "boolean"
+          },
+          "observedAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/Freshness"
+          },
+          "purchaseUrlTemplate": {
+            "nullable": true,
+            "description": "Same provider's new-registration link with {domain}",
+            "type": "string"
+          },
+          "purchaseKind": {
+            "nullable": true,
+            "type": "string",
+            "enum": [
+              "search",
+              "dashboard",
+              "website"
+            ]
+          }
+        },
+        "required": [
+          "providerId",
+          "providerName",
+          "offerId",
+          "kind",
+          "currency",
+          "registration",
+          "registrationYears",
+          "renewal",
+          "renewalYears",
+          "horizonYears",
+          "horizonTotal",
+          "promotional",
+          "observedAt",
+          "freshness",
+          "purchaseUrlTemplate",
+          "purchaseKind"
+        ],
+        "description": "A published suffix price; premium names and taxes may differ"
+      },
+      "SuffixPrices": {
+        "type": "object",
+        "properties": {
+          "suffix": {
+            "$ref": "#/components/schemas/Suffix"
+          },
+          "offers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SuffixPriceOffer"
+            },
+            "description": "Enabled providers, lowest first-year price first within each currency"
+          }
+        },
+        "required": [
+          "suffix",
+          "offers"
+        ]
+      },
+      "SuffixPricesResponse": {
+        "type": "object",
+        "properties": {
+          "contractVersion": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SuffixPrices"
+            }
+          }
+        },
+        "required": [
+          "contractVersion",
+          "data"
+        ]
+      },
       "NameCheckServiceId": {
         "type": "string",
         "enum": [
@@ -11681,6 +11924,17 @@
           "watch"
         ]
       },
+      "JobOrigin": {
+        "type": "string",
+        "enum": [
+          "ui",
+          "cli",
+          "api",
+          "watch",
+          "system"
+        ],
+        "description": "Who started the job: the web UI, the CLI (agents), another API client, a watch, or the backend itself (e.g. catalog refreshes)"
+      },
       "JobState": {
         "type": "string",
         "enum": [
@@ -11882,6 +12136,9 @@
               "csvColumn"
             ]
           },
+          "origin": {
+            "$ref": "#/components/schemas/JobOrigin"
+          },
           "watchId": {
             "type": "string",
             "format": "uuid",
@@ -11914,6 +12171,7 @@
           "counters",
           "destinations",
           "input",
+          "origin",
           "watchId",
           "parentJobId",
           "nextRetryAt"
@@ -16053,6 +16311,23 @@
             "required": [
               "theme"
             ]
+          },
+          "search": {
+            "type": "object",
+            "properties": {
+              "defaultExtensions": {
+                "minItems": 1,
+                "maxItems": 50,
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Suffix"
+                },
+                "description": "Extensions a new UI search starts with"
+              }
+            },
+            "required": [
+              "defaultExtensions"
+            ]
           }
         },
         "required": [
@@ -16064,7 +16339,8 @@
           "diagnostics",
           "privacy",
           "fxRates",
-          "appearance"
+          "appearance",
+          "search"
         ]
       },
       "SettingsResponse": {
@@ -16208,6 +16484,20 @@
                   "light",
                   "dark"
                 ]
+              }
+            }
+          },
+          "search": {
+            "type": "object",
+            "properties": {
+              "defaultExtensions": {
+                "minItems": 1,
+                "maxItems": 50,
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Suffix"
+                },
+                "description": "Extensions a new UI search starts with"
               }
             }
           }
@@ -16521,6 +16811,9 @@
           "type": {
             "$ref": "#/components/schemas/JobType"
           },
+          "origin": {
+            "$ref": "#/components/schemas/JobOrigin"
+          },
           "label": {
             "nullable": true,
             "type": "string"
@@ -16567,6 +16860,7 @@
         "required": [
           "jobId",
           "type",
+          "origin",
           "label",
           "state",
           "createdAt",

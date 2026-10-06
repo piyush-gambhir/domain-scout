@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { CurrencyCode, Timestamp, Uuid, envelope, page } from './common.js';
+import { CurrencyCode, Suffix, Timestamp, Uuid, envelope, page } from './common.js';
 import { FxRate, Offer } from './pricing.js';
 import { Resolver, Diagnostic, NameCheck, AftermarketListing } from './enrichment.js';
 import { RegistryObservation } from './registry.js';
 import { ProviderConfirmation, ProviderReadiness } from './providers.js';
-import { JobType } from './jobs.js';
+import { JobOrigin, JobType } from './jobs.js';
 
 export const Health = z
   .object({
@@ -62,6 +62,9 @@ export const Settings = z
     }),
     fxRates: z.array(FxRate),
     appearance: z.object({ theme: z.enum(['system', 'light', 'dark']) }),
+    search: z.object({
+      defaultExtensions: z.array(Suffix).min(1).max(50).meta({ description: 'Extensions a new UI search starts with' }),
+    }),
   })
   .meta({ id: 'Settings' });
 export type Settings = z.infer<typeof Settings>;
@@ -78,6 +81,7 @@ export const SettingsPatch = z
     privacy: Settings.shape.privacy.partial().optional(),
     fxRates: z.array(FxRate).optional(),
     appearance: Settings.shape.appearance.partial().optional(),
+    search: Settings.shape.search.partial().optional(),
   })
   .meta({ id: 'SettingsPatch' });
 
@@ -91,6 +95,7 @@ export const DEFAULT_SETTINGS: Settings = {
   privacy: { keepRawDiagnostics: false },
   fxRates: [],
   appearance: { theme: 'system' },
+  search: { defaultExtensions: ['com', 'io', 'dev', 'app', 'co', 'ai'] },
 };
 
 /* Session bootstrap for the browser. */
@@ -151,6 +156,7 @@ export const HistoryEntry = z
   .object({
     jobId: Uuid,
     type: JobType,
+    origin: JobOrigin,
     label: z.string().nullable(),
     state: z.string(),
     createdAt: Timestamp,
@@ -167,6 +173,7 @@ export const HistoryListResponse = page(HistoryEntry, 'HistoryListResponse');
 export const HistoryQuery = z.object({
   q: z.string().optional().meta({ description: 'Filter by label or domain' }),
   type: z.string().optional(),
+  origins: z.string().optional().meta({ description: 'Comma-separated JobOrigin values, e.g. ui,cli' }),
   cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(500).default(50),
 });

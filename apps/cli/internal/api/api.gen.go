@@ -1102,6 +1102,33 @@ func (e JobOperation) Valid() bool {
 	}
 }
 
+// Defines values for JobOrigin.
+const (
+	JobOriginApi    JobOrigin = "api"
+	JobOriginCli    JobOrigin = "cli"
+	JobOriginSystem JobOrigin = "system"
+	JobOriginUi     JobOrigin = "ui"
+	JobOriginWatch  JobOrigin = "watch"
+)
+
+// Valid indicates whether the value is a known member of the JobOrigin enum.
+func (e JobOrigin) Valid() bool {
+	switch e {
+	case JobOriginApi:
+		return true
+	case JobOriginCli:
+		return true
+	case JobOriginSystem:
+		return true
+	case JobOriginUi:
+		return true
+	case JobOriginWatch:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for JobScopeKind.
 const (
 	JobScopeKindJob JobScopeKind = "job"
@@ -1894,6 +1921,27 @@ func (e SuffixCoverageRouting) Valid() bool {
 	case SuffixCoverageRoutingCurated:
 		return true
 	case SuffixCoverageRoutingIanaBootstrap:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SuffixPriceOfferPurchaseKind.
+const (
+	SuffixPriceOfferPurchaseKindDashboard SuffixPriceOfferPurchaseKind = "dashboard"
+	SuffixPriceOfferPurchaseKindSearch    SuffixPriceOfferPurchaseKind = "search"
+	SuffixPriceOfferPurchaseKindWebsite   SuffixPriceOfferPurchaseKind = "website"
+)
+
+// Valid indicates whether the value is a known member of the SuffixPriceOfferPurchaseKind enum.
+func (e SuffixPriceOfferPurchaseKind) Valid() bool {
+	switch e {
+	case SuffixPriceOfferPurchaseKindDashboard:
+		return true
+	case SuffixPriceOfferPurchaseKindSearch:
+		return true
+	case SuffixPriceOfferPurchaseKindWebsite:
 		return true
 	default:
 		return false
@@ -3181,11 +3229,14 @@ type HistoryEntry struct {
 	FinishedAt   *time.Time `json:"finishedAt"`
 	JobId        Uuid       `json:"jobId"`
 	Label        *string    `json:"label"`
-	Resumable    bool       `json:"resumable"`
-	State        string     `json:"state"`
-	Total        int        `json:"total"`
-	Type         JobType    `json:"type"`
-	Unresolved   int        `json:"unresolved"`
+
+	// Origin Who started the job: the web UI, the CLI (agents), another API client, a watch, or the backend itself (e.g. catalog refreshes)
+	Origin     JobOrigin `json:"origin"`
+	Resumable  bool      `json:"resumable"`
+	State      string    `json:"state"`
+	Total      int       `json:"total"`
+	Type       JobType   `json:"type"`
+	Unresolved int       `json:"unresolved"`
 }
 
 // HistoryListResponse defines model for HistoryListResponse.
@@ -3324,6 +3375,9 @@ type Job struct {
 	Label       *string    `json:"label"`
 	NextRetryAt *time.Time `json:"nextRetryAt"`
 
+	// Origin Who started the job: the web UI, the CLI (agents), another API client, a watch, or the backend itself (e.g. catalog refreshes)
+	Origin JobOrigin `json:"origin"`
+
 	// ParentJobId Job this one retried or rechecked
 	ParentJobId *openapi_types.UUID `json:"parentJobId"`
 	StartedAt   *time.Time          `json:"startedAt"`
@@ -3410,6 +3464,9 @@ type JobListResponse struct {
 
 // JobOperation defines model for JobOperation.
 type JobOperation string
+
+// JobOrigin Who started the job: the web UI, the CLI (agents), another API client, a watch, or the backend itself (e.g. catalog refreshes)
+type JobOrigin string
 
 // JobProgressPayload defines model for JobProgressPayload.
 type JobProgressPayload struct {
@@ -4387,6 +4444,10 @@ type Settings struct {
 		MaxAttempts int `json:"maxAttempts"`
 		TimeoutMs   int `json:"timeoutMs"`
 	} `json:"retries"`
+	Search struct {
+		// DefaultExtensions Extensions a new UI search starts with
+		DefaultExtensions []Suffix `json:"defaultExtensions"`
+	} `json:"search"`
 }
 
 // SettingsAppearanceTheme defines model for Settings.Appearance.Theme.
@@ -4428,6 +4489,10 @@ type SettingsPatch struct {
 		MaxAttempts *int `json:"maxAttempts,omitempty"`
 		TimeoutMs   *int `json:"timeoutMs,omitempty"`
 	} `json:"retries,omitempty"`
+	Search *struct {
+		// DefaultExtensions Extensions a new UI search starts with
+		DefaultExtensions *[]Suffix `json:"defaultExtensions,omitempty"`
+	} `json:"search,omitempty"`
 }
 
 // SettingsPatchAppearanceTheme defines model for SettingsPatch.Appearance.Theme.
@@ -4619,6 +4684,57 @@ type SuffixCoverageRouting string
 type SuffixCoverageResponse struct {
 	ContractVersion string         `json:"contractVersion"`
 	Data            SuffixCoverage `json:"data"`
+}
+
+// SuffixPriceOffer A published suffix price; premium names and taxes may differ
+type SuffixPriceOffer struct {
+	// Currency ISO 4217 currency code
+	Currency CurrencyCode `json:"currency"`
+
+	// Freshness fresh: inside the freshness window; stale: older than the window; expired: past a provider-supplied quote expiry
+	Freshness Freshness `json:"freshness"`
+
+	// HorizonTotal First-year price plus current yearly renewal for the remaining years; an estimate, null when renewal is unknown
+	HorizonTotal *string `json:"horizonTotal"`
+	HorizonYears int     `json:"horizonYears"`
+
+	// Kind published: a provider catalog price for the suffix; estimated: derived, e.g. future renewal; exact_quote: provider response for one exact name
+	Kind        PriceKind `json:"kind"`
+	ObservedAt  Timestamp `json:"observedAt"`
+	OfferId     Uuid      `json:"offerId"`
+	Promotional bool      `json:"promotional"`
+
+	// ProviderId Provider identifier, e.g. porkbun, hostinger, register-si
+	ProviderId   ProviderId                    `json:"providerId"`
+	ProviderName string                        `json:"providerName"`
+	PurchaseKind *SuffixPriceOfferPurchaseKind `json:"purchaseKind"`
+
+	// PurchaseUrlTemplate Same provider's new-registration link with {domain}
+	PurchaseUrlTemplate *string `json:"purchaseUrlTemplate"`
+
+	// Registration Exact decimal amount as a string
+	Registration      *string `json:"registration"`
+	RegistrationYears int     `json:"registrationYears"`
+
+	// Renewal Exact decimal amount as a string
+	Renewal      *string `json:"renewal"`
+	RenewalYears int     `json:"renewalYears"`
+}
+
+// SuffixPriceOfferPurchaseKind defines model for SuffixPriceOffer.PurchaseKind.
+type SuffixPriceOfferPurchaseKind string
+
+// SuffixPrices defines model for SuffixPrices.
+type SuffixPrices struct {
+	// Offers Enabled providers, lowest first-year price first within each currency
+	Offers []SuffixPriceOffer `json:"offers"`
+	Suffix Suffix             `json:"suffix"`
+}
+
+// SuffixPricesResponse defines model for SuffixPricesResponse.
+type SuffixPricesResponse struct {
+	ContractVersion string         `json:"contractVersion"`
+	Data            []SuffixPrices `json:"data"`
 }
 
 // TaxState unknown tax is never treated as zero
@@ -4878,18 +4994,24 @@ type ListExportsParams struct {
 // ListHistoryParams defines parameters for ListHistory.
 type ListHistoryParams struct {
 	// Q Filter by label or domain
-	Q      *string `form:"q,omitempty" json:"q,omitempty"`
-	Type   *string `form:"type,omitempty" json:"type,omitempty"`
-	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
-	Limit  *int    `form:"limit,omitempty" json:"limit,omitempty"`
+	Q    *string `form:"q,omitempty" json:"q,omitempty"`
+	Type *string `form:"type,omitempty" json:"type,omitempty"`
+
+	// Origins Comma-separated JobOrigin values, e.g. ui,cli
+	Origins *string `form:"origins,omitempty" json:"origins,omitempty"`
+	Cursor  *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit   *int    `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
 // ListJobsParams defines parameters for ListJobs.
 type ListJobsParams struct {
-	Type   *JobType  `form:"type,omitempty" json:"type,omitempty"`
-	State  *JobState `form:"state,omitempty" json:"state,omitempty"`
-	Cursor *string   `form:"cursor,omitempty" json:"cursor,omitempty"`
-	Limit  *int      `form:"limit,omitempty" json:"limit,omitempty"`
+	Type  *JobType  `form:"type,omitempty" json:"type,omitempty"`
+	State *JobState `form:"state,omitempty" json:"state,omitempty"`
+
+	// Origins Comma-separated JobOrigin values
+	Origins *string `form:"origins,omitempty" json:"origins,omitempty"`
+	Cursor  *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit   *int    `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
 // CreateJobParams defines parameters for CreateJob.
@@ -4975,6 +5097,15 @@ type GetPriceHistoryParams struct {
 	Since      *Timestamp `form:"since,omitempty" json:"since,omitempty"`
 	Cursor     *string    `form:"cursor,omitempty" json:"cursor,omitempty"`
 	Limit      *int       `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// ListSuffixPricesParams defines parameters for ListSuffixPrices.
+type ListSuffixPricesParams struct {
+	// Suffixes Comma-separated suffixes, e.g. com,io,co.uk
+	Suffixes string `form:"suffixes" json:"suffixes"`
+
+	// HorizonYears Defaults to settings.comparison.horizonYears
+	HorizonYears *int `form:"horizonYears,omitempty" json:"horizonYears,omitempty"`
 }
 
 // CreateProviderChecksParams defines parameters for CreateProviderChecks.
@@ -6783,6 +6914,11 @@ type ClientInterface interface {
 	// Corresponds with GET /api/v1/price-history (the `GetPriceHistory` operationId).
 	GetPriceHistory(ctx context.Context, params *GetPriceHistoryParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListSuffixPrices Published prices per provider for several suffixes (no names are sent)
+	//
+	// Corresponds with GET /api/v1/prices (the `ListSuffixPrices` operationId).
+	ListSuffixPrices(ctx context.Context, params *ListSuffixPricesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateProviderChecksWithBody Exact-name availability confirmation from selected providers
 	//
 	// Takes any type of body and a specified content type.
@@ -8382,6 +8518,21 @@ func (c *Client) DeletePreset(ctx context.Context, id string, reqEditors ...Requ
 // Corresponds with GET /api/v1/price-history (the `GetPriceHistory` operationId).
 func (c *Client) GetPriceHistory(ctx context.Context, params *GetPriceHistoryParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetPriceHistoryRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// ListSuffixPrices Published prices per provider for several suffixes (no names are sent)
+//
+// Corresponds with GET /api/v1/prices (the `ListSuffixPrices` operationId).
+func (c *Client) ListSuffixPrices(ctx context.Context, params *ListSuffixPricesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListSuffixPricesRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -10969,6 +11120,18 @@ func NewListHistoryRequest(server string, params *ListHistoryParams) (*http.Requ
 
 		}
 
+		if params.Origins != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "origins", *params.Origins, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
 		if params.Cursor != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "cursor", *params.Cursor, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
@@ -11090,6 +11253,18 @@ func NewListJobsRequest(server string, params *ListJobsParams) (*http.Request, e
 		if params.State != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "state", *params.State, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Origins != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "origins", *params.Origins, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else {
 				for _, qp := range strings.Split(queryFrag, "&") {
@@ -12302,6 +12477,68 @@ func NewGetPriceHistoryRequest(server string, params *GetPriceHistoryParams) (*h
 		if params.Limit != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "limit", *params.Limit, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListSuffixPricesRequest constructs an http.Request for the ListSuffixPrices method
+func NewListSuffixPricesRequest(server string, params *ListSuffixPricesParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/prices")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "suffixes", params.Suffixes, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+			return nil, err
+		} else {
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
+			}
+		}
+
+		if params.HorizonYears != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "horizonYears", *params.HorizonYears, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
 				return nil, err
 			} else {
 				for _, qp := range strings.Split(queryFrag, "&") {
@@ -14359,6 +14596,13 @@ type ClientWithResponsesInterface interface {
 	//
 	// Corresponds with GET /api/v1/price-history (the `GetPriceHistory` operationId).
 	GetPriceHistoryWithResponse(ctx context.Context, params *GetPriceHistoryParams, reqEditors ...RequestEditorFn) (*GetPriceHistoryResponse, error)
+
+	// ListSuffixPricesWithResponse Published prices per provider for several suffixes (no names are sent)
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /api/v1/prices (the `ListSuffixPrices` operationId).
+	ListSuffixPricesWithResponse(ctx context.Context, params *ListSuffixPricesParams, reqEditors ...RequestEditorFn) (*ListSuffixPricesResponse, error)
 
 	// CreateProviderChecksWithBodyWithResponse Exact-name availability confirmation from selected providers
 	//
@@ -19498,6 +19742,82 @@ func (r GetPriceHistoryResponse) ContentType() string {
 	return ""
 }
 
+type ListSuffixPricesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *SuffixPricesResponse
+	// JSON400 the response for an HTTP 400 `application/json` response
+	JSON400 *ErrorResponse
+	// JSON401 the response for an HTTP 401 `application/json` response
+	JSON401 *ErrorResponse
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *ErrorResponse
+	// JSON409 the response for an HTTP 409 `application/json` response
+	JSON409 *ErrorResponse
+	// JSON503 the response for an HTTP 503 `application/json` response
+	JSON503 *ErrorResponse
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r ListSuffixPricesResponse) GetJSON200() *SuffixPricesResponse {
+	return r.JSON200
+}
+
+// GetJSON400 returns the response for an HTTP 400 `application/json` response
+func (r ListSuffixPricesResponse) GetJSON400() *ErrorResponse {
+	return r.JSON400
+}
+
+// GetJSON401 returns the response for an HTTP 401 `application/json` response
+func (r ListSuffixPricesResponse) GetJSON401() *ErrorResponse {
+	return r.JSON401
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r ListSuffixPricesResponse) GetJSON404() *ErrorResponse {
+	return r.JSON404
+}
+
+// GetJSON409 returns the response for an HTTP 409 `application/json` response
+func (r ListSuffixPricesResponse) GetJSON409() *ErrorResponse {
+	return r.JSON409
+}
+
+// GetJSON503 returns the response for an HTTP 503 `application/json` response
+func (r ListSuffixPricesResponse) GetJSON503() *ErrorResponse {
+	return r.JSON503
+}
+
+// GetBody returns the raw response body bytes
+func (r ListSuffixPricesResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r ListSuffixPricesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListSuffixPricesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ListSuffixPricesResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type CreateProviderChecksResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -22874,6 +23194,19 @@ func (c *ClientWithResponses) GetPriceHistoryWithResponse(ctx context.Context, p
 		return nil, err
 	}
 	return ParseGetPriceHistoryResponse(rsp)
+}
+
+// ListSuffixPricesWithResponse Published prices per provider for several suffixes (no names are sent)
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /api/v1/prices (the `ListSuffixPrices` operationId).
+func (c *ClientWithResponses) ListSuffixPricesWithResponse(ctx context.Context, params *ListSuffixPricesParams, reqEditors ...RequestEditorFn) (*ListSuffixPricesResponse, error) {
+	rsp, err := c.ListSuffixPrices(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListSuffixPricesResponse(rsp)
 }
 
 // CreateProviderChecksWithBodyWithResponse Exact-name availability confirmation from selected providers
@@ -27254,6 +27587,67 @@ func ParseGetPriceHistoryResponse(rsp *http.Response) (*GetPriceHistoryResponse,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest PriceHistoryResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListSuffixPricesResponse parses an HTTP response from a ListSuffixPricesWithResponse call
+func ParseListSuffixPricesResponse(rsp *http.Response) (*ListSuffixPricesResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListSuffixPricesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SuffixPricesResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

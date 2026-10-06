@@ -28,6 +28,11 @@ export const JobType = z
   .meta({ id: 'JobType' });
 export type JobType = z.infer<typeof JobType>;
 
+export const JobOrigin = z
+  .enum(['ui', 'cli', 'api', 'watch', 'system'])
+  .meta({ id: 'JobOrigin', description: 'Who started the job: the web UI, the CLI (agents), another API client, a watch, or the backend itself (e.g. catalog refreshes)' });
+export type JobOrigin = z.infer<typeof JobOrigin>;
+
 export const JobState = z
   .enum(['queued', 'running', 'cancelling', 'cancelled', 'completed', 'completed_with_errors', 'interrupted'])
   .meta({ id: 'JobState' });
@@ -89,6 +94,7 @@ export const Job = z
         .meta({ description: 'How the original input was read; restores CSV scans with the same column' }),
       csvColumn: z.string().nullable(),
     }),
+    origin: JobOrigin,
     watchId: Uuid.nullable(),
     parentJobId: Uuid.nullable().meta({ description: 'Job this one retried or rechecked' }),
     nextRetryAt: Timestamp.nullable(),
@@ -216,6 +222,7 @@ export const JobItemListResponse = page(JobItem, 'JobItemListResponse');
 export const JobListQuery = z.object({
   type: JobType.optional(),
   state: JobState.optional(),
+  origins: z.string().optional().meta({ description: 'Comma-separated JobOrigin values' }),
   cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(500).default(50),
 });

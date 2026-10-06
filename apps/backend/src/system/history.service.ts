@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import type { JobType } from '@domain-scout/contracts';
+import type { JobOrigin, JobType } from '@domain-scout/contracts';
 import { decodeCursor, encodeCursor } from '../core/envelope.js';
 import { Database, json } from '../storage/database.js';
 
 export interface HistoryEntry {
   jobId: string;
   type: JobType;
+  origin: JobOrigin;
   label: string | null;
   state: string;
   createdAt: string;
@@ -20,6 +21,7 @@ export interface HistoryEntry {
 interface JobRow {
   id: string;
   type: JobType;
+  origin: JobOrigin;
   label: string | null;
   state: string;
   input_json: string;
@@ -43,12 +45,17 @@ export function likePattern(text: string): string {
 export class HistoryService {
   constructor(private readonly db: Database) {}
 
-  list(query: { q?: string; type?: string; cursor?: string; limit: number }) {
+  list(query: { q?: string; type?: string; origins?: string; cursor?: string; limit: number }) {
     const where: string[] = [];
     const params: (string | number)[] = [];
     if (query.type) {
       where.push('j.type = ?');
       params.push(query.type);
+    }
+    const origins = (query.origins ?? '').split(',').map((o) => o.trim()).filter(Boolean);
+    if (origins.length) {
+      where.push(`j.origin IN (${origins.map(() => '?').join(', ')})`);
+      params.push(...origins);
     }
     const q = query.q?.trim();
     if (q) {
@@ -69,7 +76,7 @@ export class HistoryService {
       pageParams.push(cursor.createdAt, cursor.createdAt, cursor.id);
     }
     const rows = this.db.all<JobRow>(
-      `SELECT j.id, j.type, j.label, j.state, j.input_json, j.destinations_json, j.total, j.unresolved, j.created_at, j.finished_at,
+      `SELECT j.id, j.type, j.origin, j.label, j.state, j.input_json, j.destinations_json, j.total, j.unresolved, j.created_at, j.finished_at,
          (j.state IN ('interrupted', 'cancelled') AND EXISTS (
            SELECT 1 FROM job_items r WHERE r.job_id = j.id AND r.state IN ('pending', 'interrupted'))) AS resumable
        FROM jobs j ${pageWhere.length ? `WHERE ${pageWhere.join(' AND ')}` : ''}
@@ -85,6 +92,7 @@ export class HistoryService {
       return {
         jobId: row.id,
         type: row.type,
+        origin: row.origin,
         label: row.label,
         state: row.state,
         createdAt: row.created_at,

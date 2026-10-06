@@ -11,6 +11,7 @@ import {
   InputSource,
   TERMINAL_JOB_STATES,
   type Job,
+  type JobOrigin,
   type JobListQuery,
   type JobOperation,
   type RecheckRequest,
@@ -89,7 +90,8 @@ export class JobsService implements JobSubmitter, JobLifecycle, OnModuleInit, On
     const payload = { request, watchId: options.watchId ?? null, parentJobId: options.parentJobId ?? null };
     return this.idempotent(options.idempotencyKey, operationId, payload, (claim) => {
       const plan = this.planner.plan(request);
-      return this.create({ ...plan, watchId: plan.watchId ?? options.watchId ?? null }, options.parentJobId ?? null, claim);
+      const origin = options.origin ?? (request.type === 'watch' ? 'watch' : request.type === 'catalog_refresh' ? 'system' : 'api');
+      return this.create({ ...plan, watchId: plan.watchId ?? options.watchId ?? null }, options.parentJobId ?? null, claim, origin);
     });
   }
 
@@ -135,7 +137,7 @@ export class JobsService implements JobSubmitter, JobLifecycle, OnModuleInit, On
         input: { ...input, summary: { ...input.summary, rows: new Set(rows.map((r) => r.subject)).size } },
         items: rows.map((r) => ({ subject: r.subject, unicode: r.unicode, suffix: r.suffix, operation: r.operation, target: r.target })),
       };
-      return this.create(plan, jobId, claim);
+      return this.create(plan, jobId, claim, options.origin ?? parent.origin);
     });
   }
 
@@ -196,7 +198,7 @@ export class JobsService implements JobSubmitter, JobLifecycle, OnModuleInit, On
     return create({ key, operation, fingerprint });
   }
 
-  private create(plan: JobPlan, parentJobId: string | null, claim: IdempotencyClaim | null): Job {
+  private create(plan: JobPlan, parentJobId: string | null, claim: IdempotencyClaim | null, origin: JobOrigin): Job {
     if (this.scheduler.isStopping) throw new AppError('unavailable', 'The backend is stopping', { retryable: true });
     const handlers = new Map<JobOperation, OperationHandler>();
     for (const item of plan.items) {
@@ -240,6 +242,7 @@ export class JobsService implements JobSubmitter, JobLifecycle, OnModuleInit, On
         policy: { operations: [...handlers.keys()], concurrency: settings.concurrency, retries: settings.retries },
         watchId: plan.watchId,
         parentJobId,
+        origin,
         total: items.length,
         now,
       });

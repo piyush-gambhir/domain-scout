@@ -99,7 +99,7 @@ Public Zod schemas supply Nest DTOs and exported OpenAPI 3.0. Commit OpenAPI and
 | Offer | Provider, name/suffix, purchase path, published/estimated/exact_quote kind, currency/region, terms, registration/renewal/transfer/fees, premiums/promotions, timestamps and destination |
 | Partial error | Stable reason, affected item/source, retryability and cooldown; no conversion to zero or success |
 
-Display “no registry record” or time-stamped provider confirmation; no guaranteed registrable boolean. Preserve conflicting evidence. Expiry dates are facts, not drop predictions. Validate identity/shape of untrusted source data, bound response size/time and sanitize display/export text. Parsed evidence is default; sanitized raw diagnostics are opt-in with separate deletion. Routine logs omit full candidate lists and authenticated bodies.
+Display “no registry record” (labelled "Not registered" in the UI, with a note to confirm with a provider) or time-stamped provider confirmation; no guaranteed registrable boolean. Preserve conflicting evidence. Expiry dates are facts, not drop predictions. Validate identity/shape of untrusted source data, bound response size/time and sanitize display/export text. Parsed evidence is default; sanitized raw diagnostics are opt-in with separate deletion. Routine logs omit full candidate lists and authenticated bodies.
 
 ## Registry routing and classification
 

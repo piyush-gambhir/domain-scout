@@ -2,12 +2,14 @@ import { Controller, Optional } from '@nestjs/common';
 import { ApiInput, ApiRoute, type RouteInput } from '../core/route.js';
 import { decodeCursor, encodeCursor, ok, paged } from '../core/envelope.js';
 import { InputPreviewer } from '../core/ports.js';
+import { AppError } from '../core/errors.js';
 import { AftermarketService } from './aftermarket.service.js';
 import { ComparisonService } from './comparison.service.js';
 import { requireDomain } from './domain.js';
 import { HistoryService } from './history.service.js';
 import { OffersService } from './offers.service.js';
 import { PortfolioService } from './portfolio.service.js';
+import { SuffixPricesService } from './suffix-prices.service.js';
 import { TransfersService } from './transfers.service.js';
 
 /** Offset pagination for small, fully computed lists. */
@@ -26,8 +28,16 @@ export class PricingController {
     private readonly transfers: TransfersService,
     private readonly aftermarket: AftermarketService,
     private readonly portfolio: PortfolioService,
+    private readonly suffixPrices: SuffixPricesService,
     @Optional() private readonly previewer?: InputPreviewer,
   ) {}
+
+  @ApiRoute('listSuffixPrices')
+  prices(@ApiInput() input: RouteInput<'listSuffixPrices'>) {
+    const suffixes = [...new Set(input.query.suffixes.split(',').map((s) => s.trim().toLowerCase().replace(/^\./, '')).filter(Boolean))];
+    if (suffixes.length === 0 || suffixes.length > 100) throw AppError.invalid('Give between 1 and 100 suffixes');
+    return ok(this.suffixPrices.list(suffixes, input.query.horizonYears));
+  }
 
   @ApiRoute('listDomainOffers')
   domainOffers(@ApiInput() input: RouteInput<'listDomainOffers'>) {

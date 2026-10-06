@@ -1,5 +1,5 @@
 import { Controller, Headers } from '@nestjs/common';
-import { resultFilterFromQuery, type OperationId } from '@domain-scout/contracts';
+import { resultFilterFromQuery, type JobOrigin, type OperationId } from '@domain-scout/contracts';
 import { ok, paged } from '../core/envelope.js';
 import { ApiInput, ApiRoute, type RouteInput } from '../core/route.js';
 import type { SubmitOptions } from '../core/ports.js';
@@ -8,9 +8,19 @@ import { JobsService } from './jobs.service.js';
 import { JobResultsService } from './results.service.js';
 
 const IDEMPOTENCY_HEADER = 'idempotency-key';
+const CLIENT_HEADER = 'x-domain-scout-client';
 
-function idem(operationId: OperationId, header: string | undefined): SubmitOptions {
-  return { operationId, idempotencyKey: idempotencyKey(header) };
+type RequestHeaders = Record<string, string | string[] | undefined>;
+
+/** Which client submitted a job, from the X-Domain-Scout-Client header the web UI and CLI send. */
+export function clientOrigin(headers: RequestHeaders): JobOrigin {
+  const raw = headers[CLIENT_HEADER];
+  const value = (Array.isArray(raw) ? raw[0] : raw)?.toLowerCase();
+  return value === 'web' ? 'ui' : value === 'cli' ? 'cli' : 'api';
+}
+
+function idem(operationId: OperationId, headers: RequestHeaders): SubmitOptions {
+  return { operationId, idempotencyKey: idempotencyKey(headers[IDEMPOTENCY_HEADER]), origin: clientOrigin(headers) };
 }
 
 @Controller()
@@ -21,8 +31,8 @@ export class JobsController {
   ) {}
 
   @ApiRoute('createJob')
-  create(@ApiInput() input: RouteInput<'createJob'>, @Headers(IDEMPOTENCY_HEADER) key?: string) {
-    return ok(this.jobs.submit(input.body, idem('createJob', key)));
+  create(@ApiInput() input: RouteInput<'createJob'>, @Headers() headers: RequestHeaders) {
+    return ok(this.jobs.submit(input.body, idem('createJob', headers)));
   }
 
   @ApiRoute('listJobs')
@@ -53,8 +63,8 @@ export class JobsController {
   }
 
   @ApiRoute('retryJob')
-  retry(@ApiInput() input: RouteInput<'retryJob'>, @Headers(IDEMPOTENCY_HEADER) key?: string) {
-    return ok(this.jobs.retry(input.params.id, input.body, idem('retryJob', key)));
+  retry(@ApiInput() input: RouteInput<'retryJob'>, @Headers() headers: RequestHeaders) {
+    return ok(this.jobs.retry(input.params.id, input.body, idem('retryJob', headers)));
   }
 
   @ApiRoute('deleteJob')
@@ -64,8 +74,8 @@ export class JobsController {
   }
 
   @ApiRoute('createRecheck')
-  recheck(@ApiInput() input: RouteInput<'createRecheck'>, @Headers(IDEMPOTENCY_HEADER) key?: string) {
-    return ok(this.jobs.recheck(input.body, idem('createRecheck', key)));
+  recheck(@ApiInput() input: RouteInput<'createRecheck'>, @Headers() headers: RequestHeaders) {
+    return ok(this.jobs.recheck(input.body, idem('createRecheck', headers)));
   }
 }
 
@@ -75,32 +85,32 @@ export class JobOperationsController {
   constructor(private readonly jobs: JobsService) {}
 
   @ApiRoute('createQuotes')
-  quotes(@ApiInput() input: RouteInput<'createQuotes'>, @Headers(IDEMPOTENCY_HEADER) key?: string) {
-    return ok(this.jobs.submit({ type: 'quote', ...input.body }, idem('createQuotes', key)));
+  quotes(@ApiInput() input: RouteInput<'createQuotes'>, @Headers() headers: RequestHeaders) {
+    return ok(this.jobs.submit({ type: 'quote', ...input.body }, idem('createQuotes', headers)));
   }
 
   @ApiRoute('createProviderChecks')
-  providerChecks(@ApiInput() input: RouteInput<'createProviderChecks'>, @Headers(IDEMPOTENCY_HEADER) key?: string) {
-    return ok(this.jobs.submit({ type: 'provider_check', ...input.body }, idem('createProviderChecks', key)));
+  providerChecks(@ApiInput() input: RouteInput<'createProviderChecks'>, @Headers() headers: RequestHeaders) {
+    return ok(this.jobs.submit({ type: 'provider_check', ...input.body }, idem('createProviderChecks', headers)));
   }
 
   @ApiRoute('createTransfers')
-  transfers(@ApiInput() input: RouteInput<'createTransfers'>, @Headers(IDEMPOTENCY_HEADER) key?: string) {
-    return ok(this.jobs.submit({ type: 'transfer', ...input.body }, idem('createTransfers', key)));
+  transfers(@ApiInput() input: RouteInput<'createTransfers'>, @Headers() headers: RequestHeaders) {
+    return ok(this.jobs.submit({ type: 'transfer', ...input.body }, idem('createTransfers', headers)));
   }
 
   @ApiRoute('createAftermarket')
-  aftermarket(@ApiInput() input: RouteInput<'createAftermarket'>, @Headers(IDEMPOTENCY_HEADER) key?: string) {
-    return ok(this.jobs.submit({ type: 'aftermarket', ...input.body }, idem('createAftermarket', key)));
+  aftermarket(@ApiInput() input: RouteInput<'createAftermarket'>, @Headers() headers: RequestHeaders) {
+    return ok(this.jobs.submit({ type: 'aftermarket', ...input.body }, idem('createAftermarket', headers)));
   }
 
   @ApiRoute('createNameChecks')
-  nameChecks(@ApiInput() input: RouteInput<'createNameChecks'>, @Headers(IDEMPOTENCY_HEADER) key?: string) {
-    return ok(this.jobs.submit({ type: 'name_check', ...input.body }, idem('createNameChecks', key)));
+  nameChecks(@ApiInput() input: RouteInput<'createNameChecks'>, @Headers() headers: RequestHeaders) {
+    return ok(this.jobs.submit({ type: 'name_check', ...input.body }, idem('createNameChecks', headers)));
   }
 
   @ApiRoute('createDiagnostics')
-  diagnostics(@ApiInput() input: RouteInput<'createDiagnostics'>, @Headers(IDEMPOTENCY_HEADER) key?: string) {
-    return ok(this.jobs.submit({ type: 'diagnostics', ...input.body }, idem('createDiagnostics', key)));
+  diagnostics(@ApiInput() input: RouteInput<'createDiagnostics'>, @Headers() headers: RequestHeaders) {
+    return ok(this.jobs.submit({ type: 'diagnostics', ...input.body }, idem('createDiagnostics', headers)));
   }
 }

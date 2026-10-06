@@ -4,6 +4,7 @@ import { ComparisonService } from './comparison.service.js';
 import { HistoryService } from './history.service.js';
 import { OffersService } from './offers.service.js';
 import { PortfolioService } from './portfolio.service.js';
+import { SuffixPricesService } from './suffix-prices.service.js';
 import { PricingController } from './pricing.controller.js';
 import { TransfersService } from './transfers.service.js';
 
@@ -11,7 +12,7 @@ import { TransfersService } from './transfers.service.js';
 @Global()
 @Module({
   controllers: [PricingController],
-  providers: [OffersService, ComparisonService, HistoryService, TransfersService, AftermarketService, PortfolioService],
+  providers: [OffersService, ComparisonService, HistoryService, TransfersService, AftermarketService, PortfolioService, SuffixPricesService],
   exports: [OffersService, ComparisonService, HistoryService, TransfersService, AftermarketService, PortfolioService],
 })
 export class PricingModule {}

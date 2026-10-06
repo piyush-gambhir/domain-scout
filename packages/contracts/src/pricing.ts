@@ -241,3 +241,41 @@ export const FxRate = z
   })
   .meta({ id: 'FxRate' });
 export type FxRate = z.infer<typeof FxRate>;
+
+export const SuffixPriceOffer = z
+  .object({
+    providerId: ProviderId,
+    providerName: z.string(),
+    offerId: Uuid,
+    kind: PriceKind,
+    currency: CurrencyCode,
+    registration: DecimalString.nullable(),
+    registrationYears: z.number().int(),
+    renewal: DecimalString.nullable(),
+    renewalYears: z.number().int(),
+    horizonYears: z.number().int(),
+    horizonTotal: DecimalString.nullable().meta({
+      description: 'First-year price plus current yearly renewal for the remaining years; an estimate, null when renewal is unknown',
+    }),
+    promotional: z.boolean(),
+    observedAt: Timestamp,
+    freshness: Freshness,
+    purchaseUrlTemplate: z.string().nullable().meta({ description: 'Same provider\'s new-registration link with {domain}' }),
+    purchaseKind: z.enum(['search', 'dashboard', 'website']).nullable(),
+  })
+  .meta({ id: 'SuffixPriceOffer', description: 'A published suffix price; premium names and taxes may differ' });
+export type SuffixPriceOffer = z.infer<typeof SuffixPriceOffer>;
+
+export const SuffixPrices = z
+  .object({
+    suffix: Suffix,
+    offers: z.array(SuffixPriceOffer).meta({ description: 'Enabled providers, lowest first-year price first within each currency' }),
+  })
+  .meta({ id: 'SuffixPrices' });
+export type SuffixPrices = z.infer<typeof SuffixPrices>;
+
+export const SuffixPricesQuery = z.object({
+  suffixes: z.string().meta({ description: 'Comma-separated suffixes, e.g. com,io,co.uk' }),
+  horizonYears: z.coerce.number().int().min(1).max(10).optional().meta({ description: 'Defaults to settings.comparison.horizonYears' }),
+});
+export const SuffixPricesResponse = envelope(z.array(SuffixPrices), 'SuffixPricesResponse');

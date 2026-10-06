@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { Job, JobCounters, JobListQuery, JobOperation, JobState, JobType } from '@domain-scout/contracts';
+import type { Job, JobCounters, JobListQuery, JobOperation, JobOrigin, JobState, JobType } from '@domain-scout/contracts';
 import type { z } from 'zod';
 import { AppError } from '../core/errors.js';
 import { decodeCursor, encodeCursor } from '../core/envelope.js';
@@ -12,6 +12,7 @@ export interface JobRow {
   label: string | null;
   input_json: string;
   destinations_json: string;
+  origin: JobOrigin;
   policy_json: string;
   watch_id: string | null;
   parent_job_id: string | null;
@@ -173,6 +174,7 @@ export class JobStore {
       counters: countersOf(row),
       destinations: json.parse<string[]>(row.destinations_json, []),
       input: { ...input.summary, text: options.includeText ? restorableText(input) : null, ...inputReading(input) },
+      origin: row.origin,
       watchId: row.watch_id,
       parentJobId: row.parent_job_id,
       nextRetryAt: row.next_retry_at,
@@ -188,13 +190,14 @@ export class JobStore {
     policy: Record<string, unknown>;
     watchId: string | null;
     parentJobId: string | null;
+    origin: JobOrigin;
     total: number;
     now: string;
   }) {
     this.db.run(
-      `INSERT INTO jobs (id, type, state, label, input_json, destinations_json, policy_json, watch_id, parent_job_id,
+      `INSERT INTO jobs (id, type, state, label, input_json, destinations_json, policy_json, watch_id, parent_job_id, origin,
          total, pending, running, finished, interrupted, resolved, unresolved, outcomes_json, created_at, updated_at)
-       VALUES (?, ?, 'queued', ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, 0, '{}', ?, ?)`,
+       VALUES (?, ?, 'queued', ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, 0, '{}', ?, ?)`,
       [
         job.id,
         job.type,
@@ -204,6 +207,7 @@ export class JobStore {
         json.stringify(job.policy),
         job.watchId,
         job.parentJobId,
+        job.origin,
         job.total,
         job.total,
         job.now,
@@ -304,6 +308,11 @@ export class JobStore {
     if (query.state) {
       where.push('state = ?');
       params.push(query.state);
+    }
+    const origins = (query.origins ?? '').split(',').map((o) => o.trim()).filter(Boolean);
+    if (origins.length) {
+      where.push(`origin IN (${origins.map(() => '?').join(', ')})`);
+      params.push(...origins);
     }
     const total = this.db.get<{ n: number }>(
       `SELECT COUNT(*) AS n FROM jobs${where.length ? ` WHERE ${where.join(' AND ')}` : ''}`,

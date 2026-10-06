@@ -5,6 +5,7 @@ import type {
   InputSourceParsed,
   Job,
   JobItem,
+  JobOrigin,
   NameCheckService,
   NormalizedDomain,
   ProviderReadiness,
@@ -49,6 +50,8 @@ export interface SubmitOptions {
   operationId?: string;
   watchId?: string;
   parentJobId?: string;
+  /** Who started the job; defaults by type (watch, system) or to api. */
+  origin?: JobOrigin;
 }
 
 /** Implemented by JobsModule. Validates, plans items, persists and starts the job. */

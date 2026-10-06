@@ -5,7 +5,7 @@
  * Conventions: TEXT ids (UUID), UTC ISO timestamps as TEXT, money as decimal TEXT, JSON as TEXT.
  * Evidence tables are append-only; current views are derived by querying the latest row.
  */
-import { JOBS_MIGRATION } from '../jobs/schema.js';
+import { JOBS_MIGRATION, JOBS_ORIGIN_MIGRATION } from '../jobs/schema.js';
 import { MONITORING_MIGRATION } from '../monitoring/schema.js';
 import { PROVIDERS_MIGRATION } from '../providers/schema.js';
 
@@ -347,6 +347,7 @@ CREATE TABLE artifacts (
 export const MIGRATIONS: Migration[] = [
   { version: 1, name: 'initial', sql: INITIAL },
   JOBS_MIGRATION,
+  JOBS_ORIGIN_MIGRATION,
   MONITORING_MIGRATION,
   PROVIDERS_MIGRATION,
 ];

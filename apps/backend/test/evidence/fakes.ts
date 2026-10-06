@@ -203,6 +203,7 @@ export function makeJob(overrides: Partial<Job> = {}): Job {
     input: { extensions: [], providerIds: [], services: [], checks: [], rows: 0, text: null, format: null, csvColumn: null },
     watchId: null,
     parentJobId: null,
+    origin: 'api',
     nextRetryAt: null,
     ...overrides,
   };

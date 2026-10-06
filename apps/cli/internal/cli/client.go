@@ -47,6 +47,8 @@ func newAPIClient(base, token string, timeout time.Duration, version string) *ap
 			req.Header.Set("Authorization", "Bearer "+token)
 		}
 		req.Header.Set("User-Agent", "domain-scout-cli/"+version)
+		// Lets History tell agent (CLI) runs apart from searches started in the UI.
+		req.Header.Set("X-Domain-Scout-Client", "cli")
 		return nil
 	}
 	gen, _ := api.NewClient(base, api.WithHTTPClient(hc), api.WithRequestEditorFn(auth))

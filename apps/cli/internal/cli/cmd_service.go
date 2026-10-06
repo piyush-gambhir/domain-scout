@@ -144,6 +144,7 @@ func (a *App) waitStopped(ctx context.Context, baseURL string, pid int) error {
 func (a *App) uiCmd() *cobra.Command {
 	var noOpen bool
 	var webPort int
+	var jobID string
 	cmd := a.newCmd("ui", "Open the web UI (starts the backend and UI server when needed)", cobra.NoArgs,
 		func(ctx context.Context, cmd *cobra.Command, args []string) error {
 			if a.opts.backendURL != "" {
@@ -185,6 +186,10 @@ func (a *App) uiCmd() *cobra.Command {
 				return failErr("the backend returned no bootstrap code")
 			}
 			link := webURL + "/auth/bootstrap?code=" + url.QueryEscape(bc.Data.Code)
+			if jobID != "" {
+				// After sign-in the UI opens this search's results instead of an empty search.
+				link += "&next=" + url.QueryEscape("/search/"+jobID)
+			}
 			if noOpen {
 				// The link is single use and expires quickly; it goes to stderr, never stdout.
 				fmt.Fprintln(a.Stderr, link)
@@ -203,5 +208,6 @@ func (a *App) uiCmd() *cobra.Command {
 		})
 	cmd.Flags().BoolVar(&noOpen, "no-open", false, "print the sign-in link to stderr instead of opening a browser")
 	cmd.Flags().IntVar(&webPort, "web-port", launcher.DefaultWebPort, "loopback port for the UI server")
+	cmd.Flags().StringVar(&jobID, "job", "", "open the results of this job id after sign-in")
 	return cmd
 }
