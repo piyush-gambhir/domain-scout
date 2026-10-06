@@ -18,7 +18,8 @@
     "format": "prettier --write --ignore-unknown .",
     "format:check": "prettier --check --ignore-unknown .",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "acceptance": "node scripts/acceptance-1000.mjs"
   },
   "devDependencies": {
     "prettier": "^3.9.9",

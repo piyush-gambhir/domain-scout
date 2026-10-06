@@ -219,3 +219,14 @@ describe('published limits', () => {
     expect(h.whois.calls).toHaveLength(0);
   });
 });
+
+describe('test RDAP route overrides', () => {
+  it('accepts only loopback URLs, so names never leave the machine', async () => {
+    const { testRdapRoutes } = await import('../../src/registry/routes.service.js');
+    const routes = testRdapRoutes('{"com":"http://127.0.0.1:4555"}');
+    expect(routes.get('com')).toMatchObject({ endpoint: 'http://127.0.0.1:4555/', registryId: '127.0.0.1:4555', protocol: 'rdap' });
+    expect(testRdapRoutes(undefined).size).toBe(0);
+    expect(() => testRdapRoutes('{"com":"https://rdap.example.net/"}')).toThrow(/loopback/);
+    expect(() => testRdapRoutes('not json')).toThrow(/JSON/);
+  });
+});

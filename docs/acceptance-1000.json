@@ -1,0 +1,57 @@
+{
+  "at": "2026-10-06T23:44:06.933Z",
+  "names": 1200,
+  "jobASeconds": 3.3,
+  "resultsPageMs": {
+    "p50": 6,
+    "p95": 9,
+    "max": 15,
+    "samples": 64
+  },
+  "checks": [
+    {
+      "name": "1,200 names accepted without manual splitting",
+      "ok": true
+    },
+    {
+      "name": "cancel keeps completed evidence",
+      "ok": true
+    },
+    {
+      "name": "resume finishes every item",
+      "ok": true
+    },
+    {
+      "name": "outcomes match the registry",
+      "ok": true
+    },
+    {
+      "name": "resume never re-queries a name finished before the cancel",
+      "ok": true
+    },
+    {
+      "name": "a stopped backend marks unfinished work interrupted",
+      "ok": true
+    },
+    {
+      "name": "restart and resume finish every item",
+      "ok": true
+    },
+    {
+      "name": "resume after restart never re-queries a finished name",
+      "ok": true
+    },
+    {
+      "name": "result pages stay fast while jobs run (p95 under 250 ms)",
+      "ok": true
+    },
+    {
+      "name": "TXT export holds exactly the names with no record",
+      "ok": true
+    },
+    {
+      "name": "filtered results count matches",
+      "ok": true
+    }
+  ]
+}

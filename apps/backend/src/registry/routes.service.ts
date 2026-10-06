@@ -94,6 +94,8 @@ export class RoutesService {
    * with its own registry route (`co.za`) uses it; others route through their TLD.
    */
   route(suffix: string): RegistryRoute | null {
+    const stub = this.testRoutes.get(suffix);
+    if (stub) return stub;
     const own = this.routes.get(suffix);
     if (own) return own;
     return this.unserved(suffix) ? null : (this.routes.get(suffix.slice(suffix.lastIndexOf('.') + 1)) ?? null);
@@ -137,6 +139,13 @@ export class RoutesService {
   bootstrapInfo(): BootstrapInfo {
     return this.info;
   }
+
+  /**
+   * Test-only RDAP routes from DOMAIN_SCOUT_TEST_RDAP_ROUTES ({"com": "http://127.0.0.1:9999/"}), used
+   * by the local acceptance run against a stub registry. Only loopback URLs are accepted, so the
+   * override can never send candidate names anywhere but this machine.
+   */
+  private readonly testRoutes: Map<string, RegistryRoute> = testRdapRoutes(process.env.DOMAIN_SCOUT_TEST_RDAP_ROUTES);
 
   registryIdForHost(host: string): string {
     return this.operatorByHost.get(host) ?? host;
@@ -311,4 +320,37 @@ function toIsoOrNull(value: string | null | undefined): string | null {
   if (!value) return null;
   const at = Date.parse(value);
   return Number.isNaN(at) ? null : new Date(at).toISOString();
+}
+
+const testRoutesLogger = new Logger('Registry');
+
+export function testRdapRoutes(raw: string | undefined): Map<string, RegistryRoute> {
+  const routes = new Map<string, RegistryRoute>();
+  if (!raw) return routes;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error('DOMAIN_SCOUT_TEST_RDAP_ROUTES must be a JSON object of suffix to loopback RDAP base URL');
+  }
+  for (const [suffix, base] of Object.entries(parsed as Record<string, unknown>)) {
+    const url = new URL(String(base));
+    if (!['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname) || !['http:', 'https:'].includes(url.protocol)) {
+      throw new Error(`DOMAIN_SCOUT_TEST_RDAP_ROUTES: ${suffix} must point at a loopback http(s) URL`);
+    }
+    const endpoint = url.href.endsWith('/') ? url.href : `${url.href}/`;
+    routes.set(suffix.toLowerCase(), {
+      tld: suffix.toLowerCase(),
+      registryId: url.host,
+      protocol: 'rdap',
+      endpoint,
+      host: url.host,
+      routing: 'curated',
+      routingUpdatedAt: new Date(0).toISOString(),
+      curatedRdap: null,
+      whois: null,
+    });
+  }
+  if (routes.size) testRoutesLogger.warn(`Test RDAP routes active for: ${[...routes.keys()].join(', ')} (loopback only)`);
+  return routes;
 }
