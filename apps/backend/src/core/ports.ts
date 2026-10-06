@@ -87,6 +87,7 @@ export abstract class CoverageReader {
 export interface SuffixProvider {
   providerId: string;
   name: string;
+  kind: 'registrar' | 'directory';
   supportsSuffix: 'yes' | 'no' | 'unknown';
   purchaseUrl: string | null;
   purchaseKind: 'search' | 'dashboard' | 'website' | null;

@@ -445,6 +445,24 @@ func (e DiagnosticsJobRequestType) Valid() bool {
 	}
 }
 
+// Defines values for DomainEvidenceProvidersKind.
+const (
+	DomainEvidenceProvidersKindDirectory DomainEvidenceProvidersKind = "directory"
+	DomainEvidenceProvidersKindRegistrar DomainEvidenceProvidersKind = "registrar"
+)
+
+// Valid indicates whether the value is a known member of the DomainEvidenceProvidersKind enum.
+func (e DomainEvidenceProvidersKind) Valid() bool {
+	switch e {
+	case DomainEvidenceProvidersKindDirectory:
+		return true
+	case DomainEvidenceProvidersKindRegistrar:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for DomainEvidenceProvidersPurchaseKind.
 const (
 	DomainEvidenceProvidersPurchaseKindDashboard DomainEvidenceProvidersPurchaseKind = "dashboard"
@@ -2833,7 +2851,10 @@ type DomainEvidence struct {
 
 	// Providers Providers and matching purchase destinations for this suffix
 	Providers []struct {
-		Enabled        bool                                  `json:"enabled"`
+		Enabled bool `json:"enabled"`
+
+		// Kind registrar: a named provider with its own catalog; directory: listed by the registry as an accredited seller
+		Kind           DomainEvidenceProvidersKind           `json:"kind"`
 		Name           string                                `json:"name"`
 		Preferred      bool                                  `json:"preferred"`
 		ProviderId     string                                `json:"providerId"`
@@ -2847,6 +2868,9 @@ type DomainEvidence struct {
 	Suffix   string                `json:"suffix"`
 	Unicode  string                `json:"unicode"`
 }
+
+// DomainEvidenceProvidersKind registrar: a named provider with its own catalog; directory: listed by the registry as an accredited seller
+type DomainEvidenceProvidersKind string
 
 // DomainEvidenceProvidersPurchaseKind defines model for DomainEvidence.Providers.PurchaseKind.
 type DomainEvidenceProvidersPurchaseKind string

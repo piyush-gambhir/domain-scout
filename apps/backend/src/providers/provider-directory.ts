@@ -33,6 +33,7 @@ export class ProviderDirectoryService extends ProviderDirectory {
       out.push({
         providerId: manifest.id,
         name: manifest.name,
+        kind: manifest.kind,
         supportsSuffix,
         purchaseUrl: link?.url ?? null,
         purchaseKind: link?.kind ?? null,

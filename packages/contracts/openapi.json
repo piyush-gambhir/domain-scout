@@ -16692,6 +16692,14 @@
                 "name": {
                   "type": "string"
                 },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "registrar",
+                    "directory"
+                  ],
+                  "description": "registrar: a named provider with its own catalog; directory: listed by the registry as an accredited seller"
+                },
                 "supportsSuffix": {
                   "type": "string",
                   "enum": [
@@ -16723,6 +16731,7 @@
               "required": [
                 "providerId",
                 "name",
+                "kind",
                 "supportsSuffix",
                 "purchaseUrl",
                 "purchaseKind",

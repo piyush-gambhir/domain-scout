@@ -134,6 +134,9 @@ export const DomainEvidence = z
         z.object({
           providerId: z.string(),
           name: z.string(),
+          kind: z.enum(['registrar', 'directory']).meta({
+            description: 'registrar: a named provider with its own catalog; directory: listed by the registry as an accredited seller',
+          }),
           supportsSuffix: z.enum(['yes', 'no', 'unknown']),
           purchaseUrl: z.string().nullable(),
           purchaseKind: z.enum(['search', 'dashboard', 'website']).nullable(),

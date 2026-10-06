@@ -51,7 +51,7 @@ describe('provider directory', () => {
   it('forDomain: unknown before a catalog, yes/no after, purchase URL from the same provider', async () => {
     const directory = t.app.get(ProviderDirectory);
     const before = directory.forDomain('xq7mz9brandtest.co.uk', 'co.uk');
-    expect(before.find((p) => p.providerId === 'porkbun')).toMatchObject({ supportsSuffix: 'unknown', purchaseKind: 'search' });
+    expect(before.find((p) => p.providerId === 'porkbun')).toMatchObject({ kind: 'registrar', supportsSuffix: 'unknown', purchaseKind: 'search' });
     expect(before.some((p) => p.providerId.startsWith('register-si-'))).toBe(false);
 
     t.transport.on(/pricing\/get/, fixture('porkbun', 'pricing'));
@@ -67,7 +67,7 @@ describe('provider directory', () => {
     const si = t.app.get(ProviderDirectory).forDomain('xq7mz9brandtest.si', 'si');
     const arnes = si.find((p) => p.providerId === 'register-si-arnes-si')!;
     const website = snapshot.registrars.find((r) => r.id === 'register-si-arnes-si')!.website;
-    expect(arnes).toMatchObject({ supportsSuffix: 'yes', purchaseUrl: website, purchaseKind: 'website' });
+    expect(arnes).toMatchObject({ kind: 'directory', supportsSuffix: 'yes', purchaseUrl: website, purchaseKind: 'website' });
     expect(si.find((p) => p.providerId === 'namecom')?.supportsSuffix).toBe('yes');
   });
 

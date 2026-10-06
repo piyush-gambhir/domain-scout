@@ -174,6 +174,7 @@ export class FakeDirectory extends ProviderDirectory {
       {
         providerId: 'porkbun',
         name: 'Porkbun',
+        kind: 'registrar',
         supportsSuffix: suffix === 'com' ? 'yes' : 'unknown',
         purchaseUrl: `https://porkbun.com/checkout/search?q=${domain}`,
         purchaseKind: 'search',
