@@ -277,13 +277,13 @@
       "reason": "registry_not_found"
     },
     {
-      "domain": "velhtvstkuusvjlclbruhjeu.il",
+      "domain": "ohqzqjelkoehqjdkpaccnljq.il",
       "suffix": "il",
       "protocol": "whois",
       "destination": "whois.isoc.org.il:43",
       "expected": "no_record",
       "observed": "inconclusive",
-      "at": "2026-10-06T23:37:54.818Z",
+      "at": "2026-10-06T23:53:22.705Z",
       "httpStatus": null,
       "reason": "unrecognized_response"
     },
@@ -620,34 +620,10 @@
   ],
   "notRun": [
     {
-      "suffix": "com.hk",
-      "destination": "whois.hkirc.hk:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "com.tr",
-      "destination": "whois.trabis.gov.tr:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "co.il",
-      "destination": "whois.isoc.org.il:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
-      "suffix": "com.sa",
-      "destination": "whois.nic.net.sa:43",
-      "reason": "outbound TCP port 43 was blocked on the development network; the classifier is tested only with reconstructed fixtures",
-      "at": "2026-10-05T18:00:00Z"
-    },
-    {
       "suffix": "pt",
       "destination": "whois.dns.pt:43",
       "reason": "timeout: whois.dns.pt did not answer within 15000 ms",
-      "at": "2026-10-06T23:39:11.517Z"
+      "at": "2026-10-06T23:53:37.125Z"
     }
   ]
 }
