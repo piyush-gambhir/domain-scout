@@ -147,7 +147,7 @@ missing, 5 backend setup or version failure, 130 interrupted wait.`,
 	})
 
 	root.AddCommand(
-		a.versionCmd(),
+		a.versionCmd(), a.mcpCmd(),
 		a.serviceCmd(), a.uiCmd(),
 		a.inputCmd(), a.scanCmd(), a.recheckCmd(), a.jobsCmd(), a.eventsCmd(),
 		a.coverageCmd(), a.providersCmd(), a.catalogCmd(),
