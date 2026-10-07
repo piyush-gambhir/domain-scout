@@ -27,7 +27,9 @@ interface JobRow {
   input_json: string;
   destinations_json: string;
   total: number;
+  finished: number;
   unresolved: number;
+  outcomes_json: string;
   created_at: string;
   finished_at: string | null;
   resumable: number;
@@ -76,7 +78,7 @@ export class HistoryService {
       pageParams.push(cursor.createdAt, cursor.createdAt, cursor.id);
     }
     const rows = this.db.all<JobRow>(
-      `SELECT j.id, j.type, j.origin, j.label, j.state, j.input_json, j.destinations_json, j.total, j.unresolved, j.created_at, j.finished_at,
+      `SELECT j.id, j.type, j.origin, j.label, j.state, j.input_json, j.destinations_json, j.total, j.finished, j.unresolved, j.outcomes_json, j.created_at, j.finished_at,
          (j.state IN ('interrupted', 'cancelled') AND EXISTS (
            SELECT 1 FROM job_items r WHERE r.job_id = j.id AND r.state IN ('pending', 'interrupted'))) AS resumable
        FROM jobs j ${pageWhere.length ? `WHERE ${pageWhere.join(' AND ')}` : ''}
@@ -98,7 +100,9 @@ export class HistoryService {
         createdAt: row.created_at,
         finishedAt: row.finished_at,
         total: row.total,
+        finished: row.finished,
         unresolved: row.unresolved,
+        outcomes: json.parse<Record<string, number>>(row.outcomes_json, {}),
         extensions: declared.length ? declared : (fallback.get(row.id) ?? []),
         destinations: json.parse<string[]>(row.destinations_json, []),
         resumable: row.resumable === 1,

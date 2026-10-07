@@ -6,9 +6,9 @@ import { useRouter } from 'next/navigation';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Ellipsis, Play, RotateCcw, Search, Send, Trash, Undo2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { TERMINAL_JOB_STATES, type Job, type JobState, type OperationResponse } from '@domain-scout/contracts';
+import { TERMINAL_JOB_STATES, type JobState, type OperationResponse } from '@domain-scout/contracts';
 import { api } from '@/lib/api';
-import { PEOPLE_ORIGINS, searchSummary, useJobSummaries } from '@/lib/history';
+import { PEOPLE_ORIGINS, searchSummary } from '@/lib/history';
 import { JOB_TYPE, jobStateStatus, jobTypeLabel } from '@/lib/labels';
 import { plural } from '@/lib/format';
 import { qk } from '@/lib/queries';
@@ -33,9 +33,6 @@ type HistoryEntry = OperationResponse<'listHistory'>['data'][number];
 
 const ANY = '__any__';
 
-function isFinal(state: string) {
-  return TERMINAL_JOB_STATES.includes(state as JobState);
-}
 
 function extensionsText(extensions: string[]) {
   if (extensions.length === 0) return null;
@@ -43,7 +40,7 @@ function extensionsText(extensions: string[]) {
   return extensions.length > 4 ? `${head} +${extensions.length - 4}` : head;
 }
 
-function HistoryRow({ entry, job, onDelete }: { entry: HistoryEntry; job: Job | undefined; onDelete: () => void }) {
+function HistoryRow({ entry, onDelete }: { entry: HistoryEntry; onDelete: () => void }) {
   const router = useRouter();
   const client = useQueryClient();
   const started = useJobStarted();
@@ -88,13 +85,11 @@ function HistoryRow({ entry, job, onDelete }: { entry: HistoryEntry; job: Job | 
       <span className="hidden min-w-0 text-sm sm:block">
         {showState ? (
           <StatusLabel status={status} />
-        ) : job ? (
-          <span className="block truncate tabular">
-            {searchSummary(job)}
-            {isFinal(job.state) && job.counters.unresolved ? <span className="text-muted-foreground"> · {job.counters.unresolved} unchecked</span> : null}
-          </span>
         ) : (
-          <span className="text-muted-foreground tabular">{entry.unresolved ? `${entry.unresolved} unchecked` : ''}</span>
+          <span className="block truncate tabular">
+            {searchSummary(entry)}
+            {finished && entry.unresolved ? <span className="text-muted-foreground"> · {entry.unresolved} unchecked</span> : null}
+          </span>
         )}
       </span>
       <RelativeTime iso={entry.createdAt} className="hidden text-right text-xs text-muted-foreground sm:block" />
@@ -173,7 +168,6 @@ export function HistoryPage() {
     placeholderData: (previous) => previous,
     refetchInterval: (q) => (q.state.data?.pages.some((p) => p.data.some((e) => e.state === 'running' || e.state === 'queued')) ? 4000 : false),
   });
-  const summaries = useJobSummaries(origins);
   const rows = history.data?.pages.flatMap((p) => p.data) ?? [];
   const total = history.data?.pages[0]?.total ?? null;
   const exportable = rows.length > 0 && !history.isPlaceholderData && !history.isFetching;
@@ -239,7 +233,7 @@ export function HistoryPage() {
           <div className="relative -mx-1 min-h-0 flex-1 overflow-y-auto px-1">
             <ul className={cn('flex flex-col gap-0.5 transition-opacity', history.isPlaceholderData && 'opacity-60')} aria-label="Searches">
               {rows.map((entry) => (
-                <HistoryRow key={entry.jobId} entry={entry} job={summaries.get(entry.jobId)} onDelete={() => setDeleting(entry)} />
+                <HistoryRow key={entry.jobId} entry={entry} onDelete={() => setDeleting(entry)} />
               ))}
             </ul>
             {history.hasNextPage ? (

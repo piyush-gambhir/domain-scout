@@ -16844,10 +16844,24 @@
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
           },
+          "finished": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "unresolved": {
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
+          },
+          "outcomes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "description": "Finished items by outcome, as in JobCounters"
           },
           "extensions": {
             "type": "array",
@@ -16875,7 +16889,9 @@
           "createdAt",
           "finishedAt",
           "total",
+          "finished",
           "unresolved",
+          "outcomes",
           "extensions",
           "destinations",
           "resumable"

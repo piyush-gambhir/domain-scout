@@ -3,11 +3,11 @@ import type { Database } from '../../src/storage/database.js';
 /** Direct inserts into the shared schema so system tests do not depend on other modules' services. */
 export function seedJob(
   db: Database,
-  job: { id: string; type?: string; state: string; label?: string | null; input?: unknown; createdAt: string; total?: number; unresolved?: number },
+  job: { id: string; type?: string; state: string; label?: string | null; input?: unknown; createdAt: string; total?: number; finished?: number; unresolved?: number; outcomes?: Record<string, number> },
 ) {
   db.run(
-    `INSERT INTO jobs (id, type, state, label, input_json, total, unresolved, created_at, updated_at, finished_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO jobs (id, type, state, label, input_json, total, finished, unresolved, outcomes_json, created_at, updated_at, finished_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       job.id,
       job.type ?? 'registry_scan',
@@ -15,7 +15,9 @@ export function seedJob(
       job.label ?? null,
       JSON.stringify(job.input ?? {}),
       job.total ?? 0,
+      job.finished ?? 0,
       job.unresolved ?? 0,
+      JSON.stringify(job.outcomes ?? {}),
       job.createdAt,
       job.createdAt,
       ['completed', 'completed_with_errors', 'cancelled', 'interrupted'].includes(job.state) ? job.createdAt : null,

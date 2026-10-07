@@ -23,7 +23,9 @@ describe('history', () => {
         input: { type: 'registry_scan', input: { text: 'acme', extensions: ['com', 'io'] } },
         createdAt: '2026-10-01T00:00:00.000Z',
         total: 2,
+        finished: 2,
         unresolved: 1,
+        outcomes: { no_record: 1, inconclusive: 1 },
       });
       seedItem(db, { id: randomUUID(), jobId: scan, seq: 1, subject: 'acme.com', suffix: 'com', state: 'finished' });
       seedJob(db, { id: checks, type: 'provider_check', state: 'completed', input: { domains: ['xn--bcher-kva.si'] }, createdAt: '2026-10-02T00:00:00.000Z' });
@@ -44,6 +46,9 @@ describe('history', () => {
     expect(page.data.map((e) => e.jobId)).toEqual([cancelledDone, interrupted, checks, scan]);
     const byId = Object.fromEntries(page.data.map((e) => [e.jobId, e]));
     expect(byId[scan]).toMatchObject({ type: 'registry_scan', label: 'Brand ideas 100%', total: 2, unresolved: 1, extensions: ['com', 'io'], resumable: false });
+    // Outcome counts let history summarize a search without loading the job.
+    expect(byId[scan]).toMatchObject({ finished: 2, outcomes: { no_record: 1, inconclusive: 1 } });
+    expect(byId[checks]).toMatchObject({ finished: 0, outcomes: {} });
     expect(byId[checks]!.extensions).toEqual(['si']);
     expect(byId[interrupted]!.resumable).toBe(true);
     expect(byId[cancelledDone]!.resumable).toBe(false);

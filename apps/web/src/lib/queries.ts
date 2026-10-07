@@ -27,7 +27,6 @@ export const qk = {
   watch: (id: string) => ['watches', id] as const,
   watchRuns: (id: string) => ['watches', id, 'runs'] as const,
   history: (query?: object) => (query ? (['history', query] as const) : (['history'] as const)),
-  jobSummaries: (query: object) => ['jobs', 'summaries', query] as const,
   priceHistory: (query: object) => ['priceHistory', query] as const,
   generationThemes: ['generationThemes'] as const,
   comparison: (request: object) => ['comparison', request] as const,

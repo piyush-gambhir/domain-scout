@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { PEOPLE_ORIGINS, searchSummary, useJobSummaries } from '@/lib/history';
+import { PEOPLE_ORIGINS, searchSummary } from '@/lib/history';
 import { qk } from '@/lib/queries';
 import { RelativeTime } from '../domain/time';
 import { Skeleton } from '../ui/skeleton';
@@ -18,8 +18,8 @@ export function RecentSearches() {
   const history = useQuery({
     queryKey: qk.history(query),
     queryFn: ({ signal }) => api.call('listHistory', { query, signal }).then((r) => r.data),
+    refetchInterval: (q) => (q.state.data?.some((e) => e.state === 'running' || e.state === 'queued') ? 4000 : false),
   });
-  const summaries = useJobSummaries(PEOPLE_ORIGINS, Boolean(history.data?.length));
   if (history.isPending) return <Skeleton className="mt-2 h-24 w-full" />;
   if (history.isError || history.data.length === 0) return null;
   return (
@@ -32,7 +32,6 @@ export function RecentSearches() {
       </div>
       <ul className="flex flex-col">
         {history.data.map((entry) => {
-          const job = summaries.get(entry.jobId);
           return (
             <li key={entry.jobId}>
               <Link
@@ -44,7 +43,7 @@ export function RecentSearches() {
                   <span className="truncate">{entry.label ?? `${entry.total} names`}</span>
                   {entry.origin === 'cli' ? <AgentTag /> : null}
                 </span>
-                <span className="truncate text-xs text-muted-foreground tabular">{job ? searchSummary(job) : `${entry.total} checks`}</span>
+                <span className="truncate text-xs text-muted-foreground tabular">{searchSummary(entry)}</span>
                 <RelativeTime iso={entry.createdAt} className="w-20 text-right text-xs text-muted-foreground" />
               </Link>
             </li>

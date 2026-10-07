@@ -3250,17 +3250,21 @@ type HistoryEntry struct {
 	// Destinations External destinations the job contacts
 	Destinations []string   `json:"destinations"`
 	Extensions   []string   `json:"extensions"`
+	Finished     int        `json:"finished"`
 	FinishedAt   *time.Time `json:"finishedAt"`
 	JobId        Uuid       `json:"jobId"`
 	Label        *string    `json:"label"`
 
 	// Origin Who started the job: the web UI, the CLI (agents), another API client, a watch, or the backend itself (e.g. catalog refreshes)
-	Origin     JobOrigin `json:"origin"`
-	Resumable  bool      `json:"resumable"`
-	State      string    `json:"state"`
-	Total      int       `json:"total"`
-	Type       JobType   `json:"type"`
-	Unresolved int       `json:"unresolved"`
+	Origin JobOrigin `json:"origin"`
+
+	// Outcomes Finished items by outcome, as in JobCounters
+	Outcomes   map[string]int `json:"outcomes"`
+	Resumable  bool           `json:"resumable"`
+	State      string         `json:"state"`
+	Total      int            `json:"total"`
+	Type       JobType        `json:"type"`
+	Unresolved int            `json:"unresolved"`
 }
 
 // HistoryListResponse defines model for HistoryListResponse.

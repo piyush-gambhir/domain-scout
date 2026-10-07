@@ -35,9 +35,10 @@ test('history shows searches from this UI and from agents, with what each found'
   expect(calls.find((c) => c.path === '/history')?.search.get('origins')).toBe('ui,cli');
   await expect(rows.filter({ hasText: 'Agent shortlist' })).toContainText('Agent');
   await expect(rows.filter({ hasText: 'Launch names' })).not.toContainText('Agent');
-  // The summary says how many names can be registered, from the job's own counts.
+  // The summary says how many names can be registered, from the history entry's own counts.
   await expect(rows.filter({ hasText: 'Launch names' })).toContainText(/\d+ not registered of 20/);
   await expect(rows.filter({ hasText: 'Agent shortlist' })).toContainText('not registered of 12');
+  expect(calls.some((c) => c.method === 'GET' && c.path === '/jobs')).toBe(false);
   await expect(rows.filter({ hasText: 'Catalog refresh' })).toHaveCount(0);
 
   // System and watch jobs appear on request, with a type filter.
