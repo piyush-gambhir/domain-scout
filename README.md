@@ -57,6 +57,7 @@ domain-scout scan --file names.txt --tlds com,io --wait          # registry look
 domain-scout jobs results <job-id> --outcomes no_record --all
 domain-scout quote example.com --providers porkbun --wait         # explicit provider disclosure
 domain-scout export --scope filter --job <job-id> --outcomes no_record --format txt --out names.txt
+domain-scout prices published com io si --years 3                 # catalog prices per extension, no names sent
 ```
 
 Exit codes: 0 success, 1 local failure, 2 invalid usage, 3 completed with unresolved items, 4 provider access missing, 5 backend setup or version failure, 130 interrupted wait. Run `domain-scout --help` for the full command tree.

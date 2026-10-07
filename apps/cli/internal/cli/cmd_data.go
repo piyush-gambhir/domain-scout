@@ -57,7 +57,22 @@ func (a *App) pricesCmd() *cobra.Command {
 	history.Flags().StringVar(&suffix, "suffix", "", "suffix")
 	history.Flags().StringVar(&provider, "provider", "", "provider id")
 	history.Flags().StringVar(&since, "since", "", "only observations since this RFC 3339 time")
-	return group("prices", "Observed price history", history)
+	var years int
+	published := a.newCmd("published <suffix>...", "Current published prices per provider for whole extensions (no names are sent)", cobra.MinimumNArgs(1),
+		func(ctx context.Context, cmd *cobra.Command, args []string) error {
+			params := api.ListSuffixPricesParams{Suffixes: strings.Join(suffixes(args), ",")}
+			if cmd.Flags().Changed("years") {
+				if years < 1 || years > 10 {
+					return usageErr("--years must be between 1 and 10")
+				}
+				params.HorizonYears = &years
+			}
+			return a.show(ctx, suffixPricesView, func(ctx context.Context, g *api.Client) (*http.Response, error) {
+				return g.ListSuffixPrices(ctx, &params)
+			})
+		})
+	published.Flags().IntVar(&years, "years", 0, "cost horizon in years (default: settings)")
+	return group("prices", "Published prices and observed price history", published, history)
 }
 
 func (a *App) portfolioCmd() *cobra.Command {

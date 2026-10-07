@@ -114,3 +114,32 @@ func TestQuoteWaitPreservesDecisionFields(t *testing.T) {
 		t.Errorf("missing progress or credential diagnostic on stderr: %s", r.stderr)
 	}
 }
+
+func TestPricesPublishedReadsWholeExtensions(t *testing.T) {
+	f := newFakeAPI(t)
+	body := `{"contractVersion":"1.0.0","data":[{"suffix":"si","offers":[` +
+		`{"providerId":"porkbun","providerName":"Porkbun","currency":"USD","registration":"20.38","registrationYears":1,"renewal":"17.50","renewalYears":1,"horizonYears":5,"horizonTotal":"90.38"},` +
+		`{"providerId":"dynadot","providerName":"Dynadot","currency":"USD","registration":"21.99","registrationYears":1,"renewal":"19.99","renewalYears":1,"horizonYears":5,"horizonTotal":"101.95"}]}]}`
+	f.reply("GET", "/api/v1/prices", 200, body)
+
+	r := newHarness(t).api(f, "prices", "published", ".SI", "--years", "5")
+	expectCode(t, r, ExitOK)
+	reqs := f.requests("GET", "/api/v1/prices")
+	if len(reqs) != 1 || reqs[0].query.Get("suffixes") != "si" || reqs[0].query.Get("horizonYears") != "5" {
+		t.Fatalf("want one request for si over 5 years, got %#v", reqs)
+	}
+	if !reflect.DeepEqual(decodeJSON(t, r.stdout), decodeJSON(t, body)) {
+		t.Fatalf("JSON output changed: %s", r.stdout)
+	}
+
+	table := newHarness(t).api(f, "prices", "published", "si", "--output", "table")
+	expectCode(t, table, ExitOK)
+	for _, want := range []string{"CHEAPEST", "porkbun", "20.38 USD", "17.50 USD", "90.38 USD / 5y"} {
+		if !strings.Contains(table.stdout, want) {
+			t.Errorf("table missing %q:\n%s", want, table.stdout)
+		}
+	}
+
+	bad := newHarness(t).api(f, "prices", "published", "si", "--years", "0")
+	expectCode(t, bad, ExitUsage)
+}

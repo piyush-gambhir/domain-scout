@@ -340,6 +340,21 @@ func count(path string) func(map[string]any) string {
 	}
 }
 
+// firstOffer applies fn to the first element of a row's offers.
+func firstOffer(fn func(map[string]any) string) func(map[string]any) string {
+	return func(row map[string]any) string {
+		arr, ok := row["offers"].([]any)
+		if !ok || len(arr) == 0 {
+			return "-"
+		}
+		m, ok := arr[0].(map[string]any)
+		if !ok {
+			return "-"
+		}
+		return fn(m)
+	}
+}
+
 func pluck(path, field string) func(map[string]any) string {
 	return func(row map[string]any) string {
 		arr, ok := lookup(row, path).([]any)
