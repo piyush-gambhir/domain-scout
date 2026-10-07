@@ -26,6 +26,8 @@ function maxWidth(): number {
   return Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, window.innerWidth - sidebar - KEEP_FOR_CONTENT));
 }
 
+const OPEN_LAYER = '[role="menu"], [role="dialog"], [role="alertdialog"], [role="listbox"]';
+
 function isEditable(target: EventTarget | null) {
   return target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
 }
@@ -99,8 +101,10 @@ export function Dock({
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      // Radix layers (menus, dialogs, popovers) handle Escape first and mark it handled.
-      if (event.key !== 'Escape' || event.defaultPrevented || isEditable(event.target)) return;
+      if (event.key !== 'Escape' || isEditable(event.target)) return;
+      // An open menu, dialog, popover or select takes Escape first. Tooltips also mark Escape handled,
+      // so defaultPrevented alone cannot tell; only real layers keep the pane open.
+      if (document.querySelector(OPEN_LAYER)) return;
       onClose();
     };
     document.addEventListener('keydown', onKeyDown);

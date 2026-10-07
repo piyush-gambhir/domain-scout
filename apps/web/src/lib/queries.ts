@@ -23,9 +23,11 @@ export const qk = {
   nameCheckServices: ['nameCheckServices'] as const,
   settings: ['settings'] as const,
   watches: ['watches'] as const,
+  watchIndex: ['watches', 'index'] as const,
   watch: (id: string) => ['watches', id] as const,
   watchRuns: (id: string) => ['watches', id, 'runs'] as const,
   history: (query?: object) => (query ? (['history', query] as const) : (['history'] as const)),
+  jobSummaries: (query: object) => ['jobs', 'summaries', query] as const,
   priceHistory: (query: object) => ['priceHistory', query] as const,
   generationThemes: ['generationThemes'] as const,
   comparison: (request: object) => ['comparison', request] as const,
@@ -62,7 +64,7 @@ export function usePatchSettings() {
 export function useProviders() {
   return useQuery({
     queryKey: qk.providers,
-    queryFn: ({ signal }) => api.call('listProviders', { signal }).then((r) => r.data),
+    queryFn: ({ signal }) => api.call('listProviders', { query: { limit: 1000 }, signal }).then((r) => r.data),
     staleTime: 60_000,
   });
 }

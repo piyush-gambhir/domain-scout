@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import type { PriceSeries } from '@domain-scout/contracts';
 import { api } from '@/lib/api';
@@ -100,7 +101,9 @@ function SeriesBlock({ series, providerName }: { series: PriceSeries; providerNa
 /** Observed price series, one block per comparable series. Nothing is fetched from providers here. */
 export function PriceHistory() {
   const providers = useProviders();
-  const [suffix, setSuffix] = useState('');
+  // A notice or a domain panel can link here for one extension (?suffix=com).
+  const initialSuffix = useSearchParams().get('suffix') ?? '';
+  const [suffix, setSuffix] = useState(initialSuffix);
   const [domain, setDomain] = useState('');
   const [providerId, setProviderId] = useState(ANY);
   // Debounce a string key: a fresh object each render would never settle.

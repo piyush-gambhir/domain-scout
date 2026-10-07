@@ -125,8 +125,8 @@ export default async function globalSetup() {
         const context = await browser.newContext();
         const page = await context.newPage();
         await page.goto(`${webUrl}/auth/bootstrap?code=${encodeURIComponent(data.code)}`);
-        await page.waitForURL(/\/(scan|session)/);
-        if (new URL(page.url()).pathname === '/scan') {
+        await page.waitForURL((url) => url.pathname === '/' || url.pathname === '/session');
+        if (new URL(page.url()).pathname === '/') {
           await context.storageState({ path: storagePath });
           session = 'cookie';
         }
@@ -138,6 +138,8 @@ export default async function globalSetup() {
     process.env.DS_E2E_BACKEND_URL = backendUrl;
     process.env.DS_E2E_STORAGE = storagePath;
     process.env.DS_E2E_SESSION = session;
+    // Tests that mint their own bootstrap codes read the API token from here.
+    process.env.DS_E2E_DATA_DIR = dataDir;
   } catch (error) {
     await teardown();
     throw error;

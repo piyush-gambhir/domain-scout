@@ -96,7 +96,7 @@ function WatchFormBody({ onOpenChange, watch, target }: Omit<WatchFormProps, 'op
       if (watch) toast.success(`Saved ${saved.name}`);
       else {
         toast.success(`Watching ${plural(saved.domains.length, 'domain')}`, {
-          action: { label: 'Open', onClick: () => router.push(`/monitoring/${saved.id}`) },
+          action: { label: 'Open', onClick: () => router.push(`/watching/${saved.id}`) },
         });
       }
       onOpenChange(false);

@@ -17,7 +17,6 @@ import { Button } from '../ui/button';
 import { Textarea } from '../ui/input';
 import { SkeletonRows } from '../ui/skeleton';
 import { SwitchField } from '../ui/switch';
-import { Workspace } from './shared';
 
 type ImportResult = OperationResponse<'importPortfolio'>['data'];
 type ComparisonRow = OperationResponse<'comparePortfolio'>['data'][number];
@@ -340,11 +339,17 @@ function Comparison() {
 /** Domains you own, with your renewal facts kept apart from observed provider prices. Read-only. */
 export function Portfolio() {
   return (
-    <Workspace form={<ImportForm />}>
-      <div className="flex flex-col gap-8 pb-2">
-        <Entries />
-        <Comparison />
+    <div className="flex flex-col gap-8 lg:min-h-0 lg:flex-1 lg:flex-row lg:gap-10">
+      <div className="relative -mx-1 flex min-w-0 flex-col gap-4 px-1 lg:min-h-0 lg:w-80 lg:shrink-0 lg:overflow-y-auto">
+        <h2 className="text-base font-semibold tracking-tight">Domains you own</h2>
+        <ImportForm />
       </div>
-    </Workspace>
+      <div className="relative -mx-1 flex min-w-0 flex-1 flex-col px-1 lg:min-h-0 lg:overflow-y-auto">
+        <div className="flex flex-col gap-8 pb-2">
+          <Entries />
+          <Comparison />
+        </div>
+      </div>
+    </div>
   );
 }

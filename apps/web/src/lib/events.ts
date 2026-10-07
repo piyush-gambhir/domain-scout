@@ -166,8 +166,11 @@ export function useJobEvents(jobId: string | null | undefined, onEvent?: (event:
           break;
         }
         case 'quote.observed':
+          void client.invalidateQueries({ queryKey: ['evidence'] });
+          break;
         case 'catalog.updated':
           void client.invalidateQueries({ queryKey: ['evidence'] });
+          void client.invalidateQueries({ queryKey: ['prices'] });
           break;
         case 'notice.created':
           void client.invalidateQueries({ queryKey: qk.notices });

@@ -14,7 +14,7 @@ import { useIdempotency } from '@/lib/use-idempotency';
 import { cn } from '@/lib/utils';
 import { useJobStarted } from '../actions/use-job-started';
 import { FreshnessText, RelativeTime } from '../domain/time';
-import { EmptyState, ErrorState, Facts, Page, PageHeader, SectionTitle } from '../states';
+import { EmptyState, ErrorState, Facts, SectionTitle } from '../states';
 import { StatusLabel, ToneText } from '../status';
 import { ConfirmDialog } from '../ui/alert-dialog';
 import { Button } from '../ui/button';
@@ -38,7 +38,11 @@ function usePatchProvider(id: string) {
       if (context?.previous) client.setQueryData(qk.providers, context.previous);
     },
     onSuccess: (provider) => client.setQueryData<Provider[]>(qk.providers, (list) => list?.map((p) => (p.id === provider.id ? provider : p))),
-    onSettled: () => void client.invalidateQueries({ queryKey: ['evidence'] }),
+    onSettled: () => {
+      // Enabling or disabling a provider changes every price list and Buy menu.
+      void client.invalidateQueries({ queryKey: ['evidence'] });
+      void client.invalidateQueries({ queryKey: ['prices'] });
+    },
   });
 }
 
@@ -420,35 +424,20 @@ function DirectoryList({ entries, selectedId, onSelect }: { entries: Provider[];
   );
 }
 
-export function ProvidersPage() {
+/** Provider keys, capabilities, catalogs and purchase links. Lives under Settings. */
+export function ProvidersSettings() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const providers = useProviders();
   const selectedId = searchParams.get('p');
   const list = providers.data ?? [];
   const selected = list.find((p) => p.id === selectedId) ?? (selectedId ? undefined : list[0]);
-  const select = (id: string | null) => router.replace(id ? `/providers?p=${id}` : '/providers', { scroll: false });
+  const select = (id: string | null) => router.replace(id ? `/settings/providers?p=${id}` : '/settings/providers', { scroll: false });
   const registrars = list.filter((p) => p.kind === 'registrar');
   const directory = list.filter((p) => p.kind === 'directory');
 
   return (
-    <Page>
-      <PageHeader
-        title="Providers"
-        meta={
-          providers.data ? (
-            <span className="text-muted-foreground">
-              <span className="font-mono tabular">{formatCount(registrars.length)}</span> registrars
-              {directory.length ? (
-                <>
-                  {' · '}
-                  <span className="font-mono tabular">{formatCount(directory.length)}</span> from registry directories
-                </>
-              ) : null}
-            </span>
-          ) : null
-        }
-      />
+    <section aria-label="Providers" className="flex min-w-0 flex-col gap-4 lg:min-h-0 lg:flex-1">
       {providers.isPending ? (
         <div className="grid gap-8 md:grid-cols-[14rem_minmax(0,1fr)]">
           <SkeletonRows rows={9} />
@@ -461,7 +450,9 @@ export function ProvidersPage() {
       ) : (
         <div className="flex flex-col gap-6 md:flex-row md:gap-8 lg:min-h-0 lg:flex-1">
           <nav aria-label="Providers" className={cn('relative -mx-1 flex flex-col px-1 md:w-60 md:shrink-0 lg:min-h-0 lg:overflow-y-auto', selectedId && 'max-md:hidden')}>
-            <p className="mb-1 px-2.5 text-xs font-medium text-muted-foreground">Registrars</p>
+            <p className="mb-1 px-2.5 text-xs font-medium text-muted-foreground">
+              Registrars <span className="tabular">{formatCount(registrars.length)}</span>
+            </p>
             <ul className="flex flex-col">
               {registrars.map((provider) => (
                 <ProviderItem key={provider.id} provider={provider} current={selected?.id === provider.id} onSelect={() => select(provider.id)} showReadiness />
@@ -480,6 +471,6 @@ export function ProvidersPage() {
           </div>
         </div>
       )}
-    </Page>
+    </section>
   );
 }

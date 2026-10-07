@@ -18,10 +18,8 @@ import {
   RotateCcw,
   RotateCw,
   Save,
-  Scale,
   Stethoscope,
   Tag,
-  Undo2,
   X,
 } from 'lucide-react';
 import type { Job, JobItem, ResultFilter } from '@domain-scout/contracts';
@@ -42,8 +40,7 @@ import { ShortlistDialog } from '../actions/shortlist-dialog';
 import type { DomainTarget, ScopeInput, ScopeOption } from '../actions/types';
 import { useJobStarted } from '../actions/use-job-started';
 import { WatchDialog } from '../actions/watch-dialog';
-import { MAX_COMPARE_DOMAINS } from '../compare/shared';
-import { DomainDock, type DomainTab } from '../domain/domain-detail';
+import { DomainDock } from '../domain/domain-panel';
 import { RelativeTime } from '../domain/time';
 import { Crumb, EmptyState, ErrorState, Page, PageHeader } from '../states';
 import { StatusLabel } from '../status';
@@ -137,7 +134,6 @@ export function JobView({ jobId }: { jobId: string }) {
   const client = useQueryClient();
   const searchParams = useSearchParams();
   const isWide = useIsWide();
-  const [detailTab, setDetailTab] = useState<DomainTab>('overview');
   const started = useJobStarted();
   const retryIdempotency = useIdempotency();
   const searchRef = useRef<HTMLInputElement>(null);
@@ -264,17 +260,6 @@ export function JobView({ jobId }: { jobId: string }) {
     },
   });
 
-  // Comparisons read retained offers only, so opening one sends nothing anywhere.
-  const compare = useMutation({
-    mutationFn: async () => {
-      const domains = await target.resolveDomains();
-      if (domains.length === 0) throw new Error('Nothing selected.');
-      if (domains.length > MAX_COMPARE_DOMAINS) throw new Error(`Compare at most ${MAX_COMPARE_DOMAINS} domains at a time.`);
-      return domains;
-    },
-    onSuccess: (domains) => router.push(`/compare?domains=${encodeURIComponent(domains.join(','))}`),
-  });
-
   // Saving stores the filter as shown plus chosen providers and budget; nothing runs. The price cap
   // is saved as the budget (prefilled from it), so clearing the budget removes the cap.
   const saveCriteria = useMutation({
@@ -293,7 +278,7 @@ export function JobView({ jobId }: { jobId: string }) {
     onSuccess: (criteria) => {
       void client.invalidateQueries({ queryKey: qk.criteria });
       toast.success(`Saved ${criteria.name}`, {
-        action: { label: 'Shortlists', onClick: () => router.push('/collections') },
+        action: { label: 'Saved', onClick: () => router.push('/saved') },
       });
     },
   });
@@ -320,7 +305,7 @@ export function JobView({ jobId }: { jobId: string }) {
     onSuccess: (created) => {
       retryIdempotency.reset();
       client.setQueryData(qk.job(created.id), created);
-      router.push(`/jobs/${created.id}`);
+      router.push(`/search/${created.id}`);
     },
   });
 
@@ -457,12 +442,6 @@ export function JobView({ jobId }: { jobId: string }) {
                     <Save />
                     Save criteria
                   </DropdownMenuItem>
-                  {data.type === 'registry_scan' ? (
-                    <DropdownMenuItem onSelect={() => router.push(`/scan?job=${data.id}`)}>
-                      <Undo2 />
-                      Edit input as new scan
-                    </DropdownMenuItem>
-                  ) : null}
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
@@ -591,7 +570,7 @@ export function JobView({ jobId }: { jobId: string }) {
               {selection.mode === 'all' ? <span className="whitespace-nowrap px-1.5 text-xs text-muted-foreground">All matching</span> : null}
               {domainJob ? (
                 <>
-                  <ToolbarButton label="Shortlist" onClick={() => setDialog('shortlist')}>
+                  <ToolbarButton label="Save" onClick={() => setDialog('shortlist')}>
                     <BookmarkPlus />
                   </ToolbarButton>
                   <ToolbarButton label="Recheck" disabled={recheck.isPending} onClick={() => recheck.mutate()}>
@@ -626,10 +605,6 @@ export function JobView({ jobId }: { jobId: string }) {
                         <Bell />
                         Watch
                       </DropdownMenuItem>
-                      <DropdownMenuItem disabled={compare.isPending} onSelect={() => compare.mutate()}>
-                        <Scale />
-                        Compare prices
-                      </DropdownMenuItem>
                     </>
                   ) : null}
                   <DropdownMenuItem onSelect={() => setArtifact({ kind: 'snapshot', defaultScope: 'selection' })}>
@@ -646,7 +621,7 @@ export function JobView({ jobId }: { jobId: string }) {
         </div>
       </Page>
 
-      {panelOpen && detailName ? <DomainDock name={detailName} tab={detailTab} onTab={setDetailTab} onClose={closeDetail} /> : null}
+      {panelOpen && detailName ? <DomainDock name={detailName} onClose={closeDetail} /> : null}
 
       <ShortlistDialog open={dialog === 'shortlist'} onOpenChange={(o) => setDialog(o ? 'shortlist' : null)} target={target} />
       <ProviderRequestDialog
@@ -680,8 +655,8 @@ export function JobView({ jobId }: { jobId: string }) {
 function JobsCrumb() {
   return (
     <Crumb>
-      <Link href="/jobs" className="rounded-sm hover:text-foreground">
-        Jobs
+      <Link href="/history" className="rounded-sm hover:text-foreground">
+        History
       </Link>
     </Crumb>
   );

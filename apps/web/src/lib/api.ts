@@ -21,18 +21,19 @@ export function readCookie(name: string): string | null {
   return null;
 }
 
-/** Adds the session's CSRF token (readable ds_csrf cookie) to mutating requests. */
+/** Tells the backend a request came from the web UI, so jobs it starts are recorded with origin `ui`. */
+export const CLIENT_HEADER = 'X-Domain-Scout-Client';
+
+/** Marks every request as the web client and adds the session's CSRF token (readable ds_csrf cookie) to mutations. */
 const csrfFetch: typeof fetch = (input, init = {}) => {
   const method = (init.method ?? 'GET').toUpperCase();
+  const headers = new Headers(init.headers);
+  headers.set(CLIENT_HEADER, 'web');
   if (!SAFE_METHODS.has(method)) {
     const token = readCookie(CSRF_COOKIE);
-    if (token) {
-      const headers = new Headers(init.headers);
-      headers.set('X-CSRF-Token', token);
-      init = { ...init, headers };
-    }
+    if (token) headers.set('X-CSRF-Token', token);
   }
-  return fetch(input, init);
+  return fetch(input, { ...init, headers });
 };
 
 /** Same-origin client: Next forwards /api/v1/* to the backend with the session cookie. */

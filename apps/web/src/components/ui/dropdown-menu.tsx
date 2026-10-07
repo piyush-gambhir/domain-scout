@@ -1,13 +1,14 @@
 'use client';
 
 import { DropdownMenu as Menu } from 'radix-ui';
-import { Check } from 'lucide-react';
+import { Check, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const DropdownMenu = Menu.Root;
 export const DropdownMenuTrigger = Menu.Trigger;
 export const DropdownMenuGroup = Menu.Group;
 export const DropdownMenuRadioGroup = Menu.RadioGroup;
+export const DropdownMenuSub = Menu.Sub;
 
 const itemClass =
   'relative flex h-8 cursor-default select-none items-center gap-2 rounded-md px-2 text-sm outline-none data-[disabled]:pointer-events-none data-[highlighted]:bg-hover data-[disabled]:opacity-45 [&_svg]:size-4 [&_svg]:shrink-0';
@@ -58,4 +59,25 @@ export function DropdownMenuCheckboxItem({ className, children, ...props }: Reac
 /** Vertical space between groups; no divider lines. */
 export function DropdownMenuGap() {
   return <div aria-hidden className="h-1" />;
+}
+
+export function DropdownMenuSubTrigger({ className, children, ...props }: React.ComponentProps<typeof Menu.SubTrigger>) {
+  return (
+    <Menu.SubTrigger className={cn(itemClass, 'data-[state=open]:bg-hover', className)} {...props}>
+      {children}
+      <ChevronRight className="ml-auto text-muted-foreground" />
+    </Menu.SubTrigger>
+  );
+}
+
+export function DropdownMenuSubContent({ className, ...props }: React.ComponentProps<typeof Menu.SubContent>) {
+  return (
+    <Menu.Portal>
+      <Menu.SubContent
+        sideOffset={4}
+        className={cn('anim-fade z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] min-w-48 overflow-y-auto rounded-lg bg-popover p-1 shadow-xl outline-none', className)}
+        {...props}
+      />
+    </Menu.Portal>
+  );
 }

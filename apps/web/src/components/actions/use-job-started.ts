@@ -15,7 +15,7 @@ export function useJobStarted() {
     (job: Job, message: string) => {
       client.setQueryData(qk.job(job.id), job);
       void client.invalidateQueries({ queryKey: qk.jobs() });
-      toast.success(message, { action: { label: 'Open', onClick: () => router.push(`/jobs/${job.id}`) } });
+      toast.success(message, { action: { label: 'Open', onClick: () => router.push(`/search/${job.id}`) } });
     },
     [client, router],
   );

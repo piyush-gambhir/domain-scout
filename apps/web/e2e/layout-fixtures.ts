@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { EARLIER, LATER, NOW, PROVIDERS, SETTINGS, job, mockApi, ok, paged, provider, uuid } from './mock-api';
+import { EARLIER, LATER, NOW, PROVIDERS, SETTINGS, mockApi, ok, paged, provider, uuid } from './mock-api';
 
 /*
  * Large route fixtures for the layout checks: enough rows that every growing list overflows its pane.
@@ -107,6 +107,7 @@ export function richEvidence() {
   const providers = providerList().map((p) => ({
     providerId: p.id,
     name: p.name,
+    kind: p.kind === 'directory' ? 'directory' : 'registrar',
     supportsSuffix: p.kind === 'directory' ? 'yes' : p.id === 'hostinger' ? 'unknown' : 'yes',
     purchaseUrl: p.kind === 'directory' ? `https://${p.id}.provider.invalid/` : `https://${p.id}.provider.invalid/search?domain=nic.si`,
     purchaseKind: p.kind === 'directory' ? 'website' : 'search',
@@ -186,72 +187,6 @@ export async function mockRichDomain(page: Page) {
   return mockApi(page, {
     'GET /providers': () => paged(providerList()),
     'GET /domains/:name/evidence': (_c, p) => ok({ ...richEvidence(), domain: p.name, unicode: p.name }),
-  });
-}
-
-/* jobs list */
-
-export async function mockJobsList(page: Page) {
-  const states = ['completed', 'completed_with_errors', 'running', 'interrupted', 'cancelled'];
-  const jobs = Array.from({ length: 60 }, (_, i) =>
-    job(uuid(0x8000 + i), {
-      label: i % 3 === 0 ? null : `Fixture scan ${i + 1}`,
-      state: states[i % states.length],
-      counters: { total: 40, pending: 0, running: 0, finished: i % 5 === 2 ? 12 : 40, interrupted: 0, resolved: 36, unresolved: i % 4, outcomes: {} },
-      input: { extensions: ['com', 'si'], providerIds: [], services: [], checks: [], rows: 20, text: null },
-    }),
-  );
-  return mockApi(page, { 'GET /jobs': () => paged(jobs, null, jobs.length) });
-}
-
-/* shortlists */
-
-export const COLLECTION = uuid(0x9001);
-
-function collection(n: number, overrides: Record<string, unknown> = {}) {
-  return { id: uuid(0x9000 + n), name: `Fixture shortlist ${n}`, notes: n % 2 ? 'Launch candidates for review' : null, entryCount: 10 + n, createdAt: EARLIER, updatedAt: EARLIER, ...overrides };
-}
-
-function entry(n: number) {
-  const domain = `${label24(n)}.${n % 3 === 0 ? 'si' : 'com'}`;
-  return {
-    id: uuid(0x9100 + n),
-    collectionId: COLLECTION,
-    domain,
-    unicode: domain,
-    notes: n % 4 === 0 ? 'Short, easy to say' : null,
-    addedAt: EARLIER,
-    registry: n % 5 === 4 ? null : { ...registryObservation(100 + n, n % 2 ? 'no_record' : 'registered', NOW), domain, unicode: domain, matchedName: null },
-    confirmations: [],
-    offers: n % 2 ? [offer(100 + n, 'porkbun', { domain: null, suffix: n % 3 === 0 ? 'si' : 'com' })] : [],
-  };
-}
-
-export async function mockShortlists(page: Page) {
-  const collections = [collection(1, { entryCount: 200, notes: 'Names for the spring launch. Keep the short ones.' }), ...Array.from({ length: 40 }, (_, i) => collection(i + 2))];
-  const entries = Array.from({ length: 200 }, (_, i) => entry(i));
-  const criteria = Array.from({ length: 24 }, (_, i) => ({
-    id: uuid(0x9300 + i),
-    name: `Fixture criteria ${i + 1}`,
-    filter: null,
-    extensions: ['com', 'si'],
-    providerIds: i % 2 ? ['porkbun'] : [],
-    budget: i % 3 ? null : { amount: '15', currency: 'USD' },
-    generation: null,
-    input: 'example',
-    createdAt: EARLIER,
-    updatedAt: EARLIER,
-  }));
-  return mockApi(page, {
-    'GET /collections': () => paged(collections),
-    'GET /collections/:id': (_c, p) => ok(collections.find((c) => c.id === p.id) ?? collections[0]),
-    'GET /collections/:id/entries': (c) => {
-      const offset = Number(c.search.get('cursor') ?? 0);
-      const limit = Number(c.search.get('limit') ?? 200);
-      return paged(entries.slice(offset, offset + limit), offset + limit < entries.length ? String(offset + limit) : null, entries.length);
-    },
-    'GET /criteria': () => paged(criteria),
-    'GET /providers': () => paged(PROVIDERS),
   });
 }
 

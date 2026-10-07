@@ -4,9 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { Command } from 'cmdk';
 import { Dialog as DialogPrimitive } from 'radix-ui';
-import { Bookmark, ListChecks, Moon, PanelLeft, Plus, Search, Sun, SunMoon } from 'lucide-react';
+import { Bookmark, ClockFading, Moon, PanelLeft, Plus, Search, Sparkles, Sun, SunMoon } from 'lucide-react';
 import { api } from '@/lib/api';
-import { jobTypeLabel } from '@/lib/labels';
 import { qk, useCollections } from '@/lib/queries';
 import { useThemePreference } from '@/lib/theme';
 import { Kbd } from '../ui/kbd';
@@ -45,9 +44,9 @@ export function CommandPalette({
   const router = useRouter();
   const { setTheme } = useThemePreference();
   const mod = isMac() ? '⌘' : 'Ctrl';
-  const jobs = useQuery({
-    queryKey: qk.jobs({ limit: 6 }),
-    queryFn: ({ signal }) => api.call('listJobs', { query: { limit: 6 }, signal }).then((r) => r.data),
+  const recent = useQuery({
+    queryKey: qk.history({ origins: 'ui,cli', type: 'registry_scan', limit: 6 }),
+    queryFn: ({ signal }) => api.call('listHistory', { query: { origins: 'ui,cli', type: 'registry_scan', limit: 6 }, signal }).then((r) => r.data),
     enabled: open,
   });
   const collections = useCollections(open);
@@ -71,7 +70,7 @@ export function CommandPalette({
             <div className="flex items-center gap-3 px-4">
               <Search aria-hidden className="size-4 shrink-0 text-muted-foreground" />
               <Command.Input
-                placeholder="Search"
+                placeholder="Go to a page or run a command"
                 className="h-12 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
               />
             </div>
@@ -88,9 +87,13 @@ export function CommandPalette({
               </Command.Group>
 
               <Command.Group heading="Actions">
-                <Command.Item value="new scan" className={itemClass} onSelect={() => go('/scan')}>
+                <Command.Item value="new search" className={itemClass} onSelect={() => go('/')}>
                   <Plus aria-hidden />
-                  New scan
+                  New search
+                </Command.Item>
+                <Command.Item value="name ideas keywords" className={itemClass} onSelect={() => go('/?mode=ideas')}>
+                  <Sparkles aria-hidden />
+                  Name ideas
                 </Command.Item>
                 <Command.Item value="toggle sidebar" className={itemClass} onSelect={() => run(onToggleSidebar)}>
                   <PanelLeft aria-hidden />
@@ -111,22 +114,22 @@ export function CommandPalette({
                 </Command.Item>
               </Command.Group>
 
-              {jobs.data && jobs.data.length > 0 ? (
-                <Command.Group heading="Recent jobs">
-                  {jobs.data.map((job) => (
-                    <Command.Item key={job.id} value={`job ${job.label ?? ''} ${jobTypeLabel(job.type)} ${job.id}`} className={itemClass} onSelect={() => go(`/jobs/${job.id}`)}>
-                      <ListChecks aria-hidden />
-                      <span className="truncate">{job.label ?? jobTypeLabel(job.type)}</span>
-                      <span className="ml-auto font-mono text-xs text-muted-foreground">{job.counters.total}</span>
+              {recent.data && recent.data.length > 0 ? (
+                <Command.Group heading="Recent searches">
+                  {recent.data.map((entry) => (
+                    <Command.Item key={entry.jobId} value={`search ${entry.label ?? ''} ${entry.jobId}`} className={itemClass} onSelect={() => go(`/search/${entry.jobId}`)}>
+                      <ClockFading aria-hidden />
+                      <span className="truncate">{entry.label ?? `${entry.total} names`}</span>
+                      <span className="ml-auto text-xs text-muted-foreground tabular">{entry.total}</span>
                     </Command.Item>
                   ))}
                 </Command.Group>
               ) : null}
 
               {collections.data && collections.data.length > 0 ? (
-                <Command.Group heading="Shortlists">
+                <Command.Group heading="Saved lists">
                   {collections.data.slice(0, 8).map((collection) => (
-                    <Command.Item key={collection.id} value={`shortlist ${collection.name}`} className={itemClass} onSelect={() => go(`/collections/${collection.id}`)}>
+                    <Command.Item key={collection.id} value={`saved list ${collection.name}`} className={itemClass} onSelect={() => go(`/saved/${collection.id}`)}>
                       <Bookmark aria-hidden />
                       <span className="truncate">{collection.name}</span>
                     </Command.Item>
@@ -143,17 +146,33 @@ export function CommandPalette({
                   Collapse or expand sidebar
                   <Shortcut keys={[mod, 'B']} />
                 </Command.Item>
-                <Command.Item value="shortcut run scan" className={itemClass} onSelect={() => go('/scan')}>
-                  Run scan
-                  <Shortcut keys={[mod, '↵']} />
-                </Command.Item>
-                <Command.Item value="shortcut search results" className={itemClass} onSelect={() => onOpenChange(false)}>
-                  Search results
+                <Command.Item value="shortcut focus search" className={itemClass} onSelect={() => onOpenChange(false)}>
+                  Focus the search bar
                   <Shortcut keys={['/']} />
                 </Command.Item>
                 <Command.Item value="shortcut move between results" className={itemClass} onSelect={() => onOpenChange(false)}>
                   Move between results
-                  <Shortcut keys={['↑', '↓']} />
+                  <Shortcut keys={['↑', '↓', '←', '→']} />
+                </Command.Item>
+                <Command.Item value="shortcut open details" className={itemClass} onSelect={() => onOpenChange(false)}>
+                  Open details
+                  <Shortcut keys={['↵']} />
+                </Command.Item>
+                <Command.Item value="shortcut save result" className={itemClass} onSelect={() => onOpenChange(false)}>
+                  Save or unsave a name
+                  <Shortcut keys={['S']} />
+                </Command.Item>
+                <Command.Item value="shortcut buy result" className={itemClass} onSelect={() => onOpenChange(false)}>
+                  Buy: prices and provider links
+                  <Shortcut keys={['B']} />
+                </Command.Item>
+                <Command.Item value="shortcut watch result" className={itemClass} onSelect={() => onOpenChange(false)}>
+                  Watch a name
+                  <Shortcut keys={['W']} />
+                </Command.Item>
+                <Command.Item value="shortcut select result" className={itemClass} onSelect={() => onOpenChange(false)}>
+                  Select a result in a long list
+                  <Shortcut keys={['X']} />
                 </Command.Item>
                 <Command.Item value="shortcut select range" className={itemClass} onSelect={() => onOpenChange(false)}>
                   Select a range of results

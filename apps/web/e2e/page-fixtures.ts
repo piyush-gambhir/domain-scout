@@ -2,8 +2,9 @@ import type { Page } from '@playwright/test';
 import { EARLIER, LATER, NOW, PROVIDERS, SETTINGS, applyPatch, job, mockApi, ok, paged, uuid } from './mock-api';
 
 /*
- * Page-level fixture sets shared by the specs (and handy for visual review). Each installs route
- * handlers on a page and returns the recorded API calls. Names follow the fixed live test set.
+ * Page-level fixture sets for Watching and Settings (the task flows use app-fixtures.ts). Each
+ * installs route handlers on a page and returns the recorded API calls. Names follow the fixed live
+ * test set.
  */
 
 /* monitoring */
@@ -109,6 +110,31 @@ export async function mockMonitoring(page: Page) {
     },
     'POST /watches/:id/run': (_c, p) => ({ status: 201, json: { contractVersion: '1.0.0', data: job(uuid(0xb9), { type: 'watch', state: 'queued', watchId: p.id }) } }),
     'GET /jobs/:id': (_c, p) => ok(job(p.id!, { type: 'watch', state: 'completed' })),
+    // The latest run's registry results give each watched name its current state.
+    'GET /jobs/:id/results': (_c, p) =>
+      paged(
+        ['example.com', 'google.com'].map((domain, n) => ({
+          id: uuid(0xb10 + n),
+          jobId: p.id,
+          subject: domain,
+          unicode: domain,
+          suffix: 'com',
+          operation: 'registry',
+          target: null,
+          source: 'registry:verisign',
+          state: 'finished',
+          attempts: 1,
+          outcome: domain === 'example.com' ? 'no_record' : 'registered',
+          resolved: true,
+          error: null,
+          retryAt: null,
+          startedAt: NOW,
+          finishedAt: NOW,
+          evidence: { registry: null, confirmation: null, offers: [], nameCheck: null, diagnostic: null, listing: null },
+          bestPrice: null,
+          collectionIds: [],
+        })),
+      ),
     'DELETE /watches/:id': (_c, p) => {
       watches = watches.filter((w) => w.id !== p.id);
       return ok({ ok: true });
@@ -129,181 +155,6 @@ export async function mockMonitoring(page: Page) {
     },
   });
   return calls;
-}
-
-/* history */
-
-export const DONE = uuid(0x101);
-export const INTERRUPTED = uuid(0x102);
-
-function entry(id: string, overrides: Record<string, unknown>) {
-  return {
-    jobId: id,
-    type: 'registry_scan',
-    label: null,
-    state: 'completed',
-    createdAt: EARLIER,
-    finishedAt: EARLIER,
-    total: 2,
-    unresolved: 0,
-    extensions: ['com'],
-    destinations: [] as string[],
-    resumable: false,
-    ...overrides,
-  };
-}
-
-export async function mockHistory(page: Page) {
-  let entries = [
-    entry(DONE, { label: 'Launch scan' }),
-    entry(INTERRUPTED, {
-      label: 'Interrupted scan',
-      state: 'interrupted',
-      finishedAt: null,
-      total: 4,
-      unresolved: 2,
-      resumable: true,
-      destinations: ['rdap.verisign.com', 'rdap.arnes.si'],
-    }),
-    entry(uuid(0x103), { label: 'Quote request', type: 'quote', extensions: [] }),
-    ...Array.from({ length: 55 }, (_, i) => entry(uuid(0x200 + i), { label: `Fixture scan ${i + 1}` })),
-  ];
-  return mockApi(page, {
-    'GET /history': (c) => {
-      const q = c.search.get('q')?.toLowerCase();
-      const type = c.search.get('type');
-      const rows = entries.filter((e) => (!q || (e.label ?? '').toLowerCase().includes(q)) && (!type || e.type === type));
-      const offset = Number(c.search.get('cursor') ?? 0);
-      const limit = Number(c.search.get('limit') ?? 50);
-      return paged(rows.slice(offset, offset + limit), offset + limit < rows.length ? String(offset + limit) : null, rows.length);
-    },
-    'GET /jobs/:id': (_c, p) =>
-      ok(job(p.id!, { label: 'Launch scan', input: { extensions: ['com', 'si'], providerIds: [], services: [], checks: [], rows: 2, text: 'example.com\nnic.si' } })),
-    'POST /jobs/:id/resume': (_c, p) => ok(job(p.id!, { state: 'running', label: 'Interrupted scan' })),
-    'DELETE /jobs/:id': (_c, p) => {
-      entries = entries.filter((e) => e.jobId !== p.id);
-      return ok({ ok: true });
-    },
-  });
-}
-
-/* compare */
-
-function row(domain: string, providerId: string, overrides: Record<string, unknown> = {}) {
-  return {
-    domain,
-    providerId,
-    offerId: uuid(0x400 + providerId.length),
-    kind: 'published',
-    currency: 'USD',
-    nativeCurrency: 'USD',
-    fx: null,
-    initialCommitment: '10.37',
-    initialYears: 1,
-    horizonTotal: '32.53',
-    prepaidBeyondHorizon: null,
-    subtotalOnly: false,
-    complete: true,
-    missing: [],
-    rank: 1,
-    freshness: 'fresh',
-    observedAt: NOW,
-    destination: `https://${providerId}.provider.invalid/search?domain=${domain}`,
-    notes: [],
-    ...overrides,
-  };
-}
-
-export async function mockPrices(page: Page) {
-  return mockApi(page, {
-    'GET /providers': () => paged(PROVIDERS),
-    'POST /comparisons': (c) => {
-      const body = c.body as { domains: string[]; horizonYears?: number; purchasePath: string };
-      return ok({
-        horizonYears: body.horizonYears ?? 3,
-        purchasePath: body.purchasePath,
-        currency: null,
-        generatedAt: NOW,
-        rows: [
-          row('example.com', 'porkbun'),
-          row('example.com', 'dynadot', { horizonTotal: '35.10', subtotalOnly: true, complete: false, missing: ['tax'], rank: 2 }),
-          row('example.com', 'hostinger', {
-            offerId: null,
-            kind: null,
-            currency: null,
-            nativeCurrency: null,
-            initialCommitment: null,
-            initialYears: null,
-            horizonTotal: null,
-            subtotalOnly: true,
-            complete: false,
-            missing: ['registration', 'renewal'],
-            rank: null,
-            freshness: null,
-            observedAt: null,
-            notes: ['No price is known from this provider for this purchase path'],
-          }),
-          row('google.com', 'porkbun', { rank: 1, horizonTotal: '33.00' }),
-        ],
-        cheapest: [
-          { domain: 'example.com', currency: 'USD', providerId: 'porkbun', horizonTotal: '32.53' },
-          { domain: 'google.com', currency: 'USD', providerId: 'porkbun', horizonTotal: '33.00' },
-        ],
-        lowestSubtotal: [{ domain: 'example.com', currency: 'USD', providerId: 'dynadot', horizonTotal: '35.10' }],
-        limits: ['Future renewals are estimates based on current renewal prices.'],
-      });
-    },
-    'GET /domains/:name/transfer-options': (_c, p) =>
-      paged([
-        {
-          domain: p.name,
-          providerId: 'porkbun',
-          transfer: { amount: '9.68', currency: 'USD' },
-          includesYears: 1,
-          renewal: { amount: '11.08', currency: 'USD' },
-          kind: 'published',
-          freshness: 'stale',
-          observedAt: EARLIER,
-          eligibility: { known: ['clientTransferProhibited'], unknown: ['Registration age at least 60 days'] },
-          destination: 'https://porkbun.provider.invalid/transfer',
-        },
-      ]),
-    'GET /aftermarket/sources': () =>
-      paged([
-        { id: 'sedo', name: 'Sedo', supported: true, requiresCredentials: false, apiHosts: ['api.sedo.com'], searchUrlTemplate: null, reason: null },
-        {
-          id: 'afternic',
-          name: 'Afternic',
-          supported: false,
-          requiresCredentials: false,
-          apiHosts: [],
-          searchUrlTemplate: 'https://afternic.marketplace.invalid/search?q={domain}',
-          reason: 'No public listing API',
-        },
-      ]),
-    'GET /domains/:name/listings': (_c, p) =>
-      paged(
-        p.name === 'example.com'
-          ? [
-              {
-                id: uuid(0x501),
-                domain: 'example.com',
-                marketplace: 'Sedo',
-                providerId: null,
-                status: 'fixed_price',
-                price: { amount: '2500.00', currency: 'USD' },
-                url: 'https://sedo.marketplace.invalid/example.com',
-                observedAt: EARLIER,
-                freshness: 'stale',
-                source: 'Sedo listing page',
-                caveat: 'A listing is not proof of seller authority or final cost.',
-              },
-            ]
-          : [],
-      ),
-    'POST /aftermarket': () => ({ status: 201, json: { contractVersion: '1.0.0', data: job(uuid(0x5ff), { type: 'aftermarket', state: 'queued' }) } }),
-    'GET /jobs/:id': (_c, p) => ok(job(p.id!, { type: 'aftermarket', state: 'completed' })),
-  });
 }
 
 /* settings */

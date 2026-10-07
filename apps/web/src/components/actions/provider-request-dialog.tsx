@@ -123,7 +123,7 @@ export function ProviderRequestDialog({
                     <span className="min-w-0 flex-1 truncate font-medium">{provider.name}</span>
                     <span className="text-xs text-muted-foreground">{CAPABILITY_LEVEL[provider.capabilities[op.capability].level]}</span>
                     {blocked ? (
-                      <Link href={`/providers?p=${provider.id}`} className="text-xs underline underline-offset-4">
+                      <Link href={`/settings/providers?p=${provider.id}`} className="text-xs underline underline-offset-4">
                         {blocked}
                       </Link>
                     ) : (

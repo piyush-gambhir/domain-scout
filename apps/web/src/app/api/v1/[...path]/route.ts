@@ -10,7 +10,8 @@ import { SESSION_COOKIE, backendUrl } from '@/lib/server/backend';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-const FORWARDED_REQUEST_HEADERS = ['accept', 'content-type', 'x-csrf-token', 'idempotency-key', 'last-event-id', 'origin'];
+// x-domain-scout-client is allowed through, and also set below for every forwarded request.
+const FORWARDED_REQUEST_HEADERS = ['accept', 'content-type', 'x-csrf-token', 'idempotency-key', 'last-event-id', 'origin', 'x-domain-scout-client'];
 
 // Hop-by-hop headers, encodings undone by fetch, and cookies (Next owns the session cookies).
 const DROPPED_RESPONSE_HEADERS = new Set([
@@ -83,6 +84,9 @@ async function forward(request: NextRequest, context: Context): Promise<Response
     const value = request.headers.get(name);
     if (value) headers.set(name, value);
   }
+  // Everything through this forwarder comes from the web UI, including EventSource streams that
+  // cannot set headers; the backend records origin `ui` for jobs it starts.
+  headers.set('x-domain-scout-client', 'web');
   const session = request.cookies.get(SESSION_COOKIE)?.value;
   // Re-encode so a crafted value cannot smuggle extra cookies past the allowlist.
   if (session) headers.set('cookie', `${SESSION_COOKIE}=${encodeURIComponent(session)}`);

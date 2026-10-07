@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Dialog as DialogPrimitive } from 'radix-ui';
-import { Menu, Search, X } from 'lucide-react';
+import { Command, Menu, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import { qk } from '@/lib/queries';
 import { useSessionRequired } from '@/lib/session';
@@ -71,7 +71,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         Skip to content
       </a>
 
-      <DesktopSidebar collapsed={collapsed} onToggle={toggleSidebar} onOpenPalette={() => setPaletteOpen(true)} />
+      <DesktopSidebar collapsed={collapsed} onToggle={toggleSidebar} />
 
       <div className="flex min-w-0 flex-1 flex-col lg:min-h-0">
         <div className="sticky top-0 z-30 flex h-12 items-center gap-1 bg-background/90 px-2 backdrop-blur md:hidden">
@@ -93,20 +93,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <X />
                   </Button>
                 </DialogPrimitive.Close>
-                <SidebarNav
-                  rail={false}
-                  onNavigate={() => setDrawerOpen(false)}
-                  onOpenPalette={() => {
-                    setDrawerOpen(false);
-                    setPaletteOpen(true);
-                  }}
-                />
+                <SidebarNav rail={false} onNavigate={() => setDrawerOpen(false)} />
               </DialogPrimitive.Content>
             </DialogPrimitive.Portal>
           </DialogPrimitive.Root>
           <span className="text-sm font-semibold tracking-tight">Domain Scout</span>
-          <Button variant="ghost" size="icon" aria-label="Search" className="ml-auto" onClick={() => setPaletteOpen(true)}>
-            <Search />
+          <Button variant="ghost" size="icon" aria-label="Commands" className="ml-auto" onClick={() => setPaletteOpen(true)}>
+            <Command />
           </Button>
         </div>
 

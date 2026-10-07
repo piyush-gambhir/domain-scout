@@ -113,7 +113,7 @@ export function provider(id: string, name: string, apiHosts: string[], options: 
     credentials: { configured: false, storage: null, storageLocation: null, fields: [], lastTestedAt: null, lastTestResult: null, lastTestMessage: null },
     readiness: 'keyless',
     catalog: null,
-    purchaseLink: null,
+    purchaseLink: { template: `https://${id}.provider.invalid/checkout?domain={domain}`, kind: 'search', source: 'fixture', verifiedAt: null },
     apiHosts,
     accountRequirements: [],
     rateLimits: null,
@@ -136,6 +136,7 @@ export const SETTINGS = {
   privacy: { keepRawDiagnostics: false },
   fxRates: [] as unknown[],
   appearance: { theme: 'system' },
+  search: { defaultExtensions: ['com', 'io', 'dev', 'app', 'co', 'ai'] },
 };
 
 /** Deep merge of a SettingsPatch into settings state. */
@@ -159,12 +160,52 @@ export function job(id: string, overrides: Record<string, unknown> = {}) {
     updatedAt: EARLIER,
     counters: { total: 2, pending: 0, running: 0, finished: 2, interrupted: 0, resolved: 2, unresolved: 0, outcomes: {} },
     destinations: [],
-    input: { extensions: ['com'], providerIds: [], services: [], checks: [], rows: 2, text: null },
+    input: { extensions: ['com'], providerIds: [], services: [], checks: [], rows: 2, text: null, format: null, csvColumn: null },
+    origin: 'ui',
     watchId: null,
     parentJobId: null,
     nextRetryAt: null,
     ...overrides,
   };
+}
+
+/** Published suffix prices as GET /prices returns them: three registrars, cheapest first. */
+export function suffixPrices(suffixes: string[], horizonYears = 3) {
+  const base: Record<string, [string, string]> = { com: ['10.37', '11.08'], io: ['28.12', '45.00'], dev: ['10.81', '12.98'], app: ['12.98', '14.98'], co: ['8.99', '24.99'], ai: ['69.98', '69.98'], si: ['20.38', '17.50'] };
+  const providers: [string, string, number][] = [
+    ['porkbun', 'Porkbun', 0],
+    ['dynadot', 'Dynadot', 1.25],
+    ['hostinger', 'Hostinger', 2.5],
+  ];
+  const add = (a: string, b: number) => (Number(a) + b).toFixed(2);
+  return suffixes.map((suffix) => {
+    const [reg, renew] = base[suffix] ?? ['9.50', '12.00'];
+    return {
+      suffix,
+      offers: providers.map(([id, name, extra], i) => {
+        const registration = add(reg, extra);
+        const renewal = add(renew, extra);
+        return {
+          providerId: id,
+          providerName: name,
+          offerId: uuid(0x600 + i * 64 + suffix.length),
+          kind: 'published',
+          currency: 'USD',
+          registration,
+          registrationYears: 1,
+          renewal,
+          renewalYears: 1,
+          horizonYears,
+          horizonTotal: (Number(registration) + Number(renewal) * (horizonYears - 1)).toFixed(2),
+          promotional: false,
+          observedAt: NOW,
+          freshness: 'fresh',
+          purchaseUrlTemplate: `https://${id}.provider.invalid/checkout?domain={domain}`,
+          purchaseKind: 'search',
+        };
+      }),
+    };
+  });
 }
 
 /** Requests that would send names off the machine or start work. */

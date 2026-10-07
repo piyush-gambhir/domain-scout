@@ -1,11 +1,17 @@
 'use client';
 
 import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { api } from '@/lib/api';
+import { qk, usePresets } from '@/lib/queries';
+import { ExtensionChips } from '../search/extension-chips';
+import { FALLBACK_EXTENSIONS, useDefaultExtensions } from '../search/search-state';
 import type { FxRate, Resolver, Settings } from '@domain-scout/contracts';
 import { formatInterval } from '@/lib/format';
 import { type SettingsPatchInput, usePatchSettings, useSettings } from '@/lib/queries';
+
 import { type ThemeChoice, useThemePreference } from '@/lib/theme';
 import { ErrorState, SectionTitle } from '../states';
 import { Button } from '../ui/button';
@@ -40,13 +46,58 @@ function SaveBar({ dirty, valid, pending, onDiscard }: { dirty: boolean; valid: 
   );
 }
 
+/** The extension set new searches start with (shared with the CLI), and saved presets. */
+export function SearchDefaults() {
+  const client = useQueryClient();
+  const defaults = useDefaultExtensions();
+  const [value, setValue] = useState<string[] | null>(null);
+  const presets = usePresets();
+  const shown = value ?? defaults.value ?? FALLBACK_EXTENSIONS;
+  const remove = useMutation({
+    mutationFn: async (id: string) => api.call('deletePreset', { params: { id } }),
+    onSuccess: () => {
+      toast.success('Preset deleted');
+      void client.invalidateQueries({ queryKey: qk.presets });
+    },
+  });
+  const saved = (presets.data ?? []).filter((p) => !p.builtIn);
+  return (
+    <section aria-label="Search defaults" className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1.5">
+        <span className="text-xs font-medium text-muted-foreground">Extensions a new search starts with</span>
+        <ExtensionChips
+          value={shown}
+          onChange={(next) => {
+            setValue(next);
+            defaults.remember(next);
+          }}
+        />
+      </div>
+      {saved.length ? (
+        <div className="flex flex-col gap-1">
+          <span className="text-xs font-medium text-muted-foreground">Your presets</span>
+          <ul className="flex max-w-xl flex-col" aria-label="Saved presets">
+            {saved.map((preset) => (
+              <li key={preset.id} className="flex min-h-8 items-center gap-3 rounded-md px-2 text-sm hover:bg-hover">
+                <span className="font-medium">{preset.name}</span>
+                <span className="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground">{preset.extensions.map((e) => `.${e}`).join(' ')}</span>
+                <Button size="icon-xs" variant="quiet" aria-label={`Delete preset ${preset.name}`} disabled={remove.isPending} onClick={() => remove.mutate(preset.id)}>
+                  <X />
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 export function AppearanceSettings() {
   const { theme, setTheme } = useThemePreference();
   return (
     <section aria-label="Appearance">
-      <SectionTitle>Appearance</SectionTitle>
       <div className="flex flex-col items-start gap-1.5">
-        <span className="text-xs font-medium text-muted-foreground">Theme</span>
         <Segmented<ThemeChoice>
           aria-label="Theme"
           value={theme}

@@ -6,7 +6,7 @@ test.describe('without a session', () => {
   test('shows the session screen when the API rejects the request', async ({ page }) => {
     const probe = await page.request.get('/api/v1/auth/session');
     test.fixme(probe.status() !== 401, `Backend answered ${probe.status()} without a session; its auth guard is not enforced yet`);
-    await page.goto('/scan');
+    await page.goto('/');
     await expect(page.getByRole('heading', { level: 1, name: 'Session required' })).toBeVisible();
     await expect(page.getByText('domain-scout ui', { exact: true })).toBeVisible();
     await expect(page.getByTestId('sidebar')).toHaveCount(0);
@@ -23,7 +23,7 @@ test.describe('without a session', () => {
 
 test('the session cookie is HttpOnly and the CSRF cookie is readable', async ({ page }) => {
   test.skip(process.env.DS_E2E_SESSION !== 'cookie', 'Backend issued no session during setup');
-  await page.goto('/scan');
+  await page.goto('/');
   const cookies = await page.context().cookies();
   const session = cookies.find((c) => c.name === 'ds_session');
   const csrf = cookies.find((c) => c.name === 'ds_csrf');

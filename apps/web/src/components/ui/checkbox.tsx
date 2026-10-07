@@ -7,7 +7,7 @@ export function Checkbox({ className, checked, ...props }: React.ComponentProps<
     <CheckboxPrimitive.Root
       checked={checked}
       className={cn(
-        'peer inline-flex size-4 shrink-0 items-center justify-center rounded-[4px] bg-control text-primary-foreground transition-colors hover:bg-control-hover disabled:cursor-not-allowed disabled:opacity-45 data-[state=checked]:bg-primary data-[state=indeterminate]:bg-primary',
+        'peer inline-flex size-4 shrink-0 items-center justify-center rounded-[4px] bg-control/70 text-primary-foreground transition-colors hover:bg-control-hover disabled:cursor-not-allowed disabled:opacity-45 data-[state=checked]:bg-primary data-[state=indeterminate]:bg-primary',
         className,
       )}
       {...props}

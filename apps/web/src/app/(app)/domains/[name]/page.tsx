@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { DomainPage } from '@/components/domain/domain-detail';
+import { DomainPage } from '@/components/domain/domain-panel';
 
 type Props = { params: Promise<{ name: string }> };
 

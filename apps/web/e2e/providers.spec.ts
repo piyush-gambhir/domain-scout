@@ -41,7 +41,7 @@ test('credentials are typed masked, never shown after saving, then tested and di
     },
   });
 
-  await page.goto('/providers?p=dynadot');
+  await page.goto('/settings/providers?p=dynadot');
   const section = page.getByRole('article', { name: 'Dynadot' }).getByRole('region', { name: 'Credentials' });
   await expect(section).toContainText('Not configured');
   const field = section.getByLabel('API key');

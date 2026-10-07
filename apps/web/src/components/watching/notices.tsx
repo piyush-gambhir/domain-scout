@@ -36,14 +36,13 @@ export function useMarkNoticesRead() {
 function Evidence({ label, evidence }: { label: string; evidence: EvidenceRef }) {
   const status = evidenceStatus(evidence.kind, evidence.value);
   return (
-    <div className="min-w-0">
+    <div className="min-w-0" title={`${evidence.source}, ${formatDateTime(evidence.observedAt)}`}>
       <p className="flex min-w-0 items-baseline gap-2">
-        <span className="text-xs text-muted-foreground">{label}</span>
-        <span className="min-w-0 truncate font-medium">{status ? <StatusLabel status={status} /> : <span className="font-mono">{evidence.value}</span>}</span>
+        <span className="sr-only">{label}</span>
+        <span className="min-w-0 truncate font-medium">{status ? <StatusLabel status={status} /> : <span className="tabular">{evidence.value}</span>}</span>
       </p>
-      <p className="flex min-w-0 flex-wrap gap-x-1.5 text-xs text-muted-foreground" title={`${evidence.source}, ${formatDateTime(evidence.observedAt)}`}>
-        <span className="min-w-0 break-all font-mono">{evidence.source}</span>
-        <RelativeTime iso={evidence.observedAt} />
+      <p className="truncate text-[11px] text-muted-foreground">
+        {evidence.source} · <RelativeTime iso={evidence.observedAt} />
       </p>
     </div>
   );
@@ -51,42 +50,42 @@ function Evidence({ label, evidence }: { label: string; evidence: EvidenceRef })
 
 function NoticeItem({ notice, onRead, pending, showWatch }: { notice: Notice; onRead: () => void; pending: boolean; showWatch?: boolean }) {
   const unread = notice.readAt === null;
+  const href = notice.domain.startsWith('.')
+    ? // Catalog price notices are about a whole extension, not one domain.
+      `/settings/prices?suffix=${encodeURIComponent(notice.domain.slice(1))}`
+    : `/domains/${encodeURIComponent(notice.domain)}`;
   return (
-    <li className={cn('rounded-md px-2.5 py-2', unread && 'bg-hover')} data-testid="notice">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        {notice.domain.startsWith('.') ? (
-          // Catalog price notices are about a whole extension, not one domain.
-          <Link href="/history?view=prices" className={cn('rounded-sm font-mono text-sm underline-offset-4 hover:underline', unread && 'font-semibold')}>
-            {notice.domain}
-          </Link>
-        ) : (
-          <Link href={`/domains/${encodeURIComponent(notice.domain)}`} className={cn('rounded-sm font-mono text-sm underline-offset-4 hover:underline', unread && 'font-semibold')}>
-            {notice.domain}
-          </Link>
-        )}
-        <span className="text-sm">{NOTICE_TYPE[notice.type] ?? humanize(notice.type)}</span>
-        {unread ? <span className="text-xs font-medium">Unread</span> : null}
-        {/* Takes the rest of the line and truncates, so the time and actions stay on it. */}
-        {notice.summary ? <span className="min-w-24 flex-1 basis-0 truncate text-xs text-muted-foreground">{notice.summary}</span> : null}
+    <li className={cn('group/notice rounded-md px-2.5 py-2 transition-colors', unread ? 'bg-hover' : 'hover:bg-hover/60')} data-testid="notice">
+      <div className="flex min-w-0 items-center gap-2">
+        {unread ? <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-foreground" /> : null}
+        <Link href={href} className={cn('min-w-0 truncate rounded-sm font-mono text-[13px] underline-offset-4 hover:underline', unread && 'font-semibold')}>
+          {notice.domain}
+        </Link>
+        <span className="shrink-0 text-xs text-muted-foreground">{NOTICE_TYPE[notice.type] ?? humanize(notice.type)}</span>
+        {unread ? <span className="sr-only">Unread</span> : null}
         <span className="ml-auto flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
           <RelativeTime iso={notice.createdAt} />
-          {showWatch ? (
-            <Link href={`/monitoring/${notice.watchId}`} className="rounded-sm underline-offset-4 hover:text-foreground hover:underline">
-              Watch
-            </Link>
-          ) : null}
-          {unread ? (
-            <Button size="sm" variant="quiet" className="px-2" disabled={pending} onClick={onRead} aria-label={`Mark ${notice.domain} notice read`}>
-              Mark read
-            </Button>
-          ) : null}
         </span>
       </div>
-      <div className="mt-1 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-x-3 text-sm sm:max-w-2xl">
+      <div className="mt-1 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-x-3 text-sm" title={notice.summary}>
         <Evidence label="Before" evidence={notice.before} />
         <ArrowRight aria-hidden className="mt-0.5 size-4 text-muted-foreground" />
         <Evidence label="After" evidence={notice.after} />
       </div>
+      {showWatch || unread ? (
+        <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+          {showWatch ? (
+            <Link href={`/watching/${notice.watchId}`} className="rounded-sm underline-offset-4 hover:text-foreground hover:underline">
+              Open watch
+            </Link>
+          ) : null}
+          {unread ? (
+            <button type="button" className="rounded-sm hover:text-foreground disabled:opacity-50" disabled={pending} onClick={onRead} aria-label={`Mark ${notice.domain} notice read`}>
+              Mark read
+            </button>
+          ) : null}
+        </div>
+      ) : null}
     </li>
   );
 }

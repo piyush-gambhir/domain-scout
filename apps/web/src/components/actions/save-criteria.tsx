@@ -64,15 +64,25 @@ export function ProviderPicker({ value, onChange }: { value: string[]; onChange:
 }
 
 /** Name-only save control for pages whose criteria fields are already on the form. */
-export function SaveCriteriaPopover({ disabled, onSave, pending }: { disabled: boolean; onSave: (name: string) => Promise<unknown>; pending: boolean }) {
+export function SaveCriteriaPopover({
+  disabled,
+  onSave,
+  pending,
+  label = 'Save criteria',
+}: {
+  disabled: boolean;
+  onSave: (name: string) => Promise<unknown>;
+  pending: boolean;
+  label?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="secondary" disabled={disabled}>
+        <Button size="sm" variant="ghost" disabled={disabled}>
           <Save />
-          Save criteria
+          {label}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-72">
@@ -91,7 +101,7 @@ export function SaveCriteriaPopover({ disabled, onSave, pending }: { disabled: b
             );
           }}
         >
-          <Input autoFocus aria-label="Criteria name" placeholder="Name" maxLength={200} value={name} onChange={(e) => setName(e.target.value)} />
+          <Input autoFocus aria-label={`${label} name`} placeholder="Name" maxLength={200} value={name} onChange={(e) => setName(e.target.value)} />
           <Button type="submit" size="sm" variant="primary" disabled={disabled || !name.trim() || pending}>
             Save
           </Button>

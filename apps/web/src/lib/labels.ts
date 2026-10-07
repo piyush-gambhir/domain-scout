@@ -14,7 +14,7 @@ import type {
 /*
  * Labels and tones for every status the UI shows. Tone drives only a small dot; the label is always
  * rendered next to it. `unresolved` statuses draw a hollow ring so they never read as positive,
- * even without color. no_record is "No record", never "Available".
+ * even without color. A missing registry record reads "Not registered", never "Available".
  */
 export type Tone = 'positive' | 'neutral' | 'caution' | 'negative' | 'muted';
 
@@ -23,6 +23,8 @@ export interface StatusInfo {
   tone: Tone;
   /** Unresolved: the source gave no definitive answer. Rendered as a ring, never a filled positive dot. */
   unresolved?: boolean;
+  /** Finer reason behind a grouped label, e.g. "Rate limited" behind "Couldn't check". */
+  detail?: string;
 }
 
 export function humanize(code: string): string {
@@ -30,19 +32,35 @@ export function humanize(code: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+/** Shown wherever "Not registered" appears without room for the full explanation. */
+export const NOT_REGISTERED_HINT = 'The registry has no record. Confirm with a provider before buying.';
+
 const REGISTRY: Record<string, StatusInfo> = {
-  registered: { label: 'Registered', tone: 'neutral' },
-  no_record: { label: 'No record', tone: 'positive' },
-  inconclusive: { label: 'Inconclusive', tone: 'caution', unresolved: true },
-  rate_limited: { label: 'Rate limited', tone: 'caution', unresolved: true },
-  blocked: { label: 'Blocked', tone: 'caution', unresolved: true },
+  registered: { label: 'Taken', tone: 'neutral' },
+  no_record: { label: 'Not registered', tone: 'positive' },
+  inconclusive: { label: "Couldn't check", tone: 'caution', unresolved: true, detail: 'Inconclusive answer' },
+  rate_limited: { label: "Couldn't check", tone: 'caution', unresolved: true, detail: 'Rate limited' },
+  blocked: { label: "Couldn't check", tone: 'caution', unresolved: true, detail: 'Blocked by the registry' },
   invalid: { label: 'Invalid', tone: 'negative' },
-  unsupported: { label: 'Unsupported', tone: 'muted' },
+  unsupported: { label: 'Not supported', tone: 'muted', detail: 'No public registry lookup for this extension' },
 };
 
+/** Result groups a registry search is triaged into. */
+export type RegistryGroup = 'free' | 'taken' | 'problem' | 'pending';
+
+export const PROBLEM_OUTCOMES = ['inconclusive', 'rate_limited', 'blocked', 'unsupported', 'invalid'] as const;
+
+export function registryGroup(outcome: string | null): RegistryGroup {
+  if (outcome === 'no_record') return 'free';
+  if (outcome === 'registered') return 'taken';
+  if (outcome === null) return 'pending';
+  return 'problem';
+}
+
+// Provider-reported state for one exact name; worded as the provider's claim, never as "Available".
 const PROVIDER_CHECK: Record<string, StatusInfo> = {
-  available: { label: 'Available', tone: 'positive' },
-  unavailable: { label: 'Unavailable', tone: 'neutral' },
+  available: { label: 'Can register', tone: 'positive' },
+  unavailable: { label: "Can't register", tone: 'neutral' },
   restricted: { label: 'Restricted', tone: 'negative' },
   unknown: { label: 'Unknown', tone: 'caution', unresolved: true },
 };
@@ -97,14 +115,14 @@ const BY_OPERATION: Record<JobOperation, Record<string, StatusInfo>> = {
 
 /** Known outcomes per operation, for filter menus. */
 export function outcomeOptions(operation: JobOperation): { value: string; label: string }[] {
-  return Object.entries(BY_OPERATION[operation]).map(([value, info]) => ({ value, label: info.label }));
+  return Object.entries(BY_OPERATION[operation]).map(([value, info]) => ({ value, label: info.detail && operation === 'registry' ? `${info.label}: ${info.detail}` : info.label }));
 }
 
 export function outcomeStatus(operation: JobOperation, outcome: string | null, state?: string): StatusInfo {
   if (outcome === null) {
     if (state === 'running') return { label: 'Checking', tone: 'muted', unresolved: true };
-    if (state === 'interrupted') return { label: 'Interrupted', tone: 'caution', unresolved: true };
-    return { label: 'Pending', tone: 'muted', unresolved: true };
+    if (state === 'interrupted') return { label: 'Not checked', tone: 'caution', unresolved: true, detail: 'Interrupted' };
+    return { label: 'Waiting', tone: 'muted', unresolved: true };
   }
   return (
     BY_OPERATION[operation][outcome] ??
@@ -143,7 +161,7 @@ export function jobStateStatus(state: string): StatusInfo {
 }
 
 export const JOB_TYPE: Record<JobType, string> = {
-  registry_scan: 'Registry scan',
+  registry_scan: 'Search',
   provider_check: 'Provider check',
   quote: 'Quotes',
   aftermarket: 'Aftermarket lookup',
@@ -170,16 +188,17 @@ export const JOB_OPERATION: Record<JobType, JobOperation> = {
   watch: 'registry',
 };
 
+/** Freshness stays quiet: older evidence reads as muted text, never as a warning color. */
 export const FRESHNESS: Record<Freshness, StatusInfo> = {
   fresh: { label: 'Fresh', tone: 'muted' },
-  stale: { label: 'Stale', tone: 'caution' },
-  expired: { label: 'Expired', tone: 'caution' },
+  stale: { label: 'Older', tone: 'muted' },
+  expired: { label: 'Expired', tone: 'muted' },
 };
 
 export const PRICE_KIND: Record<PriceKind, string> = {
   published: 'Published',
   estimated: 'Estimate',
-  exact_quote: 'Exact quote',
+  exact_quote: 'Quote',
 };
 
 export const PURCHASE_PATH: Record<PurchasePath, string> = {

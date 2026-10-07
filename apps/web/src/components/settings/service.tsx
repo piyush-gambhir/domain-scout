@@ -110,7 +110,7 @@ export function ServiceSettings() {
               ['Name checks', caps.nameCheckServices.length ? caps.nameCheckServices.map((id) => SERVICE_NAME[id] ?? humanize(id)).join(', ') : 'None'],
               ['Diagnostics', caps.diagnostics.length ? caps.diagnostics.map((d) => CHECK_NAME[d] ?? humanize(d)).join(', ') : 'None'],
               ['Exports', caps.exportFormats.map((f) => f.toUpperCase()).join(', ')],
-              ['MCP adapter', caps.mcp ? 'Available' : 'Not installed'],
+              ['MCP adapter', caps.mcp ? 'Installed' : 'Not installed'],
             ]}
           />
         ) : null}
