@@ -6,6 +6,7 @@ import { Command } from 'cmdk';
 import { Dialog as DialogPrimitive } from 'radix-ui';
 import { Bookmark, ClockFading, Moon, PanelLeft, Plus, Search, Sparkles, Sun, SunMoon } from 'lucide-react';
 import { api } from '@/lib/api';
+import { PEOPLE_ORIGINS } from '@/lib/history';
 import { qk, useCollections } from '@/lib/queries';
 import { useThemePreference } from '@/lib/theme';
 import { Kbd } from '../ui/kbd';
@@ -45,8 +46,8 @@ export function CommandPalette({
   const { setTheme } = useThemePreference();
   const mod = isMac() ? '⌘' : 'Ctrl';
   const recent = useQuery({
-    queryKey: qk.history({ origins: 'ui,cli', type: 'registry_scan', limit: 6 }),
-    queryFn: ({ signal }) => api.call('listHistory', { query: { origins: 'ui,cli', type: 'registry_scan', limit: 6 }, signal }).then((r) => r.data),
+    queryKey: qk.history({ origins: PEOPLE_ORIGINS, type: 'registry_scan', limit: 6 }),
+    queryFn: ({ signal }) => api.call('listHistory', { query: { origins: PEOPLE_ORIGINS, type: 'registry_scan', limit: 6 }, signal }).then((r) => r.data),
     enabled: open,
   });
   const collections = useCollections(open);

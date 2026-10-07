@@ -11,6 +11,7 @@ const UI = uuid(0xe801);
 const AGENT = uuid(0xe802);
 const STOPPED = uuid(0xe803);
 const SYSTEM = uuid(0xe804);
+const LEGACY = uuid(0xe805);
 const SIX = ['com', 'io', 'dev', 'app', 'co', 'ai'];
 
 function jobs() {
@@ -18,7 +19,9 @@ function jobs() {
   Object.assign(stopped.job, { state: 'interrupted', destinations: ['rdap.verisign.com', 'rdap.arnes.si'] });
   const system = buildJob(SYSTEM, GIB[0], ['com'], { label: 'Catalog refresh', origin: 'system' });
   system.job.type = 'catalog_refresh';
-  return [buildJob(UI, SMALL_SEARCH, SIX, { label: 'Launch names' }), buildJob(AGENT, `${GIB[1]} ${GIB[2]}`, SIX, { label: 'Agent shortlist', origin: 'cli' }), stopped, system];
+  // Direct API calls, and searches from before origins were recorded, read as api.
+  const legacy = buildJob(LEGACY, GIB[0], ['io'], { label: 'Older search', origin: 'api' });
+  return [buildJob(UI, SMALL_SEARCH, SIX, { label: 'Launch names' }), buildJob(AGENT, `${GIB[1]} ${GIB[2]}`, SIX, { label: 'Agent shortlist', origin: 'cli' }), stopped, system, legacy];
 }
 
 async function open(page: Page) {
@@ -31,8 +34,9 @@ async function open(page: Page) {
 test('history shows searches from this UI and from agents, with what each found', async ({ page }) => {
   const { calls } = await open(page);
   const rows = page.getByTestId('history-row');
-  await expect(rows).toHaveCount(3);
-  expect(calls.find((c) => c.path === '/history')?.search.get('origins')).toBe('ui,cli');
+  await expect(rows).toHaveCount(4);
+  await expect(rows.filter({ hasText: 'Older search' })).not.toContainText('Agent');
+  expect(calls.find((c) => c.path === '/history')?.search.get('origins')).toBe('ui,cli,api');
   await expect(rows.filter({ hasText: 'Agent shortlist' })).toContainText('Agent');
   await expect(rows.filter({ hasText: 'Launch names' })).not.toContainText('Agent');
   // The summary says how many names can be registered, from the history entry's own counts.
@@ -43,7 +47,7 @@ test('history shows searches from this UI and from agents, with what each found'
 
   // System and watch jobs appear on request, with a type filter.
   await page.getByRole('switch', { name: 'System and watch jobs' }).click();
-  await expect(rows).toHaveCount(4);
+  await expect(rows).toHaveCount(5);
   expect(calls.filter((c) => c.path === '/history').at(-1)?.search.has('origins')).toBe(false);
   await page.getByRole('combobox', { name: 'Type' }).click();
   await page.getByRole('option', { name: 'Catalog refresh' }).click();
@@ -105,21 +109,21 @@ async function expectNoCredentials(context: BrowserContext, text: string) {
 
 test('exports the listed searches as JSON and CSV without requesting anything', async ({ page, context }) => {
   const { calls } = await open(page);
-  await expect(page.getByTestId('history-row')).toHaveCount(3);
+  await expect(page.getByTestId('history-row')).toHaveCount(4);
   await expect(page.getByRole('button', { name: 'Export history' })).toBeEnabled();
   const requests = calls.length;
 
   const json = await exportAs(page, 'JSON');
   expect(json.name).toMatch(/^domain-scout-job-history-all-\d{8}T\d{6}Z\.json$/);
   const doc = JSON.parse(json.text);
-  expect(doc).toMatchObject({ kind: 'domain-scout-job-history', contractVersion: '1.0.0', scope: { q: null, type: null }, loadedJobs: 3, totalJobs: 3, complete: true });
+  expect(doc).toMatchObject({ kind: 'domain-scout-job-history', contractVersion: '1.0.0', scope: { q: null, type: null }, loadedJobs: 4, totalJobs: 4, complete: true });
   expect(doc.jobs.map((j: { jobId: string }) => j.jobId)).toContain(AGENT);
   await expectNoCredentials(context, json.text);
 
   const csv = await exportAs(page, 'CSV');
   const lines = csv.text.trimEnd().split('\r\n');
   expect(lines[0]).toBe('jobId,type,label,state,createdAt,finishedAt,total,unresolved,extensions,destinations,resumable');
-  expect(lines).toHaveLength(4);
+  expect(lines).toHaveLength(5);
   await expectNoCredentials(context, csv.text);
   expect(calls.length).toBe(requests);
 });

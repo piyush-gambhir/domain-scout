@@ -159,7 +159,7 @@ test('recent searches from the UI and agents open their results', async ({ page 
   await expect(recent).toContainText('Agent batch');
   await expect(recent).toContainText('Agent');
   await expect(recent).toContainText(/not registered of 20/);
-  expect(calls.find((c) => c.path === '/history')?.search.get('origins')).toBe('ui,cli');
+  expect(calls.find((c) => c.path === '/history')?.search.get('origins')).toBe('ui,cli,api');
   await recent.getByTestId('recent-search').click();
   await expect(page).toHaveURL(new RegExp(`/search/${id}$`));
   await expect(page.getByTestId('grid-cell').first()).toBeVisible();
