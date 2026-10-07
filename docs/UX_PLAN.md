@@ -99,6 +99,12 @@ The UI wins when the answer to the first question is on screen within seconds of
 - Mark job origin (UI, CLI, watch, system) so History can show agent runs and hide system jobs.
 - Default extension set stored in settings so CLI and UI share it.
 
+## Status (October 7, 2026)
+
+Implemented on the `build` branch: the five destinations, both result views, the docked panel, Saved with per-row provider comparison (the Compare page is gone), Watching with its inbox, History by origin, keyboard shortcuts and redirects from every old route. The supporting backend changes above shipped too: `GET /prices`, job origins with history filters and outcome counts, shared default extensions, and a registrar or directory `kind` on each provider so the Buy menu lists named registrars first. Playwright covers the five journeys and the layout rules (152 tests).
+
+Known gaps: a catalog refresh started from Settings does not push an update, so open pages pick up new prices within five minutes; the Watching list shows a current state only for single-name watches (the watch's page shows every name).
+
 ## How we will know it works
 
 - From opening the app to seeing which of five names are free on six extensions: one input and one Enter, under five seconds on cached data.
