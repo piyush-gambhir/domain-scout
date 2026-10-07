@@ -33,6 +33,19 @@ test('Saved opens the default list and offers to recheck only the names checked 
   await expect(page.getByText(/\bAvailable\b/)).toHaveCount(0);
 });
 
+test('Recheck all covers stale names beyond the loaded page', async ({ page }) => {
+  // 230 names checked long ago; the list loads 200 at a time.
+  const many = Array.from({ length: 230 }, (_, i) => `${label24(i + 900)}.com`);
+  const { calls } = await mockApp(page, { lists: [{ name: 'Saved', domains: many }], staleSaved: many });
+  await page.goto('/saved');
+  const banner = page.getByTestId('freshness-banner');
+  await expect(banner).toContainText('At least');
+  await banner.getByRole('button', { name: 'Recheck all' }).click();
+  await expect.poll(() => calls.filter((c) => c.method === 'POST' && c.path === '/rechecks').length).toBe(1);
+  const body = calls.find((c) => c.path === '/rechecks')?.body as { domains: string[] };
+  expect(new Set(body.domains)).toEqual(new Set(many));
+});
+
 test('a saved name expands into a cost comparison by provider with Buy links to that provider', async ({ page }) => {
   const { calls } = await mockApp(page, { lists: [{ name: 'Saved', domains: DOMAINS }] });
   await page.goto('/saved');

@@ -389,16 +389,19 @@ export function ListView({ collection, onDeleted }: { collection: Collection; on
   const never = stale.filter((r) => !r.registry).length;
   const freshMinutes = settings.data?.freshness.registryMinutes ?? 15;
 
-  const allDomains = useCallback(async () => {
-    const domains: string[] = [];
+  const allEntries = useCallback(async () => {
+    const all: CollectionEntry[] = [];
     let cursor: string | undefined;
     do {
       const page = await api.call('listCollectionEntries', { params: { id: collection.id }, query: { cursor, limit: 1000 } });
-      domains.push(...page.data.map((e) => e.domain));
+      all.push(...page.data);
       cursor = page.nextCursor ?? undefined;
     } while (cursor);
-    return domains;
+    return all;
   }, [collection.id]);
+  const allDomains = useCallback(async () => (await allEntries()).map((e) => e.domain), [allEntries]);
+  // The banner counts loaded rows; Recheck all covers every stale name in the list, loaded or not.
+  const recheckAll = async () => recheck.start((hasNextPage ? (await allEntries()).filter(isStale) : stale).map((r) => r.domain));
   const target: DomainTarget = selected.size
     ? { count: selected.size, resolveDomains: async () => [...selected] }
     : { count: collection.entryCount, resolveDomains: allDomains };
@@ -511,10 +514,11 @@ export function ListView({ collection, onDeleted }: { collection: Collection; on
         {stale.length > 0 && rows.length > 0 ? (
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg bg-input px-3 py-2 text-sm" role="status" data-testid="freshness-banner">
             <span>
+              {hasNextPage ? 'At least ' : null}
               {stale.length - never > 0 ? `${plural(stale.length - never, 'name')} ${stale.length - never === 1 ? 'was' : 'were'} checked over ${freshMinutes} minutes ago.` : null}
               {never > 0 ? ` ${plural(never, 'name')} ${never === 1 ? 'was' : 'were'} never checked.` : null}
             </span>
-            <Button size="sm" variant="primary" disabled={recheck.running} onClick={() => recheck.start(stale.map((r) => r.domain))}>
+            <Button size="sm" variant="primary" disabled={recheck.running} onClick={() => void recheckAll()}>
               <RotateCw className={cn(recheck.running && 'motion-safe:animate-spin')} />
               {recheck.running ? `Checking ${recheck.progress ? `${recheck.progress.finished} of ${recheck.progress.total}` : ''}` : 'Recheck all'}
             </Button>

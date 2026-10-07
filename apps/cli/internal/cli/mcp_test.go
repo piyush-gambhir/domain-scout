@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -279,8 +280,16 @@ func TestMCPWaitTimeoutAndValidation(t *testing.T) {
 		{"names": []string{"example.com"}, "tlds": []string{}, "timeout": 0},
 		{"names": []string{"example.com"}, "tlds": []string{}, "timeout": 3601},
 	} {
-		if res := callMCP(t, ctx, c, "scan", args); !res.IsError {
+		res := callMCP(t, ctx, c, "scan", args)
+		if !res.IsError {
 			t.Fatal("invalid scan should be a tool error")
+		}
+		// Local errors carry the full API ErrorResponse shape, like backend errors.
+		e, _ := mcpStructured(t, res)["error"].(map[string]any)
+		for _, key := range []string{"code", "message", "requestId", "domain", "source", "retryable", "retryAt", "details"} {
+			if _, ok := e[key]; !ok {
+				t.Fatalf("local error envelope missing %q: %#v", key, e)
+			}
 		}
 	}
 	if len(f.requests("POST", "/api/v1/jobs")) != 1 {
@@ -391,5 +400,43 @@ func TestMCPCommandStdio(t *testing.T) {
 		}
 	case <-ctx.Done():
 		t.Fatal("stdio server did not exit after client closed")
+	}
+}
+
+func TestMCPConcurrentAddsShareOneNewShortlist(t *testing.T) {
+	f := newFakeAPI(t)
+	collection := `{"id":"` + jobID + `","name":"Research","entryCount":0}`
+	var mu sync.Mutex
+	created := false
+	f.on("GET", "/api/v1/collections", func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+		if created {
+			writeRaw(w, 200, page([]string{collection}, ""))
+		} else {
+			writeRaw(w, 200, page(nil, ""))
+		}
+	})
+	f.on("POST", "/api/v1/collections", func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		created = true
+		mu.Unlock()
+		writeRaw(w, 201, envelope(collection))
+	})
+	f.reply("POST", "/api/v1/collections/"+jobID+"/entries", 200, envelope(`{"added":1}`))
+	c, ctx := mcpTestClient(t, f)
+	var wg sync.WaitGroup
+	for _, domain := range []string{"example.com", "google.com", "nic.si"} {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if res := callMCP(t, ctx, c, "shortlist_add", map[string]any{"name": "Research", "domains": []string{domain}}); res.IsError {
+				t.Errorf("shortlist_add %s failed", domain)
+			}
+		}()
+	}
+	wg.Wait()
+	if n := len(f.requests("POST", "/api/v1/collections")); n != 1 {
+		t.Fatalf("concurrent adds created %d shortlists, want 1", n)
 	}
 }

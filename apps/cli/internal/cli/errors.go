@@ -144,7 +144,13 @@ func writeError(w io.Writer, mode string, e *exitError, quiet bool) {
 		}
 		return
 	}
-	resp := map[string]any{
+	b, _ := json.Marshal(localErrorEnvelope(e))
+	fmt.Fprintln(w, string(b))
+}
+
+// localErrorEnvelope is the API ErrorResponse shape for errors raised in the CLI itself.
+func localErrorEnvelope(e *exitError) map[string]any {
+	return map[string]any{
 		"contractVersion": ContractVersion,
 		"error": map[string]any{
 			"code":      e.errCode,
@@ -157,8 +163,6 @@ func writeError(w io.Writer, mode string, e *exitError, quiet bool) {
 			"details":   nil,
 		},
 	}
-	b, _ := json.Marshal(resp)
-	fmt.Fprintln(w, string(b))
 }
 
 func humanError(e *exitError) string {

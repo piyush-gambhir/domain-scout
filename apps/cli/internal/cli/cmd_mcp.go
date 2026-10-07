@@ -40,6 +40,8 @@ type mcpAdapter struct {
 	app *App
 	// Tool calls may arrive concurrently; initialize the shared client once.
 	mu sync.Mutex
+	// Serializes find-or-create by shortlist name so concurrent adds share one list.
+	shortlistMu sync.Mutex
 }
 
 func (a *mcpAdapter) client(ctx context.Context) (*apiClient, error) {
@@ -229,7 +231,7 @@ func mcpToolError(err error) *mcp.CallToolResult {
 	e := classify(err)
 	var out any = json.RawMessage(e.raw)
 	if e.parsed == nil {
-		out = map[string]any{"contractVersion": ContractVersion, "error": map[string]any{"code": e.errCode, "message": e.msg}}
+		out = localErrorEnvelope(e)
 	}
 	return &mcp.CallToolResult{IsError: true, StructuredContent: out, Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("%s: %s", e.errCode, e.msg)}}}
 }
@@ -314,6 +316,8 @@ func (a *mcpAdapter) shortlistAdd(ctx context.Context, c *apiClient, in mcpShort
 			return nil, "", err
 		}
 	} else {
+		a.shortlistMu.Lock()
+		defer a.shortlistMu.Unlock()
 		raw, err := mcpCollections(ctx, c)
 		if err != nil {
 			return nil, "", err
