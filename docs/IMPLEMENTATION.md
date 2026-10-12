@@ -4,7 +4,7 @@ Engineering conventions for building Domain Scout. Product scope and semantics l
 
 ## Monorepo
 
-Turborepo 2 with pnpm 11 workspaces. Node 24.11 or newer. TypeScript 5.9 everywhere (TypeScript 7 lacks the compiler API that Next, ESLint and test tooling use).
+Turborepo 2 with pnpm 12 workspaces. Node 24 (24.11 or newer). TypeScript 5.9 everywhere (TypeScript 7 lacks the compiler API that Next, ESLint and test tooling use).
 
 | Path | Package | What it is |
 | --- | --- | --- |

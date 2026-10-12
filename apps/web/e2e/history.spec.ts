@@ -63,6 +63,27 @@ test('opening an agent search restores its results view', async ({ page }) => {
   await expect(page.getByRole('textbox', { name: 'Search names or domains' })).toHaveValue(`${GIB[1]} ${GIB[2]}`);
 });
 
+test('opening a job that is not a search lists its items in a selectable results table', async ({ page }) => {
+  await mockApp(page, { jobs: jobs() });
+  await page.goto(`/search/${SYSTEM}`);
+  const table = page.getByRole('table', { name: 'Results' });
+  await expect(table.getByRole('columnheader', { name: 'Domain' })).toBeVisible();
+  // One header row plus the job's single item, with a cell under every column.
+  await expect(table.getByRole('row')).toHaveCount(2);
+  const columns = await table.locator('[role="columnheader"]').count();
+  await expect(table.getByRole('row').nth(1).locator('[role="cell"]')).toHaveCount(columns);
+  const name = `${GIB[0]}.com`;
+  await expect(table.getByText(name, { exact: true })).toBeVisible();
+
+  await table.getByRole('checkbox', { name: `Select ${name}` }).click();
+  await expect(table.getByRole('checkbox', { name: `Select ${name}` })).toBeChecked();
+  await expect(page.getByRole('toolbar', { name: 'Selected results' })).toBeVisible();
+  await table.getByRole('checkbox', { name: `Select ${name}` }).click();
+  await expect(page.getByRole('toolbar', { name: 'Selected results' })).toHaveCount(0);
+  await table.getByRole('checkbox', { name: 'Select loaded rows' }).click();
+  await expect(table.getByRole('checkbox', { name: `Select ${name}` })).toBeChecked();
+});
+
 test('stopped searches resume after naming where names go, and finished ones delete after confirming', async ({ page }) => {
   const { calls } = await open(page);
   const resumes = await mockApi(page, { 'POST /jobs/:id/resume': (_c, p) => ok({ ...jobs()[2]!.job, id: p.id, state: 'running' }) });

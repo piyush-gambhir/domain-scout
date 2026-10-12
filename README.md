@@ -28,7 +28,7 @@ docker compose exec domain-scout domain-scout scan acme --tlds com,io --wait --o
 
 ## Run from source
 
-Requires Node.js 24.11 or newer, pnpm 11 and Go 1.27.
+Requires Node.js 24 (24.11 or newer), pnpm 12 and Go 1.27.
 
 ```sh
 pnpm install

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef } from 'react';
-import { getCoreRowModel, useReactTable, type ColumnDef } from '@tanstack/react-table';
+import { tableFeatures, useTable, type ColumnDef } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Bookmark } from 'lucide-react';
 import type { JobItem } from '@domain-scout/contracts';
@@ -89,6 +89,10 @@ const VISIBILITY: Record<string, string> = {
   shortlist: 'hidden @2xl:flex',
 };
 
+/** Core features only: the server filters, sorts and pages, and CSS hides columns, so no table state is needed. */
+const features = tableFeatures({});
+type ResultColumn = ColumnDef<typeof features, JobItem>;
+
 /**
  * Virtualized results grid inside its own scroll container, which fills the rest of the page. Rows
  * come from server-side filtering, sorting and cursor pages; more pages load as it scrolls near the end.
@@ -101,8 +105,8 @@ export function ResultsTable(props: ResultsTableProps) {
   const loadedSelected = rows.length > 0 && rows.every((row) => selection.isSelected(row.id));
   const someSelected = rows.some((row) => selection.isSelected(row.id));
 
-  const columns = useMemo<ColumnDef<JobItem>[]>(() => {
-    const list: ColumnDef<JobItem>[] = [
+  const columns = useMemo<ResultColumn[]>(() => {
+    const list: ResultColumn[] = [
       {
         id: 'select',
         header: () => (
@@ -201,11 +205,11 @@ export function ResultsTable(props: ResultsTableProps) {
     return list;
   }, [rows, selection, loadedSelected, someSelected, showTarget, canOpen, onOpen]);
 
-  // React Compiler is not enabled; TanStack Table is used as documented.
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const table = useReactTable({ data: rows, columns, getCoreRowModel: getCoreRowModel(), getRowId: (row) => row.id });
+  const table = useTable({ features, data: rows, columns, getRowId: (row) => row.id });
   const tableRows = table.getRowModel().rows;
 
+  // React Compiler is not enabled; TanStack Virtual is used as documented.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({
     count: hasNextPage ? tableRows.length + 1 : tableRows.length,
     getScrollElement: () => scrollRef.current,
@@ -302,7 +306,7 @@ export function ResultsTable(props: ResultsTableProps) {
                 )}
                 style={style}
               >
-                {row.getVisibleCells().map((cell) => (
+                {row.getAllCells().map((cell) => (
                   <div
                     key={cell.id}
                     role="cell"
