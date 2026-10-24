@@ -16,25 +16,25 @@
   },
   "dependencies": {
     "@domain-scout/contracts": "workspace:*",
-    "@nestjs/common": "^12.1.2",
-    "@nestjs/core": "^12.1.2",
-    "@nestjs/platform-express": "^12.1.2",
+    "@nestjs/common": "^12.2.0",
+    "@nestjs/core": "^12.2.0",
+    "@nestjs/platform-express": "^12.2.0",
     "decimal.js": "^10.6.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
-    "tldts": "^7.4.18",
-    "zod": "^4.6.5"
+    "tldts": "^7.4.19",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@nestjs/testing": "^12.1.2",
-    "@swc/core": "^1.16.18",
+    "@nestjs/testing": "^12.2.0",
+    "@swc/core": "^1.16.20",
     "@types/express": "^5.0.6",
     "@types/node": "^24.19.2",
     "@types/supertest": "^7.2.1",
     "supertest": "^7.3.1",
     "typescript": "~5.9.3",
     "unplugin-swc": "^2.0.0",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.5"
   },
   "files": [
     "dist",

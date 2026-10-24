@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
 
 const nextConfig: NextConfig = {
+  experimental: { agentUpgrade: 'security' },
   output: 'standalone',
   outputFileTracingRoot: repoRoot,
   turbopack: { root: repoRoot },
