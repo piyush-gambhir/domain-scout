@@ -28,5 +28,6 @@ overrides:
   # Security floors: @nestjs/platform-express 12.2.0 pins multer 2.4.0 (GHSA DoS fixed in 2.5.0).
   body-parser@>=2.0.0 <2.4.0: 2.4.0
   multer@>=2.0.0 <2.5.0: 2.5.0
+  qs@>=6.7.0 <6.16.1: 6.16.1
   vite@>=8.0.0 <8.3.5: 8.3.5
   zod@>=4.0.0 <4.6.7: 4.6.7
