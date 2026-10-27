@@ -66,7 +66,7 @@ Recorded October 5, 2026, when building started. Piyush chose Turborepo for the 
 
 | Area | Planning default | Built with | Reason |
 | --- | --- | --- | --- |
-| Monorepo | npm workspaces | pnpm 11 workspaces with Turborepo 2 | Piyush asked for Turborepo; pnpm matches his other Turborepo repositories. The Go CLI joins the task graph through a small `package.json` wrapper. |
+| Monorepo | npm workspaces | pnpm 12 workspaces with Turborepo 2 | Piyush asked for Turborepo; pnpm matches his other Turborepo repositories. The Go CLI joins the task graph through a small `package.json` wrapper. |
 | SQLite driver | better-sqlite3 | Built-in `node:sqlite` | No native module, so one backend payload works on every OS and architecture; the API is equally synchronous. |
 | NestJS | Nest 11 era defaults | Nest 12, ESM-only, Express adapter | Current major release; Express kept as planned. |
 | Backend tests | Jest | Vitest with SWC (decorator metadata) | Nest 12 is ESM-only; Vitest runs ESM natively. |
