@@ -212,6 +212,7 @@ export async function mockBigMonitoring(page: Page) {
     missedRuns: i % 5 === 0 ? 2 : 0,
     lastJobId: uuid(0xa200),
     unreadNotices: i % 3,
+    registry: i === 0 ? { outcomes: { registered: 96, no_record: 12, inconclusive: 4, rate_limited: 1 }, unchecked: 7 } : { outcomes: { registered: 1, no_record: 1 }, unchecked: 0 },
   }));
   const notices = Array.from({ length: 40 }, (_, i) => ({
     id: uuid(0xa300 + i),

@@ -11,6 +11,7 @@ import {
   type OperationResponse,
   type Watch,
 } from '@domain-scout/contracts';
+import { invalidatePrices } from './catalog-refresh';
 import { qk } from './queries';
 
 type ResultsPage = OperationResponse<'listJobResults'>;
@@ -169,8 +170,7 @@ export function useJobEvents(jobId: string | null | undefined, onEvent?: (event:
           void client.invalidateQueries({ queryKey: ['evidence'] });
           break;
         case 'catalog.updated':
-          void client.invalidateQueries({ queryKey: ['evidence'] });
-          void client.invalidateQueries({ queryKey: ['prices'] });
+          invalidatePrices(client);
           break;
         case 'notice.created':
           void client.invalidateQueries({ queryKey: qk.notices });

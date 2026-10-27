@@ -127,6 +127,19 @@ describe('watch change detection', () => {
     expect(current.unreadNotices).toBe(1);
   });
 
+  it('counts watched names by their latest registry outcome from any job', async () => {
+    fx.registry('example.com', 'no_record', '2026-10-05T10:00:00.000Z');
+    fx.registry('example.com', 'registered', '2026-10-05T11:00:00.000Z');
+    fx.registry('google.com', 'registered', '2026-10-05T11:00:00.000Z');
+    fx.registry('nic.si', 'inconclusive', '2026-10-05T11:00:00.000Z', { reason: 'Timed out' });
+    const w = await watch({ domains: ['example.com', 'google.com', 'nic.si', 'bbc.co.uk'] });
+    expect(w.registry).toEqual({ outcomes: { registered: 2, inconclusive: 1 }, unchecked: 1 });
+
+    fx.registry('bbc.co.uk', 'no_record', '2026-10-05T11:30:00.000Z');
+    const listed = (await http.get('/api/v1/watches').expect(200)).body.data as Watch[];
+    expect(listed.find((x) => x.id === w.id)?.registry).toEqual({ outcomes: { registered: 2, inconclusive: 1, no_record: 1 }, unchecked: 0 });
+  });
+
   it('ignores evidence from other jobs and reused cached registry evidence', async () => {
     fx.registry('example.com', 'registered', '2026-10-05T11:00:00.000Z');
     const w = await watch();

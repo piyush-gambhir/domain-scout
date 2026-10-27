@@ -452,6 +452,7 @@ export async function mockApp(page: Page, options: AppOptions = {}): Promise<{ c
         missedRuns: 0,
         lastJobId: null,
         unreadNotices: 0,
+        registry: { outcomes: {}, unchecked: body.domains.length },
         ...(c.body as object),
       };
       state.watches = [...state.watches, created];

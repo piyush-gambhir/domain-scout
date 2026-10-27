@@ -7,7 +7,7 @@ import { Plus } from 'lucide-react';
 import type { Notice, Watch } from '@domain-scout/contracts';
 import { api } from '@/lib/api';
 import { useWatchEvents } from '@/lib/events';
-import { NOTICE_TYPE, WATCH_STATE, humanize, registryStatus } from '@/lib/labels';
+import { NOTICE_TYPE, WATCH_STATE, humanize, registryStatus, type StatusInfo } from '@/lib/labels';
 import { formatCount, formatDateTime, formatInterval, plural } from '@/lib/format';
 import { useNow } from '@/lib/use-now';
 import { qk, useUnreadNoticeCount } from '@/lib/queries';
@@ -55,17 +55,37 @@ function useLastChanges() {
   }, [notices.data]);
 }
 
-/** Current registry state of a single-name watch, from the name's latest evidence. */
-function NameState({ domain }: { domain: string }) {
-  const evidence = useQuery({
-    queryKey: qk.evidence(domain),
-    queryFn: ({ signal }) => api.call('getDomainEvidence', { params: { name: domain }, signal }).then((r) => r.data),
-    staleTime: 60_000,
-    retry: false,
-  });
-  const latest = evidence.data?.registry[0];
-  if (!latest) return null;
-  return <StatusLabel status={registryStatus(latest.outcome)} className="shrink-0 text-xs" />;
+/** Outcome order in a watch's summary: free names first. */
+const SUMMARY_ORDER = ['no_record', 'registered', 'inconclusive', 'rate_limited', 'blocked', 'invalid', 'unsupported'];
+const rank = (outcome: string) => (SUMMARY_ORDER.includes(outcome) ? SUMMARY_ORDER.indexOf(outcome) : SUMMARY_ORDER.length);
+
+/**
+ * Current registry state of the watched names from each name's latest check: the plain status for
+ * one name, counts per status for several (e.g. "2 not registered · 3 taken"). The dot takes the
+ * tone of the first group, so any free name shows first.
+ */
+function NamesState({ watch }: { watch: Watch }) {
+  const { outcomes, unchecked } = watch.registry;
+  const entries = Object.entries(outcomes).sort(([a], [b]) => rank(a) - rank(b));
+  if (watch.domains.length === 1) {
+    return entries[0] ? <StatusLabel status={registryStatus(entries[0][0])} className="shrink-0 text-xs" /> : null;
+  }
+  const groups = new Map<string, { status: StatusInfo; n: number }>();
+  for (const [outcome, n] of entries) {
+    const status = registryStatus(outcome);
+    const group = groups.get(status.label);
+    if (group) group.n += n;
+    else groups.set(status.label, { status, n });
+  }
+  if (groups.size === 0) return null;
+  if (unchecked > 0) groups.set('Not checked', { status: { label: 'Not checked', tone: 'muted', unresolved: true }, n: unchecked });
+  const parts = [...groups.values()];
+  const text = parts.map(({ status, n }) => `${formatCount(n)} ${status.label.toLowerCase()}`).join(' · ');
+  return (
+    <span title={text} className="min-w-0 text-xs" data-testid="watch-names-state">
+      <StatusLabel status={{ ...parts[0]!.status, label: text }} />
+    </span>
+  );
 }
 
 function WatchRow({ watch, lastChange }: { watch: Watch; lastChange: Notice | undefined }) {
@@ -74,7 +94,7 @@ function WatchRow({ watch, lastChange }: { watch: Watch; lastChange: Notice | un
   return (
     <li className="group/row grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 rounded-md px-2.5 py-2 transition-colors hover:bg-hover" data-testid="watch-row">
       <div className="min-w-0">
-        <p className="flex min-w-0 items-center gap-2">
+        <p className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
           <Link href={`/watching/${watch.id}`} className="truncate rounded-sm font-medium underline-offset-4 hover:underline">
             {watch.name}
           </Link>
@@ -84,7 +104,7 @@ function WatchRow({ watch, lastChange }: { watch: Watch; lastChange: Notice | un
               <span className="sr-only"> unread</span>
             </span>
           ) : null}
-          {watch.domains.length === 1 ? <NameState domain={watch.domains[0]!} /> : null}
+          <NamesState watch={watch} />
           {watch.state === 'paused' ? <StatusLabel status={WATCH_STATE.paused!} className="ml-1 shrink-0 text-xs text-muted-foreground" /> : null}
         </p>
         <p className="flex min-w-0 flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">

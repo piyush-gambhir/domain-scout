@@ -32,6 +32,9 @@ test('Watching lists watches and an inbox of changes with before and after', asy
   await expect(rows).toHaveCount(2);
   await expect(rows.filter({ hasText: 'Launch names' })).toContainText('2 missed checks');
   await expect(rows.filter({ hasText: 'Slovenian names' })).toContainText('Paused');
+  // Several names show counts per state, free names first; one name shows its plain state.
+  await expect(rows.filter({ hasText: 'Launch names' }).getByTestId('watch-names-state')).toHaveText('1 not registered · 1 taken');
+  await expect(rows.filter({ hasText: 'Slovenian names' })).toContainText('Taken');
 
   const inbox = page.getByRole('region', { name: 'Changes' });
   const notice = inbox.getByTestId('notice').filter({ hasText: 'example.com' });

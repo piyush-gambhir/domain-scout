@@ -30,6 +30,7 @@ function watch(id: string, overrides: Record<string, unknown>) {
     missedRuns: 0,
     lastJobId: null as string | null,
     unreadNotices: 0,
+    registry: { outcomes: { registered: 1 }, unchecked: 0 },
     ...overrides,
   };
 }
@@ -48,6 +49,7 @@ export async function mockMonitoring(page: Page) {
       missedRuns: 2,
       unreadNotices: 1,
       lastJobId: uuid(0xb1),
+      registry: { outcomes: { registered: 1, no_record: 1 }, unchecked: 0 },
     }),
     watch(W2, { name: 'Slovenian names', domains: ['nic.si'], state: 'paused', nextRunAt: null }),
   ];

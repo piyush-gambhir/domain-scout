@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures';
-import { NOW, PROVIDERS, mockApi, ok, paged, provider } from './mock-api';
+import { NOW, PROVIDERS, job, mockApi, ok, paged, provider, uuid } from './mock-api';
 
 // Credential setup, test and disconnect (R09) against route fixtures: no provider API is called and
 // the fixture backend, like the real one, never returns a secret.
@@ -79,4 +79,33 @@ test('credentials are typed masked, never shown after saving, then tested and di
   await expect(section).toContainText('Not configured');
   expect(calls.filter((c) => c.method === 'DELETE' && c.path === '/providers/dynadot/credentials')).toHaveLength(1);
   expect(await page.content()).not.toContain(SECRET);
+});
+
+test('a catalog refresh from Settings updates every open tab when its job finishes', async ({ page, context }) => {
+  const id = uuid(0xc0a1);
+  let finished = false;
+  const porkbun = () => ({
+    ...PROVIDERS[0],
+    catalog: finished ? { suffixCount: 812, fetchedAt: NOW, staleAt: null, freshness: 'fresh', source: 'https://api.porkbun.com/api/json/v3/pricing/get', lastError: null } : null,
+  });
+  const handlers = {
+    'GET /providers': () => paged([porkbun(), PROVIDERS[1], PROVIDERS[2]]),
+    'POST /providers/:id/catalog/refresh': () => ok(job(id, { type: 'catalog_refresh', state: 'running', finishedAt: null })),
+    'GET /jobs/:id': () => ok(job(id, { type: 'catalog_refresh', state: finished ? 'completed' : 'running' })),
+  };
+  await mockApi(page, handlers);
+  const other = await context.newPage();
+  await mockApi(other, handlers);
+  await other.goto('/settings/providers?p=porkbun');
+  await page.goto('/settings/providers?p=porkbun');
+
+  const catalog = (p: typeof page) => p.getByRole('article', { name: 'Porkbun' }).getByRole('region', { name: 'Catalog' });
+  await expect(catalog(page)).toContainText('No catalog fetched.');
+  await expect(catalog(other)).toContainText('No catalog fetched.');
+  await catalog(page).getByRole('button', { name: 'Refresh' }).click();
+  await expect(page.getByText('Refreshing Porkbun catalog')).toBeVisible();
+
+  finished = true;
+  await expect(catalog(page)).toContainText('812');
+  await expect(catalog(other)).toContainText('812');
 });

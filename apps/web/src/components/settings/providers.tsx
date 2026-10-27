@@ -7,6 +7,7 @@ import { ArrowLeft, ChevronRight, ExternalLink, RefreshCw, Search } from 'lucide
 import { toast } from 'sonner';
 import type { Provider } from '@domain-scout/contracts';
 import { api } from '@/lib/api';
+import { followCatalogRefresh } from '@/lib/catalog-refresh';
 import { CAPABILITY_LEVEL, CAPABILITY_NAME, CAPABILITY_ORDER, READINESS, humanize } from '@/lib/labels';
 import { formatDate, formatCount, hostOf } from '@/lib/format';
 import { qk, useProviders } from '@/lib/queries';
@@ -195,6 +196,7 @@ function Credentials({ provider }: { provider: Provider }) {
 }
 
 function Catalog({ provider }: { provider: Provider }) {
+  const client = useQueryClient();
   const started = useJobStarted();
   const idempotency = useIdempotency();
   const refresh = useMutation({
@@ -203,6 +205,7 @@ function Catalog({ provider }: { provider: Provider }) {
     onSuccess: (job) => {
       idempotency.reset();
       started(job, `Refreshing ${provider.name} catalog`);
+      followCatalogRefresh(client, job.id);
     },
   });
   const catalog = provider.catalog;

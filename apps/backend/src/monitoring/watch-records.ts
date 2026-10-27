@@ -56,8 +56,8 @@ export function toRecord(row: WatchRow): WatchRecord {
   };
 }
 
-export function toWatch(record: WatchRecord, destinations: string[], unreadNotices: number): Watch {
-  return { ...record, destinations, unreadNotices };
+export function toWatch(record: WatchRecord, destinations: string[], unreadNotices: number, registry: Watch['registry']): Watch {
+  return { ...record, destinations, unreadNotices, registry };
 }
 
 export interface NoticeRow {

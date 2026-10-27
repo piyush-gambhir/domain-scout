@@ -1,6 +1,6 @@
 # Domain Scout build report
 
-Built October 5 to 7, 2026 on the `build` branch, pushed to the private GitHub repository on October 7. This report separates what was built, how it was verified, and what is still pending. Live checks used only the authorized fixed test set: `example.com`, `google.com`, `nic.si`, `bbc.co.uk` and random 24-character gibberish names.
+Built October 5 to 7, 2026 on the `build` branch, pushed to the private GitHub repository on October 7. On October 27 the stack moved to Node 26 with every dependency at its latest compatible release, and the two small UI gaps from the pending list were closed; the suites below were rerun then. This report separates what was built, how it was verified, and what is still pending. Live checks used only the authorized fixed test set: `example.com`, `google.com`, `nic.si`, `bbc.co.uk` and random 24-character gibberish names.
 
 ## Status
 
@@ -15,7 +15,7 @@ After the first full build Piyush asked for a redesign, because the first UI mir
 | Contracts | `packages/contracts`: Zod schemas and one route table for 95 operations, generating the OpenAPI 3.0 document, the TypeScript client and the Go client |
 | Backend | NestJS 12 on `node:sqlite`: local runtime (data directory, lock, owner-only token, runtime file), local auth (token, single-use browser bootstrap, sessions, CSRF, Origin and Host checks), SSE with replay, durable jobs engine with shared per-source budgets, cooldowns, retries, cancel/resume/retry and idempotency, registry routing and classification, nine provider adapters plus the .si registry directory, pricing and comparisons, shortlists and saved criteria, local candidate generation, monitoring with notices, name checks and DNS/TLS/HTTP diagnostics, scoped exports and self-contained snapshots, scoped data deletion |
 | Registry coverage | IANA RDAP bootstrap plus curated routes: 56 suffixes tested, 1,198 discovered, 192 unsupported (each with a reason). Curated RDAP for .ch, .li and .co; registry-specific WHOIS classifiers for 45 suffixes (.de, .io, .jp, .cn, .eu, 36 more ccTLDs and 4 .za zones) |
-| Web UI | Next.js 16, task-based: Search (one input with remembered extensions, live grid or grouped list, Ideas mode, row actions Save, Buy, Watch), Saved (shortlists with multi-year cost by provider, quotes, Buy), Watching (watches and an inbox of changes), History (UI and agent runs by origin), Settings (providers, preferences, checks, coverage, data, service); docked domain panel that leads with status, best prices and where to buy |
+| Web UI | Next.js 16, task-based: Search (one input with remembered extensions, live grid or grouped list, Ideas mode, row actions Save, Buy, Watch), Saved (shortlists with multi-year cost by provider, quotes, Buy), Watching (watches with the current state of their names, and an inbox of changes), History (UI and agent runs by origin), Settings (providers, preferences, checks, coverage, data, service); docked domain panel that leads with status, best prices and where to buy |
 | CLI | Go `domain-scout`: every API operation, JSON/table/NDJSON output, SSE waits with replay and polling fallback, the handoff's exit codes, a launcher that starts or reuses the backend and web server, `ui --job` to open a run in the UI, `prices published` for catalog prices per extension, and `domain-scout mcp` (11 MCP tools over stdio on the same API) |
 | Runs | `docker compose up --build` (single container, UI on host loopback only), `pnpm dev`, `pnpm smoke`, `pnpm acceptance` (1,200 names against a local stub registry), `pnpm package` (archives for macOS arm64/amd64, Linux amd64/arm64, Windows amd64) |
 
@@ -27,13 +27,13 @@ Build-time technology decisions are recorded in [TECH_STACK.md](TECH_STACK.md#bu
 
 | Suite | Result |
 | --- | --- |
-| Backend (Vitest, real temporary SQLite, fake transports) | 826 tests in 52 files |
+| Backend (Vitest, real temporary SQLite, fake transports) | 827 tests in 52 files |
 | Contracts and API client (Vitest) | 6 and 5 tests |
 | Go CLI (`go test`) | 4 packages, all passing, including the MCP server, cancelled-run output and quote decision fields; one earlier unexplained failure under heavy parallel load did not reproduce in 13 reruns |
-| Web (Playwright against the real backend, fixtures only where a test would reach the network) | 152 tests: 74 for the five journeys, redirects, keyboard use, settings, providers and sessions, and 78 layout checks (no page scroll at 1440x900 and 1280x800, no sideways scroll at 390x844) |
+| Web (Playwright against the real backend, fixtures only where a test would reach the network) | 154 tests: 76 for the five journeys, redirects, keyboard use, settings, providers and sessions, and 78 layout checks (no page scroll at 1440x900 and 1280x800, no sideways scroll at 390x844) |
 | Typecheck and lint (`pnpm turbo run typecheck lint`) | Clean |
 | `pnpm smoke` (CLI, API and web on one backend, live fixed set) | 14 of 14 checks |
-| `pnpm acceptance` (1,200 names twice through the CLI and backend, local stub registry) | 11 of 11 checks: cancel at 30% and resume, backend stop and restart, no finished name queried twice, TXT export exact; 3.2 s per job, result pages p95 18 ms while jobs run |
+| `pnpm acceptance` (1,200 names twice through the CLI and backend, local stub registry) | 11 of 11 checks: cancel at 30% and resume, backend stop and restart, no finished name queried twice, TXT export exact; 2.9 s per job, result pages p95 7 ms while jobs run (Node 26) |
 | MCP over stdio against a real backend | initialize, 11 tools listed, `scan` of example.com returned `registered` through the registry only |
 
 ### Live checks (fixed test set only)
@@ -57,10 +57,10 @@ Recorded in `apps/backend/data/registry/live-validation.json` (56 checks across 
 
 | Platform | What ran |
 | --- | --- |
-| macOS arm64 | Source build, `pnpm dev`, `pnpm smoke`, packaged archive extracted and run end to end |
+| macOS arm64 | Source build, `pnpm dev`, `pnpm smoke`, packaged archive extracted and run end to end (rerun on Node 26.12.1 on October 27) |
 | macOS amd64 | Packaged CLI under Rosetta (`version`) |
-| Linux arm64 and amd64 | Packaged archives run in `node:24` containers (`scripts/verify-linux-package.sh`): launcher, browser sign-in, API through the web server, owner-only permissions (700/600), clean stop |
-| Docker | `docker compose up --build` from a fresh volume: sign-in link, all pages, live scan through the web API, CLI inside the container, restart keeps sessions and jobs |
+| Linux arm64 and amd64 | Packaged archives run in `node:26` containers (`scripts/verify-linux-package.sh`, rerun October 27): launcher, browser sign-in, API through the web server, owner-only permissions (700/600), clean stop |
+| Docker | `docker compose up --build` from a fresh volume: sign-in link, all pages, live scan through the web API, CLI inside the container, restart keeps sessions and jobs. On October 27 the Node 26 image was rebuilt and a fresh container reached healthy, served the UI and answered the CLI |
 | Windows amd64 | Cross-compiled and packaged only; not run |
 
 ### Reviews
@@ -88,7 +88,6 @@ These need access, authorization or machines this build did not have.
 5. **Not implemented provider extras.** GoDaddy locked registration quotes and Auctions, Sedo and Atom marketplace integrations (Atom's anonymous search is documented but outside the authorized live set).
 6. **Live IDN validation.** IDN normalization is unit-tested; no internationalized name is in the fixed live set.
 7. **A live 1,000-name run against a public registry.** The acceptance run measures the full engine, CLI and API against a local stub registry; stress runs against public registries are not authorized.
-8. **Small UI gaps.** A catalog refresh started from Settings does not push an update, so open pages show new prices within five minutes; the Watching list shows a current state only for single-name watches (each watch's page shows every name).
 
 ## Verification limits
 

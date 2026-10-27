@@ -247,7 +247,24 @@ export class WatchesService {
     const unread = this.db.get<{ n: number }>('SELECT COUNT(*) AS n FROM notices WHERE watch_id = ? AND read_at IS NULL', [
       record.id,
     ])!.n;
-    return toWatch(record, this.destinations(record), unread);
+    return toWatch(record, this.destinations(record), unread, this.registryState(record.domains));
+  }
+
+  /** Watched names counted by the outcome of their latest registry observation, from any job. */
+  registryState(domains: string[]): Watch['registry'] {
+    const rows = this.db.all<{ outcome: string | null; n: number }>(
+      `SELECT (SELECT o.outcome FROM observations o WHERE o.kind = 'registry' AND o.subject = d.value
+               ORDER BY o.observed_at DESC, o.id DESC LIMIT 1) AS outcome, COUNT(*) AS n
+         FROM json_each(?) d GROUP BY outcome`,
+      [JSON.stringify(domains)],
+    );
+    const outcomes: Record<string, number> = {};
+    let unchecked = 0;
+    for (const row of rows) {
+      if (row.outcome === null) unchecked = row.n;
+      else outcomes[row.outcome] = row.n;
+    }
+    return { outcomes, unchecked };
   }
 
   /** Where a run sends the watched names: registry endpoints per suffix and the selected providers. */

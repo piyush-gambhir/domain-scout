@@ -14509,6 +14509,31 @@
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
+          },
+          "registry": {
+            "type": "object",
+            "properties": {
+              "outcomes": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "description": "Watched names counted by the outcome of their latest registry observation"
+              },
+              "unchecked": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "description": "Watched names with no registry observation yet"
+              }
+            },
+            "required": [
+              "outcomes",
+              "unchecked"
+            ],
+            "description": "Current registry state of the watched names, from retained evidence of any job"
           }
         },
         "required": [
@@ -14527,7 +14552,8 @@
           "nextRunAt",
           "missedRuns",
           "lastJobId",
-          "unreadNotices"
+          "unreadNotices",
+          "registry"
         ]
       },
       "WatchResponse": {

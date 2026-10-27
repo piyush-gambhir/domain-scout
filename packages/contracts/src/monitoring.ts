@@ -22,6 +22,14 @@ export const Watch = z
     missedRuns: z.number().int().meta({ description: 'Intervals missed while the backend was stopped, since the last run' }),
     lastJobId: Uuid.nullable(),
     unreadNotices: z.number().int(),
+    registry: z
+      .object({
+        outcomes: z
+          .record(z.string(), z.number().int())
+          .meta({ description: 'Watched names counted by the outcome of their latest registry observation' }),
+        unchecked: z.number().int().meta({ description: 'Watched names with no registry observation yet' }),
+      })
+      .meta({ description: 'Current registry state of the watched names, from retained evidence of any job' }),
   })
   .meta({ id: 'Watch' });
 export type Watch = z.infer<typeof Watch>;

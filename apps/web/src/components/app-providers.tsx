@@ -5,6 +5,7 @@ import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@ta
 import { ThemeProvider, useTheme } from 'next-themes';
 import { Toaster, toast } from 'sonner';
 import { ApiRequestError, errorMessage, isUnauthorized } from '@/lib/api';
+import { usePriceAnnouncements } from '@/lib/catalog-refresh';
 import { markSessionRequired } from '@/lib/session';
 import { TooltipProvider } from './ui/tooltip';
 
@@ -64,6 +65,11 @@ function ThemedToaster() {
   );
 }
 
+function PriceAnnouncements() {
+  usePriceAnnouncements();
+  return null;
+}
+
 export function AppProviders({ children }: { children: React.ReactNode }) {
   const [client] = useState(makeClient);
   return (
@@ -71,6 +77,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={client}>
         <TooltipProvider delayDuration={250}>
           {children}
+          <PriceAnnouncements />
           <ThemedToaster />
         </TooltipProvider>
       </QueryClientProvider>
