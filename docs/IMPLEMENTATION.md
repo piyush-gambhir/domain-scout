@@ -4,7 +4,7 @@ Engineering conventions for building Domain Scout. Product scope and semantics l
 
 ## Monorepo
 
-Turborepo 2 with pnpm 12 workspaces. Node 26. TypeScript 6.0 everywhere (TypeScript 7 lacks the compiler API that Next and typescript-eslint use; typescript-eslint supports TypeScript below 6.1). ESLint 10 (the react, import and jsx-a11y plugins inside eslint-config-next still declare ESLint 9 peers but run and report under 10).
+Turborepo 2 with pnpm 12 workspaces. Development on Node 26; installed copies run on Node 24.11 or newer (the launcher's floor, verified on 24 and 26). TypeScript 6.0 everywhere (TypeScript 7 lacks the compiler API that Next and typescript-eslint use; typescript-eslint supports TypeScript below 6.1). ESLint 10 (the react, import and jsx-a11y plugins inside eslint-config-next still declare ESLint 9 peers but run and report under 10).
 
 | Path | Package | What it is |
 | --- | --- | --- |
@@ -13,7 +13,7 @@ Turborepo 2 with pnpm 12 workspaces. Node 26. TypeScript 6.0 everywhere (TypeScr
 | `apps/backend` | `@domain-scout/backend` | NestJS 12 (ESM) on Express, `node:sqlite`, jobs, adapters, everything stateful. |
 | `apps/web` | `@domain-scout/web` | Next.js 16 App Router UI. Forwards `/api/v1/*` to the backend. Owns no state or external calls. |
 | `apps/cli` | `@domain-scout/cli` | Go module (`domain-scout` executable). `package.json` wraps `go` so Turbo runs it. |
-| `scripts/` | | `dev.mjs` (local dev launcher), `package.mjs` (distribution). |
+| `scripts/` | | `dev.mjs` (local dev launcher), `package.mjs` (release archives with the UI), `package-npm.mjs` and `verify-npm-package.mjs` (CLI-only npm packages and their install check), smoke and acceptance runs. |
 
 Turbo tasks: `generate` (OpenAPI then Go client), `build`, `typecheck`, `lint`, `test`, `test:e2e`, `dev`. Run `pnpm turbo run <task> --filter <pkg>` for one package.
 
@@ -25,6 +25,14 @@ Rules for everyone:
 - No em dashes anywhere (prose, comments, UI copy, commits). Use a colon, comma, parentheses or two sentences.
 - Comments are brief and say why. No taglines, slogans or instructional filler in the UI.
 - Tests: focused tests for behavior. Fixtures carry provenance (where the sample came from, date, whether it is a documentation-derived reconstruction or a captured live response).
+
+## Clients and the API
+
+The CLI is the primary interface; the web UI is optional and must keep working end to end. Both are clients of one engine through the same HTTP API, so a UI can be extended or rebuilt later without engine changes:
+
+- The API stays client-neutral. No route, field or behavior exists for one client's convenience; terminal formatting lives only in the CLI (`apps/cli/internal/cli/views.go`), screen state only in the web app.
+- Every capability is an API route first. A CLI command or UI screen never reaches around the API (no direct SQLite reads, no second engine), and MCP stays an adapter over the same routes.
+- Browser-only plumbing (bootstrap codes, sessions, CSRF, web origins) stays in `runtime/` and does not leak into feature modules.
 
 ## Semantics that must never break
 
@@ -45,7 +53,7 @@ Development and tests may send only this fixed set to the network: `example.com`
 | Module | Directory | Owns |
 | --- | --- | --- |
 | Core / storage | `core/`, `storage/` | Config, clock, errors, route binding, envelope, ports, SQLite wrapper and migrations, evidence repository |
-| Runtime | `runtime/` | Data/runtime directories, instance lock, runtime file, API token, bootstrap codes, sessions, auth guard (token, session, origin, CSRF, host), graceful stop |
+| Runtime | `runtime/` | Data/runtime directories, instance lock, runtime file, API token, bootstrap codes, sessions, auth guard (token, session, origin, CSRF, host), graceful stop, idle tracking (`ActivityMonitor`) |
 | System | `system/` | Health, capabilities, settings, service stop, history, data inventory and scoped deletion |
 | Events | `events/` | Event log, SSE endpoint with replay, heartbeat, reset, compaction |
 | Jobs | `jobs/` | Job planning, persistence, scheduler with shared source budgets, cooldowns, retries, cancel/resume/retry/recheck, idempotency, results query with the shared ResultFilter |
@@ -94,12 +102,15 @@ Shared by backend, Go CLI and web; keep them identical.
 
 - Data directory: `--data-dir`, else `DOMAIN_SCOUT_DATA_DIR`, else macOS `~/Library/Application Support/Domain Scout`, Windows `%LOCALAPPDATA%\Domain Scout`, Linux `$XDG_DATA_HOME/domain-scout` or `~/.local/share/domain-scout`.
 - Runtime directory: `<dataDir>/run` (mode 0700). Files: `backend.json` (url, pid, instanceId, protocolVersion, contractVersion, version, startedAt, dataDir), `api-token` (0600, random 32 bytes base64url), `web.json` (url, pid) when the UI server runs. Lock: `<dataDir>/backend.lock` (pid, instanceId); stale locks from dead processes are replaced.
-- Backend flags: `--data-dir`, `--host` (default 127.0.0.1), `--port` (default 4317), `--web-origin` (repeatable, default `http://127.0.0.1:3000` and `http://localhost:3000`). Env `DOMAIN_SCOUT_PORT` also sets the port. Port in use: exit with a clear error, never attach to another service.
+- Backend flags: `--data-dir`, `--host` (default 127.0.0.1), `--port` (default 4317), `--idle-timeout` (seconds, default 600, 0 never stops), `--web-origin` (repeatable, default `http://127.0.0.1:3000` and `http://localhost:3000`). Env `DOMAIN_SCOUT_PORT` and `DOMAIN_SCOUT_IDLE_TIMEOUT` also set them. Port in use: exit with a clear error, never attach to another service.
 - Clients verify identity by reading `backend.json`, calling `GET /api/v1/health` and checking `instanceId` and `protocolVersion` before reuse.
 - Auth: `Authorization: Bearer <api-token>` (CLI, launcher, Next server), or the browser session cookie `ds_session` with `X-CSRF-Token` (matching the session's token, readable from the `ds_csrf` cookie) on mutating methods, and an `Origin` in the allowed web origins when present. Requests with a `Host` other than the loopback host and port are rejected (DNS rebinding). `GET /health` and `POST /auth/session` need no auth.
 - Browser bootstrap: the launcher calls `POST /api/v1/auth/bootstrap-codes` with the token (single use, 60 seconds) and opens `http://127.0.0.1:3000/auth/bootstrap?code=...`. The Next route exchanges it through `POST /api/v1/auth/session`, sets `ds_session` (HttpOnly, SameSite=Strict) and `ds_csrf` (SameSite=Strict, readable), then redirects to `/` (Search), or to a same-origin `next` path such as `/search/<job-id>` from `domain-scout ui --job`, so the code leaves the URL. Sessions last 7 days, are stored hashed, and survive backend restarts.
 - Next forwards `/api/v1/*` to `DOMAIN_SCOUT_BACKEND_URL` (default `http://127.0.0.1:4317`) with cookies, CSRF, idempotency and Last-Event-ID headers, streaming responses (SSE) without buffering. The API token never reaches browser JavaScript.
 - Stop: `POST /api/v1/service/stop` halts dispatch, aborts in-flight calls within a bounded grace period, marks unfinished items interrupted, checkpoints SQLite, removes the runtime file and lock, and exits.
+- Idle stop: `ActivityMonitor` runs the same graceful stop after `--idle-timeout` with no open requests or event streams, unfinished jobs, active watches, session-only credentials or live UI server (`web.json` with a running pid). Modules add busy checks with `ActivityMonitor.addProbe()`. The dev launcher and the container pass 0.
+- Clients after an idle stop: a request refused with "The backend is stopping" or finding nothing listening was never handled, so the CLI starts a backend and sends it once more (`apps/cli/internal/cli/engine.go`); MCP sessions recover the same way.
+- Upgrades: a release CLI newer than the running backend calls `POST /api/v1/service/stop-unless-busy` with the instance id it verified, after checking it can start its own; the backend refuses (409) for another instance or while jobs, other clients, session-only credentials or the UI depend on it, and backends without the route (404) are kept. A newer backend is never replaced, and a backend refuses a database migrated by a newer one (exit 5).
 
 ## Go CLI contract
 

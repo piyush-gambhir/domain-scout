@@ -74,7 +74,11 @@ function copySkippingNodeModules(src, dest) {
 }
 
 const run = (cmd, args, opts = {}) => execFileSync(cmd, args, { stdio: 'inherit', cwd: repo, ...opts });
-const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
+// Windows runs the npm and pnpm .cmd shims only through a shell (Node refuses them otherwise),
+// so arguments are quoted for cmd.exe there.
+const win = process.platform === 'win32';
+const quote = (arg) => (win && /[\s"&|<>^]/.test(arg) ? `"${arg.replace(/"/g, '""')}"` : arg);
+const runTool = (name, args, opts = {}) => run(win ? `${name}.cmd` : name, win ? args.map(quote) : args, { shell: win, ...opts });
 
 for (const required of ['apps/backend/dist/main.js', 'apps/web/.next/standalone']) {
   if (!existsSync(join(repo, required))) {
@@ -91,10 +95,10 @@ const payload = join(out, '.payload');
 const backendDir = join(payload, 'backend');
 // Hoisted layout: a flat node_modules with real directories, so archives extract the same on every
 // OS (Windows tar cannot always create symlinks) and never point back at this build machine.
-run(pnpm, ['--filter', '@domain-scout/backend', 'deploy', '--prod', '--legacy', '--config.node-linker=hoisted', backendDir]);
+runTool('pnpm', ['--filter', '@domain-scout/backend', 'deploy', '--prod', '--legacy', '--config.node-linker=hoisted', backendDir]);
 rmSync(join(backendDir, 'node_modules/.bin'), { recursive: true, force: true });
 // `deploy --prod` also prunes dev dependencies from the workspace's own node_modules; restore them.
-run(pnpm, ['install', '--frozen-lockfile', '--offline']);
+runTool('pnpm', ['install', '--frozen-lockfile', '--offline']);
 
 const webDir = join(payload, 'web');
 flattenStandalone(join(repo, 'apps/web/.next/standalone'), webDir);
@@ -129,7 +133,7 @@ for (const target of targets) {
         protocolVersion: contracts.PROTOCOL_VERSION,
         os,
         arch,
-        node: '>=26',
+        node: '>=24.11',
         layout: { cli: `bin/${exe}`, backend: 'lib/backend/dist/main.js', web: 'lib/web/server.js' },
         createdAt: new Date().toISOString(),
       },
@@ -139,7 +143,7 @@ for (const target of targets) {
   );
   writeFileSync(
     join(dir, 'README.txt'),
-    `Domain Scout ${version} (${target})\n\nRequires Node.js 26 or newer on PATH (or DOMAIN_SCOUT_NODE).\n\n  bin/${exe} ui              open the web UI\n  bin/${exe} scan acme --tlds com,io --wait\n  bin/${exe} service stop\n`,
+    `Domain Scout ${version} (${target})\n\nRequires Node.js 24.11 or newer on PATH (or DOMAIN_SCOUT_NODE).\n\n  bin/${exe} ui              open the web UI\n  bin/${exe} scan acme --tlds com,io --wait\n  bin/${exe} service stop\n`,
   );
   // macOS tar would otherwise embed Apple extended attributes that other platforms warn about.
   const macTar = process.platform === 'darwin' ? ['--no-mac-metadata', '--no-xattrs'] : [];

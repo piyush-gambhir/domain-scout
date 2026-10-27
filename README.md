@@ -1,10 +1,23 @@
 # Domain Scout
 
-Local tool for checking domain registration records, finding purchase providers and comparing prices where reliable data exists. Coding agents use the Go CLI; people use the web UI. Both drive the same local backend, and nothing is hosted.
+Local tool for checking domain registration records, finding purchase providers and comparing prices where reliable data exists. It is a CLI for coding agents first; an optional web UI drives the same local engine. Nothing is hosted.
 
 Registry results are evidence, not promises: "no record" means the registry returned no registration record when checked, not that a name can be bought. Prices carry their source, type and age, and unknown values stay unknown.
 
 Repository visibility: private. Open sourcing needs a separate explicit decision.
+
+## Install the CLI
+
+The npm package is the whole CLI-only install: the Go CLI for your platform plus the local engine, with no UI. It needs Node.js 24.11 or newer. The packages are not published yet; build and install them from a checkout:
+
+```sh
+pnpm install && pnpm build
+node scripts/package-npm.mjs              # release/npm/*.tgz for macOS, Linux and Windows
+npm install -g --offline release/npm/domain-scout-0.1.0.tgz release/npm/domain-scout-cli-$(node -p 'process.platform+"-"+process.arch')-0.1.0.tgz
+domain-scout scan acme --tlds com,io --wait
+```
+
+There is no server to run. The first command starts the engine in the background, later commands reuse it, and it stops itself after ten idle minutes (`DOMAIN_SCOUT_IDLE_TIMEOUT` in seconds, `0` to keep it running). Active watches, unfinished jobs, session-only provider keys and a running UI keep it up. A newer CLI replaces an older engine once nothing would be lost. `node scripts/verify-npm-package.mjs` checks an install end to end without sending any names.
 
 ## Run with Docker
 
@@ -28,7 +41,7 @@ docker compose exec domain-scout domain-scout scan acme --tlds com,io --wait --o
 
 ## Run from source
 
-Requires Node.js 26, pnpm 12 and Go 1.27.
+Requires Node.js 26, pnpm 12 and Go 1.27 for development.
 
 ```sh
 pnpm install
@@ -45,7 +58,7 @@ apps/cli/bin/domain-scout service start
 apps/cli/bin/domain-scout ui
 ```
 
-Useful Turborepo tasks: `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm test:e2e`, `pnpm generate` (OpenAPI and the Go client). `pnpm smoke` checks the CLI, API and web against one backend; `pnpm acceptance` runs 1,200 names twice through the real CLI and backend against a local stub registry (cancel, resume, restart, export) without sending names anywhere. `pnpm package` builds distribution archives for macOS, Linux and Windows into `release/` (Node.js 26 or newer must be installed on the target machine).
+Useful Turborepo tasks: `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm test:e2e`, `pnpm generate` (OpenAPI and the Go client). `pnpm smoke` checks the CLI, API and web against one backend; `pnpm acceptance` runs 1,200 names twice through the real CLI and backend against a local stub registry (cancel, resume, restart, export) without sending names anywhere. `pnpm package` builds release archives with the UI for macOS, Linux and Windows into `release/` (Node.js 24.11 or newer must be installed on the target machine); `node scripts/package-npm.mjs` builds the CLI-only npm packages.
 
 ## CLI for agents
 
@@ -93,7 +106,7 @@ Registry discovery and public catalogs need no keys. Optional provider integrati
 | `apps/cli` | Go CLI (`domain-scout`) with a client generated from the OpenAPI document |
 | `packages/contracts` | Zod schemas, route table and the generated `openapi.json` |
 | `packages/api-client` | Typed TypeScript client |
-| `scripts` | Dev launcher, container entry point, packaging |
+| `scripts` | Dev launcher, container entry point, release archives, npm packages, smoke and acceptance runs |
 
 ## Project notes
 

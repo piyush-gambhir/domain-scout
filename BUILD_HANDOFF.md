@@ -44,7 +44,7 @@ Nest modules: Registry, Providers, Pricing, Jobs, Collections, Discovery, Monito
 
 ## Local runtime and access
 
-A launcher starts/connects to Nest, starts Next when UI is requested, and opens the browser. Go auto-starts installed Nest assets when needed. Jobs and configured watches continue with the browser closed. Closing Next does not stop Nest. Provide explicit service stop; do not install an always-on OS service by default.
+A launcher starts/connects to Nest, starts Next when UI is requested, and opens the browser. Go auto-starts installed Nest assets when needed. Jobs and configured watches continue with the browser closed. Closing Next does not stop Nest. Provide explicit service stop; do not install an always-on OS service by default. Added October 27, 2026 for CLI-only use: with no open clients, unfinished jobs, active watches, session-only credentials or running UI server, Nest stops itself after an idle period (default ten minutes) and Go starts it again on the next command.
 
 Bind to loopback. Defaults: Next 127.0.0.1:3000, Nest 127.0.0.1:4317; allow configured ports. Use a per-data-directory instance lock and an owner-only runtime file containing actual endpoint, process identity, instance ID and protocol version. Verify identity/version before reuse, not just an answering port. Report port conflicts without connecting to another service.
 

@@ -23,6 +23,8 @@ type col struct {
 	header string
 	path   string
 	fn     func(row map[string]any) string
+	// full keeps the whole value (URLs); other cells are clipped to maxCell.
+	full bool
 }
 
 // view describes how table and ndjson modes render a response. JSON mode
@@ -213,6 +215,11 @@ func (c col) value(row map[string]any) string {
 	if c.fn != nil {
 		return c.fn(row)
 	}
+	if c.full {
+		if s, ok := lookup(row, c.path).(string); ok && s != "" {
+			return s
+		}
+	}
 	return cell(lookup(row, c.path))
 }
 
@@ -316,6 +323,9 @@ func clip(s string) string {
 // Column helpers.
 
 func c(header, path string) col { return col{header: header, path: path} }
+
+// link is an unclipped column for URLs; keep it last so long values do not push other columns.
+func link(header, path string) col { return col{header: header, path: path, full: true} }
 
 func money(amountPath, currencyPath string) func(map[string]any) string {
 	return func(row map[string]any) string {

@@ -1,6 +1,6 @@
 # Domain Scout build report
 
-Built October 5 to 7, 2026 on the `build` branch, pushed to the private GitHub repository on October 7. On October 27 the stack moved to Node 26 with every dependency at its latest compatible release, and the two small UI gaps from the pending list were closed; the suites below were rerun then. This report separates what was built, how it was verified, and what is still pending. Live checks used only the authorized fixed test set: `example.com`, `google.com`, `nic.si`, `bbc.co.uk` and random 24-character gibberish names.
+Built October 5 to 7, 2026 on the `build` branch, pushed to the private GitHub repository on October 7. On October 27 the stack moved to Node 26 with every dependency at its latest compatible release, the two small UI gaps from the pending list were closed, and the CLI became installable on its own (see [Standalone CLI](#standalone-cli)); the suites below were rerun then. This report separates what was built, how it was verified, and what is still pending. Live checks used only the authorized fixed test set: `example.com`, `google.com`, `nic.si`, `bbc.co.uk` and random 24-character gibberish names.
 
 ## Status
 
@@ -17,7 +17,7 @@ After the first full build Piyush asked for a redesign, because the first UI mir
 | Registry coverage | IANA RDAP bootstrap plus curated routes: 56 suffixes tested, 1,198 discovered, 192 unsupported (each with a reason). Curated RDAP for .ch, .li and .co; registry-specific WHOIS classifiers for 45 suffixes (.de, .io, .jp, .cn, .eu, 36 more ccTLDs and 4 .za zones) |
 | Web UI | Next.js 16, task-based: Search (one input with remembered extensions, live grid or grouped list, Ideas mode, row actions Save, Buy, Watch), Saved (shortlists with multi-year cost by provider, quotes, Buy), Watching (watches with the current state of their names, and an inbox of changes), History (UI and agent runs by origin), Settings (providers, preferences, checks, coverage, data, service); docked domain panel that leads with status, best prices and where to buy |
 | CLI | Go `domain-scout`: every API operation, JSON/table/NDJSON output, SSE waits with replay and polling fallback, the handoff's exit codes, a launcher that starts or reuses the backend and web server, `ui --job` to open a run in the UI, `prices published` for catalog prices per extension, and `domain-scout mcp` (11 MCP tools over stdio on the same API) |
-| Runs | `docker compose up --build` (single container, UI on host loopback only), `pnpm dev`, `pnpm smoke`, `pnpm acceptance` (1,200 names against a local stub registry), `pnpm package` (archives for macOS arm64/amd64, Linux amd64/arm64, Windows amd64) |
+| Runs | `docker compose up --build` (single container, UI on host loopback only), `pnpm dev`, `pnpm smoke`, `pnpm acceptance` (1,200 names against a local stub registry), `pnpm package` (archives with the UI for macOS arm64/amd64, Linux amd64/arm64, Windows amd64), `node scripts/package-npm.mjs` (CLI-only npm packages for the same platforms) |
 
 Build-time technology decisions are recorded in [TECH_STACK.md](TECH_STACK.md#build-time-decisions); conventions and module ownership in [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md).
 
@@ -27,14 +27,15 @@ Build-time technology decisions are recorded in [TECH_STACK.md](TECH_STACK.md#bu
 
 | Suite | Result |
 | --- | --- |
-| Backend (Vitest, real temporary SQLite, fake transports) | 827 tests in 52 files |
+| Backend (Vitest, real temporary SQLite, fake transports) | 836 tests in 53 files, on Node 26.12 and on Node 24.22 |
 | Contracts and API client (Vitest) | 6 and 5 tests |
-| Go CLI (`go test`) | 4 packages, all passing, including the MCP server, cancelled-run output and quote decision fields; one earlier unexplained failure under heavy parallel load did not reproduce in 13 reruns |
+| Go CLI (`go test`) | 4 packages, all passing, including the MCP server, cancelled-run output, quote decision fields, backend revival after an idle stop and safe replacement of an older backend; one earlier unexplained failure under heavy parallel load did not reproduce in 13 reruns |
 | Web (Playwright against the real backend, fixtures only where a test would reach the network) | 154 tests: 76 for the five journeys, redirects, keyboard use, settings, providers and sessions, and 78 layout checks (no page scroll at 1440x900 and 1280x800, no sideways scroll at 390x844) |
 | Typecheck and lint (`pnpm turbo run typecheck lint`) | Clean |
 | `pnpm smoke` (CLI, API and web on one backend, live fixed set) | 14 of 14 checks |
-| `pnpm acceptance` (1,200 names twice through the CLI and backend, local stub registry) | 11 of 11 checks: cancel at 30% and resume, backend stop and restart, no finished name queried twice, TXT export exact; 2.9 s per job, result pages p95 7 ms while jobs run (Node 26) |
+| `pnpm acceptance` (1,200 names twice through the CLI and backend, local stub registry) | 11 of 11 checks: cancel at 30% and resume, backend stop and restart, no finished name queried twice, TXT export exact; 2.8 s per job, result pages p95 5 ms while jobs run (Node 26) |
 | MCP over stdio against a real backend | initialize, 11 tools listed, `scan` of example.com returned `registered` through the registry only |
+| `node scripts/verify-npm-package.mjs` (CLI-only npm install) | 11 of 11 checks on macOS arm64 (Node 24.22, 26.12), Linux arm64 and amd64 (`node:24`, `node:26`) and `node:24-alpine` |
 
 ### Live checks (fixed test set only)
 
@@ -52,6 +53,17 @@ Build-time technology decisions are recorded in [TECH_STACK.md](TECH_STACK.md#bu
 | GitHub, npm, PyPI, crates.io name checks | the services' public APIs | exists / not_found as expected |
 
 Recorded in `apps/backend/data/registry/live-validation.json` (56 checks across 52 suffixes, 55 as expected). Port 43 was blocked during the first build and opened on October 6, which is when the WHOIS routes were validated. One deviation: an early live name-check spec used `react`, `requests`, `github` and `serde` (outside the fixed set) against npm, PyPI, GitHub and crates.io twice before it was corrected to fixed-set names. Separately, at Piyush's explicit request on October 7, 562 candidate `.si` names (super intelligence and science fiction themes) were checked against rdap.register.si only; no registrar or aggregator received them.
+
+### Standalone CLI
+
+Added October 27 after Piyush chose CLI-first for coding agents (the web UI stays and keeps working):
+
+- `npm install -g` of the packed tarballs is the whole install: the `domain-scout` package carries the backend with its production dependencies bundled (4.6 MB packed) and a launcher script; one optional package per platform carries the Go CLI (4.4 to 5.0 MB). Nothing is published; names are placeholders and the packages are marked private.
+- The backend stops itself after ten idle minutes unless requests, event streams, unfinished jobs, active watches, session-only credentials or a running UI keep it busy. The CLI, MCP sessions included, starts it again when needed, and a request that met a stopping backend is sent once more.
+- A newer CLI replaces an older backend only through `POST /service/stop-unless-busy` for the instance it verified, keeps its port, and never stops a backend it cannot replace or a newer one. An older backend refuses a database migrated by a newer one.
+- Installed copies need Node.js 24.11 or newer. The backend suite passes on Node 24.22 and 26.12.
+- `node scripts/verify-npm-package.mjs` (11 checks: offline install, launcher, bundled backend on the running Node.js, exit codes, MCP over stdio, SIGTERM, missing-UI message, idle stop and restart) passed on macOS arm64 with Node 24.22 and 26.12, in `node:24` and `node:26` Linux containers on arm64 and amd64, and on `node:24-alpine`. Windows was built, not run.
+- Offer tables show prices with currency, minimum term, ICANN fee and the full purchase link.
 
 ### Platform runs
 
@@ -84,10 +96,11 @@ These need access, authorization or machines this build did not have.
 1. **Authenticated provider operations (P07, R09, scenario 6).** All nine adapters implement their documented exact checks, quotes, transfers and aftermarket calls and are tested against documentation-derived fixtures. None has run against a real account. Needed: API keys for the providers you use, then a recorded live quote per provider (fixed test names only).
 2. **Purchase handoff for renewal and transfer, and storefront verification (R05, F05).** New-registration links exist for every provider but were never opened, and no provider manifest has renewal or transfer destinations, so those paths show no link. Needed: authorization to open provider storefronts with fixed test names, then recorded templates with verification dates.
 3. **Two WHOIS registries without a live pass.** `.il` answers a gibberish name with only its disclaimer and no "not found" line, so it stays `inconclusive` instead of guessing `no_record`; telling not-found from throttling needs a registered `.il` name, which is outside the fixed test set. `.pt` (whois.dns.pt) timed out on both attempts.
-4. **Windows (scenario 19).** The Windows archive builds; owner-only ACLs (`icacls`), process detach, signal handling and the browser opener were never run on Windows. Needed: a Windows machine.
+4. **Windows (scenario 19).** The Windows archive and npm package build; owner-only ACLs (`icacls`), process detach, signal handling, the npm launcher script and the browser opener were never run on Windows. Needed: a Windows machine.
 5. **Not implemented provider extras.** GoDaddy locked registration quotes and Auctions, Sedo and Atom marketplace integrations (Atom's anonymous search is documented but outside the authorized live set).
 6. **Live IDN validation.** IDN normalization is unit-tested; no internationalized name is in the fixed live set.
 7. **A live 1,000-name run against a public registry.** The acceptance run measures the full engine, CLI and API against a local stub registry; stress runs against public registries are not authorized.
+8. **Publishing the CLI.** The npm packages install from local tarballs only. Needed: a decision on package names (an npm scope) and on public or private publishing, given that the repository stays private and the package ships readable compiled backend code.
 
 ## Verification limits
 

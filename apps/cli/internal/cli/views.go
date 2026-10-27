@@ -46,9 +46,10 @@ var (
 	credentialTestView = view{}
 	offerView          = view{cols: []col{
 		c("PROVIDER", "providerId"), c("DOMAIN", "domain"), c("SUFFIX", "suffix"), c("PATH", "purchasePath"),
-		c("KIND", "kind"), c("CURRENCY", "currency"), c("REGISTRATION", "registration.amount"),
-		c("RENEWAL", "renewal.amount"), c("TRANSFER", "transfer.amount"), c("PREMIUM", "premium.status"),
-		c("FRESHNESS", "freshness"), c("OBSERVED", "observedAt"),
+		c("KIND", "kind"), {header: "REGISTRATION", fn: money("registration.amount", "currency")},
+		{header: "RENEWAL", fn: money("renewal.amount", "currency")}, {header: "TRANSFER", fn: money("transfer.amount", "currency")},
+		c("MIN YEARS", "minYears"), {header: "ICANN FEE", fn: money("fees.icann", "currency")}, c("PREMIUM", "premium.status"),
+		c("FRESHNESS", "freshness"), c("OBSERVED", "observedAt"), link("BUY", "destination.url"),
 	}}
 	comparisonView = view{
 		list:    "rows",
@@ -83,7 +84,7 @@ var (
 	listingView = view{cols: []col{
 		c("DOMAIN", "domain"), c("MARKETPLACE", "marketplace"), c("STATUS", "status"),
 		{header: "PRICE", fn: money("price.amount", "price.currency")}, c("FRESHNESS", "freshness"),
-		c("OBSERVED", "observedAt"), c("URL", "url"),
+		c("OBSERVED", "observedAt"), link("URL", "url"),
 	}}
 	aftermarketSourceView = view{cols: []col{
 		c("ID", "id"), c("NAME", "name"), c("SUPPORTED", "supported"), c("CREDENTIALS", "requiresCredentials"), c("REASON", "reason"),
