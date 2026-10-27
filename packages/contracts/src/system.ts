@@ -226,4 +226,13 @@ export const ServiceStop = z
   .object({ stopping: z.literal(true), graceMs: z.number().int() })
   .meta({ id: 'ServiceStop' });
 export const ServiceStopResponse = envelope(ServiceStop, 'ServiceStopResponse');
+export const ServiceStopUnlessBusy = z
+  .object({
+    instanceId: Uuid.meta({ description: 'The backend instance the caller verified; another instance refuses with 409 conflict' }),
+  })
+  .meta({
+    id: 'ServiceStopUnlessBusy',
+    description:
+      'Stops only when nothing would be lost: unfinished jobs, other open requests or event streams, session-only credentials or a running UI server refuse with 409 conflict, and the error details name each one',
+  });
 

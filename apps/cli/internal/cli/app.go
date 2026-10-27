@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -276,9 +277,18 @@ func (a *App) connect(ctx context.Context, autostart bool) (*connection, string,
 	}
 	lc := a.launcherConfig(dataDir)
 	info, h, err := lc.Discover(ctx)
+	replacedPort := 0
 	switch {
 	case err == nil:
-		return &connection{url: strings.TrimRight(info.URL, "/"), health: h}, dataDir, nil
+		conn := &connection{url: strings.TrimRight(info.URL, "/"), health: h}
+		if !autostart {
+			return conn, dataDir, nil
+		}
+		if next, startOwn := a.replaceOlderBackend(ctx, lc, conn, dataDir); !startOwn {
+			return next, dataDir, nil
+		}
+		// The older backend stopped; start this version's below, on the port it used.
+		replacedPort = urlPort(info.URL)
 	case ctx.Err() != nil:
 		return nil, "", errInterrupted
 	case errors.Is(err, runtime.ErrUnreachable):
@@ -294,6 +304,9 @@ func (a *App) connect(ctx context.Context, autostart bool) (*connection, string,
 	if err != nil {
 		return nil, "", err
 	}
+	if replacedPort > 0 {
+		port = replacedPort
+	}
 	info, h, err = lc.StartBackend(ctx, port, a.webOrigins)
 	if err != nil {
 		if ctx.Err() != nil {
@@ -303,6 +316,16 @@ func (a *App) connect(ctx context.Context, autostart bool) (*connection, string,
 	}
 	a.started = true
 	return &connection{url: strings.TrimRight(info.URL, "/"), health: h}, dataDir, nil
+}
+
+// urlPort is the port of a backend URL such as http://127.0.0.1:4317, or 0.
+func urlPort(raw string) int {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return 0
+	}
+	p, _ := strconv.Atoi(u.Port())
+	return p
 }
 
 func asSetup(err error) error {
@@ -330,7 +353,10 @@ func (a *App) api(ctx context.Context) (*apiClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	a.client = newAPIClient(conn.url, token, a.opts.timeout, a.Version)
+	a.client = newAPIClient(conn.url, token, conn.health.Response.Data.InstanceId.String(), a.opts.timeout, a.Version)
+	if a.opts.backendURL == "" {
+		a.client.revive = a.reviveBackend
+	}
 	return a.client, nil
 }
 

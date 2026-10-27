@@ -24,7 +24,18 @@ const (
 	EnvVersion  = "FAKE_NODE_VERSION"      // `node --version` output (default v26.12.1)
 	EnvProtocol = "FAKE_NODE_PROTOCOL"     // protocolVersion the fake backend reports (default 1)
 	EnvWebDelay = "FAKE_NODE_WEB_DELAY_MS" // delay before the fake UI server listens
-	Token       = "fake-token"
+	// EnvAppVersion is the application version the fake backend reports (default 0.0.0-fake).
+	EnvAppVersion = "FAKE_NODE_APP_VERSION"
+	// EnvBusy makes POST /service/stop-unless-busy answer 409 as a busy backend does.
+	EnvBusy = "FAKE_NODE_BUSY"
+	// EnvNoConditionalStop serves no /service/stop-unless-busy, like a backend that predates it.
+	EnvNoConditionalStop = "FAKE_NODE_NO_CONDITIONAL_STOP"
+	// EnvStopOnce names a route ("GET /api/v1/jobs") the first backend for a data
+	// directory refuses as "stopping" before exiting, like an idle stop racing a request.
+	EnvStopOnce = "FAKE_NODE_STOP_ONCE"
+	// EnvLocked makes the backend exit as the real one does when another holds the data directory lock.
+	EnvLocked = "FAKE_NODE_LOCKED"
+	Token     = "fake-token"
 )
 
 // Main runs the fake when enabled and never returns in that case.
@@ -66,6 +77,10 @@ func backend(args []string) {
 	var origins multi
 	fs.Var(&origins, "web-origin", "")
 	_ = fs.Parse(args)
+	if os.Getenv(EnvLocked) == "1" {
+		fmt.Fprintf(os.Stderr, "domain-scout-backend: Another Domain Scout backend (pid 1) is using this data directory (lock %s)\n", filepath.Join(*dataDir, "backend.lock"))
+		os.Exit(5)
+	}
 
 	ln, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", *port))
 	if err != nil {
@@ -80,11 +95,15 @@ func backend(args []string) {
 		fmt.Sscan(p, &protocol)
 	}
 	instance := uuid()
+	version := os.Getenv(EnvAppVersion)
+	if version == "" {
+		version = "0.0.0-fake"
+	}
 	url := fmt.Sprintf("http://127.0.0.1:%d", *port)
 	started := time.Now().UTC().Format(time.RFC3339)
 	info := map[string]any{
 		"url": url, "pid": os.Getpid(), "instanceId": instance, "protocolVersion": protocol,
-		"contractVersion": "1.0.0", "version": "0.0.0-fake", "startedAt": started, "dataDir": *dataDir,
+		"contractVersion": "1.0.0", "version": version, "startedAt": started, "dataDir": *dataDir,
 	}
 	b, _ := json.Marshal(info)
 	_ = os.WriteFile(filepath.Join(run, "backend.json"), b, 0o600)
@@ -93,15 +112,29 @@ func backend(args []string) {
 	mux.HandleFunc("GET /api/v1/health", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 200, map[string]any{"contractVersion": "1.0.0", "data": map[string]any{
 			"status": "ok", "instanceId": instance, "protocolVersion": protocol, "contractVersion": "1.0.0",
-			"version": "0.0.0-fake", "startedAt": started, "pid": os.Getpid(), "dataDir": *dataDir,
+			"version": version, "startedAt": started, "pid": os.Getpid(), "dataDir": *dataDir,
 		}})
 	})
+	exit := func() {
+		time.Sleep(50 * time.Millisecond)
+		_ = os.Remove(filepath.Join(run, "backend.json"))
+		os.Exit(0)
+	}
+	stopOnce := os.Getenv(EnvStopOnce)
+	stoppedMarker := filepath.Join(*dataDir, "fake-stopped-once")
+	if _, err := os.Stat(stoppedMarker); err == nil {
+		stopOnce = ""
+	}
 	authed := func(h http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			if r.Header.Get("Authorization") != "Bearer "+Token {
-				writeJSON(w, 401, map[string]any{"contractVersion": "1.0.0", "error": map[string]any{
-					"code": "unauthorized", "message": "bad token", "requestId": "r", "domain": nil, "source": nil,
-					"retryable": false, "retryAt": nil, "details": nil}})
+				writeError(w, 401, "unauthorized", "bad token")
+				return
+			}
+			if stopOnce == r.Method+" "+r.URL.Path {
+				_ = os.WriteFile(stoppedMarker, nil, 0o600)
+				writeError(w, 503, "unavailable", "The backend is stopping")
+				go exit()
 				return
 			}
 			h(w, r)
@@ -117,14 +150,27 @@ func backend(args []string) {
 		writeJSON(w, 201, map[string]any{"contractVersion": "1.0.0", "data": map[string]any{
 			"code": "bootstrap-code-1234567890", "expiresAt": time.Now().Add(time.Minute).UTC().Format(time.RFC3339)}})
 	}))
-	mux.HandleFunc("POST /api/v1/service/stop", authed(func(w http.ResponseWriter, r *http.Request) {
+	stopped := func(w http.ResponseWriter) {
 		writeJSON(w, 202, map[string]any{"contractVersion": "1.0.0", "data": map[string]any{"stopping": true, "graceMs": 100}})
-		go func() {
-			time.Sleep(50 * time.Millisecond)
-			_ = os.Remove(filepath.Join(run, "backend.json"))
-			os.Exit(0)
-		}()
-	}))
+		go exit()
+	}
+	mux.HandleFunc("POST /api/v1/service/stop", authed(func(w http.ResponseWriter, r *http.Request) { stopped(w) }))
+	if os.Getenv(EnvNoConditionalStop) != "1" {
+		mux.HandleFunc("POST /api/v1/service/stop-unless-busy", authed(func(w http.ResponseWriter, r *http.Request) {
+			var body struct {
+				InstanceID string `json:"instanceId"`
+			}
+			_ = json.NewDecoder(r.Body).Decode(&body)
+			switch {
+			case !strings.EqualFold(body.InstanceID, instance):
+				writeError(w, 409, "conflict", "This is backend instance "+instance)
+			case os.Getenv(EnvBusy) == "1":
+				writeError(w, 409, "conflict", "The backend is busy: 1 unfinished job")
+			default:
+				stopped(w)
+			}
+		}))
+	}
 	_ = http.Serve(ln, mux)
 	os.Exit(0)
 }
@@ -146,6 +192,12 @@ func web() {
 		fmt.Fprintf(w, "fake web for %s", backend)
 	}))
 	os.Exit(0)
+}
+
+func writeError(w http.ResponseWriter, status int, code, message string) {
+	writeJSON(w, status, map[string]any{"contractVersion": "1.0.0", "error": map[string]any{
+		"code": code, "message": message, "requestId": "r", "domain": nil, "source": nil,
+		"retryable": status == 503, "retryAt": nil, "details": nil}})
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {

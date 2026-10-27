@@ -5,6 +5,7 @@ import { StorageModule } from '../storage/storage.module.js';
 import { SettingsService } from '../system/settings.service.js';
 import { EventsService } from '../events/events.service.js';
 import { OperationRegistry } from '../jobs/operation-registry.js';
+import { ActivityMonitor } from '../runtime/activity.js';
 import { ShutdownCoordinator } from '../runtime/shutdown.js';
 
 export interface CoreOptions {
@@ -12,7 +13,7 @@ export interface CoreOptions {
   clock?: Clock;
 }
 
-/** Global infrastructure shared by every module: config, clock, database, settings, events, handlers, shutdown. */
+/** Global infrastructure shared by every module: config, clock, database, settings, events, handlers, shutdown, idle tracking. */
 @Global()
 @Module({})
 export class CoreModule {
@@ -27,8 +28,9 @@ export class CoreModule {
         EventsService,
         OperationRegistry,
         ShutdownCoordinator,
+        ActivityMonitor,
       ],
-      exports: [APP_CONFIG, Clock, StorageModule, SettingsService, EventsService, OperationRegistry, ShutdownCoordinator],
+      exports: [APP_CONFIG, Clock, StorageModule, SettingsService, EventsService, OperationRegistry, ShutdownCoordinator, ActivityMonitor],
     };
   }
 }

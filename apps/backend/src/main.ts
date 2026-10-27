@@ -9,6 +9,7 @@ import { acquireInstanceLock, LockHeldError, type InstanceLock } from './runtime
 import { runtimePaths } from './runtime/paths.js';
 import { backendUrl, readRuntimeFile, removeRuntimeFile, writeRuntimeFile } from './runtime/runtime-file.js';
 import { ShutdownCoordinator } from './runtime/shutdown.js';
+import { NewerDatabaseError } from './storage/database.js';
 import { loadOrCreateApiToken } from './runtime/token.js';
 
 // Exit codes shared with the Go CLI contract: 2 invalid usage, 5 backend setup failure.
@@ -60,6 +61,7 @@ async function main() {
     embedded: false,
     apiToken: loadOrCreateApiToken(paths.tokenFile),
     bootstrapTtlMs: bootstrapTtlFromEnv(process.env.DOMAIN_SCOUT_BOOTSTRAP_TTL_SECONDS),
+    idleTimeoutMs: args.idleTimeoutMs,
   };
 
   let app: NestExpressApplication | undefined;
@@ -69,6 +71,10 @@ async function main() {
   } catch (error) {
     await app?.close().catch(() => undefined);
     lock.release();
+    if (error instanceof NewerDatabaseError) {
+      stderr(`domain-scout-backend: ${error.message}`);
+      process.exit(EXIT_SETUP);
+    }
     const code = (error as NodeJS.ErrnoException).code;
     if (code === 'EADDRINUSE') {
       stderr(

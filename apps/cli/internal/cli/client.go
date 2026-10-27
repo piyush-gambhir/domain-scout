@@ -8,8 +8,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/piyush-gambhir/domain-scout/cli/internal/api"
@@ -19,11 +21,23 @@ import (
 func probeClient() *http.Client { return &http.Client{Timeout: 5 * time.Second} }
 
 // apiClient wraps the generated client with auth, timeouts, error mapping
-// and raw body access so JSON output stays verbatim.
+// and raw body access so JSON output stays verbatim. It is safe for
+// concurrent use (MCP tool calls).
 type apiClient struct {
-	base    string
-	gen     *api.Client
 	timeout time.Duration
+	hc      *http.Client
+	version string
+	// revive replaces a backend that stopped (idle) or is stopping; nil with
+	// --backend-url. It returns the new backend's URL, token and instance id.
+	revive   func(ctx context.Context, gone string) (base, token, instance string, err error)
+	reviveMu sync.Mutex
+
+	mu       sync.RWMutex
+	base     string
+	token    string
+	instance string
+	gen      *api.Client
+	epoch    int // bumped by every revive
 }
 
 // callFn invokes one generated client method.
@@ -35,24 +49,83 @@ type response struct {
 	body   []byte
 }
 
-func newAPIClient(base, token string, timeout time.Duration, version string) *apiClient {
+func newAPIClient(base, token, instance string, timeout time.Duration, version string) *apiClient {
 	// No client-wide timeout: event streams are long lived. Requests get a
 	// per-call deadline; waiting for response headers (including a stream's)
 	// is bounded separately so a silent backend cannot hang a wait.
 	tr := http.DefaultTransport.(*http.Transport).Clone()
 	tr.ResponseHeaderTimeout = timeout
-	hc := &http.Client{Transport: tr}
+	c := &apiClient{timeout: timeout, hc: &http.Client{Transport: tr}, version: version, base: base, token: token, instance: instance}
+	c.gen = c.newGen(base)
+	return c
+}
+
+func (c *apiClient) newGen(base string) *api.Client {
 	auth := func(ctx context.Context, req *http.Request) error {
 		if !strings.HasSuffix(req.URL.Path, "/api/v1/health") {
-			req.Header.Set("Authorization", "Bearer "+token)
+			c.mu.RLock()
+			req.Header.Set("Authorization", "Bearer "+c.token)
+			c.mu.RUnlock()
 		}
-		req.Header.Set("User-Agent", "domain-scout-cli/"+version)
+		req.Header.Set("User-Agent", "domain-scout-cli/"+c.version)
 		// Lets History tell agent (CLI) runs apart from searches started in the UI.
 		req.Header.Set("X-Domain-Scout-Client", "cli")
 		return nil
 	}
-	gen, _ := api.NewClient(base, api.WithHTTPClient(hc), api.WithRequestEditorFn(auth))
-	return &apiClient{base: base, gen: gen, timeout: timeout}
+	gen, _ := api.NewClient(base, api.WithHTTPClient(c.hc), api.WithRequestEditorFn(auth))
+	return gen
+}
+
+// current returns the generated client and its revive epoch.
+func (c *apiClient) current() (*api.Client, int) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.gen, c.epoch
+}
+
+// baseURL is the backend URL currently in use.
+func (c *apiClient) baseURL() string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.base
+}
+
+// reconnect revives the backend once per failure: callers that failed on an
+// epoch another call has already revived simply retry.
+func (c *apiClient) reconnect(ctx context.Context, failed int) error {
+	c.reviveMu.Lock()
+	defer c.reviveMu.Unlock()
+	c.mu.RLock()
+	epoch, gone := c.epoch, c.instance
+	c.mu.RUnlock()
+	if epoch != failed {
+		return nil
+	}
+	base, token, instance, err := c.revive(ctx, gone)
+	if err != nil {
+		return err
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.base, c.token, c.instance = base, token, instance
+	c.gen = c.newGen(base)
+	c.epoch++
+	return nil
+}
+
+// backendGone reports a request the backend never handled because it had
+// stopped (nothing listening) or was stopping, so a retry cannot repeat work.
+func backendGone(err error) bool {
+	var e *exitError
+	return errors.As(err, &e) && e.gone
+}
+
+// stoppingMessage is the backend's refusal while it stops (AuthGuard and the jobs engine).
+const stoppingMessage = "The backend is stopping"
+
+func isDialError(err error) bool {
+	var op *net.OpError
+	return errors.As(err, &op) && op.Op == "dial"
 }
 
 func (c *apiClient) transportErr(parent, rctx context.Context, err error) error {
@@ -60,19 +133,34 @@ func (c *apiClient) transportErr(parent, rctx context.Context, err error) error 
 		return errInterrupted
 	}
 	if errors.Is(rctx.Err(), context.DeadlineExceeded) {
-		return failErr("the request to %s timed out after %s; raise --timeout", c.base, c.timeout)
+		return failErr("the request to %s timed out after %s; raise --timeout", c.baseURL(), c.timeout)
 	}
-	e := setupErr("the backend at %s is unreachable: %v", c.base, err)
-	e.(*exitError).retryable = true
+	e := setupErr("the backend at %s is unreachable: %v", c.baseURL(), err).(*exitError)
+	e.retryable = true
+	e.gone = isDialError(err)
 	return e
 }
 
 // do performs one request and returns the body of a 2xx response or a typed
-// error for anything else.
+// error for anything else. A backend that stopped itself when idle (or is
+// stopping) is replaced and the request sent once more.
 func (c *apiClient) do(ctx context.Context, fn callFn) (*response, error) {
+	gen, epoch := c.current()
+	res, err := c.doOnce(ctx, gen, fn)
+	if err == nil || c.revive == nil || !backendGone(err) {
+		return res, err
+	}
+	if rerr := c.reconnect(ctx, epoch); rerr != nil {
+		return nil, rerr
+	}
+	gen, _ = c.current()
+	return c.doOnce(ctx, gen, fn)
+}
+
+func (c *apiClient) doOnce(ctx context.Context, gen *api.Client, fn callFn) (*response, error) {
 	rctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
-	resp, err := fn(rctx, c.gen)
+	resp, err := fn(rctx, gen)
 	if err != nil {
 		return nil, c.transportErr(ctx, rctx, err)
 	}
@@ -82,7 +170,11 @@ func (c *apiClient) do(ctx context.Context, fn callFn) (*response, error) {
 		return nil, c.transportErr(ctx, rctx, err)
 	}
 	if resp.StatusCode >= 400 {
-		return nil, apiError(resp.StatusCode, body)
+		e := apiError(resp.StatusCode, body)
+		if x, ok := e.(*exitError); ok && x.errCode == api.ErrorCodeUnavailable && x.msg == stoppingMessage {
+			x.gone = true
+		}
+		return nil, e
 	}
 	return &response{status: resp.StatusCode, header: resp.Header, body: body}, nil
 }
@@ -114,7 +206,8 @@ func (c *apiClient) doIdempotent(ctx context.Context, fn callFn) (*response, err
 func (c *apiClient) download(ctx context.Context, fn callFn, w io.Writer) error {
 	rctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
-	resp, err := fn(rctx, c.gen)
+	gen, _ := c.current()
+	resp, err := fn(rctx, gen)
 	if err != nil {
 		return c.transportErr(ctx, rctx, err)
 	}
@@ -184,7 +277,8 @@ func (c *apiClient) getJob(ctx context.Context, id api.Uuid) (*api.Job, []byte, 
 // openEvents returns an sse.Stream opener for GET /events with params.
 func (c *apiClient) openEvents(params api.StreamEventsParams) func(ctx context.Context, lastID string) (io.ReadCloser, error) {
 	return func(ctx context.Context, lastID string) (io.ReadCloser, error) {
-		resp, err := c.gen.StreamEvents(ctx, &params, func(ctx context.Context, req *http.Request) error {
+		gen, _ := c.current()
+		resp, err := gen.StreamEvents(ctx, &params, func(ctx context.Context, req *http.Request) error {
 			req.Header.Set("Accept", "text/event-stream")
 			if lastID != "" {
 				req.Header.Set("Last-Event-ID", lastID)

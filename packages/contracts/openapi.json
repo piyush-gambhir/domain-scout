@@ -388,6 +388,88 @@
         }
       }
     },
+    "/api/v1/service/stop-unless-busy": {
+      "post": {
+        "operationId": "stopServiceUnlessBusy",
+        "summary": "Stop this backend instance unless work would be lost (a newer CLI replacing an older backend)",
+        "tags": [
+          "system"
+        ],
+        "parameters": [],
+        "responses": {
+          "202": {
+            "description": "Stop this backend instance unless work would be lost (a newer CLI replacing an older backend)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceStopResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Local authorization failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Local resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting state or idempotency key reuse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Local execution temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceStopUnlessBusy"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/bootstrap-codes": {
       "post": {
         "operationId": "createBootstrapCode",
@@ -17130,6 +17212,23 @@
           "contractVersion",
           "data"
         ]
+      },
+      "ServiceStopUnlessBusy": {
+        "type": "object",
+        "properties": {
+          "instanceId": {
+            "description": "The backend instance the caller verified; another instance refuses with 409 conflict",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Uuid"
+              }
+            ]
+          }
+        },
+        "required": [
+          "instanceId"
+        ],
+        "description": "Stops only when nothing would be lost: unfinished jobs, other open requests or event streams, session-only credentials or a running UI server refuse with 409 conflict, and the error details name each one"
       },
       "TransferOptionListResponse": {
         "type": "object",

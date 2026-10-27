@@ -5,6 +5,8 @@ export const APP_DIR_NAME_XDG = 'domain-scout';
 export const DEFAULT_PORT = 4317;
 export const DEFAULT_HOST = '127.0.0.1';
 export const DEFAULT_WEB_ORIGINS = ['http://127.0.0.1:3000', 'http://localhost:3000'];
+/** Idle period before the backend stops itself (--idle-timeout or DOMAIN_SCOUT_IDLE_TIMEOUT overrides it). */
+export const DEFAULT_IDLE_TIMEOUT_MS = 10 * 60_000;
 
 export interface DataDirInput {
   /** `--data-dir` flag value. */

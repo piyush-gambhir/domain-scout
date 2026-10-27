@@ -59,6 +59,8 @@ const backend = spawn(
     join(home, 'lib/backend/dist/main.js'),
     '--data-dir', dataDir,
     '--port', String(backendPort),
+    // The container lives as long as the backend, so it never stops itself when idle.
+    '--idle-timeout', '0',
     ...origins.flatMap((o) => ['--web-origin', o]),
   ],
   { stdio: 'inherit', env: { ...process.env, DOMAIN_SCOUT_BOOTSTRAP_TTL_SECONDS: process.env.DOMAIN_SCOUT_BOOTSTRAP_TTL_SECONDS ?? '900' } },

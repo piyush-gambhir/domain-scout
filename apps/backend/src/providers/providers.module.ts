@@ -1,5 +1,6 @@
-import { Global, Module } from '@nestjs/common';
+import { Global, Module, type OnModuleInit } from '@nestjs/common';
 import { ProviderDirectory } from '../core/ports.js';
+import { ActivityMonitor } from '../runtime/activity.js';
 import { CatalogService } from './catalog.service.js';
 import { CREDENTIAL_ENV, CredentialStore } from './credentials.js';
 import {
@@ -40,4 +41,17 @@ import { FetchProviderTransport, ProviderTransport } from './transport.js';
   ],
   exports: [ProviderTransport, CredentialStore, ProvidersService, CatalogService, ProviderDirectory, ProviderDirectoryService],
 })
-export class ProvidersModule {}
+export class ProvidersModule implements OnModuleInit {
+  constructor(
+    private readonly activity: ActivityMonitor,
+    private readonly credentials: CredentialStore,
+  ) {}
+
+  /** Session-only credentials live in this process; stopping it would silently drop them. */
+  onModuleInit() {
+    this.activity.addProbe('credentials', () => {
+      const ids = this.credentials.sessionProviders();
+      return ids.length > 0 ? `session-only credentials for ${ids.join(', ')}` : null;
+    });
+  }
+}

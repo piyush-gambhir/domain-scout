@@ -4405,6 +4405,12 @@ type ServiceStopResponse struct {
 	Data            ServiceStop `json:"data"`
 }
 
+// ServiceStopUnlessBusy Stops only when nothing would be lost: unfinished jobs, other open requests or event streams, session-only credentials or a running UI server refuse with 409 conflict, and the error details name each one
+type ServiceStopUnlessBusy struct {
+	// InstanceId The backend instance the caller verified; another instance refuses with 409 conflict
+	InstanceId Uuid `json:"instanceId"`
+}
+
 // SessionExchange defines model for SessionExchange.
 type SessionExchange struct {
 	Code string `json:"code"`
@@ -5297,6 +5303,9 @@ type CreateQuotesJSONRequestBody = ProviderJobBody
 
 // CreateRecheckJSONRequestBody defines body for CreateRecheck for application/json ContentType.
 type CreateRecheckJSONRequestBody = RecheckRequest
+
+// StopServiceUnlessBusyJSONRequestBody defines body for StopServiceUnlessBusy for application/json ContentType.
+type StopServiceUnlessBusyJSONRequestBody = ServiceStopUnlessBusy
 
 // PatchSettingsJSONRequestBody defines body for PatchSettings for application/json ContentType.
 type PatchSettingsJSONRequestBody = SettingsPatch
@@ -7060,6 +7069,20 @@ type ClientInterface interface {
 	//
 	// Corresponds with POST /api/v1/service/stop (the `StopService` operationId).
 	StopService(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// StopServiceUnlessBusyWithBody Stop this backend instance unless work would be lost (a newer CLI replacing an older backend)
+	//
+	// Takes any type of body and a specified content type.
+	//
+	// Corresponds with POST /api/v1/service/stop-unless-busy (the `StopServiceUnlessBusy` operationId).
+	StopServiceUnlessBusyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// StopServiceUnlessBusy Stop this backend instance unless work would be lost (a newer CLI replacing an older backend)
+	//
+	// Takes a body of the `application/json` content type.
+	//
+	// Corresponds with POST /api/v1/service/stop-unless-busy (the `StopServiceUnlessBusy` operationId).
+	StopServiceUnlessBusy(ctx context.Context, body StopServiceUnlessBusyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetSettings Current settings
 	//
@@ -8845,6 +8868,40 @@ func (c *Client) CreateRecheck(ctx context.Context, params *CreateRecheckParams,
 // Corresponds with POST /api/v1/service/stop (the `StopService` operationId).
 func (c *Client) StopService(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewStopServiceRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// StopServiceUnlessBusyWithBody Stop this backend instance unless work would be lost (a newer CLI replacing an older backend)
+//
+// Takes any type of body and a specified content type.
+//
+// Corresponds with POST /api/v1/service/stop-unless-busy (the `StopServiceUnlessBusy` operationId).
+func (c *Client) StopServiceUnlessBusyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewStopServiceUnlessBusyRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// StopServiceUnlessBusy Stop this backend instance unless work would be lost (a newer CLI replacing an older backend)
+//
+// Takes a body of the `application/json` content type.
+//
+// Corresponds with POST /api/v1/service/stop-unless-busy (the `StopServiceUnlessBusy` operationId).
+func (c *Client) StopServiceUnlessBusy(ctx context.Context, body StopServiceUnlessBusyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewStopServiceUnlessBusyRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -13187,6 +13244,46 @@ func NewStopServiceRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewStopServiceUnlessBusyRequest calls the generic StopServiceUnlessBusy builder with application/json body
+func NewStopServiceUnlessBusyRequest(server string, body StopServiceUnlessBusyJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewStopServiceUnlessBusyRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewStopServiceUnlessBusyRequestWithBody constructs an http.Request for the StopServiceUnlessBusy method, with any body, and a specified content type
+func NewStopServiceUnlessBusyRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/service/stop-unless-busy")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetSettingsRequest constructs an http.Request for the GetSettings method
 func NewGetSettingsRequest(server string) (*http.Request, error) {
 	var err error
@@ -14759,6 +14856,20 @@ type ClientWithResponsesInterface interface {
 	//
 	// Corresponds with POST /api/v1/service/stop (the `StopService` operationId).
 	StopServiceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*StopServiceResponse, error)
+
+	// StopServiceUnlessBusyWithBodyWithResponse Stop this backend instance unless work would be lost (a newer CLI replacing an older backend)
+	//
+	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with POST /api/v1/service/stop-unless-busy (the `StopServiceUnlessBusy` operationId).
+	StopServiceUnlessBusyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*StopServiceUnlessBusyResponse, error)
+
+	// StopServiceUnlessBusyWithResponse Stop this backend instance unless work would be lost (a newer CLI replacing an older backend)
+	//
+	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with POST /api/v1/service/stop-unless-busy (the `StopServiceUnlessBusy` operationId).
+	StopServiceUnlessBusyWithResponse(ctx context.Context, body StopServiceUnlessBusyJSONRequestBody, reqEditors ...RequestEditorFn) (*StopServiceUnlessBusyResponse, error)
 
 	// GetSettingsWithResponse Current settings
 	//
@@ -20767,6 +20878,82 @@ func (r StopServiceResponse) ContentType() string {
 	return ""
 }
 
+type StopServiceUnlessBusyResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON202 the response for an HTTP 202 `application/json` response
+	JSON202 *ServiceStopResponse
+	// JSON400 the response for an HTTP 400 `application/json` response
+	JSON400 *ErrorResponse
+	// JSON401 the response for an HTTP 401 `application/json` response
+	JSON401 *ErrorResponse
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *ErrorResponse
+	// JSON409 the response for an HTTP 409 `application/json` response
+	JSON409 *ErrorResponse
+	// JSON503 the response for an HTTP 503 `application/json` response
+	JSON503 *ErrorResponse
+}
+
+// GetJSON202 returns the response for an HTTP 202 `application/json` response
+func (r StopServiceUnlessBusyResponse) GetJSON202() *ServiceStopResponse {
+	return r.JSON202
+}
+
+// GetJSON400 returns the response for an HTTP 400 `application/json` response
+func (r StopServiceUnlessBusyResponse) GetJSON400() *ErrorResponse {
+	return r.JSON400
+}
+
+// GetJSON401 returns the response for an HTTP 401 `application/json` response
+func (r StopServiceUnlessBusyResponse) GetJSON401() *ErrorResponse {
+	return r.JSON401
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r StopServiceUnlessBusyResponse) GetJSON404() *ErrorResponse {
+	return r.JSON404
+}
+
+// GetJSON409 returns the response for an HTTP 409 `application/json` response
+func (r StopServiceUnlessBusyResponse) GetJSON409() *ErrorResponse {
+	return r.JSON409
+}
+
+// GetJSON503 returns the response for an HTTP 503 `application/json` response
+func (r StopServiceUnlessBusyResponse) GetJSON503() *ErrorResponse {
+	return r.JSON503
+}
+
+// GetBody returns the raw response body bytes
+func (r StopServiceUnlessBusyResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r StopServiceUnlessBusyResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r StopServiceUnlessBusyResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r StopServiceUnlessBusyResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type GetSettingsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -23465,6 +23652,32 @@ func (c *ClientWithResponses) StopServiceWithResponse(ctx context.Context, reqEd
 		return nil, err
 	}
 	return ParseStopServiceResponse(rsp)
+}
+
+// StopServiceUnlessBusyWithBodyWithResponse Stop this backend instance unless work would be lost (a newer CLI replacing an older backend)
+//
+// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /api/v1/service/stop-unless-busy (the `StopServiceUnlessBusy` operationId).
+func (c *ClientWithResponses) StopServiceUnlessBusyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*StopServiceUnlessBusyResponse, error) {
+	rsp, err := c.StopServiceUnlessBusyWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseStopServiceUnlessBusyResponse(rsp)
+}
+
+// StopServiceUnlessBusyWithResponse Stop this backend instance unless work would be lost (a newer CLI replacing an older backend)
+//
+// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /api/v1/service/stop-unless-busy (the `StopServiceUnlessBusy` operationId).
+func (c *ClientWithResponses) StopServiceUnlessBusyWithResponse(ctx context.Context, body StopServiceUnlessBusyJSONRequestBody, reqEditors ...RequestEditorFn) (*StopServiceUnlessBusyResponse, error) {
+	rsp, err := c.StopServiceUnlessBusy(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseStopServiceUnlessBusyResponse(rsp)
 }
 
 // GetSettingsWithResponse Current settings
@@ -28410,6 +28623,67 @@ func ParseStopServiceResponse(rsp *http.Response) (*StopServiceResponse, error) 
 	}
 
 	response := &StopServiceResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 202:
+		var dest ServiceStopResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON202 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseStopServiceUnlessBusyResponse parses an HTTP response from a StopServiceUnlessBusyWithResponse call
+func ParseStopServiceUnlessBusyResponse(rsp *http.Response) (*StopServiceUnlessBusyResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &StopServiceUnlessBusyResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}

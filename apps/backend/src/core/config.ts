@@ -21,6 +21,8 @@ export interface AppConfig {
   stopGraceMs?: number;
   /** Lifetime of browser bootstrap codes (default 60 s). The container launcher prints a longer-lived one. */
   bootstrapTtlMs?: number;
+  /** Stop after this long with nothing to do (see ActivityMonitor); absent or 0 never stops. */
+  idleTimeoutMs?: number;
 }
 
 export const APP_CONFIG = Symbol('APP_CONFIG');

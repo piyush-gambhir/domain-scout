@@ -33,7 +33,7 @@ func TestParseNodeVersion(t *testing.T) {
 	if _, err := ParseNodeVersion("node"); err == nil {
 		t.Fatal("garbage must fail")
 	}
-	if !VersionAtLeast([3]int{26, 0, 0}, MinNode) || VersionAtLeast([3]int{25, 9, 9}, MinNode) || !VersionAtLeast([3]int{27, 0, 0}, MinNode) {
+	if !VersionAtLeast([3]int{24, 11, 0}, MinNode) || VersionAtLeast([3]int{24, 10, 9}, MinNode) || !VersionAtLeast([3]int{26, 12, 1}, MinNode) {
 		t.Fatal("version comparison wrong")
 	}
 }
@@ -118,9 +118,9 @@ func TestFindNodeChecksVersion(t *testing.T) {
 	if _, err := c.FindNode(ctx); err != nil {
 		t.Fatalf("26.12.1 should be accepted: %v", err)
 	}
-	c.Env = fakeNodeEnv(fakenode.EnvVersion + "=v24.21.0")
+	c.Env = fakeNodeEnv(fakenode.EnvVersion + "=v22.22.0")
 	var se *SetupError
-	if _, err := c.FindNode(ctx); !errors.As(err, &se) || !strings.Contains(err.Error(), "26.0.0 or newer") {
+	if _, err := c.FindNode(ctx); !errors.As(err, &se) || !strings.Contains(err.Error(), "24.11.0 or newer") {
 		t.Fatalf("old node must be a setup error naming the minimum, got %v", err)
 	}
 	c = &Config{Getenv: noEnv, LookPath: func(string) (string, error) { return "", exec.ErrNotFound }}
@@ -210,6 +210,50 @@ func TestStartBackendDetachedAndDiscoverable(t *testing.T) {
 	if _, _, err := c2.StartBackend(ctx, port, nil); !errors.As(err, &se) || !strings.Contains(err.Error(), "in use") {
 		t.Fatalf("port conflict must be a setup error, got %v", err)
 	}
+}
+
+// Two CLIs starting at once: the loser's backend exits on the instance lock, and
+// its CLI waits for the winner to publish backend.json instead of failing.
+func TestStartBackendWaitsForAnotherStarter(t *testing.T) {
+	c := packagedConfig(t)
+	ctx := context.Background()
+	winner, _, err := c.StartBackend(ctx, freePort(t), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	killLater(t, winner.PID)
+	runtimeFile := filepath.Join(c.DataDir, "run", "backend.json")
+	published, err := os.ReadFile(runtimeFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The winner has not published yet when the loser starts.
+	os.Remove(runtimeFile)
+	go func() {
+		time.Sleep(300 * time.Millisecond)
+		os.WriteFile(runtimeFile, published, 0o600)
+	}()
+	loser := *c
+	loser.Env = fakeNodeEnv(fakenode.EnvLocked + "=1")
+	info, _, err := loser.StartBackend(ctx, freePort(t), nil)
+	if err != nil || info.InstanceID != winner.InstanceID {
+		t.Fatalf("want the winner's backend, got %+v, %v", info, err)
+	}
+	// Same port, still starting elsewhere: reuse it as soon as it is published.
+	info, _, err = c.StartBackend(ctx, urlPortForTest(t, winner.URL), nil)
+	if err != nil || info.InstanceID != winner.InstanceID {
+		t.Fatalf("a taken port for this data directory should reuse its backend, got %+v, %v", info, err)
+	}
+}
+
+func urlPortForTest(t *testing.T, raw string) int {
+	t.Helper()
+	i := strings.LastIndex(raw, ":")
+	p, err := strconv.Atoi(raw[i+1:])
+	if err != nil {
+		t.Fatal(err)
+	}
+	return p
 }
 
 func TestStartBackendProtocolMismatch(t *testing.T) {

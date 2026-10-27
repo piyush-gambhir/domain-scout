@@ -35,6 +35,9 @@ type exitError struct {
 	// retryable marks connection failures that are safe to retry with the
 	// same Idempotency-Key.
 	retryable bool
+	// gone marks a request the backend never handled because it had stopped
+	// or was stopping; the client may start a new backend and resend it.
+	gone bool
 }
 
 func (e *exitError) Error() string { return e.msg }

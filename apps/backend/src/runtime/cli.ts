@@ -1,6 +1,6 @@
 import { homedir } from 'node:os';
 import { parseArgs } from 'node:util';
-import { DEFAULT_HOST, DEFAULT_PORT, DEFAULT_WEB_ORIGINS, resolveDataDir } from './paths.js';
+import { DEFAULT_HOST, DEFAULT_IDLE_TIMEOUT_MS, DEFAULT_PORT, DEFAULT_WEB_ORIGINS, resolveDataDir } from './paths.js';
 
 export class UsageError extends Error {
   constructor(message: string) {
@@ -14,13 +14,18 @@ export interface BackendArgs {
   host: string;
   port: number;
   webOrigins: string[];
+  /** 0 disables stopping when idle. */
+  idleTimeoutMs: number;
 }
 
-export const USAGE = `Usage: domain-scout-backend [--data-dir DIR] [--host HOST] [--port PORT] [--web-origin ORIGIN]...
+export const USAGE = `Usage: domain-scout-backend [--data-dir DIR] [--host HOST] [--port PORT] [--idle-timeout SECONDS] [--web-origin ORIGIN]...
 
   --data-dir    Data directory (default: DOMAIN_SCOUT_DATA_DIR or the per-user application data directory)
   --host        Loopback address to bind: 127.x.x.x, ::1 or localhost (default ${DEFAULT_HOST})
   --port        Port (default DOMAIN_SCOUT_PORT or ${DEFAULT_PORT})
+  --idle-timeout  Stop after this many seconds with no requests, unfinished jobs, active watches,
+                  session-only credentials or running UI server; 0 never stops
+                  (default DOMAIN_SCOUT_IDLE_TIMEOUT or ${DEFAULT_IDLE_TIMEOUT_MS / 1000})
   --web-origin  Browser origin allowed to use sessions; repeatable (default ${DEFAULT_WEB_ORIGINS.join(', ')})`;
 
 /** Parses backend flags. Precedence: flag, then environment, then defaults. Throws UsageError. */
@@ -29,7 +34,7 @@ export function parseBackendArgs(
   env: Record<string, string | undefined> = process.env,
   platform: NodeJS.Platform = process.platform,
 ): BackendArgs {
-  let values: { 'data-dir'?: string; host?: string; port?: string; 'web-origin'?: string[] };
+  let values: { 'data-dir'?: string; host?: string; port?: string; 'idle-timeout'?: string; 'web-origin'?: string[] };
   try {
     ({ values } = parseArgs({
       args: argv,
@@ -39,6 +44,7 @@ export function parseBackendArgs(
         'data-dir': { type: 'string' },
         host: { type: 'string' },
         port: { type: 'string' },
+        'idle-timeout': { type: 'string' },
         'web-origin': { type: 'string', multiple: true },
       },
     }));
@@ -54,6 +60,9 @@ export function parseBackendArgs(
   // The API is local-only; a non-loopback bind would expose it beyond this machine.
   if (!isLoopbackHost(host)) throw new UsageError(`Invalid --host "${host}": only loopback addresses are allowed`);
 
+  const idleText = values['idle-timeout'] ?? nonEmpty(env.DOMAIN_SCOUT_IDLE_TIMEOUT) ?? String(DEFAULT_IDLE_TIMEOUT_MS / 1000);
+  if (!/^\d+$/.test(idleText)) throw new UsageError(`Invalid idle timeout "${idleText}": expected whole seconds, 0 to never stop`);
+
   const webOrigins = values['web-origin'] ?? DEFAULT_WEB_ORIGINS;
   for (const origin of webOrigins) {
     if (normalizeOrigin(origin) === null) throw new UsageError(`Invalid --web-origin "${origin}": expected scheme://host[:port]`);
@@ -64,6 +73,7 @@ export function parseBackendArgs(
     host,
     port: Number(portText),
     webOrigins: webOrigins.map((origin) => normalizeOrigin(origin)!),
+    idleTimeoutMs: Number(idleText) * 1000,
   };
 }
 

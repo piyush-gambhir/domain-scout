@@ -33,7 +33,8 @@ function start(name, cmd, args, options) {
   children.push(child);
 }
 
-start('backend', process.execPath, ['scripts/dev.mjs', '--data-dir', dataDir, '--port', String(backendPort)], {
+// The UI dev server is not started by the CLI launcher, so the backend must not stop when idle.
+start('backend', process.execPath, ['scripts/dev.mjs', '--data-dir', dataDir, '--port', String(backendPort), '--idle-timeout', '0'], {
   cwd: join(repo, 'apps/backend'),
 });
 start('web', pnpm, ['exec', 'next', 'dev', '--hostname', '127.0.0.1', '--port', String(webPort)], {

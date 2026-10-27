@@ -6,6 +6,20 @@ import { MIGRATIONS } from './migrations.js';
 export type SqlParams = Record<string, SQLInputValue> | SQLInputValue[];
 type Row = Record<string, unknown>;
 
+/** The database was migrated by a newer Domain Scout than this backend. */
+export class NewerDatabaseError extends Error {
+  constructor(
+    readonly schemaVersion: number,
+    readonly supportedVersion: number,
+  ) {
+    super(
+      `the database was written by a newer Domain Scout (schema ${schemaVersion}; this backend supports up to ${supportedVersion}). ` +
+        'Use the newer domain-scout, or another data directory.',
+    );
+    this.name = 'NewerDatabaseError';
+  }
+}
+
 /**
  * Thin synchronous wrapper over node:sqlite. One backend process owns the database.
  * Keep transactions short: the driver is synchronous and blocks the event loop while it runs.
@@ -93,6 +107,10 @@ export class Database {
       'CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at TEXT NOT NULL)',
     );
     const applied = new Set(this.all<{ version: number }>('SELECT version FROM schema_migrations').map((r) => r.version));
+    // An older backend must not run on a schema it does not know (e.g. an older npx copy after an upgrade).
+    const latest = Math.max(...MIGRATIONS.map((m) => m.version));
+    const newest = Math.max(0, ...applied);
+    if (newest > latest) throw new NewerDatabaseError(newest, latest);
     const ran: number[] = [];
     for (const migration of MIGRATIONS) {
       if (applied.has(migration.version)) continue;

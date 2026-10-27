@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { Database } from '../../src/storage/database.js';
+import { Database, NewerDatabaseError } from '../../src/storage/database.js';
 
 let dir: string;
 let db: Database;
@@ -46,5 +46,22 @@ describe('Database.transaction', () => {
   it('rejects async callbacks without leaking depth', () => {
     expect(() => db.transaction(() => Promise.resolve(1))).toThrow(/synchronous/);
     expect(db.inTransaction).toBe(false);
+  });
+});
+
+describe('Database.migrate', () => {
+  it('refuses a database migrated by a newer Domain Scout', () => {
+    const file = join(dir, 'app.sqlite');
+    const fresh = new Database(file);
+    const ran = fresh.migrate();
+    fresh.run('INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)', [Math.max(...ran) + 1, 'future', new Date().toISOString()]);
+    fresh.close();
+    const older = new Database(file);
+    try {
+      expect(() => older.migrate()).toThrow(NewerDatabaseError);
+      expect(() => older.migrate()).toThrow(/newer Domain Scout \(schema \d+; this backend supports up to \d+\)/);
+    } finally {
+      older.close();
+    }
   });
 });

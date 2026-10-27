@@ -6,6 +6,7 @@ import { API_PREFIX } from '@domain-scout/contracts';
 import { AppModule } from './app.module.js';
 import type { AppConfig } from './core/config.js';
 import type { CoreOptions } from './core/core.module.js';
+import { ActivityMonitor } from './runtime/activity.js';
 import { requestContextMiddleware } from './runtime/http.middleware.js';
 
 /** Nest options shared by main.ts and the test helper. */
@@ -25,6 +26,7 @@ export function appOptions(config: AppConfig): NestApplicationOptions {
 export function configureApp(app: NestExpressApplication, config: AppConfig): void {
   // Before body parsing: request ids and DNS-rebinding Host checks apply to every request, even 404s.
   app.use(requestContextMiddleware(config));
+  app.use(app.get(ActivityMonitor).middleware());
   app.useBodyParser('json', { limit: '25mb' });
   app.setGlobalPrefix(API_PREFIX.replace(/^\//, ''));
   app.disable('x-powered-by');

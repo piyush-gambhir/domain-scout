@@ -48,6 +48,11 @@ export class CredentialStore {
     this.filePath = join(config.dataDir, CREDENTIALS_FILE);
   }
 
+  /** Providers with session-only credentials, which are lost when the backend stops. */
+  sessionProviders(): string[] {
+    return [...this.session.keys()];
+  }
+
   resolve(manifest: ProviderManifest): ResolvedCredentials {
     const fieldsOf = (values: Record<string, string> | null) =>
       manifest.credentialFields.map((f) => ({ key: f.key, set: Boolean(values?.[f.key]) }));

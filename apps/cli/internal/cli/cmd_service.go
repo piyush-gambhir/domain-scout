@@ -103,7 +103,7 @@ func (a *App) serviceCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			c := newAPIClient(conn.url, token, a.opts.timeout, a.Version)
+			c := newAPIClient(conn.url, token, conn.health.Response.Data.InstanceId.String(), a.opts.timeout, a.Version)
 			res, err := c.do(ctx, func(ctx context.Context, g *api.Client) (*http.Response, error) {
 				return g.StopService(ctx)
 			})
@@ -168,7 +168,7 @@ func (a *App) uiCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			webURL, err := a.launcherConfig(dataDir).EnsureWeb(ctx, c.base, webPort)
+			webURL, err := a.launcherConfig(dataDir).EnsureWeb(ctx, c.baseURL(), webPort)
 			if err != nil {
 				if ctx.Err() != nil {
 					return errInterrupted

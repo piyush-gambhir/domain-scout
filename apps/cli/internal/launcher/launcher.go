@@ -34,7 +34,7 @@ const (
 )
 
 // MinNode is the oldest supported Node.js version.
-var MinNode = [3]int{26, 0, 0}
+var MinNode = [3]int{24, 11, 0}
 
 // SetupError is a backend setup or version failure (CLI exit code 5).
 type SetupError struct{ Msg string }
@@ -260,6 +260,15 @@ func (c *Config) StartBackend(ctx context.Context, port int, webOrigins []string
 		return nil, nil, err
 	}
 	if !PortFree("127.0.0.1", port) {
+		// Another CLI may be starting the backend for this data directory (it holds the lock and
+		// listens before it publishes backend.json); an unrelated process fails at once.
+		wait := time.Duration(0)
+		if fileExists(filepath.Join(c.DataDir, "backend.lock")) {
+			wait = otherStarterWait
+		}
+		if info, h, err := c.awaitOther(ctx, wait); err == nil {
+			return info, h, nil
+		}
 		return nil, nil, setupErr("port %d on 127.0.0.1 is in use by another process. Stop that process or choose another port with --port or %s.", port, EnvPort)
 	}
 	args := []string{entry, "--data-dir", c.DataDir, "--port", strconv.Itoa(port)}
@@ -281,8 +290,12 @@ func (c *Config) StartBackend(ctx context.Context, port int, webOrigins []string
 		case <-ctx.Done():
 			return nil, nil, ctx.Err()
 		case <-exited:
-			// Another process may have won the instance lock for this data directory.
-			if info, h, err := c.Discover(ctx); err == nil {
+			// Another process won the instance lock for this data directory: wait for it to be ready.
+			wait := time.Duration(0)
+			if strings.Contains(tailFile(logPath, 3), "is using this data directory") || strings.Contains(tailFile(logPath, 3), "locked by another Domain Scout backend") {
+				wait = time.Until(deadline)
+			}
+			if info, h, err := c.awaitOther(ctx, wait); err == nil {
 				return info, h, nil
 			}
 			return nil, nil, setupErr("the backend exited during startup. Last log lines from %s:\n%s", logPath, tailFile(logPath, 15))
@@ -297,6 +310,26 @@ func (c *Config) StartBackend(ctx context.Context, port int, webOrigins []string
 		}
 		if time.Now().After(deadline) {
 			return nil, nil, setupErr("the backend did not become ready within %s. See %s.", c.timeout(), logPath)
+		}
+	}
+}
+
+// otherStarterWait bounds waiting for a backend another process is starting.
+const otherStarterWait = 5 * time.Second
+
+// awaitOther polls for a verified backend started by another process, for up
+// to wait (at least one attempt).
+func (c *Config) awaitOther(ctx context.Context, wait time.Duration) (*runtime.BackendInfo, *runtime.Health, error) {
+	deadline := time.Now().Add(wait)
+	for {
+		info, h, err := c.Discover(ctx)
+		if err == nil || !time.Now().Before(deadline) || ctx.Err() != nil {
+			return info, h, err
+		}
+		select {
+		case <-ctx.Done():
+			return nil, nil, ctx.Err()
+		case <-time.After(c.poll()):
 		}
 	}
 }
@@ -339,7 +372,7 @@ func (c *Config) webCommand(port int) (args []string, dir string, err error) {
 		}
 		return []string{next, "start", "-H", "127.0.0.1", "-p", strconv.Itoa(port)}, web, nil
 	}
-	return nil, "", setupErr("web UI assets not found. Use a packaged release (lib/web next to bin/) or a built repository checkout.")
+	return nil, "", setupErr("web UI assets not found. The npm package is CLI-only; use a release archive (lib/web next to bin/), the Docker image or a built repository checkout for the UI.")
 }
 
 // EnsureWeb reuses the UI server recorded in web.json when it runs on the

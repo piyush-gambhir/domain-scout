@@ -59,7 +59,15 @@ describe('parseBackendArgs', () => {
       host: '127.0.0.1',
       port: 4317,
       webOrigins: ['http://127.0.0.1:3000', 'http://localhost:3000'],
+      idleTimeoutMs: 600_000,
     });
+  });
+
+  it('takes the idle timeout in seconds from the flag before DOMAIN_SCOUT_IDLE_TIMEOUT; 0 never stops', () => {
+    expect(parseBackendArgs(['--data-dir', '/x'], { DOMAIN_SCOUT_IDLE_TIMEOUT: '0' }, 'linux').idleTimeoutMs).toBe(0);
+    expect(parseBackendArgs(['--data-dir', '/x', '--idle-timeout', '90'], { DOMAIN_SCOUT_IDLE_TIMEOUT: '0' }, 'linux').idleTimeoutMs).toBe(90_000);
+    expect(() => parseBackendArgs(['--data-dir', '/x', '--idle-timeout', '1.5'], {}, 'linux')).toThrow(UsageError);
+    expect(() => parseBackendArgs(['--data-dir', '/x'], { DOMAIN_SCOUT_IDLE_TIMEOUT: 'never' }, 'linux')).toThrow(UsageError);
   });
 
   it('takes the port from the flag before DOMAIN_SCOUT_PORT', () => {
