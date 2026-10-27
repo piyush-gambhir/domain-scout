@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs a packaged Linux archive inside a plain node:24 container and checks the CLI launcher, the
+# Runs a packaged Linux archive inside a plain node:26 container and checks the CLI launcher, the
 # browser sign-in flow, the API through the web server, owner-only permissions and a clean stop.
 # No names leave the container. Usage: scripts/verify-linux-package.sh [arm64|amd64]
 set -euo pipefail
@@ -9,7 +9,7 @@ version="$(node -p "require('$repo/apps/backend/package.json').version")"
 archive="domain-scout-${version}-linux-${arch}"
 [ -f "$repo/release/${archive}.tar.gz" ] || { echo "Missing release/${archive}.tar.gz; run pnpm package" >&2; exit 1; }
 
-docker run --rm --platform "linux/${arch}" -v "$repo/release:/release:ro" -e ARCHIVE="$archive" node:24-bookworm-slim bash -euo pipefail -c '
+docker run --rm --platform "linux/${arch}" -v "$repo/release:/release:ro" -e ARCHIVE="$archive" node:26-bookworm-slim bash -euo pipefail -c '
 mkdir -p /opt/test && tar -xzf "/release/${ARCHIVE}.tar.gz" -C /opt/test
 cd "/opt/test/${ARCHIVE}"
 export DOMAIN_SCOUT_DATA_DIR=/tmp/ds-data

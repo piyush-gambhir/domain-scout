@@ -129,7 +129,7 @@ for (const target of targets) {
         protocolVersion: contracts.PROTOCOL_VERSION,
         os,
         arch,
-        node: '>=24.11',
+        node: '>=26',
         layout: { cli: `bin/${exe}`, backend: 'lib/backend/dist/main.js', web: 'lib/web/server.js' },
         createdAt: new Date().toISOString(),
       },
@@ -139,7 +139,7 @@ for (const target of targets) {
   );
   writeFileSync(
     join(dir, 'README.txt'),
-    `Domain Scout ${version} (${target})\n\nRequires Node.js 24.11 or newer on PATH (or DOMAIN_SCOUT_NODE).\n\n  bin/${exe} ui              open the web UI\n  bin/${exe} scan acme --tlds com,io --wait\n  bin/${exe} service stop\n`,
+    `Domain Scout ${version} (${target})\n\nRequires Node.js 26 or newer on PATH (or DOMAIN_SCOUT_NODE).\n\n  bin/${exe} ui              open the web UI\n  bin/${exe} scan acme --tlds com,io --wait\n  bin/${exe} service stop\n`,
   );
   // macOS tar would otherwise embed Apple extended attributes that other platforms warn about.
   const macTar = process.platform === 'darwin' ? ['--no-mac-metadata', '--no-xattrs'] : [];

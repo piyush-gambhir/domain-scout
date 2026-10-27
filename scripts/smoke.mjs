@@ -97,6 +97,9 @@ async function main() {
   // 6. Restart the backend: jobs, evidence and shortlists survive; the browser session too.
   run(['service', 'stop']);
   run(['service', 'start', '--port', String(backendPort)]);
+  // run() blocks the event loop, so fetch's pool has not yet seen the old backend close its
+  // keep-alive sockets; one I/O turn lets it drop them instead of reusing a reset connection.
+  await new Promise((resolve) => setImmediate(resolve));
   const afterRestart = await api(`/jobs/${jobId}/results?limit=100`);
   check('results survive a backend restart', JSON.stringify(outcomes(afterRestart.body.data)) === JSON.stringify(cliOutcomes));
   const entries = await api(`/collections/${list.id}/entries`);

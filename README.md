@@ -28,7 +28,7 @@ docker compose exec domain-scout domain-scout scan acme --tlds com,io --wait --o
 
 ## Run from source
 
-Requires Node.js 24 (24.11 or newer), pnpm 12 and Go 1.27.
+Requires Node.js 26, pnpm 12 and Go 1.27.
 
 ```sh
 pnpm install
@@ -45,7 +45,7 @@ apps/cli/bin/domain-scout service start
 apps/cli/bin/domain-scout ui
 ```
 
-Useful Turborepo tasks: `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm test:e2e`, `pnpm generate` (OpenAPI and the Go client). `pnpm smoke` checks the CLI, API and web against one backend; `pnpm acceptance` runs 1,200 names twice through the real CLI and backend against a local stub registry (cancel, resume, restart, export) without sending names anywhere. `pnpm package` builds distribution archives for macOS, Linux and Windows into `release/` (Node.js 24.11+ must be installed on the target machine).
+Useful Turborepo tasks: `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm test:e2e`, `pnpm generate` (OpenAPI and the Go client). `pnpm smoke` checks the CLI, API and web against one backend; `pnpm acceptance` runs 1,200 names twice through the real CLI and backend against a local stub registry (cancel, resume, restart, export) without sending names anywhere. `pnpm package` builds distribution archives for macOS, Linux and Windows into `release/` (Node.js 26 or newer must be installed on the target machine).
 
 ## CLI for agents
 

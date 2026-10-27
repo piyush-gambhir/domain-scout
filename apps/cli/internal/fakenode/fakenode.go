@@ -21,7 +21,7 @@ import (
 // Env variables that control the fake.
 const (
 	EnvActive   = "FAKE_NODE"              // "1" enables the fake
-	EnvVersion  = "FAKE_NODE_VERSION"      // `node --version` output (default v24.11.0)
+	EnvVersion  = "FAKE_NODE_VERSION"      // `node --version` output (default v26.12.1)
 	EnvProtocol = "FAKE_NODE_PROTOCOL"     // protocolVersion the fake backend reports (default 1)
 	EnvWebDelay = "FAKE_NODE_WEB_DELAY_MS" // delay before the fake UI server listens
 	Token       = "fake-token"
@@ -36,7 +36,7 @@ func Main() {
 	if len(args) > 0 && args[0] == "--version" {
 		v := os.Getenv(EnvVersion)
 		if v == "" {
-			v = "v24.11.0"
+			v = "v26.12.1"
 		}
 		fmt.Println(v)
 		os.Exit(0)

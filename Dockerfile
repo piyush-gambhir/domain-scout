@@ -2,8 +2,8 @@
 # Local single-container image: backend (loopback inside the container) + web UI + Go CLI.
 # Run with `docker compose up --build`; see compose.yaml.
 
-ARG NODE_VERSION=24.21.0
-ARG GO_VERSION=1.27.2
+ARG NODE_VERSION=26.12.1
+ARG GO_VERSION=1.27.3
 
 FROM golang:${GO_VERSION}-bookworm AS cli
 WORKDIR /src/apps/cli
@@ -15,7 +15,7 @@ RUN CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X main.version=${VERSION}"
 
 FROM node:${NODE_VERSION}-bookworm-slim AS build
 ENV CI=1 NEXT_TELEMETRY_DISABLED=1 TURBO_TELEMETRY_DISABLED=1
-RUN npm install -g pnpm@12.11.2
+RUN npm install -g pnpm@12.15.0
 WORKDIR /repo
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
 COPY packages/contracts/package.json packages/contracts/

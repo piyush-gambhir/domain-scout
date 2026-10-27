@@ -833,14 +833,14 @@ func TestServiceStartSetupErrors(t *testing.T) {
 	os.WriteFile(full, []byte("//\n"), 0o644)
 	h := newHarness(t)
 	h.env["DOMAIN_SCOUT_NODE"] = os.Args[0]
-	oldNode := []string{"FAKE_NODE=1", "FAKE_NODE_VERSION=v22.3.0"}
+	oldNode := []string{"FAKE_NODE=1", "FAKE_NODE_VERSION=v24.21.0"}
 	h.app = func(a *App) {
 		a.Executable = filepath.Join(prefix, "bin", "domain-scout")
 		a.LauncherEnv = oldNode
 	}
 	r := h.run("--data-dir", t.TempDir(), "service", "start", "--port", itoa(freePort(t)))
 	expectCode(t, r, ExitSetup)
-	if !strings.Contains(r.stderr, "24.11.0 or newer") {
+	if !strings.Contains(r.stderr, "26.0.0 or newer") {
 		t.Fatalf("old node: %s", r.stderr)
 	}
 
@@ -849,7 +849,7 @@ func TestServiceStartSetupErrors(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer l.Close()
-	oldNode[1] = "FAKE_NODE_VERSION=v24.11.0"
+	oldNode[1] = "FAKE_NODE_VERSION=v26.0.0"
 	r = h.run("--data-dir", t.TempDir(), "service", "start", "--port", itoa(l.Addr().(*net.TCPAddr).Port))
 	expectCode(t, r, ExitSetup)
 	if !strings.Contains(r.stderr, "in use") {

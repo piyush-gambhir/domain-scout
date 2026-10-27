@@ -4,7 +4,7 @@ Engineering conventions for building Domain Scout. Product scope and semantics l
 
 ## Monorepo
 
-Turborepo 2 with pnpm 12 workspaces. Node 24 (24.11 or newer). TypeScript 5.9 everywhere (TypeScript 7 lacks the compiler API that Next, ESLint and test tooling use).
+Turborepo 2 with pnpm 12 workspaces. Node 26. TypeScript 6.0 everywhere (TypeScript 7 lacks the compiler API that Next and typescript-eslint use; typescript-eslint supports TypeScript below 6.1). ESLint 10 (the react, import and jsx-a11y plugins inside eslint-config-next still declare ESLint 9 peers but run and report under 10).
 
 | Path | Package | What it is |
 | --- | --- | --- |

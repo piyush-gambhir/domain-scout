@@ -34,7 +34,7 @@ const (
 )
 
 // MinNode is the oldest supported Node.js version.
-var MinNode = [3]int{24, 11, 0}
+var MinNode = [3]int{26, 0, 0}
 
 // SetupError is a backend setup or version failure (CLI exit code 5).
 type SetupError struct{ Msg string }
@@ -105,7 +105,7 @@ func (c *Config) Discover(ctx context.Context) (*runtime.BackendInfo, *runtime.H
 
 var nodeVersionRe = regexp.MustCompile(`^v?(\d+)\.(\d+)\.(\d+)`)
 
-// ParseNodeVersion parses `node --version` output such as "v24.11.0".
+// ParseNodeVersion parses `node --version` output such as "v26.12.1".
 func ParseNodeVersion(s string) ([3]int, error) {
 	m := nodeVersionRe.FindStringSubmatch(strings.TrimSpace(s))
 	if m == nil {

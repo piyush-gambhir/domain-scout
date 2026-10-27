@@ -12,7 +12,7 @@ The supporting choices below are engineering defaults for the handoff, rather th
 | CLI parser | Cobra as a supporting default | Consistent command-tree help, flags and completion. Adds a dependency and boilerplate; Go flag is smaller but needs more manual subcommand handling. Piyush explicitly said Cobra is not required. [Cobra](https://github.com/spf13/cobra), [flag](https://pkg.go.dev/flag) |
 | Backend | NestJS and strict TypeScript | Modules, dependency injection and testable services for the domain/provider/job workflow. [Nest providers](https://docs.nestjs.com/fundamentals/custom-providers), [strict checking](https://www.typescriptlang.org/tsconfig/strict.html) |
 | HTTP adapter | Express, revised recommendation | Nest's default and consistent with Piyush's existing Nest projects; fewer integration differences. [Adapter documentation](https://docs.nestjs.com/techniques/performance) |
-| JavaScript runtime | Node.js 24 LTS, compatible current patch | Local networking, timers and processes; use the same supported runtime for Next. [Release table](https://nodejs.org/en/about/previous-releases) |
+| JavaScript runtime | Node.js 26, compatible current patch | Local networking, timers and processes; use the same supported runtime for Next. [Release table](https://nodejs.org/en/about/previous-releases) |
 | Frontend | Next.js App Router, React and TypeScript | Dedicated local browser application. Separate local Next server is the handoff default. [Self-hosting](https://nextjs.org/docs/app/guides/self-hosting) |
 | Components | Tailwind CSS and shadcn/ui | Customizable, locally owned controls; visual design is intentionally outside this planning pass. [Next installation](https://ui.shadcn.com/docs/installation/next) |
 | Client data | TanStack Query | Backend queries/mutations and cache invalidation from job events. [Documentation](https://tanstack.com/query/latest/docs/framework/react/overview) |
@@ -67,11 +67,11 @@ Recorded October 5, 2026, when building started. Piyush chose Turborepo for the 
 | Area | Planning default | Built with | Reason |
 | --- | --- | --- | --- |
 | Monorepo | npm workspaces | pnpm 11 workspaces with Turborepo 2 | Piyush asked for Turborepo; pnpm matches his other Turborepo repositories. The Go CLI joins the task graph through a small `package.json` wrapper. |
-| SQLite driver | better-sqlite3 | Built-in `node:sqlite` (Node 24.11+) | No native module, so one backend payload works on every OS and architecture; the API is equally synchronous. |
+| SQLite driver | better-sqlite3 | Built-in `node:sqlite` | No native module, so one backend payload works on every OS and architecture; the API is equally synchronous. |
 | NestJS | Nest 11 era defaults | Nest 12, ESM-only, Express adapter | Current major release; Express kept as planned. |
 | Backend tests | Jest | Vitest with SWC (decorator metadata) | Nest 12 is ESM-only; Vitest runs ESM natively. |
-| TypeScript | Unpinned | 5.9 | TypeScript 7 lacks the compiler API that Next.js, ESLint and test tooling use. |
+| TypeScript | Unpinned | 6.0 | TypeScript 7 lacks the compiler API that Next.js and typescript-eslint use (typescript-eslint supports TypeScript below 6.1). |
 | Public schemas to OpenAPI | nestjs-zod | Zod 4 native JSON Schema plus a route table in `packages/contracts` | One table drives the backend route binding, request validation, the TypeScript client and the OpenAPI document; `XInput` components are emitted only where request and response forms differ. |
-| Tables | TanStack Table (unpinned) | TanStack Table 8 and TanStack Virtual 3 | Mature major version. |
-| Packaging | Native SQLite per platform | Platform-independent JS payload plus a Go binary per target | Follows from `node:sqlite`. Node.js 24.11+ must be installed on the target machine. |
+| Tables | TanStack Table (unpinned) | TanStack Table 9 and TanStack Virtual 3 | Mature major version. |
+| Packaging | Native SQLite per platform | Platform-independent JS payload plus a Go binary per target | Follows from `node:sqlite`. Node.js 26 or newer must be installed on the target machine. |
 | Docker | Not planned | One container: backend on its own loopback, web on the only published port (host loopback), CLI included | Easy local runs without changing the local-only security model. |

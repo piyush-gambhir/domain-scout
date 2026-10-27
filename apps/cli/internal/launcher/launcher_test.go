@@ -33,7 +33,7 @@ func TestParseNodeVersion(t *testing.T) {
 	if _, err := ParseNodeVersion("node"); err == nil {
 		t.Fatal("garbage must fail")
 	}
-	if !VersionAtLeast([3]int{24, 11, 0}, MinNode) || VersionAtLeast([3]int{24, 10, 9}, MinNode) || !VersionAtLeast([3]int{25, 0, 0}, MinNode) {
+	if !VersionAtLeast([3]int{26, 0, 0}, MinNode) || VersionAtLeast([3]int{25, 9, 9}, MinNode) || !VersionAtLeast([3]int{27, 0, 0}, MinNode) {
 		t.Fatal("version comparison wrong")
 	}
 }
@@ -116,11 +116,11 @@ func TestFindNodeChecksVersion(t *testing.T) {
 	ctx := context.Background()
 	c := &Config{Getenv: selfEnv, Env: fakeNodeEnv()}
 	if _, err := c.FindNode(ctx); err != nil {
-		t.Fatalf("24.11.0 should be accepted: %v", err)
+		t.Fatalf("26.12.1 should be accepted: %v", err)
 	}
-	c.Env = fakeNodeEnv(fakenode.EnvVersion + "=v22.12.0")
+	c.Env = fakeNodeEnv(fakenode.EnvVersion + "=v24.21.0")
 	var se *SetupError
-	if _, err := c.FindNode(ctx); !errors.As(err, &se) || !strings.Contains(err.Error(), "24.11.0 or newer") {
+	if _, err := c.FindNode(ctx); !errors.As(err, &se) || !strings.Contains(err.Error(), "26.0.0 or newer") {
 		t.Fatalf("old node must be a setup error naming the minimum, got %v", err)
 	}
 	c = &Config{Getenv: noEnv, LookPath: func(string) (string, error) { return "", exec.ErrNotFound }}
