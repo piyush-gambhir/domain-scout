@@ -3,6 +3,7 @@ package launcher
 import (
 	"context"
 	"errors"
+	"math/rand/v2"
 	"net"
 	"os"
 	"os/exec"
@@ -142,14 +143,20 @@ func TestBrowserCommand(t *testing.T) {
 	}
 }
 
+// freePort returns a free loopback port below the operating systems' ephemeral ranges (Linux
+// 32768-60999, macOS and Windows 49152-65535), so the OS cannot hand it to another process's
+// outgoing connection or port-0 listener before the test uses it.
 func freePort(t *testing.T) int {
 	t.Helper()
-	l, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatal(err)
+	for range 100 {
+		port := 20000 + rand.IntN(12000)
+		if l, err := net.Listen("tcp", net.JoinHostPort("127.0.0.1", strconv.Itoa(port))); err == nil {
+			l.Close()
+			return port
+		}
 	}
-	defer l.Close()
-	return l.Addr().(*net.TCPAddr).Port
+	t.Fatal("no free loopback port between 20000 and 32000")
+	return 0
 }
 
 func killLater(t *testing.T, pid int) {
