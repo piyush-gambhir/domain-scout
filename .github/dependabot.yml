@@ -1,0 +1,30 @@
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /apps/cli
+    schedule:
+      interval: daily
+    groups:
+      go-dependencies:
+        patterns: ['*']
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+    groups:
+      github-actions:
+        patterns: ['*']
+        update-types: [minor, patch]
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      npm-dependencies:
+        patterns: ['*']
+        update-types: [minor, patch]
+    ignore:
+      # TypeScript 7 lacks the compiler API that typescript-eslint and Next.js use (TECH_STACK.md).
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]

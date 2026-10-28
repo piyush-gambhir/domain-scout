@@ -1,0 +1,172 @@
+name: CI
+on:
+  push:
+    branches: [main, build]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+env:
+  NEXT_TELEMETRY_DISABLED: '1'
+jobs:
+  # Lint, typecheck and unit tests for every workspace (Go included), the production dependency
+  # audit, and generated code (openapi.json, the Go client) matching the contracts.
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: apps/cli/go.mod
+          cache-dependency-path: apps/cli/go.sum
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --prod --audit-level=high
+      - name: Generate Next.js route types
+        run: pnpm --filter @domain-scout/contracts --filter @domain-scout/api-client build && pnpm --filter @domain-scout/web exec next typegen
+      - run: pnpm check
+      - name: Generated code is current
+        run: |
+          pnpm generate
+          git diff --exit-code -- packages/contracts/openapi.json apps/cli/internal/api
+
+  # Production build, the 1,200-name acceptance run against a local stub registry, the browser
+  # suite, and a Linux release archive (with the UI) installed in a plain node container.
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: apps/cli/go.mod
+          cache-dependency-path: apps/cli/go.sum
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm acceptance
+      - run: pnpm --filter @domain-scout/web exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - name: Release archive
+        run: |
+          node scripts/package.mjs --target=linux-amd64
+          scripts/verify-linux-package.sh amd64
+
+  go:
+    name: go (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/cli
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: apps/cli/go.mod
+          cache-dependency-path: apps/cli/go.sum
+      - run: test -z "$(gofmt -l .)"
+      - run: go vet ./...
+      - name: Staticcheck
+        if: matrix.os == 'ubuntu-24.04'
+        run: go run honnef.co/go/tools/cmd/staticcheck@v0.8.2 -checks=all,-ST1000,-ST1003,-ST1005 ./...
+      - name: Vulnerability scan
+        if: matrix.os == 'ubuntu-24.04'
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
+      - run: go test -race -count=1 ./...
+      - run: go build ./...
+
+  # Backend, contracts and client tests on the other supported desktop platforms (Linux runs them
+  # in `check`).
+  test:
+    name: test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo run test --filter=!@domain-scout/cli
+
+  # The CLI-only npm install on each platform, including the oldest supported Node.js.
+  npm-package:
+    name: npm package (${{ matrix.os }}, node ${{ matrix.node }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-24.04, node: 24.11.0 }
+          - { os: ubuntu-24.04, node: 26.12.1 }
+          - { os: ubuntu-24.04-arm, node: 26.12.1 }
+          - { os: macos-latest, node: 26.12.1 }
+          - { os: windows-latest, node: 26.12.1 }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: apps/cli/go.mod
+          cache-dependency-path: apps/cli/go.sum
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo run build --filter=@domain-scout/backend
+      - run: node scripts/package-npm.mjs "--target=$(node -p 'process.platform + "-" + process.arch')"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ matrix.node }}
+      - run: node scripts/verify-npm-package.mjs
+
+  docker:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - run: scripts/verify-docker-image.sh
