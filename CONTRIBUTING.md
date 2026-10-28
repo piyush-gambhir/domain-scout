@@ -27,8 +27,9 @@ a Linux release archive (`scripts/package.mjs`, `scripts/verify-linux-package.sh
   example.com, google.com, nic.si, bbc.co.uk and random 24-character names, sent only to registry RDAP and
   WHOIS, keyless public catalogs and the optional DNS, TLS, GitHub and npm checks. Never send other names to
   registrars or aggregators from a test.
-- Fixtures stay synthetic or redacted: no real registrant contact data. Record the source and license of
-  anything derived from another project in the fixture's `provenance`.
+- Fixtures stay synthetic or redacted: no real contact data, and registry terms-of-use banners are replaced
+  with "Registry terms of use omitted from this fixture." Record the source and license of anything
+  derived from another project in the fixture's `provenance`.
 - Never commit API keys, tokens, `api-token` files, session cookies or data directories.
 - No registry result is a promise: keep "no record" distinct from "available", and prices tied to their
   source, type and age.

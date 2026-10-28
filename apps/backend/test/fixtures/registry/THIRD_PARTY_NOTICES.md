@@ -12,3 +12,5 @@ Outbound TCP port 43 was blocked on the development network, so most WHOIS fixtu
 | [nmetluk/whois-watcher](https://github.com/nmetluk/whois-watcher) | d717eb366a | MIT, Copyright (c) 2026 Whois Watcher contributors ([license](licenses/nmetluk-whois-watcher-license.txt)) | One short not-found registry reply, used verbatim |
 
 The license texts (and the Apache NOTICE file of titlesearch) in [licenses/](licenses/) apply to the excerpts taken from these projects. Reconstructed fixtures are modified excerpts: each fixture's `provenance.notes` states what was changed (queried names replaced with random 24-character labels, registrars, nameservers and dates made synthetic, contact data removed). No code from these projects is included in Domain Scout.
+
+Registry terms-of-use text (RDAP notices and WHOIS banner paragraphs) and real contact details (addresses, phone numbers, email addresses) are replaced in every fixture, live captures included; status and record lines are kept as the registries sent them.
