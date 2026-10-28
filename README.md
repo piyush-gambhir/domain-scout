@@ -1,6 +1,6 @@
 # Domain Scout
 
-Local tool for checking domain registration records, finding purchase providers and comparing prices where reliable data exists. It is a CLI for coding agents first; an optional web UI drives the same local engine. Nothing is hosted.
+Local tool for checking domain registration records, finding purchase providers and comparing prices where reliable data exists. It is a CLI for coding agents first; an optional web UI drives the same local engine. Nothing is hosted. Independent project; not affiliated with any registry, registrar or marketplace.
 
 Registry results are evidence, not promises: "no record" means the registry returned no registration record when checked, not that a name can be bought. Prices carry their source, type and age, and unknown values stay unknown.
 
