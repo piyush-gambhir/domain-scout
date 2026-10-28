@@ -1,6 +1,6 @@
 # Domain Scout build report
 
-Built October 5 to 7, 2026 on the `build` branch, pushed to the private GitHub repository on October 7. On October 27 the stack moved to Node 26 with every dependency at its latest compatible release, the two small UI gaps from the pending list were closed, and the CLI became installable on its own (see [Standalone CLI](#standalone-cli)); the suites below were rerun then. This report separates what was built, how it was verified, and what is still pending. Live checks used only the authorized fixed test set: `example.com`, `google.com`, `nic.si`, `bbc.co.uk` and random 24-character gibberish names.
+Built October 5 to 7, 2026 on the `build` branch and pushed to a private GitHub repository on October 7. On October 28 it became a public repository: registry fixtures had their terms-of-use text and contact details replaced throughout the history, and GitHub Actions runs every check on Linux, macOS and Windows (see [Continuous integration](#continuous-integration)). On October 27 the stack moved to Node 26 with every dependency at its latest compatible release, the two small UI gaps from the pending list were closed, and the CLI became installable on its own (see [Standalone CLI](#standalone-cli)); the suites below were rerun then. This report separates what was built, how it was verified, and what is still pending. Live checks used only the authorized fixed test set: `example.com`, `google.com`, `nic.si`, `bbc.co.uk` and random 24-character gibberish names.
 
 ## Status
 
@@ -36,6 +36,22 @@ Build-time technology decisions are recorded in [TECH_STACK.md](TECH_STACK.md#bu
 | `pnpm acceptance` (1,200 names twice through the CLI and backend, local stub registry) | 11 of 11 checks: cancel at 30% and resume, backend stop and restart, no finished name queried twice, TXT export exact; 2.8 s per job, result pages p95 5 ms while jobs run (Node 26) |
 | MCP over stdio against a real backend | initialize, 11 tools listed, `scan` of example.com returned `registered` through the registry only |
 | `node scripts/verify-npm-package.mjs` (CLI-only npm install) | 11 of 11 checks on macOS arm64 (Node 24.22, 26.12), Linux arm64 and amd64 (`node:24`, `node:26`) and `node:24-alpine` |
+
+### Continuous integration
+
+Every pull request and every push to `main` or `build` runs the CI workflow on GitHub-hosted runners, and `main` accepts a change only when all of it passes (a repository ruleset also requires signed commits and linear history).
+
+| Job | Runners | What it runs |
+| --- | --- | --- |
+| check | Linux | Frozen install, `pnpm audit --prod`, `pnpm check` (every workspace, Go included), generated OpenAPI and Go client current |
+| build | Linux | `pnpm build`, `pnpm acceptance`, the Playwright suite, a Linux release archive installed in `node:26` |
+| go | Linux, macOS, Windows | gofmt, vet, Staticcheck and govulncheck (Linux), `go test -race` |
+| test | macOS, Windows | Backend, contracts and client tests |
+| npm package | Linux x64 (Node 24.11.0 and 26.12.1), Linux arm64, macOS, Windows | `scripts/package-npm.mjs`, then `scripts/verify-npm-package.mjs` |
+| docker | Linux | `scripts/verify-docker-image.sh`: image build, sign-in, UI and API through the web server, health check, graceful stop |
+| CodeQL | Linux | Go, JavaScript and TypeScript, workflow files |
+
+Scorecard runs weekly and on pushes to `main`. Dependabot proposes grouped minor and patch updates for Go modules, npm packages and Actions, which merge automatically once the checks pass. Live checks (`pnpm smoke`) stay manual.
 
 ### Live checks (fixed test set only)
 
@@ -73,11 +89,13 @@ Added October 27 after Piyush chose CLI-first for coding agents (the web UI stay
 | macOS amd64 | Packaged CLI under Rosetta (`version`) |
 | Linux arm64 and amd64 | Packaged archives run in `node:26` containers (`scripts/verify-linux-package.sh`, rerun October 27): launcher, browser sign-in, API through the web server, owner-only permissions (700/600), clean stop |
 | Docker | `docker compose up --build` from a fresh volume: sign-in link, all pages, live scan through the web API, CLI inside the container, restart keeps sessions and jobs. On October 27 the Node 26 image was rebuilt and a fresh container reached healthy, served the UI and answered the CLI |
-| Windows amd64 | Cross-compiled and packaged only; not run |
+| Windows amd64 | CI on `windows-latest`: the Go suite with `-race`, backend, contracts and client tests, and the npm install check (offline install, launcher script, backend start in the background, exit codes, MCP over stdio, idle stop and restart; its process-list and signal checks are POSIX-only). The release archive with the UI was not run on Windows |
 
 ### Reviews
 
 Every major change was reviewed by gpt-6.1-sol, and findings were confirmed against the code before fixing. An integrated backend audit found 15 issues (two privacy-related: provider responses echoing credentials into stored evidence, and deleted evidence surviving in replayable events); all were fixed with regression tests. The task-based UI went through three review rounds (fixed: an open redirect in the sign-in `next` path, prices compared across currencies or terms, expired or disabled-provider quotes being recommended, a race creating two default lists). A final review of the MCP adapter, history counts and the last UI fixes found three issues (Recheck all skipping unloaded rows, concurrent MCP shortlist creation, incomplete local MCP error envelopes), all fixed with regression tests.
+
+Before publication, gitleaks, trufflehog and a gpt-6.1-sol audit of the full history found no real credentials (every hit was a test fixture). The audit's findings were third-party material: registry terms that forbid republishing in 41 fixtures, real registry and registrar contact details, a wrong license for one upstream test-data source and missing license texts. All were fixed, the first two in every historical commit. A gpt-6.1-sol review of the new workflows caught three Windows CI blockers (POSIX file modes and paths in tests, CRLF checkouts) and an overstated security claim before the first run.
 
 ## Requirement coverage
 
@@ -96,7 +114,7 @@ These need access, authorization or machines this build did not have.
 1. **Authenticated provider operations (P07, R09, scenario 6).** All nine adapters implement their documented exact checks, quotes, transfers and aftermarket calls and are tested against documentation-derived fixtures. None has run against a real account. Needed: API keys for the providers you use, then a recorded live quote per provider (fixed test names only).
 2. **Purchase handoff for renewal and transfer, and storefront verification (R05, F05).** New-registration links exist for every provider but were never opened, and no provider manifest has renewal or transfer destinations, so those paths show no link. Needed: authorization to open provider storefronts with fixed test names, then recorded templates with verification dates.
 3. **Two WHOIS registries without a live pass.** `.il` answers a gibberish name with only its disclaimer and no "not found" line, so it stays `inconclusive` instead of guessing `no_record`; telling not-found from throttling needs a registered `.il` name, which is outside the fixed test set. `.pt` (whois.dns.pt) timed out on both attempts.
-4. **Windows (scenario 19).** The Windows archive and npm package build; owner-only ACLs (`icacls`), process detach, signal handling, the npm launcher script and the browser opener were never run on Windows. Needed: a Windows machine.
+4. **Windows (scenario 19).** CI now runs the Go and backend suites and the npm install check on Windows (see [Platform runs](#platform-runs)). Still not exercised there: the resulting owner-only ACLs (`icacls`) were not inspected, Ctrl-C and termination signals, the browser opener and the release archive with the UI. Needed: a Windows machine, or CI steps for these.
 5. **Not implemented provider extras.** GoDaddy locked registration quotes and Auctions, Sedo and Atom marketplace integrations (Atom's anonymous search is documented but outside the authorized live set).
 6. **Live IDN validation.** IDN normalization is unit-tested; no internationalized name is in the fixed live set.
 7. **A live 1,000-name run against a public registry.** The acceptance run measures the full engine, CLI and API against a local stub registry; stress runs against public registries are not authorized.
