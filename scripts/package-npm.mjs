@@ -46,7 +46,9 @@ mkdirSync(out, { recursive: true });
 
 // Main package: the deployed backend at the package root (dist/, data/, a flat node_modules).
 const main = join(out, 'domain-scout');
-runTool('pnpm', ['--filter', '@domain-scout/backend', 'deploy', '--prod', '--legacy', '--config.node-linker=hoisted', main]);
+// Real copies, not hard links into pnpm's store: npm pack never finishes on a tree whose files share
+// inodes (pnpm hard-links on Linux and Windows; macOS clones, which is why it worked there).
+runTool('pnpm', ['--filter', '@domain-scout/backend', 'deploy', '--prod', '--legacy', '--config.node-linker=hoisted', '--config.package-import-method=copy', main]);
 rmSync(join(main, 'node_modules/.bin'), { recursive: true, force: true });
 // `deploy --prod` also prunes dev dependencies from the workspace's own node_modules; restore them.
 runTool('pnpm', ['install', '--frozen-lockfile', '--offline']);
