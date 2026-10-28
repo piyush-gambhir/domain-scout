@@ -118,13 +118,15 @@ The UI and CLI make real network queries. Use the test names above while reviewi
 
 ## Local evidence
 
-- Availability JSON: [CLI results](trials/artifacts/cli-check.json).
-- Price data: [CLI prices](trials/artifacts/cli-prices.json).
-- Request destinations: [CLI network log](trials/artifacts/cli-network.jsonl).
-- Agent interface: [MCP results](trials/artifacts/mcp-smoke.json).
-- Optional detail API: [DigMyName response](trials/artifacts/ui-premium-response.json).
-- Export: [UI CSV](trials/artifacts/ui-export.csv).
-- Screenshots: [results](trials/artifacts/ui-results.png), [price comparison](trials/artifacts/ui-prices.png).
-- Dependency findings: [npm audit](trials/artifacts/npm-audit.json).
+These files stay in the ignored `trials/` directory of the machine that ran the trial; they are not in the repository.
+
+- Availability JSON: CLI results (`trials/artifacts/cli-check.json`).
+- Price data: CLI prices (`trials/artifacts/cli-prices.json`).
+- Request destinations: CLI network log (`trials/artifacts/cli-network.jsonl`).
+- Agent interface: MCP results (`trials/artifacts/mcp-smoke.json`).
+- Optional detail API: DigMyName response (`trials/artifacts/ui-premium-response.json`).
+- Export: UI CSV (`trials/artifacts/ui-export.csv`).
+- Screenshots: results (`trials/artifacts/ui-results.png`), price comparison (`trials/artifacts/ui-prices.png`).
+- Dependency findings: npm audit (`trials/artifacts/npm-audit.json`).
 
 These artifacts are local and ignored by Git. This report remains in the planning repository as an uncommitted document.

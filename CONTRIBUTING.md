@@ -41,7 +41,7 @@ history, resolved review threads and passing CI and CodeQL checks.
 Prefer current stable releases, with GitHub Actions pinned to commit SHAs. Dependabot checks Go modules and
 Actions daily and npm packages weekly, grouping minor and patch updates per ecosystem; those merge
 automatically once checks pass, and major updates wait for review. Node.js (`.nvmrc`, `Dockerfile`), pnpm and
-the Go toolchain are updated by hand; keep `TECH_STACK.md` in step.
+the Go toolchain are updated by hand; keep `docs/TECH_STACK.md` in step.
 
 ## Releases
 

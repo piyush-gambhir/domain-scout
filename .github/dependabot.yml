@@ -25,6 +25,6 @@ updates:
         patterns: ['*']
         update-types: [minor, patch]
     ignore:
-      # TypeScript 7 lacks the compiler API that typescript-eslint and Next.js use (TECH_STACK.md).
+      # TypeScript 7 lacks the compiler API that typescript-eslint and Next.js use (docs/TECH_STACK.md).
       - dependency-name: typescript
         update-types: [version-update:semver-major]

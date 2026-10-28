@@ -2,7 +2,7 @@ import { DOMAIN_HUNTER_REGISTRARS, cap, field, unsupported, type ProviderManifes
 
 /*
  * The nine named providers. Sources are official documentation read on 2026-10-05 (see
- * REFERENCES.md and the provider research report). No provider API was called and no live keys
+ * docs/REFERENCES.md and the provider research report). No provider API was called and no live keys
  * exist, so authenticated capabilities are at most fixture_tested. Storefront search templates come
  * from the pinned Domain Hunter reference; their prefill behavior was not confirmed or opened, so
  * they stay documented with verifiedAt null.

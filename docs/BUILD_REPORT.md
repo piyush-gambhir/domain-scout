@@ -6,7 +6,7 @@ Built October 5 to 7, 2026 on the `build` branch, pushed to the private GitHub r
 
 The full product scope in [PRODUCT.md](PRODUCT.md) is implemented across the backend, web UI and Go CLI, and runs locally with `docker compose up --build`, `pnpm dev`, or the packaged archives. Of the 80 numbered requirements, the last independent requirement audit (gpt-6.1-sol) found 68 implemented and tested, 7 implemented without a dedicated test and 5 partial, none missing. Since then the 1,000-domain acceptance run (B08), live WHOIS validation (A02), the MCP adapter (G01), comparison ordering (R08), CLI machine output for cancelled runs (G04) and quote decision fields (G08) gained tests or live runs, and W02, H02 and X05 were fixed. What is still open is listed under [Pending work](#pending-work).
 
-After the first full build Piyush asked for a redesign, because the first UI mirrored backend modules instead of tasks. It was rebuilt around tasks instead of backend modules, following [docs/UX_PLAN.md](docs/UX_PLAN.md): Search, Saved, Watching, History and Settings replace nine module pages; small searches show a name by extension grid and long lists a grouped list; free names say "Not registered", never "Available"; every row has Save, Buy and Watch; evidence internals sit one click away. Pages fit the window at 1440x900 and 1280x800, and only data regions scroll.
+After the first full build Piyush asked for a redesign, because the first UI mirrored backend modules instead of tasks. It was rebuilt around tasks instead of backend modules, following [UX_PLAN.md](UX_PLAN.md): Search, Saved, Watching, History and Settings replace nine module pages; small searches show a name by extension grid and long lists a grouped list; free names say "Not registered", never "Available"; every row has Save, Buy and Watch; evidence internals sit one click away. Pages fit the window at 1440x900 and 1280x800, and only data regions scroll.
 
 ## What was built
 
@@ -19,7 +19,7 @@ After the first full build Piyush asked for a redesign, because the first UI mir
 | CLI | Go `domain-scout`: every API operation, JSON/table/NDJSON output, SSE waits with replay and polling fallback, the handoff's exit codes, a launcher that starts or reuses the backend and web server, `ui --job` to open a run in the UI, `prices published` for catalog prices per extension, and `domain-scout mcp` (11 MCP tools over stdio on the same API) |
 | Runs | `docker compose up --build` (single container, UI on host loopback only), `pnpm dev`, `pnpm smoke`, `pnpm acceptance` (1,200 names against a local stub registry), `pnpm package` (archives with the UI for macOS arm64/amd64, Linux amd64/arm64, Windows amd64), `node scripts/package-npm.mjs` (CLI-only npm packages for the same platforms) |
 
-Build-time technology decisions are recorded in [TECH_STACK.md](TECH_STACK.md#build-time-decisions); conventions and module ownership in [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md).
+Build-time technology decisions are recorded in [TECH_STACK.md](TECH_STACK.md#build-time-decisions); conventions and module ownership in [IMPLEMENTATION.md](IMPLEMENTATION.md).
 
 ## Verification
 

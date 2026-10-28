@@ -10,7 +10,7 @@ import (
 	"github.com/piyush-gambhir/domain-scout/cli/internal/api"
 )
 
-// Exit codes (BUILD_HANDOFF.md "Go command contract").
+// Exit codes (docs/BUILD_HANDOFF.md "Go command contract").
 const (
 	ExitOK          = 0   // success or accepted submission
 	ExitFailure     = 1   // local operation failure

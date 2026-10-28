@@ -1,16 +1,16 @@
 # Domain Scout instructions
 
-Piyush authorized building on October 5, 2026. Implement inside this repo following BUILD_HANDOFF.md, PRODUCT.md, TECH_STACK.md, REFERENCES.md and docs/IMPLEMENTATION.md (monorepo layout, module ownership, contracts and conventions).
+Piyush authorized building on October 5, 2026. Implement inside this repo following docs/BUILD_HANDOFF.md, docs/PRODUCT.md, docs/TECH_STACK.md, docs/REFERENCES.md and docs/IMPLEMENTATION.md (monorepo layout, module ownership, contracts and conventions).
 
-Piyush chose our own product after the trial, with a complete UI redesign and broader purchase-provider coverage including Hostinger. PRODUCT.md records the complete scope without estimates or release phases. The stack is finalized: Go CLI, NestJS backend, Next.js frontend. Visual design decisions made at build start are recorded below.
+Piyush chose our own product after the trial, with a complete UI redesign and broader purchase-provider coverage including Hostinger. docs/PRODUCT.md records the complete scope without estimates or release phases. The stack is finalized: Go CLI, NestJS backend, Next.js frontend. Visual design decisions made at build start are recorded below.
 
 - Build the application in the Turborepo + pnpm monorepo (apps/backend, apps/web, apps/cli, packages/contracts, packages/api-client). Do not adopt the earlier Python scaffold.
 - Git: commit milestones on the `build` branch and merge them into `main`, the protected default branch, through a pull request. Do not push until Piyush says so.
 - Live network checks during development are limited to a fixed test set: example.com, google.com, nic.si, bbc.co.uk and random 24-character gibberish names, sent only to registry RDAP/WHOIS, keyless public catalogs (IANA bootstrap, Porkbun pricing) and the optional DNS/TLS/GitHub/npm checks. No registrar or aggregator calls.
 - UI: borderless and minimal (whitespace and soft tints instead of borders), monochrome accent, collapsible icon + label sidebar, domain details in a right-side panel.
 - Piyush authorized trying an existing solution inside this project. Upstream code, local dependencies, evaluation harnesses, runtime state, and artifacts may live under the ignored `trials/` directory. Trial code is a reference only (Domain Hunter is MIT; keep notices for anything copied). Do not change upstream source.
-- Go, NestJS and Next.js are user-selected. TECH_STACK.md distinguishes these from supporting engineering defaults, including Express, SQLite, OpenAPI/SSE and Cobra. Cobra is not a user mandate.
-- Read BUILD_HANDOFF.md, PRODUCT.md, TECH_STACK.md, REFERENCES.md and docs/IMPLEMENTATION.md before implementing. Do not request redundant stack/scope approval.
+- Go, NestJS and Next.js are user-selected. docs/TECH_STACK.md distinguishes these from supporting engineering defaults, including Express, SQLite, OpenAPI/SSE and Cobra. Cobra is not a user mandate.
+- Read docs/BUILD_HANDOFF.md, docs/PRODUCT.md, docs/TECH_STACK.md, docs/REFERENCES.md and docs/IMPLEMENTATION.md before implementing. Do not request redundant stack/scope approval.
 - Coding agents are the primary consumers; preserve structured, non-interactive workflows in the plan. Piyush also needs a UI using the same underlying behavior.
 - Local execution targets macOS, Windows and Linux: Nest owns jobs/data, Next serves the frontend and calls Nest, Go calls the same API. No hosted infrastructure required. MCP is optional afterward, never a second engine.
 - Piyush has no registrar API keys now. Build keyless registry/public capabilities and optional key-based integrations configurable in the UI console/settings and CLI. Never require registrar keys for discovery or claim fixture tests are live validation.

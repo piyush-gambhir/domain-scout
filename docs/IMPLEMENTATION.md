@@ -1,6 +1,6 @@
 # Implementation guide
 
-Engineering conventions for building Domain Scout. Product scope and semantics live in [PRODUCT.md](../PRODUCT.md) and [BUILD_HANDOFF.md](../BUILD_HANDOFF.md); this file records how the code is organized and the contracts between parts. Started October 5, 2026.
+Engineering conventions for building Domain Scout. Product scope and semantics live in [PRODUCT.md](PRODUCT.md) and [BUILD_HANDOFF.md](BUILD_HANDOFF.md); this file records how the code is organized and the contracts between parts. Started October 5, 2026.
 
 ## Monorepo
 

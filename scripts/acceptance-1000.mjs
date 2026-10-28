@@ -1,4 +1,4 @@
-// Acceptance run for the bulk workflow (PRODUCT.md B04-B08, scenarios 2 and 19) against a local stub
+// Acceptance run for the bulk workflow (docs/PRODUCT.md B04-B08, scenarios 2 and 19) against a local stub
 // registry, so no name leaves the machine. Drives the real Go CLI and backend:
 //   1. 1,200 .com names scanned through `domain-scout scan`, cancelled at about 30% and resumed;
 //   2. a second 1,200-name job interrupted by stopping the backend, restarted and resumed;

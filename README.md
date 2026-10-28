@@ -108,12 +108,12 @@ Registry discovery and public catalogs need no keys. Optional provider integrati
 
 ## Project notes
 
-- [Build report](BUILD_REPORT.md): what was built, how it was verified, and what is still pending.
+- [Build report](docs/BUILD_REPORT.md): what was built, how it was verified, and what is still pending.
 - [Implementation guide](docs/IMPLEMENTATION.md): module ownership, contracts, runtime protocol and conventions.
-- [Product requirements](PRODUCT.md): scope, defaults and acceptance scenarios.
-- [Build handoff](BUILD_HANDOFF.md): contracts, modules, data, commands and verification plan.
-- [Tech stack](TECH_STACK.md): selected technologies and the build-time decisions.
-- [Plan](PLAN.md), [Findings](FINDINGS.md), [Source review](SOURCE_REVIEW.md), [Trial](TRIAL.md), [References](REFERENCES.md): research and planning record.
+- [Product requirements](docs/PRODUCT.md): scope, defaults and acceptance scenarios.
+- [Build handoff](docs/BUILD_HANDOFF.md): contracts, modules, data, commands and verification plan.
+- [Tech stack](docs/TECH_STACK.md): selected technologies and the build-time decisions.
+- [Plan](docs/PLAN.md), [Findings](docs/FINDINGS.md), [Source review](docs/SOURCE_REVIEW.md), [Trial](docs/TRIAL.md), [References](docs/REFERENCES.md): research and planning record.
 - [Agent instructions](AGENTS.md): boundaries for anyone continuing the work.
 - [Contributing](CONTRIBUTING.md) and [security policy](SECURITY.md).
 

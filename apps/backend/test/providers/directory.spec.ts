@@ -71,7 +71,7 @@ describe('provider directory', () => {
     expect(si.find((p) => p.providerId === 'namecom')?.supportsSuffix).toBe('yes');
   });
 
-  it('every purchase URL belongs to the provider it is listed under (TRIAL.md link mismatch)', () => {
+  it('every purchase URL belongs to the provider it is listed under (docs/TRIAL.md link mismatch)', () => {
     const directory = t.app.get(ProviderDirectory);
     const hosts: Record<string, string> = {
       hostinger: 'www.hostinger.com',
