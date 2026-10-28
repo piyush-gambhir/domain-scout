@@ -3,7 +3,7 @@
     "kind": "reconstructed",
     "capturedAt": null,
     "request": null,
-    "notes": "Reconstructed from whoeasy test fixture whois.irs.net.nz/nxdomain.txt (MIT, commit a8347b8011, captured 2026-03-16): reply kept verbatim except the queried name, replaced with a random 24-character label. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+    "notes": "Reconstructed from whoeasy test fixture whois.irs.net.nz/nxdomain.txt (Apache-2.0, commit a8347b8011, captured 2026-03-16): reply kept verbatim except the queried name, replaced with a random 24-character label. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
   },
   "domain": "ixebjygkzojcmnxvlroaqabq.nz",
   "suffix": "nz",

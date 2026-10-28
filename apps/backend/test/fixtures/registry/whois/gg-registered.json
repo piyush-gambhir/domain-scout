@@ -3,7 +3,7 @@
     "kind": "reconstructed",
     "capturedAt": null,
     "request": null,
-    "notes": "Reconstructed from whoeasy test fixture whois.gg/clean.gg.txt (MIT, commit a8347b8011, captured 2026-03-16): layout, banner and wording kept; the name, registrar, nameservers and dates are synthetic and contact data is removed. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+    "notes": "Reconstructed from whoeasy test fixture whois.gg/clean.gg.txt (Apache-2.0, commit a8347b8011, captured 2026-03-16): layout, banner and wording kept; the name, registrar, nameservers and dates are synthetic and contact data is removed. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
   },
   "domain": "fixture-registered.gg",
   "suffix": "gg",

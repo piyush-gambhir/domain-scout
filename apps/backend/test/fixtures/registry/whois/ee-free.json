@@ -3,7 +3,7 @@
     "kind": "reconstructed",
     "capturedAt": null,
     "request": null,
-    "notes": "Reference capture whoeasy test fixture whois.tld.ee/nxdomain.txt (MIT, commit a8347b8011, captured 2026-03-16), verbatim; it matches no_entries_msg in the registry server source lib/whois_server.rb (https://github.com/internetee/whois, commit 1c657ad092). Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
+    "notes": "Reference capture whoeasy test fixture whois.tld.ee/nxdomain.txt (Apache-2.0, commit a8347b8011, captured 2026-03-16), verbatim; it matches no_entries_msg in the registry server source lib/whois_server.rb (https://github.com/internetee/whois, commit 1c657ad092). Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05."
   },
   "domain": "xtwxqmbyludiunlpyundlbku.ee",
   "suffix": "ee",

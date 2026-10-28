@@ -3,7 +3,7 @@
     "kind": "reconstructed",
     "capturedAt": null,
     "request": null,
-    "notes": "Reference capture whoeasy test fixture whois.dns.hr/nxdomain.txt (MIT, commit a8347b8011, captured 2026-03-16), verbatim; the reply does not echo the name. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+    "notes": "Reference capture whoeasy test fixture whois.dns.hr/nxdomain.txt (Apache-2.0, commit a8347b8011, captured 2026-03-16), verbatim; the reply does not echo the name. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
   },
   "domain": "hbqgivmprkopnupsmfoyxhou.hr",
   "suffix": "hr",

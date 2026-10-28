@@ -3,7 +3,7 @@
     "kind": "reconstructed",
     "capturedAt": null,
     "request": null,
-    "notes": "Reference capture whoeasy test fixture whois.nic.sh/nxdomain.txt (MIT, commit a8347b8011, captured 2026-03-16), verbatim; the reply does not echo the name and its terms mention throttling. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
+    "notes": "Reference capture whoeasy test fixture whois.nic.sh/nxdomain.txt (Apache-2.0, commit a8347b8011, captured 2026-03-16), verbatim; the reply does not echo the name and its terms mention throttling. Not captured by this project: outbound TCP port 43 was blocked on the development network on 2026-10-05. Registry terms of use and contact details are omitted for publication."
   },
   "domain": "qmoorpretxuonxskacgasjxc.sh",
   "suffix": "sh",
