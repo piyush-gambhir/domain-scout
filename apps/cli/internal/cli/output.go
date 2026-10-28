@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"sort"
 	"strconv"
 	"strings"
 	"text/tabwriter"
@@ -385,14 +384,4 @@ func ratio(num, den string) func(map[string]any) string {
 	return func(row map[string]any) string {
 		return cell(lookup(row, num)) + "/" + cell(lookup(row, den))
 	}
-}
-
-// keys returns sorted map keys (used for stable human summaries).
-func keys(m map[string]int) []string {
-	out := make([]string, 0, len(m))
-	for k := range m {
-		out = append(out, k)
-	}
-	sort.Strings(out)
-	return out
 }

@@ -75,9 +75,7 @@ func splitList(text string) []string {
 		if i := strings.Index(line, "#"); i >= 0 {
 			line = line[:i]
 		}
-		for _, f := range strings.FieldsFunc(line, func(r rune) bool { return r == ',' || r == ' ' || r == '\t' || r == '\r' }) {
-			out = append(out, f)
-		}
+		out = append(out, strings.FieldsFunc(line, func(r rune) bool { return r == ',' || r == ' ' || r == '\t' || r == '\r' })...)
 	}
 	return out
 }

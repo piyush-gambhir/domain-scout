@@ -16,9 +16,6 @@ var (
 		{header: "BEST PRICE", fn: money("bestPrice.amount", "bestPrice.currency")},
 		c("ERROR", "error.code"), c("RETRY AT", "retryAt"),
 	}}
-	eventView = view{cols: []col{
-		c("EVENT", "eventId"), c("OCCURRED", "occurredAt"), c("TYPE", "type"), c("JOB", "jobId"), c("WATCH", "watchId"),
-	}}
 
 	inputPreviewView = view{
 		list: "rows",
