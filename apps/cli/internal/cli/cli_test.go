@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	goruntime "runtime"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -761,7 +762,7 @@ func TestNotesSetCanClearShortlistNotes(t *testing.T) {
 
 // Lifecycle against a fake `node` (this test binary) using the packaged layout.
 func TestServiceLifecycleAutostartAndUI(t *testing.T) {
-	if os.Getenv("GOOS") == "windows" {
+	if goruntime.GOOS == "windows" {
 		t.Skip("POSIX only")
 	}
 	prefix := t.TempDir()

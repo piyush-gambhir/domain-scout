@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	goruntime "runtime"
 	"testing"
 )
 
@@ -48,11 +49,11 @@ func TestDefaultDataDirPerOS(t *testing.T) {
 func TestResolveDataDirPrecedence(t *testing.T) {
 	env := envMap(map[string]string{EnvDataDir: "/from/env"})
 	got, _ := ResolveDataDir("/from/flag", "linux", env, "/home/ada")
-	if got != filepath.Clean("/from/flag") {
+	if want, _ := filepath.Abs("/from/flag"); got != want {
 		t.Fatalf("flag should win, got %q", got)
 	}
 	got, _ = ResolveDataDir("", "linux", env, "/home/ada")
-	if got != filepath.Clean("/from/env") {
+	if want, _ := filepath.Abs("/from/env"); got != want {
 		t.Fatalf("env should win over the default, got %q", got)
 	}
 	got, _ = ResolveDataDir("", "linux", envMap(nil), "/home/ada")
@@ -137,7 +138,7 @@ func TestRuntimeFiles(t *testing.T) {
 		t.Fatal(err)
 	}
 	st, _ := os.Stat(filepath.Join(run, "web.json"))
-	if st.Mode().Perm() != 0o600 {
+	if goruntime.GOOS != "windows" && st.Mode().Perm() != 0o600 {
 		t.Fatalf("web.json mode %v", st.Mode().Perm())
 	}
 	w, err := ReadWebInfo(dir)

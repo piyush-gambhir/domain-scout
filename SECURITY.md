@@ -9,10 +9,12 @@ How the local engine is protected:
 
 - Domain Scout runs on your machine; nothing is hosted. The backend listens on 127.0.0.1 only, and the
   web UI server is bound to loopback as well (the Docker image publishes it on the host's loopback only).
-- Every API request needs the per-install token in `<data dir>/run/api-token` (random 32 bytes, file mode
-  0600 in a 0700 directory), or a browser session. Browser sessions start from a single-use sign-in code
-  that expires after 60 seconds (15 minutes for the link the Docker image prints). Mutating requests also
-  need the CSRF token and an allowed `Origin`, and the API token never reaches browser JavaScript.
+- Apart from the health check and the exchange of a sign-in code, every API request needs the per-install
+  token in `<data dir>/run/api-token` (random 32 bytes, file mode 0600 in a 0700 directory) or a browser
+  session. Browser sessions start from a single-use sign-in code that expires after 60 seconds (15 minutes
+  for the link the Docker image prints). Session requests that change data also need the CSRF token, any
+  request whose `Origin` is not an allowed web origin is refused, and the API token never reaches browser
+  JavaScript.
 - Provider credentials come from environment variables, are kept for the running session only, or are
   saved on request to a separate owner-only credential file. They are never stored in SQLite and never
   appear in API responses, logs, exports, snapshots or retained evidence; provider responses that echo

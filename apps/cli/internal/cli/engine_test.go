@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	goruntime "runtime"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -82,7 +83,7 @@ func TestClientDoesNotReviveForOtherErrors(t *testing.T) {
 // binary (fakenode) and returns a harness using it.
 func installedBackend(t *testing.T, env ...string) (*harness, string) {
 	t.Helper()
-	if os.Getenv("GOOS") == "windows" {
+	if goruntime.GOOS == "windows" {
 		t.Skip("POSIX only")
 	}
 	prefix := t.TempDir()
