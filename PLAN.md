@@ -147,4 +147,4 @@ Registry discovery requires no paid aggregator or provider key. Optional provide
 
 ## Repository and implementation status
 
-The repository remains private during planning and implementation. Open sourcing requires Piyush's separate explicit instruction, even after an end-to-end product exists. Application implementation also requires an explicit instruction to begin. Research and authorized trial artifacts stay inside this project; the earlier external scaffold has not been adopted.
+The repository stayed private during planning and implementation; Piyush made it public on October 28, 2026. Application implementation also requires an explicit instruction to begin. Research and authorized trial artifacts stay inside this project; the earlier external scaffold has not been adopted.

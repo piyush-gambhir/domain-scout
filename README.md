@@ -4,8 +4,6 @@ Local tool for checking domain registration records, finding purchase providers 
 
 Registry results are evidence, not promises: "no record" means the registry returned no registration record when checked, not that a name can be bought. Prices carry their source, type and age, and unknown values stay unknown.
 
-Repository visibility: private. Open sourcing needs a separate explicit decision.
-
 ## Install the CLI
 
 The npm package is the whole CLI-only install: the Go CLI for your platform plus the local engine, with no UI. It needs Node.js 24.11 or newer. The packages are not published yet; build and install them from a checkout:
@@ -117,3 +115,8 @@ Registry discovery and public catalogs need no keys. Optional provider integrati
 - [Tech stack](TECH_STACK.md): selected technologies and the build-time decisions.
 - [Plan](PLAN.md), [Findings](FINDINGS.md), [Source review](SOURCE_REVIEW.md), [Trial](TRIAL.md), [References](REFERENCES.md): research and planning record.
 - [Agent instructions](AGENTS.md): boundaries for anyone continuing the work.
+- [Contributing](CONTRIBUTING.md) and [security policy](SECURITY.md).
+
+## License
+
+[MIT](LICENSE).

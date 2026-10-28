@@ -174,7 +174,7 @@ References to MCP in acceptance conditions describe its behavior if added. They 
 - Preserve partial success through failures, cancellation and supported restarts. Distinguish old data from new checks.
 - Cached history and exports remain usable offline; live checks and quotes report that they need a connection.
 - Keep the UI responsive during the 1,000-domain acceptance workload. Measure this before claiming the target is achieved.
-- Keep the repo private until Piyush authorizes publication. Review source licenses before copying code.
+- Review source licenses before copying code, and keep their notices. The repository is public since October 28, 2026.
 
 Registries and requested providers can observe queries. Zero logging, zero front-running risk, unlimited speed and guaranteed registration are not product claims.
 

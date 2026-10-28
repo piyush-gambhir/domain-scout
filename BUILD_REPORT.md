@@ -100,7 +100,7 @@ These need access, authorization or machines this build did not have.
 5. **Not implemented provider extras.** GoDaddy locked registration quotes and Auctions, Sedo and Atom marketplace integrations (Atom's anonymous search is documented but outside the authorized live set).
 6. **Live IDN validation.** IDN normalization is unit-tested; no internationalized name is in the fixed live set.
 7. **A live 1,000-name run against a public registry.** The acceptance run measures the full engine, CLI and API against a local stub registry; stress runs against public registries are not authorized.
-8. **Publishing the CLI.** The npm packages install from local tarballs only. Needed: a decision on package names (an npm scope) and on public or private publishing, given that the repository stays private and the package ships readable compiled backend code.
+8. **Publishing the CLI.** The npm packages install from local tarballs only. Needed: a decision on package names (an npm scope) and on public or private publishing.
 
 ## Verification limits
 
