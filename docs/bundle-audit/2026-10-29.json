@@ -1,0 +1,695 @@
+{
+  "date": "2026-10-29",
+  "repository": "piyush-gambhir/domain-scout",
+  "base": "main",
+  "base_sha": "ef799f2df13ac8689888987a68a5f30408c08e96",
+  "mode": "audit",
+  "publication_blocker": null,
+  "apps": [
+    {
+      "path": "apps/web",
+      "declared_next": "16.4.3",
+      "installed_next": "16.4.3",
+      "snapshot": "audit-20261029-baseline",
+      "graph_sha256": "fb11f20cb98fb2e86505d3de300ba4f3980dd5f9c95a078b9915dd58c5941efe",
+      "error": null,
+      "analysis": {
+        "meta": {
+          "type": "meta",
+          "schema_version": 1,
+          "snapshot_name": "audit-20261029-baseline",
+          "module_index_hash": "b49180c9061fd3e2",
+          "route_count": 15,
+          "selected_routes": 15
+        },
+        "record_counts": {
+          "meta": 1,
+          "module": 2068,
+          "route": 15,
+          "output": 2546,
+          "part": 14611,
+          "group": 246
+        },
+        "metric": "Sum of attributed compressed bytes for JavaScript outputs with [client-fs] provenance; includes deferred outputs and is not measured transfer or initial-load size.",
+        "unique_client_js_compressed_attribution": 534992,
+        "route_stats": [
+          {
+            "route": "/search/[id]",
+            "client_js_compressed_attribution": 408087,
+            "bootstrap_js_compressed_attribution": 164083,
+            "client_js_files": 24,
+            "entries_coverage": "exact",
+            "groups_coverage": "exact"
+          },
+          {
+            "route": "/saved/[id]",
+            "client_js_compressed_attribution": 398123,
+            "bootstrap_js_compressed_attribution": 164083,
+            "client_js_files": 23,
+            "entries_coverage": "exact",
+            "groups_coverage": "exact"
+          },
+          {
+            "route": "/saved",
+            "client_js_compressed_attribution": 398123,
+            "bootstrap_js_compressed_attribution": 164083,
+            "client_js_files": 23,
+            "entries_coverage": "exact",
+            "groups_coverage": "exact"
+          },
+          {
+            "route": "/saved/owned",
+            "client_js_compressed_attribution": 398123,
+            "bootstrap_js_compressed_attribution": 164083,
+            "client_js_files": 23,
+            "entries_coverage": "exact",
+            "groups_coverage": "exact"
+          },
+          {
+            "route": "/",
+            "client_js_compressed_attribution": 372626,
+            "bootstrap_js_compressed_attribution": 164083,
+            "client_js_files": 21,
+            "entries_coverage": "exact",
+            "groups_coverage": "exact"
+          },
+          {
+            "route": "/settings/[section]",
+            "client_js_compressed_attribution": 364215,
+            "bootstrap_js_compressed_attribution": 164083,
+            "client_js_files": 22,
+            "entries_coverage": "exact",
+            "groups_coverage": "exact"
+          },
+          {
+            "route": "/watching/[id]",
+            "client_js_compressed_attribution": 362250,
+            "bootstrap_js_compressed_attribution": 164083,
+            "client_js_files": 20,
+            "entries_coverage": "exact",
+            "groups_coverage": "exact"
+          },
+          {
+            "route": "/watching",
+            "client_js_compressed_attribution": 362082,
+            "bootstrap_js_compressed_attribution": 164083,
+            "client_js_files": 20,
+            "entries_coverage": "exact",
+            "groups_coverage": "exact"
+          },
+          {
+            "route": "/domains/[name]",
+            "client_js_compressed_attribution": 361122,
+            "bootstrap_js_compressed_attribution": 164083,
+            "client_js_files": 20,
+            "entries_coverage": "exact",
+            "groups_coverage": "exact"
+          },
+          {
+            "route": "/history",
+            "client_js_compressed_attribution": 350940,
+            "bootstrap_js_compressed_attribution": 164083,
+            "client_js_files": 19,
+            "entries_coverage": "exact",
+            "groups_coverage": "exact"
+          },
+          {
+            "route": "/settings",
+            "client_js_compressed_attribution": 329966,
+            "bootstrap_js_compressed_attribution": 164083,
+            "client_js_files": 17,
+            "entries_coverage": "exact",
+            "groups_coverage": "exact"
+          },
+          {
+            "route": "/_not-found",
+            "client_js_compressed_attribution": 268218,
+            "bootstrap_js_compressed_attribution": 164083,
+            "client_js_files": 11,
+            "entries_coverage": "exact",
+            "groups_coverage": "exact"
+          },
+          {
+            "route": "/session",
+            "client_js_compressed_attribution": 268218,
+            "bootstrap_js_compressed_attribution": 164083,
+            "client_js_files": 11,
+            "entries_coverage": "exact",
+            "groups_coverage": "exact"
+          },
+          {
+            "route": "/api/v1/[...path]",
+            "client_js_compressed_attribution": 0,
+            "bootstrap_js_compressed_attribution": 0,
+            "client_js_files": 0,
+            "entries_coverage": "exact",
+            "groups_coverage": "exact"
+          },
+          {
+            "route": "/auth/bootstrap",
+            "client_js_compressed_attribution": 0,
+            "bootstrap_js_compressed_attribution": 0,
+            "client_js_files": 0,
+            "entries_coverage": "exact",
+            "groups_coverage": "exact"
+          }
+        ],
+        "top_sources": [
+          {
+            "source": "node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.production.js",
+            "compressed_attribution": 63927,
+            "routes": [
+              "/",
+              "/_not-found",
+              "/domains/[name]",
+              "/history",
+              "/saved",
+              "/saved/[id]",
+              "/saved/owned",
+              "/search/[id]",
+              "/session",
+              "/settings",
+              "/settings/[section]",
+              "/watching",
+              "/watching/[id]"
+            ]
+          },
+          {
+            "source": "node_modules/next/dist/build/polyfills/polyfill-nomodule.js",
+            "compressed_attribution": 39434,
+            "routes": [
+              "/",
+              "/_not-found",
+              "/domains/[name]",
+              "/history",
+              "/saved",
+              "/saved/[id]",
+              "/saved/owned",
+              "/search/[id]",
+              "/session",
+              "/settings",
+              "/settings/[section]",
+              "/watching",
+              "/watching/[id]"
+            ]
+          },
+          {
+            "source": "node_modules/@radix-ui/react-radio-group/dist/index.mjs",
+            "compressed_attribution": 10449,
+            "routes": [
+              "/",
+              "/domains/[name]",
+              "/saved",
+              "/saved/[id]",
+              "/saved/owned",
+              "/search/[id]",
+              "/settings/[section]",
+              "/watching",
+              "/watching/[id]"
+            ]
+          },
+          {
+            "source": "apps/web/src/lib/labels.ts",
+            "compressed_attribution": 10000,
+            "routes": [
+              "/",
+              "/domains/[name]",
+              "/history",
+              "/saved",
+              "/saved/[id]",
+              "/saved/owned",
+              "/search/[id]",
+              "/settings/[section]",
+              "/watching",
+              "/watching/[id]"
+            ]
+          },
+          {
+            "source": "node_modules/sonner/dist/index.mjs",
+            "compressed_attribution": 9417,
+            "routes": [
+              "/",
+              "/_not-found",
+              "/domains/[name]",
+              "/history",
+              "/saved",
+              "/saved/[id]",
+              "/saved/owned",
+              "/search/[id]",
+              "/session",
+              "/settings",
+              "/settings/[section]",
+              "/watching",
+              "/watching/[id]"
+            ]
+          },
+          {
+            "source": "node_modules/tailwind-merge/dist/bundle-mjs.mjs",
+            "compressed_attribution": 8416,
+            "routes": [
+              "/",
+              "/domains/[name]",
+              "/history",
+              "/saved",
+              "/saved/[id]",
+              "/saved/owned",
+              "/search/[id]",
+              "/settings",
+              "/settings/[section]",
+              "/watching",
+              "/watching/[id]"
+            ]
+          },
+          {
+            "source": "node_modules/@radix-ui/react-checkbox/dist/index.mjs",
+            "compressed_attribution": 8273,
+            "routes": [
+              "/",
+              "/domains/[name]",
+              "/saved",
+              "/saved/[id]",
+              "/saved/owned",
+              "/search/[id]",
+              "/settings/[section]",
+              "/watching",
+              "/watching/[id]"
+            ]
+          },
+          {
+            "source": "node_modules/next/dist/compiled/react-server-dom-turbopack/cjs/react-server-dom-turbopack-client.browser.production.js",
+            "compressed_attribution": 7772,
+            "routes": [
+              "/",
+              "/_not-found",
+              "/domains/[name]",
+              "/history",
+              "/saved",
+              "/saved/[id]",
+              "/saved/owned",
+              "/search/[id]",
+              "/session",
+              "/settings",
+              "/settings/[section]",
+              "/watching",
+              "/watching/[id]"
+            ]
+          },
+          {
+            "source": "apps/web/src/components/domain/domain-panel.tsx",
+            "compressed_attribution": 7737,
+            "routes": ["/domains/[name]", "/saved", "/saved/[id]", "/saved/owned", "/search/[id]"]
+          },
+          {
+            "source": "apps/web/src/components/ui/dialog.tsx",
+            "compressed_attribution": 6618,
+            "routes": [
+              "/",
+              "/domains/[name]",
+              "/history",
+              "/saved",
+              "/saved/[id]",
+              "/saved/owned",
+              "/search/[id]",
+              "/settings/[section]",
+              "/watching",
+              "/watching/[id]"
+            ]
+          },
+          {
+            "source": "apps/web/src/components/saved/list-view.tsx",
+            "compressed_attribution": 6526,
+            "routes": ["/saved", "/saved/[id]", "/saved/owned"]
+          },
+          {
+            "source": "node_modules/@radix-ui/react-select/dist/index.mjs",
+            "compressed_attribution": 6422,
+            "routes": [
+              "/",
+              "/history",
+              "/saved",
+              "/saved/[id]",
+              "/saved/owned",
+              "/search/[id]",
+              "/settings/[section]",
+              "/watching",
+              "/watching/[id]"
+            ]
+          },
+          {
+            "source": "apps/web/src/components/jobs/filters.tsx",
+            "compressed_attribution": 6405,
+            "routes": ["/", "/search/[id]"]
+          },
+          {
+            "source": "node_modules/next/dist/client/components/segment-cache/cache.js",
+            "compressed_attribution": 6401,
+            "routes": [
+              "/",
+              "/_not-found",
+              "/domains/[name]",
+              "/history",
+              "/saved",
+              "/saved/[id]",
+              "/saved/owned",
+              "/search/[id]",
+              "/session",
+              "/settings",
+              "/settings/[section]",
+              "/watching",
+              "/watching/[id]"
+            ]
+          },
+          {
+            "source": "apps/web/src/components/states.tsx",
+            "compressed_attribution": 6138,
+            "routes": [
+              "/",
+              "/domains/[name]",
+              "/history",
+              "/saved",
+              "/saved/[id]",
+              "/saved/owned",
+              "/search/[id]",
+              "/settings",
+              "/settings/[section]",
+              "/watching",
+              "/watching/[id]"
+            ]
+          },
+          {
+            "source": "node_modules/@radix-ui/react-popover/dist/index.mjs",
+            "compressed_attribution": 6125,
+            "routes": [
+              "/",
+              "/saved",
+              "/saved/[id]",
+              "/saved/owned",
+              "/search/[id]",
+              "/settings/[section]"
+            ]
+          },
+          {
+            "source": "apps/web/src/components/history/price-chart.tsx",
+            "compressed_attribution": 5780,
+            "routes": [
+              "/domains/[name]",
+              "/saved",
+              "/saved/[id]",
+              "/saved/owned",
+              "/search/[id]",
+              "/settings/[section]"
+            ]
+          },
+          {
+            "source": "apps/web/src/components/search/extension-chips.tsx",
+            "compressed_attribution": 5335,
+            "routes": ["/", "/search/[id]", "/settings/[section]"]
+          },
+          {
+            "source": "apps/web/src/components/watching/watching-page.tsx",
+            "compressed_attribution": 4774,
+            "routes": ["/watching", "/watching/[id]"]
+          },
+          {
+            "source": "apps/web/src/components/watching/watch-form.tsx",
+            "compressed_attribution": 4620,
+            "routes": [
+              "/saved",
+              "/saved/[id]",
+              "/saved/owned",
+              "/search/[id]",
+              "/watching",
+              "/watching/[id]"
+            ]
+          }
+        ],
+        "top_packages": [
+          ["next", 212811],
+          ["(application)", 157377],
+          ["lucide-react", 20509],
+          ["@tanstack/query-core", 15977],
+          ["@radix-ui/react-radio-group", 10449],
+          ["sonner", 9417],
+          ["tailwind-merge", 8416],
+          ["@radix-ui/react-checkbox", 8273],
+          ["@tanstack/table-core", 6840],
+          ["@radix-ui/react-select", 6422],
+          ["@radix-ui/react-popover", 6125],
+          ["cmdk", 4427],
+          ["@radix-ui/react-menu", 4414],
+          ["@floating-ui/core", 3988],
+          ["@radix-ui/react-dismissable-layer", 3696]
+        ],
+        "duplicate_browser_versions": {
+          "@radix-ui/react-slot": ["1.3.3", "1.5.0"],
+          "@radix-ui/primitive": ["1.1.7", "1.2.0"],
+          "@radix-ui/react-context": ["1.2.2", "1.3.0"],
+          "@radix-ui/react-dismissable-layer": ["1.1.19", "1.2.1"],
+          "@radix-ui/react-focus-scope": ["1.1.16", "1.3.1"],
+          "@radix-ui/react-portal": ["1.1.17", "1.2.0"],
+          "@radix-ui/react-presence": ["1.1.10", "1.1.11"],
+          "@radix-ui/react-primitive": ["2.1.10", "2.2.0"],
+          "@radix-ui/react-use-callback-ref": ["1.1.4", "1.1.5"],
+          "@radix-ui/react-use-controllable-state": ["1.2.6", "1.3.0"],
+          "@radix-ui/react-dialog": ["1.1.23", "1.3.1"],
+          "@radix-ui/react-focus-guards": ["1.1.6", "1.2.0"]
+        },
+        "graph": {
+          "emitted_members": 296,
+          "sync_edges": 1045,
+          "async_edges": 0,
+          "communities": 12,
+          "parameters": "NetworkX Louvain, resolution=1, weight=1 per distinct directed edge/kind before symmetrization, seed=0; seed=1 stability comparison.",
+          "stable_partition_across_seeds": false,
+          "ranked_communities": [
+            {
+              "community": 2,
+              "modules": 101,
+              "unambiguous_compressed_attribution": 141242,
+              "largest_packages": [
+                ["(application)", 110307],
+                ["sonner", 9417],
+                ["lucide-react", 8258],
+                ["@radix-ui/react-select", 6422]
+              ]
+            },
+            {
+              "community": 9,
+              "modules": 76,
+              "unambiguous_compressed_attribution": 99195,
+              "largest_packages": [
+                ["next", 98798],
+                ["@swc/helpers", 397]
+              ]
+            },
+            {
+              "community": 6,
+              "modules": 71,
+              "unambiguous_compressed_attribution": 55896,
+              "largest_packages": [["next", 55896]]
+            },
+            {
+              "community": 3,
+              "modules": 24,
+              "unambiguous_compressed_attribution": 26424,
+              "largest_packages": [
+                ["next", 9913],
+                ["@radix-ui/react-collection", 2960],
+                ["@radix-ui/react-popper", 2196],
+                ["@radix-ui/react-dismissable-layer", 1885]
+              ]
+            },
+            {
+              "community": 10,
+              "modules": 9,
+              "unambiguous_compressed_attribution": 8799,
+              "largest_packages": [["@tanstack/query-core", 8799]]
+            },
+            {
+              "community": 0,
+              "modules": 6,
+              "unambiguous_compressed_attribution": 8251,
+              "largest_packages": [["next", 8251]]
+            },
+            {
+              "community": 8,
+              "modules": 4,
+              "unambiguous_compressed_attribution": 863,
+              "largest_packages": [["use-sync-external-store", 863]]
+            },
+            {
+              "community": 7,
+              "modules": 1,
+              "unambiguous_compressed_attribution": 686,
+              "largest_packages": [["aria-hidden", 686]]
+            }
+          ],
+          "unmapped_or_ambiguous_compressed_attribution": 191703
+        },
+        "candidates": [
+          {
+            "package": "lucide-react",
+            "unique_compressed_attribution": 20509,
+            "route": "/search/[id]",
+            "roots": [
+              "[project]/apps/web/src/app/(app)/error.tsx [app-client] (ecmascript)",
+              "[project]/apps/web/src/components/app-providers.tsx [app-client] (ecmascript)",
+              "[project]/apps/web/src/components/results/results-page.tsx [app-client] (ecmascript)",
+              "[project]/apps/web/src/components/shell/app-shell.tsx [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@playwright+test@1.64.1_@types+nod_fb99bfdc3212f2ccace814ef35f2a582/node_modules/next/dist/client/app-dir/link.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@playwright+test@1.64.1_@types+nod_fb99bfdc3212f2ccace814ef35f2a582/node_modules/next/dist/client/app-next-turbopack.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@playwright+test@1.64.1_@types+nod_fb99bfdc3212f2ccace814ef35f2a582/node_modules/next/dist/client/components/builtin/global-error.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@playwright+test@1.64.1_@types+nod_fb99bfdc3212f2ccace814ef35f2a582/node_modules/next/dist/client/components/client-page.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@playwright+test@1.64.1_@types+nod_fb99bfdc3212f2ccace814ef35f2a582/node_modules/next/dist/client/components/client-segment.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@playwright+test@1.64.1_@types+nod_fb99bfdc3212f2ccace814ef35f2a582/node_modules/next/dist/client/components/http-access-fallback/error-boundary.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@playwright+test@1.64.1_@types+nod_fb99bfdc3212f2ccace814ef35f2a582/node_modules/next/dist/client/components/layout-router.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@playwright+test@1.64.1_@types+nod_fb99bfdc3212f2ccace814ef35f2a582/node_modules/next/dist/client/components/render-from-template-context.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@playwright+test@1.64.1_@types+nod_fb99bfdc3212f2ccace814ef35f2a582/node_modules/next/dist/lib/framework/boundary-components.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@playwright+test@1.64.1_@types+nod_fb99bfdc3212f2ccace814ef35f2a582/node_modules/next/dist/lib/metadata/generate/icon-mark.js [app-client] (ecmascript)"
+            ],
+            "targets": [
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/createLucideIcon.mjs [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/arrow-left.mjs [app-client] (ecmascript) <export default as ArrowLeft>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/arrow-right.mjs [app-client] (ecmascript) <export default as ArrowRight>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/bookmark.mjs [app-client] (ecmascript) <export default as Bookmark>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/camera.mjs [app-client] (ecmascript) <export default as Camera>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/check.mjs [app-client] (ecmascript) <export default as Check>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/chevron-down.mjs [app-client] (ecmascript) <export default as ChevronDown>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/chevron-right.mjs [app-client] (ecmascript) <export default as ChevronRight>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/download.mjs [app-client] (ecmascript) <export default as Download>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/ellipsis.mjs [app-client] (ecmascript) <export default as Ellipsis>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/external-link.mjs [app-client] (ecmascript) <export default as ExternalLink>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/list-plus.mjs [app-client] (ecmascript) <export default as ListPlus>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/play.mjs [app-client] (ecmascript) <export default as Play>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/plus.mjs [app-client] (ecmascript) <export default as Plus>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/rotate-ccw.mjs [app-client] (ecmascript) <export default as RotateCcw>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/save.mjs [app-client] (ecmascript) <export default as Save>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/search.mjs [app-client] (ecmascript) <export default as Search>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/send.mjs [app-client] (ecmascript) <export default as Send>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/sliders-horizontal.mjs [app-client] (ecmascript) <export default as SlidersHorizontal>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/sparkles.mjs [app-client] (ecmascript) <export default as Sparkles>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/tag.mjs [app-client] (ecmascript) <export default as Tag>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/trash.mjs [app-client] (ecmascript) <export default as Trash>",
+              "[project]/node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/icons/x.mjs [app-client] (ecmascript) <export default as X>"
+            ],
+            "missing_roots": 0,
+            "status": "provisional; render optionality and browser timing are unverified",
+            "cut": [],
+            "cut_capacity": 3830,
+            "cut_status": "No editable cut with bootstrap, client-reference roots, layouts and dependency internals protected."
+          },
+          {
+            "package": "@tanstack/query-core",
+            "unique_compressed_attribution": 15977,
+            "route": "/search/[id]",
+            "roots": [
+              "[project]/apps/web/src/app/(app)/error.tsx [app-client] (ecmascript)",
+              "[project]/apps/web/src/components/app-providers.tsx [app-client] (ecmascript)",
+              "[project]/apps/web/src/components/results/results-page.tsx [app-client] (ecmascript)",
+              "[project]/apps/web/src/components/shell/app-shell.tsx [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@playwright+test@1.64.1_@types+nod_fb99bfdc3212f2ccace814ef35f2a582/node_modules/next/dist/client/app-dir/link.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@playwright+test@1.64.1_@types+nod_fb99bfdc3212f2ccace814ef35f2a582/node_modules/next/dist/client/app-next-turbopack.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@playwright+test@1.64.1_@types+nod_fb99bfdc3212f2ccace814ef35f2a582/node_modules/next/dist/client/components/builtin/global-error.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@playwright+test@1.64.1_@types+nod_fb99bfdc3212f2ccace814ef35f2a582/node_modules/next/dist/client/components/client-page.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@playwright+test@1.64.1_@types+nod_fb99bfdc3212f2ccace814ef35f2a582/node_modules/next/dist/client/components/client-segment.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@playwright+test@1.64.1_@types+nod_fb99bfdc3212f2ccace814ef35f2a582/node_modules/next/dist/client/components/http-access-fallback/error-boundary.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@playwright+test@1.64.1_@types+nod_fb99bfdc3212f2ccace814ef35f2a582/node_modules/next/dist/client/components/layout-router.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@playwright+test@1.64.1_@types+nod_fb99bfdc3212f2ccace814ef35f2a582/node_modules/next/dist/client/components/render-from-template-context.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@playwright+test@1.64.1_@types+nod_fb99bfdc3212f2ccace814ef35f2a582/node_modules/next/dist/lib/framework/boundary-components.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/next@16.4.3_@babel+core@7.29.7_supports-color@7.2.0__@playwright+test@1.64.1_@types+nod_fb99bfdc3212f2ccace814ef35f2a582/node_modules/next/dist/lib/metadata/generate/icon-mark.js [app-client] (ecmascript)"
+            ],
+            "targets": [
+              "[project]/node_modules/.pnpm/@tanstack+query-core@5.104.5/node_modules/@tanstack/query-core/build/modern/environmentManager.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/@tanstack+query-core@5.104.5/node_modules/@tanstack/query-core/build/modern/infiniteQueryBehavior.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/@tanstack+query-core@5.104.5/node_modules/@tanstack/query-core/build/modern/mutation.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/@tanstack+query-core@5.104.5/node_modules/@tanstack/query-core/build/modern/notifyManager.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/@tanstack+query-core@5.104.5/node_modules/@tanstack/query-core/build/modern/query.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/@tanstack+query-core@5.104.5/node_modules/@tanstack/query-core/build/modern/queryObserver.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/@tanstack+query-core@5.104.5/node_modules/@tanstack/query-core/build/modern/retryer.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/@tanstack+query-core@5.104.5/node_modules/@tanstack/query-core/build/modern/subscribable.js [app-client] (ecmascript)",
+              "[project]/node_modules/.pnpm/@tanstack+query-core@5.104.5/node_modules/@tanstack/query-core/build/modern/utils.js [app-client] (ecmascript)"
+            ],
+            "missing_roots": 0,
+            "status": "provisional; render optionality and browser timing are unverified",
+            "cut": [],
+            "cut_capacity": 3831,
+            "cut_status": "No editable cut with bootstrap, client-reference roots, layouts and dependency internals protected."
+          },
+          {
+            "package": "@radix-ui/react-radio-group",
+            "unique_compressed_attribution": 10449,
+            "route": null,
+            "roots": [],
+            "targets": [],
+            "missing_roots": 0,
+            "status": "attribution-only investigation; exact emitted identity membership is unavailable",
+            "cut": [],
+            "cut_status": "A directed cut cannot be established for this attributed contributor because no exact emitted module membership joins to it."
+          }
+        ],
+        "client_dependency_scan": [],
+        "possible_server_only_leaks": [],
+        "suppressed_matches": [],
+        "coverage": {
+          "unsupported_client_js_outputs": [],
+          "unknown_route_entries": [],
+          "unknown_route_groups": [],
+          "groups_without_joined_trigger": 0,
+          "sync_dependencies_absent_from_emitted_subgraph": 150,
+          "attribution_conflicts": 0,
+          "action_like_identities_requiring_source_mapping": 2,
+          "limits": [
+            "All minimum cuts are provisional; optionality, module side effects and actual mount/preload timing have not been behavior-tested.",
+            "Source-to-output attribution is distinct from exact module identity; ambiguous community bytes are excluded from community ranking.",
+            "No production browser requests, cold-navigation timing, interaction timing, Web Vitals or emitted implementation contents were inspected.",
+            "Potential Server Action stubs and ownership matches remain unverified until source-to-reference mapping and emitted contents are inspected."
+          ]
+        }
+      }
+    }
+  ],
+  "verification": [
+    {
+      "app": "apps/web",
+      "command": "pnpm exec next typegen",
+      "exit_code": 0,
+      "seconds": 0.4
+    },
+    {
+      "app": "apps/web",
+      "command": "pnpm run typecheck",
+      "exit_code": 2,
+      "seconds": 2.8
+    },
+    {
+      "app": "apps/web",
+      "command": "pnpm run lint",
+      "exit_code": 0,
+      "seconds": 5.2
+    },
+    {
+      "app": "(repository)",
+      "command": "git diff --check",
+      "exit_code": 0,
+      "seconds": 0.0
+    },
+    {
+      "app": "packages/contracts",
+      "command": "pnpm run build",
+      "exit_code": 0,
+      "seconds": 0.9
+    },
+    {
+      "app": "packages/api-client",
+      "command": "pnpm run build",
+      "exit_code": 0,
+      "seconds": 0.7
+    },
+    {
+      "app": "apps/web",
+      "command": "pnpm run typecheck",
+      "exit_code": 0,
+      "seconds": 3.1
+    }
+  ]
+}
