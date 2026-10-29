@@ -16,3 +16,6 @@ playwright-report/
 .pnpm-store/
 apps/cli/bin/
 .dev-data/
+
+# Local bundle graph exports
+/.bundle-analysis/

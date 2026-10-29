@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test:e2e": "playwright test",
-    "clean": "rm -rf .next"
+    "clean": "rm -rf .next",
+    "bundle:analyze": "next analyze --output",
+    "bundle:export": "next analyze export"
   },
   "dependencies": {
     "@domain-scout/api-client": "workspace:*",
@@ -41,5 +43,8 @@
     "eslint-config-next": "16.4.3",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.3"
+  },
+  "engines": {
+    "node": "26.x"
   }
 }

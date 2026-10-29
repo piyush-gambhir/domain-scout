@@ -12,7 +12,7 @@ COPY apps/cli/ ./
 ARG VERSION=0.1.0
 RUN CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" -o /out/domain-scout ./cmd/domain-scout
 
-FROM node:26.12.1-bookworm-slim@sha256:88e480776c6149ff1d098cd304f44bf18057fb5d284a3329b78162d29821e28c AS build
+FROM node:26.13.0-bookworm-slim@sha256:bc0a2afd3b74ce12222fc8bab99271e66257f021078f5f4a5d687a77d280c1d9 AS build
 ENV CI=1 NEXT_TELEMETRY_DISABLED=1 TURBO_TELEMETRY_DISABLED=1
 RUN npm install -g pnpm@12.15.0
 WORKDIR /repo
@@ -33,7 +33,7 @@ RUN pnpm --filter @domain-scout/backend deploy --prod --legacy /out/backend \
  && printf "import './apps/web/server.js';\n" > /out/web/server.js \
  && printf '{ "private": true, "type": "module" }\n' > /out/web/package.json
 
-FROM node:26.12.1-bookworm-slim@sha256:88e480776c6149ff1d098cd304f44bf18057fb5d284a3329b78162d29821e28c AS runtime
+FROM node:26.13.0-bookworm-slim@sha256:bc0a2afd3b74ce12222fc8bab99271e66257f021078f5f4a5d687a77d280c1d9 AS runtime
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     DOMAIN_SCOUT_DATA_DIR=/data \
