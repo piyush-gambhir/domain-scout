@@ -89,7 +89,8 @@ async function main() {
   const list = JSON.parse(run(['shortlist', 'create', 'Smoke']).stdout).data;
   run(['shortlist', 'add', list.id, 'nic.si', `${gibberish}.si`]);
   const csv = run(['export', '--scope', 'collection', '--shortlist', list.id, '--format', 'csv']).stdout;
-  check('shortlist export contains exactly its entries', csv.includes('nic.si,') && csv.includes(`${gibberish}.si,`) && !csv.includes('google.com'));
+  const csvDomains = csv.split('\r\n').slice(1).filter(Boolean).map((row) => row.split(',')[0]);
+  check('shortlist export contains exactly its entries', csvDomains.sort().join(',') === ['nic.si', `${gibberish}.si`].sort().join(','), csvDomains.join(','));
   const txt = run(['export', '--scope', 'job', '--job', jobId, '--format', 'txt']).stdout;
   const names = txt.split('\n').filter((l) => l && !l.startsWith('#'));
   check('txt export defaults to candidates (no registry record)', names.sort().join(',') === [`${gibberish}.com`, `${gibberish}.si`].sort().join(','), names.join(','));
