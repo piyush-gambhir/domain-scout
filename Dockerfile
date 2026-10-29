@@ -2,7 +2,7 @@
 # Local single-container image: backend (loopback inside the container) + web UI + Go CLI.
 # Run with `docker compose up --build`; see compose.yaml.
 
-ARG NODE_VERSION=26.12.1
+ARG NODE_VERSION=26.13.0
 ARG GO_VERSION=1.27.3
 
 FROM golang:${GO_VERSION}-bookworm AS cli
