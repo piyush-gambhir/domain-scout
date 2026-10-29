@@ -38,8 +38,9 @@ Reassess them when authentication, transports, maintainers, or deployment bounda
   required automated checks provide the merge gate; there is no independent human approver.
   An automated or AI review is useful but is not independent human review. Zero required
   human approvals is an accepted limitation, not a claim that this Scorecard check is satisfied.
-- **Maintained:** the initial warning was triggered by a repository age under 90 days.
-  Continue ordinary maintenance and reassess when the age threshold is reached.
+- **Maintained:** the initial assessment covered a newly created repository with a short
+  activity history. Reassess commit and issue activity over time; age alone does not
+  establish maintenance.
 - **CII-Best-Practices:** an OpenSSF Best Practices badge is optional assurance work.
   Its absence is not a demonstrated application vulnerability.
 
