@@ -1,0 +1,48 @@
+name: Security
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '41 4 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  go-security:
+    name: Go tools and parser security
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/cli
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: apps/cli/go.mod
+          cache-dependency-path: apps/cli/go.sum
+      - name: Scan application and code generator
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./... github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen
+      - name: Fuzz SSE parser
+        run: go test ./internal/sse -run='^$' -fuzz='^FuzzParser$' -fuzztime=20s
+      - name: Fuzz SSE round trips
+        run: go test ./internal/sse -run='^$' -fuzz='^FuzzParserRoundTrip$' -fuzztime=20s
+  security:
+    name: Security checks
+    if: always()
+    needs: [go-security]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Require every security job to pass
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: node -e 'const jobs = Object.values(JSON.parse(process.env.RESULTS)); if (!jobs.length || jobs.some(job => job.result !== "success")) process.exit(1)'
