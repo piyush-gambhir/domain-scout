@@ -33,6 +33,9 @@ type Event struct {
 	CursorOnly bool
 }
 
+// maxRetry caps the reconnection delay a server can request with `retry:`.
+const maxRetry = time.Minute
+
 // Parser reads events from an SSE byte stream.
 type Parser struct {
 	r     *bufio.Reader
@@ -96,8 +99,9 @@ func (p *Parser) Next() (Event, error) {
 			data.WriteByte('\n')
 			hasData = true
 		case "retry":
+			// Clamped so a bogus value can neither overflow nor stall reconnection.
 			if ms, err := strconv.Atoi(value); err == nil && ms >= 0 {
-				p.retry = time.Duration(ms) * time.Millisecond
+				p.retry = time.Duration(min(ms, int(maxRetry/time.Millisecond))) * time.Millisecond
 			}
 		}
 	}

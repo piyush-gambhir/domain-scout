@@ -16,6 +16,17 @@ updates:
       github-actions:
         patterns: ['*']
         update-types: [minor, patch]
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      docker-images:
+        patterns: ['*']
+    ignore:
+      # Digest refreshes only: Node and Go versions move by hand with .nvmrc and apps/cli/go.mod.
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major', 'version-update:semver-minor', 'version-update:semver-patch']
   - package-ecosystem: npm
     directory: /
     schedule:
@@ -27,4 +38,4 @@ updates:
     ignore:
       # TypeScript 7 lacks the compiler API that typescript-eslint and Next.js use (docs/TECH_STACK.md).
       - dependency-name: typescript
-        update-types: [version-update:semver-major]
+        update-types: ['version-update:semver-major']

@@ -2,10 +2,9 @@
 # Local single-container image: backend (loopback inside the container) + web UI + Go CLI.
 # Run with `docker compose up --build`; see compose.yaml.
 
-ARG NODE_VERSION=26.12.1
-ARG GO_VERSION=1.27.3
-
-FROM golang:${GO_VERSION}-bookworm AS cli
+# Base images are pinned by digest, which Dependabot refreshes. Change the Node and Go versions by hand,
+# together with .nvmrc and the toolchain in apps/cli/go.mod.
+FROM golang:1.27.3-bookworm@sha256:d9b6a1beb9474adc2a1ce842573639b44b2a0dd49b6669f51d3821baf9ec37c9 AS cli
 WORKDIR /src/apps/cli
 COPY apps/cli/go.mod apps/cli/go.sum ./
 RUN go mod download
@@ -13,7 +12,7 @@ COPY apps/cli/ ./
 ARG VERSION=0.1.0
 RUN CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" -o /out/domain-scout ./cmd/domain-scout
 
-FROM node:${NODE_VERSION}-bookworm-slim AS build
+FROM node:26.12.1-bookworm-slim@sha256:88e480776c6149ff1d098cd304f44bf18057fb5d284a3329b78162d29821e28c AS build
 ENV CI=1 NEXT_TELEMETRY_DISABLED=1 TURBO_TELEMETRY_DISABLED=1
 RUN npm install -g pnpm@12.15.0
 WORKDIR /repo
@@ -34,7 +33,7 @@ RUN pnpm --filter @domain-scout/backend deploy --prod --legacy /out/backend \
  && printf "import './apps/web/server.js';\n" > /out/web/server.js \
  && printf '{ "private": true, "type": "module" }\n' > /out/web/package.json
 
-FROM node:${NODE_VERSION}-bookworm-slim AS runtime
+FROM node:26.12.1-bookworm-slim@sha256:88e480776c6149ff1d098cd304f44bf18057fb5d284a3329b78162d29821e28c AS runtime
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     DOMAIN_SCOUT_DATA_DIR=/data \
