@@ -28,3 +28,34 @@ How the local engine is protected:
 
 Registries, registrars and marketplaces control their own services. Report vulnerabilities in those
 services through their own programs.
+
+## Reviewed scanner findings
+
+Reviewed on 2026-10-29. These exceptions describe the current code and maintainer model.
+Reassess them when authentication, transports, maintainers, or deployment boundaries change.
+
+- **Code-Review and Branch-Protection:** this is a solo-maintained project. Pull requests and
+  required automated checks provide the merge gate; there is no independent human approver.
+  An automated or AI review is useful but is not independent human review. Zero required
+  human approvals is an accepted limitation, not a claim that this Scorecard check is satisfied.
+- **Maintained:** the initial assessment covered a newly created repository with a short
+  activity history. Reassess commit and issue activity over time; age alone does not
+  establish maintenance.
+- **CII-Best-Practices:** an OpenSSF Best Practices badge is optional assurance work.
+  Its absence is not a demonstrated application vulnerability.
+
+CodeQL findings reviewed against their call sites:
+
+| Rule | Assessment | Conditions that must remain true |
+| --- | --- | --- |
+| `js/disabling-certificate-validation` | Intentional diagnostic exception in `nodeTlsProbe` | Only the TLS handshake and certificate are inspected, no credentials or application payload are sent, `authorized` and `authorizationError` are retained, and the socket is closed. The separate HTTPS transport must keep certificate validation enabled. An untrusted observation is not authenticated evidence. |
+| `js/insufficient-password-hash` | False positive for `safeEqual` in `runtime/token.ts` | API tokens, session IDs and bootstrap codes are generated from 32 cryptographically random bytes. SHA-256 equalizes comparison lengths and stores random-token verifiers; this is not human password storage. Human passwords would need an appropriate password KDF. |
+| `js/incomplete-url-substring-sanitization` | Historical false positive in `scripts/smoke.mjs` | The original string check was a CSV assertion, not a URL or redirect gate. The current smoke test compares parsed domain rows, preserving the same security boundary. |
+
+The earlier Go dependency, Docker base-image and SSE retry issues are now fixed on main.
+They are actionable findings, not covered by the exceptions above. The security workflow
+also scans the selected OpenAPI generator and fuzzes both parser targets.
+
+References: [CodeQL rules](https://codeql.github.com/codeql-query-help/javascript/),
+[OWASP random-token storage](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html#server-side-session-token-storage),
+[Scorecard checks](https://github.com/ossf/scorecard/blob/main/docs/checks.md).
