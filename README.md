@@ -4,6 +4,8 @@ Local tool for checking domain registration records, finding purchase providers 
 
 Registry results are evidence, not promises: "no record" means the registry returned no registration record when checked, not that a name can be bought. Prices carry their source, type and age, and unknown values stay unknown.
 
+![Search in the web UI: three names across six extensions, taken ones with their expiry dates, unregistered ones with the lowest published first-year price](docs/images/web-ui-search.png)
+
 ## Install the CLI
 
 The npm package is the whole CLI-only install: the Go CLI for your platform plus the local engine, with no UI. It needs Node.js 24.11 or newer. The packages are not published yet; build and install them from a checkout:
@@ -62,6 +64,23 @@ Useful Turborepo tasks: `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm test:e
 
 JSON by default (the API envelope with `contractVersion`), `--output table`, or `--output ndjson` (one object per line, each carrying `contractVersion`). Data goes to stdout; progress and errors go to stderr. Commands never prompt. `pnpm smoke` runs an end-to-end check of the CLI, API and web against one backend (it scans only fixed test names).
 
+A scan with table output (the first two lines are progress on stderr):
+
+```console
+$ domain-scout scan lumenkiln --tlds com,io,dev,app,co,ai --wait --output table
+Submitted job a69ca996-de0f-4020-aab7-468c0bbe908f (registry_scan).
+completed: 6/6 finished, 0 unresolved
+SUBJECT        OPERATION  TARGET  STATE     OUTCOME     RESOLVED  CHECKED                   BEST PRICE  ERROR  RETRY AT
+lumenkiln.com  registry   -       finished  registered  true      2026-11-07T11:24:14.757Z  11.81 USD   -      -
+lumenkiln.io   registry   -       finished  no_record   true      2026-11-07T11:24:16.077Z  28.12 USD   -      -
+lumenkiln.dev  registry   -       finished  no_record   true      2026-11-07T11:24:15.871Z  8.75 USD    -      -
+lumenkiln.app  registry   -       finished  no_record   true      2026-11-07T11:24:16.859Z  8.75 USD    -      -
+lumenkiln.co   registry   -       finished  no_record   true      2026-11-07T11:24:15.525Z  15.76 USD   -      -
+lumenkiln.ai   registry   -       finished  no_record   true      2026-11-07T11:24:16.891Z  82.70 USD   -      -
+```
+
+`CHECKED` is when the registry answered; fresh observations (15 minutes by default) are reused unless you pass `--recheck`. `BEST PRICE` is the lowest known first-year price for the extension from provider catalogs, never a quote.
+
 ```sh
 domain-scout input preview --file names.txt --tlds com,io        # validate and expand, no network
 domain-scout scan --file names.txt --tlds com,io --wait          # registry lookups only
@@ -90,6 +109,8 @@ Exit codes: 0 success, 1 local failure, 2 invalid usage, 3 completed with unreso
 | Settings | Provider keys, preferences (default extensions, currency, horizon), checks, coverage, data and service |
 
 "Not registered" means the registry had no record when checked. Confirm with a provider before buying.
+
+![Domain details for lumenkiln.dev: Porkbun's published prices, links to other providers, and the registry evidence (RDAP source, routing, reason, HTTP status)](docs/images/web-ui-domain-details.png)
 
 ## Provider keys
 
