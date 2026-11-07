@@ -8,16 +8,26 @@ Registry results are evidence, not promises: "no record" means the registry retu
 
 ## Install the CLI
 
-The npm package is the whole CLI-only install: the Go CLI for your platform plus the local engine, with no UI. It needs Node.js 24.11 or newer. The packages are not published yet; build and install them from a checkout:
+The npm package is the whole CLI-only install: the Go CLI for your platform plus the local engine, with no UI. It needs Node.js 24.11 or newer. Install the tarballs from the [latest release](https://github.com/piyush-gambhir/domain-scout/releases/latest), which also lists their `SHA256SUMS`; the packages are not on the npm registry.
+
+```sh
+v=0.1.0
+base=https://github.com/piyush-gambhir/domain-scout/releases/download/v$v
+npm install -g "$base/domain-scout-$v.tgz" "$base/domain-scout-cli-$(node -p 'process.platform+"-"+process.arch')-$v.tgz"
+domain-scout scan acme --tlds com,io --wait
+```
+
+There is no server to run. The first command starts the engine in the background, later commands reuse it, and it stops itself after ten idle minutes (`DOMAIN_SCOUT_IDLE_TIMEOUT` in seconds, `0` to keep it running). Active watches, unfinished jobs, session-only provider keys and a running UI keep it up. A newer CLI replaces an older engine once nothing would be lost.
+
+To build and install the tarballs from a checkout instead:
 
 ```sh
 pnpm install && pnpm build
 node scripts/package-npm.mjs              # release/npm/*.tgz for macOS, Linux and Windows
 npm install -g --offline release/npm/domain-scout-0.1.0.tgz release/npm/domain-scout-cli-$(node -p 'process.platform+"-"+process.arch')-0.1.0.tgz
-domain-scout scan acme --tlds com,io --wait
 ```
 
-There is no server to run. The first command starts the engine in the background, later commands reuse it, and it stops itself after ten idle minutes (`DOMAIN_SCOUT_IDLE_TIMEOUT` in seconds, `0` to keep it running). Active watches, unfinished jobs, session-only provider keys and a running UI keep it up. A newer CLI replaces an older engine once nothing would be lost. `node scripts/verify-npm-package.mjs` checks an install end to end without sending any names.
+`node scripts/verify-npm-package.mjs` checks an install end to end without sending any names.
 
 ## Run with Docker
 

@@ -48,5 +48,6 @@ verifies the native pnpm archive: update its version and both Linux x64/arm64 SH
 
 ## Releases
 
-Nothing is published yet: no npm packages, container images or GitHub releases. `scripts/package.mjs`
-builds release archives and `scripts/package-npm.mjs` builds npm tarballs locally.
+GitHub releases carry the npm tarballs from `scripts/package-npm.mjs` (all five platforms) and their
+`SHA256SUMS`, attached by hand; nothing is on the npm registry or a container registry. `scripts/package.mjs`
+builds release archives with the UI locally.
