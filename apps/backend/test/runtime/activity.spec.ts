@@ -35,7 +35,7 @@ describe('ActivityMonitor', () => {
     clock.advance(MINUTE);
     expect(activity.check()).toBe(true);
     expect(shutdown.stop).toHaveBeenCalledWith('idle');
-    // Already stopping: no second stop.
+
     clock.advance(MINUTE);
     expect(activity.check()).toBe(false);
     expect(shutdown.stop).toHaveBeenCalledTimes(1);
@@ -74,7 +74,7 @@ describe('ActivityMonitor', () => {
     expect(activity.check()).toBe(false);
     listeners.forEach((fn) => fn());
     expect(activity.blockers('idle')).toEqual([]);
-    // Closing the response counts as activity: the idle period starts from there.
+
     clock.advance(9 * MINUTE);
     expect(activity.check()).toBe(false);
   });
@@ -108,7 +108,7 @@ describe('ActivityMonitor', () => {
         { name: 'ui', detail: 'the UI server at http://127.0.0.1:3000 is running' },
       ]);
       expect(activity.blockers('restart').map((b) => b.name)).toEqual(['ui']);
-      // A pid that cannot exist: the server is gone, so it no longer counts.
+
       writeFileSync(
         join(dir, 'web.json'),
         JSON.stringify({ url: 'http://127.0.0.1:3000', pid: 2 ** 22 + 12345 }),
@@ -147,7 +147,7 @@ describe('backend busy state', () => {
       { name: 'credentials', detail: 'session-only credentials for porkbun' },
       { name: 'watches', detail: '1 active watch' },
     ]);
-    // Watches survive a restart, so only the others refuse one.
+
     const refused = await t.api.post('/service/stop-unless-busy').send({ instanceId: t.config.instanceId }).expect(409);
     const error = ErrorResponse.parse(refused.body).error;
     expect(error.code).toBe('conflict');

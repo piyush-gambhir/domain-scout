@@ -20,11 +20,11 @@ import { SkeletonRows } from '../ui/skeleton';
 
 type EvidenceRef = Notice['before'];
 
-/** Marking notices read refreshes every notice list, watch unread counts and the sidebar badge. */
+
 export function useMarkNoticesRead() {
   const client = useQueryClient();
   return useMutation({
-    /** `{ all: true, watchId }` marks every notice of one watch read; `{ all: true }` marks every notice. */
+
     mutationFn: async (body: { ids?: string[]; all?: boolean; watchId?: string }) => api.call('markNoticesRead', { body }),
     onSuccess: () => {
       void client.invalidateQueries({ queryKey: qk.notices });
@@ -51,7 +51,7 @@ function Evidence({ label, evidence }: { label: string; evidence: EvidenceRef })
 function NoticeItem({ notice, onRead, pending, showWatch }: { notice: Notice; onRead: () => void; pending: boolean; showWatch?: boolean }) {
   const unread = notice.readAt === null;
   const href = notice.domain.startsWith('.')
-    ? // Catalog price notices are about a whole extension, not one domain.
+    ?
       `/settings/prices?suffix=${encodeURIComponent(notice.domain.slice(1))}`
     : `/domains/${encodeURIComponent(notice.domain)}`;
   return (
@@ -90,7 +90,7 @@ function NoticeItem({ notice, onRead, pending, showWatch }: { notice: Notice; on
   );
 }
 
-/** Change notices with before and after evidence. Scoped to one watch, or every watch. */
+
 export function NoticeFeed({ watchId, unreadCount, title = 'Notices', className }: { watchId?: string; unreadCount: number; title?: string; className?: string }) {
   const [view, setView] = useState<'all' | 'unread'>('all');
   const query = { watchId, unread: view === 'unread' ? ('true' as const) : undefined };

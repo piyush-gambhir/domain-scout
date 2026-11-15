@@ -3,11 +3,11 @@ import type { ProviderHttpResponse } from '../transport.js';
 import { isRecord, parseJson, str, tryJson } from './http.js';
 import { ProviderError, draft, reason, type AdapterContext, type CheckResult, type DomainParts, type OfferDraft, type ProviderAdapter } from './types.js';
 
-/**
- * GoDaddy Domains v3 (https://developer.godaddy.com/openapi/domains-v3.json, version 3.1.0).
- * v3 requires a Personal Access Token as a Bearer token. Money is `{currencyCode, value}` with value
- * in the currency's minor units. Availability pricing is documented as indicative.
- */
+
+
+
+
+
 export const GODADDY_BASE = 'https://api.godaddy.com/v3/domains';
 const NAME = 'GoDaddy';
 const SPEC = 'https://developer.godaddy.com/openapi/domains-v3.json';
@@ -37,7 +37,7 @@ export interface GoDaddyAvailability {
   prices: unknown[];
 }
 
-/** Pure parser for check-availability (single result), exported for fixture tests. */
+
 export function parseGoDaddyAvailability(body: unknown): GoDaddyAvailability {
   if (!isRecord(body) || typeof body.domain !== 'string') throw new ProviderError('bad_response', 'GoDaddy availability response has no domain');
   const error = isRecord(body.error) ? [str(body.error.name), str(body.error.message)].filter(Boolean).join(': ') || 'error' : null;
@@ -62,10 +62,10 @@ function toCheck(parsed: GoDaddyAvailability): CheckResult {
     : { status: 'unavailable', premium, reason: reason('provider_unavailable', `GoDaddy reported unavailable (${how})`) };
 }
 
-/**
- * One purchase fee. Fee amounts carry their own currency; a fee in another currency than the price
- * keeps its original amount and currency in the label and stays unknown in totals (no conversion).
- */
+
+
+
+
 function fee(f: Record<string, unknown>, currency: string): { label: string; amount: string | null } {
   const label = str(f.type) ?? 'fee';
   const amount = money(f.fee);
@@ -74,7 +74,7 @@ function fee(f: Record<string, unknown>, currency: string): { label: string; amo
   return { label, amount: amount.amount };
 }
 
-/** Offer from the shortest-term price entry, exported for fixture tests. */
+
 export function godaddyOffer(parsed: GoDaddyAvailability): OfferDraft | null {
   const terms = parsed.prices
     .filter((p): p is Record<string, unknown> => isRecord(p) && (p.term === undefined || p.term === 'YEAR') && typeof p.period === 'number')
@@ -84,12 +84,12 @@ export function godaddyOffer(parsed: GoDaddyAvailability): OfferDraft | null {
   const price = money(term.price);
   if (!price) return null;
   const period = Math.max(1, Math.floor(term.period as number));
-  // renewalPrice is "absent when renewal pricing is unavailable or identical": absence stays unknown.
+
   const renewal = money(term.renewalPrice);
   const fees = Array.isArray(term.fees) ? term.fees.filter(isRecord).map((f) => fee(f, price.currency)) : [];
   const premium = parsed.inventory === 'REGISTRY_PREMIUM' || parsed.inventory === 'PREMIUM';
   return draft({
-    // PREMIUM inventory is a third-party marketplace listing (Afternic), not a new registration.
+
     purchasePath: parsed.inventory === 'PREMIUM' ? 'aftermarket' : 'new_registration',
     kind: 'exact_quote',
     currency: price.currency,

@@ -31,11 +31,11 @@ function Amount({ value, currency, strong, years = 1 }: { value: string | null; 
 
 const GRID = 'grid w-full grid-cols-[minmax(7rem,1fr)_4.75rem_4.75rem_5.25rem_1rem] items-center gap-x-3';
 
-/**
- * Where to buy a name: each provider's first-year price, renewal and horizon estimate with a link to
- * the same provider's registration page. Registrars without a published price, and the registry's
- * own registrar list, sit in collapsed groups below.
- */
+
+
+
+
+
 export function BuyMenu({
   domain,
   suffix,
@@ -47,7 +47,7 @@ export function BuyMenu({
   align = 'end',
   returnFocus,
 }: {
-  /** Where focus goes when the menu closes, e.g. the row or cell it was opened from by keyboard. */
+
   returnFocus?: () => HTMLElement | null | undefined;
   domain: string;
   suffix: string;

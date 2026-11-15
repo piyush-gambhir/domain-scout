@@ -20,7 +20,7 @@ import { useJobStarted } from './use-job-started';
 
 const rowClass = 'flex min-h-10 items-center gap-3 rounded-md px-3 text-sm transition-colors hover:bg-hover';
 
-/** Registrable labels (the part before the suffix) of the selected domains; punycode labels are skipped. */
+
 export function labelsOf(domains: string[]): string[] {
   return uniq(domains.map((d) => d.split('.')[0] ?? '').filter((label) => label && !label.startsWith('xn--')));
 }
@@ -120,7 +120,7 @@ const RESOLVERS: { value: Resolver; label: string; destination: string }[] = [
 export function DiagnosticsDialog({ open, onOpenChange, target }: { open: boolean; onOpenChange: (open: boolean) => void; target: DomainTarget }) {
   const [checks, setChecks] = useState<Set<DiagnosticCheck>>(new Set(['dns', 'nameservers']));
   const settings = useSettings();
-  // Null until changed here: the request then omits it and settings.diagnostics.resolver applies.
+
   const [chosenResolver, setResolver] = useState<Resolver | null>(null);
   const resolver: Resolver = chosenResolver ?? settings.data?.diagnostics.resolver ?? 'system';
   const idempotency = useIdempotency();

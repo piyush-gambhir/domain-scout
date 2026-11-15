@@ -4,24 +4,24 @@ export interface HttpGetRequest {
   url: string;
   headers: Record<string, string>;
   signal: AbortSignal;
-  /** Bytes read before the body is cut off and `truncated` is set. */
+
   maxBytes: number;
 }
 
 export interface HttpGetResponse {
   url: string;
   status: number;
-  /** Lower-case header names. */
+
   headers: Record<string, string>;
   body: string;
   truncated: boolean;
 }
 
-/**
- * HTTP GET used for RDAP queries and IANA bootstrap refreshes. Redirects are never followed by the
- * transport: callers decide whether a Location is a verified registry host. Tests override this
- * provider with a fake so no test touches the network.
- */
+
+
+
+
+
 export abstract class RegistryHttpTransport {
   abstract get(request: HttpGetRequest): Promise<HttpGetResponse>;
 }

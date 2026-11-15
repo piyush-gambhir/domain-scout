@@ -75,7 +75,7 @@ describe('job events', () => {
     const lifecycle = t.app.get(JobLifecycle);
     const off = lifecycle.onFinished((job) => {
       finished.push(job);
-      // Listeners run after commit, outside any transaction, so the stored state is already terminal.
+
       seenInListener.push(`${t.jobs.get(job.id).state}:${t.db.inTransaction}`);
     });
     const job = t.jobs.submit({ type: 'registry_scan', input: { domains: ['a.com', 'b.com', 'c.com'], format: 'auto', extensions: [] }, recheck: false });

@@ -5,8 +5,8 @@ import { GIB, SMALL_SEARCH, buildJob, mockApp } from './app-fixtures';
 import { label24 } from './layout-fixtures';
 import { uuid } from './mock-api';
 
-// Navigation follows the tasks: Search, Saved, Watching, History, with Settings at the bottom. Old
-// module URLs redirect to where their content lives now.
+
+
 
 test('the sidebar has the four tasks plus Settings, and marks the current one', async ({ page }) => {
   await page.goto('/');
@@ -42,7 +42,7 @@ test('Cmd/Ctrl+B collapses the sidebar to a rail and the choice persists', async
   const width = () => sidebar.evaluate((el) => el.getBoundingClientRect().width);
   await expect(sidebar).toHaveAttribute('data-state', 'expanded');
   await expect.poll(width).toBeGreaterThan(200);
-  // Focus leaves the search bar first; the shortcut works from anywhere but rich text.
+
   await page.getByRole('main').click({ position: { x: 5, y: 5 } });
   await page.keyboard.press('ControlOrMeta+b');
   await expect(sidebar).toHaveAttribute('data-state', 'collapsed');
@@ -113,7 +113,7 @@ test('old module URLs redirect to their new places', async ({ page }) => {
     await page.goto(from);
     await expect(page, from).toHaveURL(to);
   }
-  // Discover is the ideas mode of Search.
+
   await page.goto('/discover');
   await expect(page.getByRole('textbox', { name: 'Keywords' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Ideas' })).toHaveAttribute('aria-pressed', 'true');
@@ -150,7 +150,7 @@ test('keyboard: / focuses search, arrows move between cells, b opens Buy, Enter 
   await page.keyboard.press('/');
   await expect(page.getByRole('textbox', { name: 'Search names or domains' })).toBeFocused();
 
-  // One tab stop for the whole grid; arrows move it.
+
   await page.locator('[data-cell="0:0"]').focus();
   await page.keyboard.press('ArrowRight');
   await expect(page.locator('[data-cell="0:1"]')).toBeFocused();

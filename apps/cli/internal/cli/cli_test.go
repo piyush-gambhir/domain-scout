@@ -18,7 +18,7 @@ import (
 
 func TestJSONEnvelopePassthroughVerbatim(t *testing.T) {
 	f := newFakeAPI(t)
-	// Odd spacing and an unknown field must survive untouched.
+
 	body := `{"contractVersion": "1.0.0",  "data": ` + jobJSON(jobSpec{state: "running", total: 2}) + `, "x-extra": true}`
 	f.reply("GET", "/api/v1/jobs/"+jobID, 200, body)
 	r := newHarness(t).api(f, "jobs", "show", jobID)
@@ -57,7 +57,7 @@ func TestTableOutput(t *testing.T) {
 	if !strings.Contains(lines[1], jobID) || !strings.Contains(lines[1], "3/5") || !strings.Contains(lines[2], "quote") {
 		t.Fatalf("rows wrong:\n%s", r.stdout)
 	}
-	// Columns are aligned: every row starts the TYPE column at the same offset.
+
 	if strings.Index(lines[1], "registry_scan") != strings.Index(lines[0], "TYPE") {
 		t.Fatalf("columns not aligned:\n%s", r.stdout)
 	}
@@ -79,13 +79,13 @@ func TestNDJSONOutput(t *testing.T) {
 		if m["jobId"] != jobID {
 			t.Fatalf("line is not an item: %s", l)
 		}
-		// Each row names the contract of the envelope it came from (G02).
+
 		if m["contractVersion"] != "1.0.0" || !strings.HasPrefix(l, `{"contractVersion":"1.0.0","id":`) {
 			t.Fatalf("row does not lead with contractVersion: %s", l)
 		}
 	}
 
-	// A single object and an object that already names its version.
+
 	f.reply("GET", "/api/v1/presets", 200, `{"contractVersion":"9.8.7","data":[{"id":"popular","name":"Popular","extensions":["com"],"builtIn":true,"createdAt":null},{"contractVersion":"1.2.3","id":"x"},{}],"nextCursor":null,"total":3}`)
 	r = newHarness(t).api(f, "presets", "list", "-o", "ndjson")
 	expectCode(t, r, ExitOK)
@@ -96,7 +96,7 @@ func TestNDJSONOutput(t *testing.T) {
 		t.Fatalf("rows not stamped as expected:\n%s", r.stdout)
 	}
 
-	// Nested lists render one row per line (input preview rows).
+
 	f.reply("POST", "/api/v1/inputs/preview", 200, envelope(`{"rows":[{"row":1,"original":"Acme","status":"valid","domain":null,"reasons":[],"suggestion":null,"duplicateOf":null,"expandedFrom":null},{"row":2,"original":"x..y","status":"invalid","domain":null,"reasons":[{"code":"invalid_characters","message":"bad"}],"suggestion":null,"duplicateOf":null,"expandedFrom":null}],"domains":["acme.com"],"extensions":["com"],"counts":{"inputRows":2,"valid":1,"duplicate":0,"invalid":1,"ambiguous":0,"uniqueDomains":1,"totalChecks":1}}`))
 	r = newHarness(t).api(f, "input", "preview", "Acme", "x..y", "--tlds", ".COM", "-o", "ndjson")
 	expectCode(t, r, ExitOK)
@@ -138,7 +138,7 @@ func TestScanSubmissionReturnsJobAndExitZero(t *testing.T) {
 		t.Fatalf("extensions wrong: %v", exts)
 	}
 
-	// An explicit key is passed through.
+
 	r = newHarness(t).api(f, "scan", "acme", "--idempotency-key", "my-key")
 	expectCode(t, r, ExitOK)
 	if got := f.requests("POST", "/api/v1/jobs")[1].header.Get("Idempotency-Key"); got != "my-key" {
@@ -151,7 +151,7 @@ func TestIdempotentSubmissionRetriesWithSameKey(t *testing.T) {
 	var calls atomic.Int32
 	f.on("POST", "/api/v1/quotes", func(w http.ResponseWriter, r *http.Request) {
 		if calls.Add(1) == 1 {
-			// Drop the connection before answering.
+
 			conn, _, _ := w.(http.Hijacker).Hijack()
 			conn.Close()
 			return
@@ -199,7 +199,7 @@ func TestScanWaitStreamsThenPrintsResultsExit3(t *testing.T) {
 		t.Fatalf("event stream request wrong: %v %v", ev.query, ev.header)
 	}
 
-	// --quiet keeps stderr empty while stdout still carries results.
+
 	r = newHarness(t).api(f, "scan", "acme", "--wait", "--quiet")
 	expectCode(t, r, ExitUnresolved)
 	if r.stderr != "" || !strings.Contains(r.stdout, "acme.io") {
@@ -218,7 +218,7 @@ func TestWaitFallsBackToPolling(t *testing.T) {
 		}
 		writeRaw(w, 200, envelope(jobJSON(jobSpec{state: state, total: 1, finished: 1})))
 	})
-	// No events route: the stream answers 404, so the CLI polls.
+
 	f.reply("GET", "/api/v1/jobs/"+jobID+"/results", 200, page([]string{itemJSON("acme.com", "registered", true)}, ""))
 	r := newHarness(t).api(f, "recheck", "ACME.com.", "--wait")
 	expectCode(t, r, ExitOK)
@@ -255,7 +255,7 @@ func TestInterruptedWaitPrintsJobIDAndExits130(t *testing.T) {
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.WriteHeader(200)
 		w.(http.Flusher).Flush()
-		go func() { time.Sleep(50 * time.Millisecond); cancel() }() // Ctrl-C
+		go func() { time.Sleep(50 * time.Millisecond); cancel() }()
 		<-r.Context().Done()
 	})
 	h := newHarness(t)
@@ -396,14 +396,14 @@ func TestRuntimeDiscoveryAndIdentityMismatch(t *testing.T) {
 	dataDir := t.TempDir()
 	writeRuntime(t, dataDir, f.srv.URL, f.instance)
 	h := newHarness(t)
-	delete(h.env, EnvAPIToken) // discovery reads the token file
+	delete(h.env, EnvAPIToken)
 	r := h.run("--data-dir", dataDir, "jobs", "list")
 	expectCode(t, r, ExitOK)
 	if len(f.requests("GET", "/api/v1/jobs")) != 1 {
 		t.Fatal("discovered backend was not used")
 	}
 
-	// Same address, different instance: refuse to reuse and never start another.
+
 	other := t.TempDir()
 	writeRuntime(t, other, f.srv.URL, "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb")
 	r = h.run("--data-dir", other, "jobs", "list")
@@ -415,7 +415,7 @@ func TestRuntimeDiscoveryAndIdentityMismatch(t *testing.T) {
 		t.Fatal("a mismatched backend must not receive API calls")
 	}
 
-	// DOMAIN_SCOUT_DATA_DIR is honoured when no flag is given.
+
 	h.env["DOMAIN_SCOUT_DATA_DIR"] = dataDir
 	expectCode(t, h.run("jobs", "list"), ExitOK)
 }
@@ -476,20 +476,20 @@ func TestResultsAllPagesAndFilterParams(t *testing.T) {
 func TestUsageErrorsExit2WithoutRequests(t *testing.T) {
 	f := newFakeAPI(t)
 	cases := [][]string{
-		{"scan"},                       // no input
-		{"jobs", "show", "not-a-uuid"}, // bad id
-		{"jobs", "show"},               // missing arg
-		{"jobs", "list", "--bogus"},    // unknown flag
-		{"jobs", "list", "-o", "yaml"}, // bad output mode
+		{"scan"},
+		{"jobs", "show", "not-a-uuid"},
+		{"jobs", "show"},
+		{"jobs", "list", "--bogus"},
+		{"jobs", "list", "-o", "yaml"},
 		{"jobs", "results", jobID, "--resolved", "maybe"},
 		{"jobs", "results", jobID, "--sort", "price-ish"},
 		{"jobs", "results", jobID, "--states", "done"},
-		{"quote", "acme.com"}, // --providers required
+		{"quote", "acme.com"},
 		{"diagnose", "acme.com", "--checks", "ping"},
 		{"name-check", "acme", "--services", "myspace"},
 		{"compare", "acme.com", "--horizon", "11"},
 		{"generate", "acme", "--wait"},
-		{"data", "delete", "--categories", "jobs"}, // no --yes
+		{"data", "delete", "--categories", "jobs"},
 		{"data", "delete", "--categories", "everything", "--yes"},
 		{"notices", "read"},
 		{"jobs"},
@@ -512,7 +512,7 @@ func TestUsageErrorsExit2WithoutRequests(t *testing.T) {
 			t.Fatalf("usage errors must not call the API, saw %s %s", rq.method, rq.path)
 		}
 	}
-	// --no-input is accepted everywhere.
+
 	expectCode(t, newHarness(t).api(f, "--no-input", "version"), ExitOK)
 }
 
@@ -622,13 +622,13 @@ func TestExportDownloadsArtifact(t *testing.T) {
 		w.Header().Set("Content-Type", "text/plain")
 		w.Write([]byte("a.com\nb.com\n"))
 	})
-	// Default: the file is the requested data on stdout; metadata and warnings go to stderr.
+
 	r := newHarness(t).api(f, "export", "--scope", "job", "--job", jobID, "--format", "txt", "--candidates-only")
 	expectCode(t, r, ExitOK)
 	if r.stdout != "a.com\nb.com\n" || !strings.Contains(r.stderr, "unresolved registry evidence") {
 		t.Fatalf("stdout %q stderr %q", r.stdout, r.stderr)
 	}
-	// --out writes the file and prints the export envelope.
+
 	out := filepath.Join(t.TempDir(), "names.txt")
 	r = newHarness(t).api(f, "export", "--scope", "job", "--job", jobID, "--format", "txt", "--out", out)
 	expectCode(t, r, ExitOK)
@@ -671,7 +671,7 @@ func TestProvidersConfigureNeverEchoesSecrets(t *testing.T) {
 		}
 	}
 
-	// Flags win over env; --test failure maps to exit 4.
+
 	h = newHarness(t)
 	h.env["PORKBUN_API_KEY"] = "pk_Zq9_env"
 	r = h.api(f, "providers", "configure", "porkbun", "--from-env", "--value", "secretApiKey=sk_Zq9_flag", "--test")
@@ -684,7 +684,7 @@ func TestProvidersConfigureNeverEchoesSecrets(t *testing.T) {
 		t.Fatal("storage defaults to session")
 	}
 
-	// Unknown and missing fields are usage errors that name keys, never values.
+
 	r = newHarness(t).api(f, "providers", "configure", "porkbun", "--value", "apiKey=Zq9one", "--value", "token=Zq9two")
 	expectCode(t, r, ExitUsage)
 	if !strings.Contains(r.stderr, "token") || strings.Contains(r.stderr, "Zq9") {
@@ -696,7 +696,7 @@ func TestProvidersConfigureNeverEchoesSecrets(t *testing.T) {
 		t.Fatalf("stderr %s", r.stderr)
 	}
 
-	// 409 credential_required from any operation is exit 4.
+
 	f.reply("POST", "/api/v1/provider-checks", 409, errJSON("credential_required", "Namecheap needs credentials"))
 	r = newHarness(t).api(f, "provider-check", "acme.com", "--providers", "namecheap")
 	expectCode(t, r, ExitAccess)
@@ -762,7 +762,7 @@ func TestNotesSetCanClearShortlistNotes(t *testing.T) {
 	expectCode(t, newHarness(t).api(f, "notes", "set", jobID), ExitUsage)
 }
 
-// Lifecycle against a fake `node` (this test binary) using the packaged layout.
+
 func TestServiceLifecycleAutostartAndUI(t *testing.T) {
 	if goruntime.GOOS == "windows" {
 		t.Skip("POSIX only")
@@ -792,7 +792,7 @@ func TestServiceLifecycleAutostartAndUI(t *testing.T) {
 
 	expectCode(t, h.run("--data-dir", dataDir, "service", "status"), ExitSetup)
 
-	// Any API command auto-starts the installed backend.
+
 	r := h.run("--data-dir", dataDir, "jobs", "list")
 	expectCode(t, r, ExitOK)
 	if !strings.Contains(r.stderr, "Starting the Domain Scout backend") || !strings.Contains(r.stdout, `"data":[]`) {
@@ -875,9 +875,9 @@ func killFromFile(path string) {
 	}
 }
 
-// freePort returns a free loopback port below the operating systems' ephemeral ranges (Linux
-// 32768-60999, macOS and Windows 49152-65535), so the OS cannot hand it to another process's
-// outgoing connection or port-0 listener before the test uses it.
+
+
+
 func freePort(t *testing.T) int {
 	t.Helper()
 	for range 100 {
@@ -1006,8 +1006,8 @@ func TestRejectedCredentialsAreAccessExit(t *testing.T) {
 	}
 }
 
-// Settings decide horizon, currency, resolver, watch interval and the TXT
-// candidate filter; the CLI sends them only when the user asks.
+
+
 func TestSettingsBackedDefaultsAreSentOnlyWhenGiven(t *testing.T) {
 	f := newFakeAPI(t)
 	f.reply("POST", "/api/v1/comparisons", 200, envelope(`{}`))
@@ -1077,8 +1077,8 @@ func TestNoticesReadAllForOneWatch(t *testing.T) {
 	}
 }
 
-// B03: a preset saved anywhere (the web UI included) is listed by its id, and
-// scan and input preview send that same id back for the backend to expand.
+
+
 func TestSavedPresetIDIsReusedByScanAndPreview(t *testing.T) {
 	const presetID = "5f0c3d2e-8a41-4c6b-9d7e-2b1f0a9c8e71"
 	f := newFakeAPI(t)

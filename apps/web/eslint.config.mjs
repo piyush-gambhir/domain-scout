@@ -6,7 +6,7 @@ export default defineConfig([
   ...nextVitals,
   ...nextTs,
   {
-    // Playwright fixtures call `use()`, which is not a React hook.
+
     files: ['e2e/**/*.ts'],
     rules: { 'react-hooks/rules-of-hooks': 'off' },
   },

@@ -39,7 +39,7 @@ describe('restart recovery', () => {
     const job = t.jobs.submit({ type: 'registry_scan', input: { domains: ['a.com', 'b.com', 'c.com', 'd.com'], format: 'auto', extensions: [] }, recheck: false });
     await waitFor(() => first.calls.some((c) => c.item.subject === 'c.com'), 5000, 'c.com in flight');
     const before = rows(t, job.id);
-    await t.close(); // grace period elapses while c.com is held, so it is aborted
+    await t.close();
 
     t = await createJobsApp({ dataDir, keepData: true, settings: SERIAL });
     const second = fakeHandler({ operation: 'registry' });
@@ -60,7 +60,7 @@ describe('restart recovery', () => {
     expect(done.state).toBe('completed');
     expect(second.calls.map((c) => c.item.subject)).toEqual(['c.com', 'd.com']);
     const after = rows(t, job.id);
-    // Finished items keep their original evidence and check times.
+
     expect(after.slice(0, 2)).toEqual(before.slice(0, 2));
     hold.open();
   });
@@ -94,7 +94,7 @@ describe('restart recovery', () => {
     await t.close();
     t = undefined;
 
-    // Simulate a crash mid-run: the job and one item still marked running.
+
     const db = new Database(join(dataDir, DATABASE_FILE));
     db.run(`UPDATE jobs SET state = 'running', finished_at = NULL WHERE id = ?`, [job.id]);
     db.run(`UPDATE job_items SET state = 'running', attempts = 1 WHERE job_id = ? AND subject = 'b.com'`, [job.id]);

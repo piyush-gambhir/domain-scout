@@ -34,7 +34,7 @@ function makeClient() {
     defaultOptions: {
       queries: {
         staleTime: 10_000,
-        // Client errors (4xx) are answers, not transient failures.
+
         retry: (count, error) => !(error instanceof ApiRequestError && error.status < 500) && count < 2,
       },
     },

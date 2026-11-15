@@ -3,7 +3,7 @@
 import { Tabs as TabsPrimitive } from 'radix-ui';
 import { cn } from '@/lib/utils';
 
-/** Page-level tabs with the segmented look; two per row on small screens. Arrow keys move between tabs. */
+
 export const Tabs = TabsPrimitive.Root;
 
 export function TabsList({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.List>) {

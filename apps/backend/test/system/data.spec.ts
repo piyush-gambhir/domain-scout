@@ -172,7 +172,7 @@ describe('data inventory and scoped deletion', () => {
            VALUES (?, 'export', 'csv', '{}', 1, ?, 1, ?)`,
           [id, file, at],
         );
-      // A symlinked entry pointing outside the data directory must never be followed.
+
       mkdirSync(join(outside, 'victim-dir'));
       writeFileSync(join(outside, 'victim-dir', 'victim.txt'), 'x');
       symlinkSync(join(outside, 'victim-dir'), join(artifacts, 'link'), 'dir');
@@ -203,7 +203,7 @@ describe('data inventory and scoped deletion', () => {
   });
 });
 
-/** Scoped evidence deletion against the real jobs engine (fake handlers, no network). */
+
 describe('evidence deletion removes replayable copies', () => {
   let t: JobsTestApp;
   afterEach(() => t?.close());
@@ -215,7 +215,7 @@ describe('evidence deletion removes replayable copies', () => {
     t.db.get<{ id: string }>("SELECT id FROM observations WHERE kind = 'registry' AND subject = ?", [domain])!.id;
   const resultEvents = () => t.events.read(0, { types: ['result.observed'] }, 100_000).map((e) => e.payload as JobItem);
 
-  /** A watch with one notice comparing two pieces of evidence, plus its notice.created event. */
+
   function seedNotice(watchId: string, before: { kind: string; id: string }, after: { kind: string; id: string }) {
     const at = t.clock.iso();
     const ref = (r: { kind: string; id: string }) => ({ ...r, observedAt: at, source: 'test', value: 'x' });
@@ -268,10 +268,10 @@ describe('evidence deletion removes replayable copies', () => {
     const noticeEvents = t.events.read(0, { types: ['notice.created'] }).map((e) => (e.payload as Notice).id);
     expect(noticeEvents).toEqual([keptNotice]);
     expect(noticeEvents).not.toContain(staleNotice);
-    // The old job itself stays (only its evidence copy went).
+
     expect(t.events.read(0, { jobId: oldJob.id, types: ['job.updated'] }).length).toBeGreaterThan(0);
 
-    // A client resuming from before the deleted event is told to refetch instead of missing it.
+
     expect(t.events.deletedThrough()).toBeGreaterThanOrEqual(Number(oldEvent.eventId));
     const client = await SseClient.open(`${await t.listen()}/api/v1/events?after=${Number(oldEvent.eventId) - 1}`, {
       Authorization: `Bearer ${t.token}`,

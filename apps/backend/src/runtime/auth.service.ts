@@ -18,13 +18,13 @@ export interface SessionInfo {
   expiresAt: string;
 }
 
-/** How the current request authenticated; set on `req.auth` by the AuthGuard. */
+
 export type RequestAuth = { kind: 'token' } | ({ kind: 'session' } & SessionInfo) | { kind: 'none' };
 
-/**
- * Local access control: the API token (CLI, launcher, Next server), single-use bootstrap codes and
- * browser sessions. Codes and session ids are stored only as SHA-256 hashes.
- */
+
+
+
+
 @Injectable()
 export class AuthService {
   private readonly apiToken: string;
@@ -58,7 +58,7 @@ export class AuthService {
     return { code, expiresAt };
   }
 
-  /** Consumes a bootstrap code (single use, unexpired) and opens a 7-day session. */
+
   exchangeBootstrapCode(code: string): SessionInfo {
     const now = this.clock.iso();
     return this.db.transaction(() => {
@@ -83,7 +83,7 @@ export class AuthService {
     });
   }
 
-  /** The live session for a cookie value, or null when unknown or expired. */
+
   findSession(sessionId: string): SessionInfo | null {
     if (!sessionId) return null;
     const row = this.db.get<{ csrf_token: string; expires_at: string }>(

@@ -98,7 +98,7 @@ describe('instance lock', () => {
     const lock = acquireInstanceLock(lockFile(), 'me', { isAlive: () => true, bootId: 'boot-1' });
     expect(readLock(lockFile())?.instanceId).toBe('me');
     lock.release();
-    // Same boot (or no boot identity available): a live pid always holds the lock.
+
     writeLock({ pid: 424242, instanceId: 'live', bootId: 'boot-1', createdAt: '2099-01-01T00:00:00.000Z' });
     expect(() => acquireInstanceLock(lockFile(), 'me', { isAlive: () => true, bootId: 'boot-1' })).toThrow(LockHeldError);
     expect(() => acquireInstanceLock(lockFile(), 'me', { isAlive: () => true, bootId: null })).toThrow(LockHeldError);
@@ -107,10 +107,10 @@ describe('instance lock', () => {
   it('serializes stale-lock recovery through a marker file', () => {
     writeLock({ pid: 424242, instanceId: 'dead', bootId: null });
     writeFileSync(`${lockFile()}.recover`, '1');
-    // Another starter is recovering right now: do not race it.
+
     expect(() => acquireInstanceLock(lockFile(), 'me', { isAlive: () => false })).toThrow(LockHeldError);
     expect(readLock(lockFile())?.instanceId).toBe('dead');
-    // A marker abandoned by a crashed starter expires.
+
     const lock = acquireInstanceLock(lockFile(), 'me', { isAlive: () => false, partialWriteGraceMs: 0 });
     expect(readLock(lockFile())?.instanceId).toBe('me');
     expect(existsSync(`${lockFile()}.recover`)).toBe(false);

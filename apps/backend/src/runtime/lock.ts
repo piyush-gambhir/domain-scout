@@ -7,7 +7,7 @@ export interface LockContent {
   pid: number;
   instanceId: string;
   createdAt: string;
-  /** Per-boot identity when the OS exposes one; a lock from an earlier boot is stale even if its pid was reused. */
+
   bootId: string | null;
 }
 
@@ -28,18 +28,18 @@ export class LockHeldError extends Error {
 export interface InstanceLock {
   readonly path: string;
   readonly content: LockContent;
-  /** Removes the lock if it is still ours. Safe to call more than once. */
+
   release(): void;
 }
 
 export interface LockOptions {
   isAlive?: (pid: number) => boolean;
   bootId?: string | null;
-  /** Unparseable locks (and recovery markers) younger than this may belong to a process mid-write. */
+
   partialWriteGraceMs?: number;
 }
 
-/** True when a process with `pid` exists (EPERM means it exists but belongs to someone else). */
+
 export function processAlive(pid: number): boolean {
   if (!Number.isInteger(pid) || pid <= 0) return false;
   try {
@@ -50,10 +50,10 @@ export function processAlive(pid: number): boolean {
   }
 }
 
-/**
- * Stable identity of the current boot, independent of wall-clock changes: Linux boot_id, macOS
- * kern.bootsessionuuid. Null elsewhere (Windows), where only process liveness is checked.
- */
+
+
+
+
 export function currentBootId(): string | null {
   try {
     if (process.platform === 'linux') return readFileSync('/proc/sys/kernel/random/boot_id', 'utf8').trim() || null;
@@ -61,16 +61,16 @@ export function currentBootId(): string | null {
       return execFileSync('sysctl', ['-n', 'kern.bootsessionuuid'], { encoding: 'utf8', timeout: 2000 }).trim() || null;
     }
   } catch {
-    // Unavailable: fall back to liveness only.
+
   }
   return null;
 }
 
-/**
- * Per-data-directory instance lock created with an exclusive open. A lock whose process is gone (or
- * that was written during an earlier boot) is stale and replaced; a live holder raises LockHeldError.
- * Stale-lock removal is serialized through `<lock>.recover` so two starters cannot both replace it.
- */
+
+
+
+
+
 export function acquireInstanceLock(lockFile: string, instanceId: string, options: LockOptions = {}): InstanceLock {
   const isAlive = options.isAlive ?? processAlive;
   const bootId = options.bootId === undefined ? currentBootId() : options.bootId;
@@ -82,10 +82,10 @@ export function acquireInstanceLock(lockFile: string, instanceId: string, option
     if (tryCreate(lockFile, JSON.stringify(content))) return makeLock(lockFile, content);
 
     const raw = readSafe(lockFile);
-    if (raw === null) continue; // Removed between our open and read: try again.
+    if (raw === null) continue;
     const holder = parseLock(raw);
     if (!holder) {
-      // mtime can be slightly ahead of Date.now(), so a zero grace must skip the check entirely.
+
       if (grace > 0 && ageMs(lockFile) < grace) throw new LockHeldError(lockFile, null);
     } else if (!isStale(holder, bootId, isAlive)) {
       throw new LockHeldError(lockFile, holder);
@@ -99,14 +99,14 @@ export function readLock(lockFile: string): LockContent | null {
   return parseLock(readSafe(lockFile) ?? '');
 }
 
-/**
- * Removes the inspected stale content while holding the recovery marker. A concurrent starter that
- * already replaced the lock is left alone because the content no longer matches.
- */
+
+
+
+
 function removeStale(lockFile: string, inspected: string, grace: number) {
   const marker = `${lockFile}.recover`;
   if (!tryCreate(marker, String(process.pid))) {
-    // A recovery marker left by a crashed starter expires; a fresh one means someone is recovering now.
+
     if (grace > 0 && ageMs(marker) < grace) throw new LockHeldError(lockFile, null);
     rmSync(marker, { force: true });
     if (!tryCreate(marker, String(process.pid))) throw new LockHeldError(lockFile, null);
@@ -150,7 +150,7 @@ function makeLock(path: string, content: LockContent): InstanceLock {
 function isStale(holder: LockContent, bootId: string | null, isAlive: (pid: number) => boolean): boolean {
   if (holder.pid === process.pid) return false;
   if (!isAlive(holder.pid)) return true;
-  // The pid is alive, but if it was recorded during another boot it now belongs to some other process.
+
   return holder.bootId !== null && bootId !== null && holder.bootId !== bootId;
 }
 

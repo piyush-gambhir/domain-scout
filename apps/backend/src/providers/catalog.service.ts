@@ -13,7 +13,7 @@ import { ProviderError, type CatalogResult } from './adapters/types.js';
 import { ProvidersService, describeFailure, missingCredentialsMessage } from './providers.service.js';
 import { offerRecord, scrubDraft } from './records.js';
 
-/** Catalog downloads are large (Porkbun lists about 900 TLDs); they get a longer transport timeout. */
+
 export const CATALOG_TIMEOUT_MS = 120_000;
 
 export type CatalogOutcome =
@@ -28,19 +28,19 @@ export type CatalogOutcome =
 export interface CatalogRefresh {
   outcome: CatalogOutcome;
   fetchId: string | null;
-  /** Offers written for this fetch (empty when nothing was recorded). */
+
   offerIds: string[];
   suffixCount: number;
   error: { code: string; message: string; retryable: boolean } | null;
   retryAt: string | null;
 }
 
-/**
- * Fetches provider catalogs (no candidate names are sent) and records them: one catalog_fetches
- * row per attempt, the provider's suffix list, published offers and best prices, in one
- * transaction. A failed refresh adds only a failed fetch row, so earlier prices stay (and age into
- * stale) instead of disappearing or turning into zero.
- */
+
+
+
+
+
+
 @Injectable()
 export class CatalogService {
   private readonly logger = new Logger('Catalog');
@@ -65,7 +65,7 @@ export class CatalogService {
     if (capability.requiresCredentials && !credentials.configured) {
       return this.result('credential_required', { code: 'credential_required', message: missingCredentialsMessage(manifest), retryable: false });
     }
-    // Full price lists can take longer than one check; the caller's signal still bounds the call.
+
     const ctx = this.providers.context(manifest, signal, credentials, CATALOG_TIMEOUT_MS);
     const fetchedAt = this.clock.iso();
     const source = capability.source ?? manifest.docsUrl;
@@ -83,7 +83,7 @@ export class CatalogService {
       return { ...this.result(outcome, { code, message, retryable: kind === 'transient' || kind === 'rate_limited' }), retryAt };
     }
     if (catalog.suffixes.length === 0) {
-      // An empty list would wipe supported suffixes and current prices; treat it as a bad response.
+
       const message = `${manifest.name} returned a catalog without any extensions`;
       this.recordFailure(providerId, { code: 'catalog_empty', message }, fetchedAt, source);
       return this.result('failed', { code: 'catalog_empty', message, retryable: false });
@@ -102,14 +102,14 @@ export class CatalogService {
     );
   }
 
-  /**
-   * Records a fetched catalog. Provider text is scrubbed of secrets (configured values when `scrub`
-   * comes from the adapter context, common credential shapes always) and every offer is validated
-   * against the contract first. Suffixes are normalized (case, leading dot, IDN to A-labels); an
-   * entry that still fails validation is skipped and counted, so one odd row cannot block a
-   * provider's catalog. A catalog where most entries fail is recorded as a failed fetch and the
-   * previous prices stay current.
-   */
+
+
+
+
+
+
+
+
   recordSuccess(
     providerId: string,
     catalog: CatalogResult,
@@ -168,7 +168,7 @@ export class CatalogService {
           fetchedAt,
         ]);
       }
-      // Each refresh appends observations, so history keeps every fetched price with its time.
+
       for (const write of writes) this.evidence.insertOffer(write);
       recomputeBestPrices(this.db);
       this.events.emit('catalog.updated', {}, { providerId, suffixCount: suffixes.length, fetchedAt });
@@ -183,7 +183,7 @@ export class CatalogService {
     };
   }
 
-  /** Fingerprint of a stored fetch, matching catalogFingerprint for "unchanged" detection. */
+
   private fingerprintOf(fetchId: string, providerId: string): string {
     const suffixes = this.db
       .all<{ suffix: string }>('SELECT suffix FROM provider_suffixes WHERE provider_id = ? ORDER BY suffix', [providerId])
@@ -211,7 +211,7 @@ function hashRows(
   return createHash('sha256').update(suffixes.join(',')).update('\n').update(lines.join('\n')).digest('hex');
 }
 
-/** Lower-case A-label suffix without a leading dot, or null when it cannot be a registration suffix. */
+
 export function normalizeSuffix(raw: string): string | null {
   const trimmed = raw.trim().replace(/^\.+/, '').replace(/\.+$/, '').toLowerCase();
   if (!trimmed) return null;

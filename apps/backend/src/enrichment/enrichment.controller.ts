@@ -7,7 +7,7 @@ import { NameCheckCatalog } from '../core/ports.js';
 export class EnrichmentController {
   constructor(private readonly catalog: NameCheckCatalog) {}
 
-  /** Supported and explicitly unsupported services; listing them contacts nothing. */
+
   @ApiRoute('listNameCheckServices')
   listNameCheckServices() {
     const services = this.catalog.services();

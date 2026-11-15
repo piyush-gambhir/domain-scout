@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { Job } from '@domain-scout/contracts';
 
-/** Terminal-state listeners. Notified after the state change is committed, outside any transaction. */
+
 @Injectable()
 export class JobLifecycleHub {
   private readonly logger = new Logger('JobLifecycle');

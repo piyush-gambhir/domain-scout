@@ -2,10 +2,10 @@ import { uniq } from './utils';
 
 const ASCII_DOMAIN = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/;
 
-/**
- * Complete domains from free entry (lines, commas, spaces). URLs lose their scheme and path,
- * Unicode names become their ASCII (punycode) form. Nothing is sent anywhere.
- */
+
+
+
+
 export function parseDomains(text: string): { valid: string[]; invalid: string[] } {
   const valid: string[] = [];
   const invalid: string[] = [];

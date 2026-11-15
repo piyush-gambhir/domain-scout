@@ -17,10 +17,10 @@ interface CriteriaRow {
   updated_at: string;
 }
 
-/**
- * Saved search criteria: filters, extensions, providers, budget, generation settings and input text.
- * Saving and restoring only stores and returns settings; nothing here submits a job or query.
- */
+
+
+
+
 @Injectable()
 export class CriteriaService {
   constructor(
@@ -72,7 +72,7 @@ export class CriteriaService {
   }
 }
 
-/** The contract allows any string; a blank name cannot be told apart in lists. */
+
 function requireName(name: string) {
   if (!name.trim()) throw AppError.invalid('Criteria name must not be empty', [{ path: 'body.name', message: 'Required' }]);
 }

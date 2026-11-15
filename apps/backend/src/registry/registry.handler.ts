@@ -9,7 +9,7 @@ import { MAX_PACING_WAIT_MS, PublishedLimits } from './published-limits.js';
 import { RegistryChecker, type CheckResult } from './registry-checker.js';
 import { RoutesService, type RegistryRoute } from './routes.service.js';
 
-/** Stored payload: the contract object without fields computed at read time. */
+
 type RegistryPayload = Omit<RegistryObservation, 'freshness' | 'reused'>;
 
 const LOCAL_PARSER_VERSION = 'local/1';
@@ -34,11 +34,11 @@ export function isResolvedRegistryOutcome(outcome: string): boolean {
   return RESOLVED_ITEM_OUTCOMES.registry.includes(outcome);
 }
 
-/**
- * The `registry` operation: one domain against its routed registry. Invalid and unsupported names are
- * answered locally with no network call. Fresh registered/no_record evidence is reused when the job
- * allows cache; unresolved evidence is never reused.
- */
+
+
+
+
+
 @Injectable()
 export class RegistryOperationHandler implements OperationHandler {
   readonly operation = 'registry' as const;
@@ -65,7 +65,7 @@ export class RegistryOperationHandler implements OperationHandler {
     return this.resolve(item).route?.endpoint ?? null;
   }
 
-  /** Items routed to a registry with published limits may first wait for a slot (PublishedLimits). */
+
   timeoutMs(item: JobItemRecord, settings: Settings): number | undefined {
     const { route } = this.resolve(item);
     return route && publishedLimits(route) ? settings.retries.timeoutMs + MAX_PACING_WAIT_MS : undefined;
@@ -77,7 +77,7 @@ export class RegistryOperationHandler implements OperationHandler {
     if (!domain) {
       const unknown = detailed.reasons.find((r) => r.code === 'unknown_suffix');
       if (unknown) {
-        // An unknown extension is unresolved (unsupported), not a definitive invalid answer.
+
         return this.local(item, null, ctx, 'unsupported', 'unknown_suffix', `${unknown.message}. DNS is not used as a substitute.`);
       }
       const why = detailed.reasons.map((r) => r.message).join('; ') || 'Not a registrable domain';
@@ -108,7 +108,7 @@ export class RegistryOperationHandler implements OperationHandler {
     if (limits) {
       const slot = this.limits.reserve(route.registryId, limits, ctx.now());
       if ('retryAt' in slot) {
-        // Nothing is sent: the registry's own published limit would be exceeded.
+
         const stated = limits.map((limit) => `${limit.queries} queries per ${limit.windowSeconds} s (${limit.source})`).join(' and ');
         const message = `Not sent to ${route.host}: the .${route.tld} registry publishes a per-IP limit of ${stated}. Next query allowed at ${slot.retryAt}.`;
         return {
@@ -171,7 +171,7 @@ export class RegistryOperationHandler implements OperationHandler {
     };
   }
 
-  /** Invalid or unsupported: evidence that explains why nothing was queried. Never retried automatically. */
+
   private local(
     item: JobItemRecord,
     domain: NormalizedDomain | null,
@@ -196,7 +196,7 @@ export class RegistryOperationHandler implements OperationHandler {
     };
     const error = isResolvedRegistryOutcome(outcome) ? null : { code, message, retryable: false };
     if (!AsciiDomain.safeParse(ascii).success || !Suffix.safeParse(suffix).success) {
-      // The subject cannot be expressed as a RegistryObservation; report the outcome without evidence.
+
       return { outcome, resolved: isResolvedRegistryOutcome(outcome), evidence: [], error: error ?? { code, message, retryable: false }, retryable: false };
     }
     const payload = this.payload(ascii, domain?.unicode ?? item.unicode, suffix, classification, checkedAt, ctx, LOCAL_PARSER_VERSION, false, null);

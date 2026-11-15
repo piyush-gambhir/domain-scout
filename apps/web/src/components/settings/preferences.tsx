@@ -22,7 +22,7 @@ import { Select } from '../ui/select';
 import { Skeleton } from '../ui/skeleton';
 import { SwitchField } from '../ui/switch';
 
-/** Loads settings once for a section; sections render their form only with data. */
+
 function WithSettings({ children }: { children: (settings: Settings) => React.ReactNode }) {
   const settings = useSettings();
   if (settings.isPending) return <Skeleton className="h-64 max-w-2xl" />;
@@ -30,7 +30,7 @@ function WithSettings({ children }: { children: (settings: Settings) => React.Re
   return <>{children(settings.data)}</>;
 }
 
-/** Submit and discard for a section form; the form's onSubmit saves. */
+
 function SaveBar({ dirty, valid, pending, onDiscard }: { dirty: boolean; valid: boolean; pending: boolean; onDiscard: () => void }) {
   return (
     <div className="mt-5 flex gap-1.5">
@@ -46,7 +46,7 @@ function SaveBar({ dirty, valid, pending, onDiscard }: { dirty: boolean; valid: 
   );
 }
 
-/** The extension set new searches start with (shared with the CLI), and saved presets. */
+
 export function SearchDefaults() {
   const client = useQueryClient();
   const defaults = useDefaultExtensions();
@@ -157,7 +157,7 @@ const CHECK_FIELDS: { group: string; fields: NumberSpec[] }[] = [
 ];
 const ALL_FIELDS = CHECK_FIELDS.flatMap((g) => g.fields);
 
-/** Deep-merges partial patches section by section. */
+
 function mergePatches(patches: SettingsPatchInput[]): SettingsPatchInput {
   const out: Record<string, Record<string, unknown>> = {};
   for (const patch of patches) {
@@ -275,13 +275,13 @@ interface RateDraft {
   to: string;
   rate: string;
   source: string;
-  /** datetime-local value shown in the form (minute precision). */
+
   observedAt: string;
-  /** The saved timestamp, kept exactly until the observed field is edited. */
+
   savedObservedAt: string | null;
 }
 
-/** ISO timestamp to a datetime-local value in the browser's time zone. */
+
 function toLocalInput(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
@@ -342,7 +342,7 @@ function PricingForm({ settings }: { settings: Settings }) {
       onSubmit={(event) => {
         event.preventDefault();
         if (!valid) return;
-        // Send only what changed, so untouched rates keep their exact saved timestamps.
+
         save.mutate(
           {
             ...(comparisonChanged ? { comparison: { horizonYears: horizon, currency: currency || null } } : {}),

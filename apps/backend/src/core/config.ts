@@ -2,26 +2,26 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
 
 export interface AppConfig {
-  /** Durable per-user application data (SQLite, credentials, artifacts). */
+
   dataDir: string;
-  /** Transient runtime metadata (runtime file, API token, lock). */
+
   runtimeDir: string;
   host: string;
   port: number;
-  /** Origins allowed to send browser requests (the local Next server). */
+
   webOrigins: string[];
   version: string;
   instanceId: string;
   startedAt: string;
-  /** True in tests: no lock, runtime file or signal handlers. */
+
   embedded: boolean;
-  /** Local API token. When absent it is loaded from (or created in) `<runtimeDir>/api-token`. */
+
   apiToken?: string;
-  /** Grace period for in-flight work during a graceful stop (default 5000 ms). */
+
   stopGraceMs?: number;
-  /** Lifetime of browser bootstrap codes (default 60 s). The container launcher prints a longer-lived one. */
+
   bootstrapTtlMs?: number;
-  /** Stop after this long with nothing to do (see ActivityMonitor); absent or 0 never stops. */
+
   idleTimeoutMs?: number;
 }
 
@@ -48,7 +48,7 @@ export function testConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     instanceId: randomUUID(),
     startedAt: new Date().toISOString(),
     embedded: true,
-    // A fixed in-memory token keeps tests from writing token files outside their temp directory.
+
     apiToken: randomBytes(32).toString('base64url'),
     ...overrides,
   };

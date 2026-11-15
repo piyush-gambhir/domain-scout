@@ -1,4 +1,4 @@
-/* Formatting helpers. Money stays a decimal string end to end; nothing here converts it to a float. */
+
 
 const relative = new Intl.RelativeTimeFormat('en', { numeric: 'auto', style: 'short' });
 const dateTime = new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'short' });
@@ -51,13 +51,13 @@ function currencySymbol(currency: string): { symbol: string; prefix: boolean } {
       result = { symbol: spaced ? (prefix ? `${symbol} ` : ` ${symbol}`) : symbol, prefix };
     }
   } catch {
-    // Unknown currency code: fall back to the code itself.
+
   }
   symbols.set(currency, result);
   return result;
 }
 
-/** Groups the integer part and pads to two decimals without losing precision. */
+
 export function formatDecimal(amount: string): string {
   const negative = amount.startsWith('-');
   const [intPart = '0', fraction = ''] = (negative ? amount.slice(1) : amount).split('.');
@@ -100,7 +100,7 @@ export function formatBytes(bytes: number | null | undefined): string {
   return `${value.toFixed(value < 10 ? 1 : 0)} ${units[unit]}`;
 }
 
-/** Watch and settings intervals in words: 1440 -> "Daily". */
+
 export function formatInterval(minutes: number): string {
   if (minutes === 1440) return 'Daily';
   if (minutes === 10080) return 'Weekly';

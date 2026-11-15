@@ -43,10 +43,10 @@ interface IdempotencyClaim {
   fingerprint: string;
 }
 
-/**
- * Job submission and control: planning, idempotency, persistence, cancel/resume/retry/recheck and
- * deletion. Implements the JobSubmitter and JobLifecycle ports for other modules.
- */
+
+
+
+
 @Injectable()
 export class JobsService implements JobSubmitter, JobLifecycle, OnModuleInit, OnApplicationBootstrap, BeforeApplicationShutdown {
   private readonly logger = new Logger('Jobs');
@@ -68,19 +68,19 @@ export class JobsService implements JobSubmitter, JobLifecycle, OnModuleInit, On
   onModuleInit() {
     this.scheduler.loadCooldowns();
     this.recovered = this.scheduler.recover();
-    // Halts dispatch; in-flight calls are aborted at the grace deadline and recorded as interrupted.
+
     this.shutdown?.onStopping((ctx) => this.scheduler.stop(ctx.signal), 'jobs');
-    // Budgets are read on every pass; a changed limit takes effect without waiting for a completion.
+
     this.settings.onChange(() => this.scheduler.wake());
   }
 
-  /** Listeners registered during module init hear about jobs recovered as interrupted. */
+
   onApplicationBootstrap() {
     for (const job of this.recovered) this.lifecycle.notify(job);
     this.recovered = [];
   }
 
-  /** Fallback when no ShutdownCoordinator ran the stop hook: abort at once and record interruptions. */
+
   async beforeApplicationShutdown() {
     await this.scheduler.stop();
   }
@@ -117,12 +117,12 @@ export class JobsService implements JobSubmitter, JobLifecycle, OnModuleInit, On
     return this.scheduler.resume(jobId);
   }
 
-  /** Cancel and resume change in-memory scheduling, which an outer rollback could not undo. */
+
   private outsideTransaction(action: string) {
     if (this.db.inTransaction) throw new Error(`JobsService.${action} must not run inside another transaction`);
   }
 
-  /** New job for the selected items with the same operations and targets; the parent is untouched. */
+
   retry(jobId: string, body: RetryBody, options: SubmitOptions = {}): Job {
     const operationId = options.operationId ?? 'retryJob';
     return this.idempotent(options.idempotencyKey, operationId, { jobId, body }, (claim) => {
@@ -141,7 +141,7 @@ export class JobsService implements JobSubmitter, JobLifecycle, OnModuleInit, On
     });
   }
 
-  /** Fresh registry checks for explicit domains: a registry scan that ignores cached evidence. */
+
   recheck(body: RecheckBody, options: SubmitOptions = {}): Job {
     return this.submit(
       { type: 'registry_scan', label: body.label, input: InputSource.parse({ domains: body.domains }), recheck: true },
@@ -149,7 +149,7 @@ export class JobsService implements JobSubmitter, JobLifecycle, OnModuleInit, On
     );
   }
 
-  /** Deletes a finished job and its items and events. Evidence rows stay for shortlists and history. */
+
   remove(jobId: string) {
     const row = this.store.requireJobRow(jobId);
     if (!TERMINAL_JOB_STATES.includes(row.state) || this.scheduler.has(jobId)) {
@@ -178,10 +178,10 @@ export class JobsService implements JobSubmitter, JobLifecycle, OnModuleInit, On
     return this.db.all<ItemRow>(`SELECT * FROM job_items WHERE ${where.join(' AND ')} ORDER BY seq`, params);
   }
 
-  /**
-   * Same key and fingerprint returns the original job; a different request under the same key is a
-   * conflict. The claim is stored in the transaction that creates the job.
-   */
+
+
+
+
   private idempotent(key: string | undefined, operation: string, payload: unknown, create: (claim: IdempotencyClaim | null) => Job): Job {
     if (!key) return create(null);
     const fingerprint = requestFingerprint(operation, payload);
@@ -273,8 +273,8 @@ export class JobsService implements JobSubmitter, JobLifecycle, OnModuleInit, On
     });
     const job = this.store.job(jobId, { includeText: true });
     if (this.db.inTransaction) {
-      // Submitted inside a caller's transaction (e.g. with watch-run bookkeeping): start only once that
-      // transaction has settled, and only if the job was committed.
+
+
       queueMicrotask(() => this.admit(jobId));
     } else {
       this.scheduler.add(jobId);
@@ -287,7 +287,7 @@ export class JobsService implements JobSubmitter, JobLifecycle, OnModuleInit, On
       const row = this.store.jobRow(jobId);
       if (row?.state === 'queued' && !this.scheduler.has(jobId) && !this.scheduler.isStopping) this.scheduler.add(jobId);
     } catch (error) {
-      // Left queued; startup recovery marks it interrupted so it can be resumed.
+
       this.logger.error(`Could not start job ${jobId}: ${(error as Error).message}`);
     }
   }

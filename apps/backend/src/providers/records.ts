@@ -3,11 +3,11 @@ import { Offer, type ProviderConfirmation } from '@domain-scout/contracts';
 import type { ObservationWrite, OfferWrite } from '../storage/evidence.js';
 import { ProviderError, type CheckResult, type OfferDraft } from './adapters/types.js';
 
-/**
- * A draft with provider-supplied text scrubbed (source label and URL, fee labels, promotion text,
- * region, listing destination). Providers can echo request parameters, including credentials, in
- * successful responses too.
- */
+
+
+
+
+
 export function scrubDraft<T extends OfferDraft>(draft: T, scrub: (text: string) => string): T {
   const promotion = draft.promotion;
   return {
@@ -22,11 +22,11 @@ export function scrubDraft<T extends OfferDraft>(draft: T, scrub: (text: string)
   };
 }
 
-/**
- * Builds the stored offer row and its contract payload (payload omits computed freshness). The
- * payload must be a valid contract Offer: a malformed one (fractional years, a bad currency code)
- * throws a bad_response ProviderError instead of being persisted.
- */
+
+
+
+
+
 export function offerRecord(input: {
   providerId: string;
   domain: string | null;
@@ -93,7 +93,7 @@ export function offerRecord(input: {
   return { write, payload };
 }
 
-/** Provider confirmation observation (kind 'confirmation'), independent of registry evidence. */
+
 export function confirmationRecord(input: {
   providerId: string;
   domain: string;

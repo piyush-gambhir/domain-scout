@@ -2,18 +2,18 @@ import type { NextRequest } from 'next/server';
 import { CONTRACT_VERSION } from '@domain-scout/contracts';
 import { SESSION_COOKIE, backendUrl } from '@/lib/server/backend';
 
-/*
- * Forwards /api/v1/* to the local backend. The browser never sees the API token: requests carry
- * only the HttpOnly session cookie, the CSRF header and the request headers the protocol needs.
- * Request and response bodies are streamed (SSE included) and nothing is cached or logged.
- */
+
+
+
+
+
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-// x-domain-scout-client is allowed through, and also set below for every forwarded request.
+
 const FORWARDED_REQUEST_HEADERS = ['accept', 'content-type', 'x-csrf-token', 'idempotency-key', 'last-event-id', 'origin', 'x-domain-scout-client'];
 
-// Hop-by-hop headers, encodings undone by fetch, and cookies (Next owns the session cookies).
+
 const DROPPED_RESPONSE_HEADERS = new Set([
   'connection',
   'keep-alive',
@@ -29,11 +29,11 @@ const DROPPED_RESPONSE_HEADERS = new Set([
 
 type Context = { params: Promise<{ path: string[] }> };
 
-/**
- * Next writes response headers only with the first body chunk. An SSE comment line (ignored by
- * EventSource) is sent first so the browser sees the stream open immediately instead of at the
- * first event or heartbeat. Upstream chunks then pass through unbuffered.
- */
+
+
+
+
+
 function withStreamPrelude(upstream: ReadableStream<Uint8Array>): ReadableStream<Uint8Array> {
   const reader = upstream.getReader();
   return new ReadableStream<Uint8Array>({
@@ -84,11 +84,11 @@ async function forward(request: NextRequest, context: Context): Promise<Response
     const value = request.headers.get(name);
     if (value) headers.set(name, value);
   }
-  // Everything through this forwarder comes from the web UI, including EventSource streams that
-  // cannot set headers; the backend records origin `ui` for jobs it starts.
+
+
   headers.set('x-domain-scout-client', 'web');
   const session = request.cookies.get(SESSION_COOKIE)?.value;
-  // Re-encode so a crafted value cannot smuggle extra cookies past the allowlist.
+
   if (session) headers.set('cookie', `${SESSION_COOKIE}=${encodeURIComponent(session)}`);
 
   const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
@@ -98,7 +98,7 @@ async function forward(request: NextRequest, context: Context): Promise<Response
       method: request.method,
       headers,
       body: hasBody ? request.body : undefined,
-      // Required by Node fetch to stream a request body.
+
       ...(hasBody ? { duplex: 'half' } : {}),
       signal: request.signal,
       redirect: 'manual',
@@ -113,7 +113,7 @@ async function forward(request: NextRequest, context: Context): Promise<Response
   upstream.headers.forEach((value, key) => {
     if (!DROPPED_RESPONSE_HEADERS.has(key.toLowerCase())) responseHeaders.set(key, value);
   });
-  // no-transform keeps any intermediary from compressing (and so buffering) the event stream.
+
   responseHeaders.set('cache-control', 'no-store, no-transform');
   let body: ReadableStream<Uint8Array> | null = upstream.body;
   if (body && upstream.headers.get('content-type')?.startsWith('text/event-stream')) {

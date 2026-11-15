@@ -6,13 +6,13 @@ import { normalizeHostName, sanitizeField, toIso } from '../sanitize.js';
 
 export const RDAP_PARSER_VERSION = 'rdap/1';
 
-/** Cooldowns applied when the source gives no Retry-After. */
+
 export const DEFAULT_RATE_LIMIT_COOLDOWN_SECONDS = 60;
 export const DEFAULT_BLOCK_COOLDOWN_SECONDS = 300;
 
-/** One RDAP HTTP exchange after redirect handling. */
+
 export interface RdapExchange {
-  /** Host of the routed registry endpoint, for messages. */
+
   registryHost: string;
   finalUrl: string;
   status: number;
@@ -21,11 +21,11 @@ export interface RdapExchange {
   truncated: boolean;
 }
 
-/**
- * IANA Registrar ID 376 is "RESERVED-Internet Assigned Numbers Authority" with status Reserved in
- * https://www.iana.org/assignments/registrar-ids (checked 2026-10-05). A registry record sponsored
- * by it is a source-stated reservation, e.g. example.com.
- */
+
+
+
+
+
 const IANA_RESERVED_REGISTRAR_ID = '376';
 
 type Json = Record<string, unknown>;
@@ -50,7 +50,7 @@ function isHtml(headers: Record<string, string>, body: string) {
   return (headers['content-type'] ?? '').toLowerCase().includes('html') || /^\s*</.test(body);
 }
 
-/** Interprets one RDAP response for `domain` (RFC 9082/9083 semantics, RFC 7480 status codes). */
+
 export function classifyRdap(domain: NormalizedDomain, exchange: RdapExchange, now: Date): Classification {
   const { status, headers, body } = exchange;
   const httpStatus = status;
@@ -70,7 +70,7 @@ export function classifyRdap(domain: NormalizedDomain, exchange: RdapExchange, n
     }
     const parsed = parseJson(body);
     if (isObject(parsed)) {
-      // RFC 9083 error shape: errorCode 404, or at least an RDAP conformance marker without a contradicting code.
+
       const code = parsed.errorCode;
       const codeIs404 = (typeof code === 'number' || typeof code === 'string') && Number(code) === 404;
       const rdapShaped = Array.isArray(parsed.rdapConformance) && code === undefined;
@@ -175,7 +175,7 @@ function classifyRecord(domain: NormalizedDomain, exchange: RdapExchange): Class
   };
 }
 
-/** ldhName, else unicodeName converted to an A-label; lower case without a trailing dot. */
+
 function returnedName(record: Json): string | null {
   const ldh = normalizeHostName(record.ldhName);
   if (ldh) return ldh;
@@ -231,7 +231,7 @@ function details(record: Json): RegistrationDetails {
   };
 }
 
-/** Reserved only when the record says so; a registered record alone says nothing about eligibility. */
+
 function eligibility(record: Json, registration: RegistrationDetails, from: string): Eligibility {
   if (registration.statuses.some((status) => status.toLowerCase() === 'reserved')) {
     return { status: 'reserved', source: `RDAP status "reserved" from ${from}`, scope: 'Registry reservation reported for this name' };

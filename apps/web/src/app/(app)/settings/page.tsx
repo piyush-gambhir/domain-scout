@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-/** Sections of the first UI's settings page, by their old ?section= names. */
+
 const MOVED: Record<string, string> = {
   appearance: 'preferences',
   pricing: 'preferences',

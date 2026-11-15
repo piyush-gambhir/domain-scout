@@ -17,17 +17,17 @@ import { hydrateObservation, hydrateOffer, type ObservationRow, type OfferRow } 
 
 const ASCII_DOMAIN = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/;
 
-/** Latest evidence for one domain, as shown on shortlist entries and in exports. */
+
 export interface LatestEvidence {
   registry: RegistryObservation | null;
   confirmations: ProviderConfirmation[];
   offers: Offer[];
 }
 
-/**
- * Read side of the shared evidence store. Every evidence kind stays separate; nothing here merges
- * registry outcomes with provider confirmations, offers, name checks or diagnostics.
- */
+
+
+
+
 @Injectable()
 export class EvidenceReader {
   constructor(
@@ -36,17 +36,17 @@ export class EvidenceReader {
     @Optional() private readonly previewer?: InputPreviewer,
   ) {}
 
-  /**
-   * Normalize a complete domain through the registry module. Without that module, fall back to a
-   * syntactic parse that treats everything after the first label as the suffix.
-   */
+
+
+
+
   normalize(input: string): NormalizedDomain | null {
     if (this.previewer) {
       try {
         const normalized = this.previewer.normalize(input);
         if (normalized) return normalized;
       } catch {
-        // Fall through to the syntactic parse.
+
       }
       return null;
     }
@@ -74,7 +74,7 @@ export class EvidenceReader {
     return hydrateObservation<ProviderConfirmation>(row, this.clock.now());
   }
 
-  /** Every confirmation for the domain, newest first. */
+
   confirmations(domain: string, limit = 200): ProviderConfirmation[] {
     return this.db
       .all<ObservationRow>(
@@ -84,7 +84,7 @@ export class EvidenceReader {
       .map((row) => this.confirmation(row));
   }
 
-  /** Newest confirmation per provider, chosen in SQL so long histories never hide a provider. */
+
   latestConfirmations(domain: string): ProviderConfirmation[] {
     return this.db
       .all<ObservationRow & { rn: number }>(
@@ -98,11 +98,11 @@ export class EvidenceReader {
       .map((row) => this.confirmation(row));
   }
 
-  /**
-   * Newest offer per provider, purchase path, kind, currency, region, term and promotion, for the
-   * exact domain and for its suffix catalog. Different scopes stay separate rows. Suffix prices use
-   * the same current-catalog selection as the offers API, so a superseded catalog never returns.
-   */
+
+
+
+
+
   latestOffers(domain: string, suffix: string): Offer[] {
     const now = this.clock.now();
     return this.db
@@ -129,10 +129,10 @@ export class EvidenceReader {
     };
   }
 
-  /**
-   * Name checks recorded for a label. Name-check subjects keep the case they were submitted with,
-   * so match case-insensitively, on the A-label and on its Unicode form.
-   */
+
+
+
+
   nameChecks(names: string[], limit = 200): NameCheck[] {
     const wanted = [...new Set(names.map((n) => n.toLowerCase()).filter(Boolean))];
     if (!wanted.length) return [];
@@ -164,7 +164,7 @@ export class EvidenceReader {
       .map((row) => hydrateObservation<AftermarketListing>(row, now));
   }
 
-  /** Collections containing the domain, with the entry's notes. */
+
   collectionsFor(domain: string): { id: string; name: string; notes: string | null }[] {
     return this.db.all<{ id: string; name: string; notes: string | null }>(
       `SELECT c.id, c.name, e.notes FROM collection_entries e JOIN collections c ON c.id = e.collection_id
@@ -173,7 +173,7 @@ export class EvidenceReader {
     );
   }
 
-  /** Every domain with registry, confirmation or exact-name offer evidence, in first-observed order. */
+
   observedDomains(): string[] {
     return this.db
       .all<{ subject: string }>(

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { cap, unsupported, type ProviderManifest } from './manifest.js';
 import { REGISTRAR_MANIFESTS } from './manifests.js';
 
-/** Dated snapshot of a registry-published registrar list (data/providers/<file>.json). */
+
 export interface DirectorySnapshot {
   source: string;
   publisher: string;
@@ -14,7 +14,7 @@ export interface DirectorySnapshot {
 
 const SNAPSHOTS = ['register-si.json'];
 
-/** Resolves data/providers from both src/providers (dev, tests) and dist/providers (build). */
+
 function readSnapshot(file: string): DirectorySnapshot {
   const url = new URL(`../../data/providers/${file}`, import.meta.url);
   return JSON.parse(readFileSync(url, 'utf8')) as DirectorySnapshot;
@@ -50,10 +50,10 @@ function directoryManifest(snapshot: DirectorySnapshot, entry: DirectorySnapshot
   };
 }
 
-/**
- * The nine registrars followed by registry-published directory entries. A directory entry that is
- * one of the nine adds its suffixes to that provider instead of appearing twice.
- */
+
+
+
+
 export function buildManifests(snapshots: DirectorySnapshot[] = loadDirectorySnapshots()): ProviderManifest[] {
   const registrars = REGISTRAR_MANIFESTS.map((m) => ({ ...m }));
   const byId = new Map(registrars.map((m) => [m.id, m]));

@@ -13,7 +13,7 @@ export interface CoreOptions {
   clock?: Clock;
 }
 
-/** Global infrastructure shared by every module: config, clock, database, settings, events, handlers, shutdown, idle tracking. */
+
 @Global()
 @Module({})
 export class CoreModule {

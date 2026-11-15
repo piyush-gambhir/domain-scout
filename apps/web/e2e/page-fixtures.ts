@@ -1,13 +1,13 @@
 import type { Page } from '@playwright/test';
 import { EARLIER, LATER, NOW, PROVIDERS, SETTINGS, applyPatch, job, mockApi, ok, paged, uuid } from './mock-api';
 
-/*
- * Page-level fixture sets for Watching and Settings (the task flows use app-fixtures.ts). Each
- * installs route handlers on a page and returns the recorded API calls. Names follow the fixed live
- * test set.
- */
 
-/* monitoring */
+
+
+
+
+
+
 
 export const W1 = uuid(0xa1);
 export const W2 = uuid(0xa2);
@@ -112,7 +112,7 @@ export async function mockMonitoring(page: Page) {
     },
     'POST /watches/:id/run': (_c, p) => ({ status: 201, json: { contractVersion: '1.0.0', data: job(uuid(0xb9), { type: 'watch', state: 'queued', watchId: p.id }) } }),
     'GET /jobs/:id': (_c, p) => ok(job(p.id!, { type: 'watch', state: 'completed' })),
-    // The latest run's registry results give each watched name its current state.
+
     'GET /jobs/:id/results': (_c, p) =>
       paged(
         ['example.com', 'google.com'].map((domain, n) => ({
@@ -159,7 +159,7 @@ export async function mockMonitoring(page: Page) {
   return calls;
 }
 
-/* settings */
+
 
 export async function mockSettings(page: Page) {
   let settings: Record<string, unknown> = structuredClone(SETTINGS);

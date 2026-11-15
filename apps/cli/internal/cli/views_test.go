@@ -5,8 +5,8 @@ import (
 	"testing"
 )
 
-// Offer tables carry what a purchase decision needs, and the purchase link is
-// never clipped.
+
+
 func TestOfferTableShowsPurchaseDetails(t *testing.T) {
 	f := newFakeAPI(t)
 	url := "https://porkbun.com/checkout/search?q=" + strings.Repeat("x", 80) + ".com"

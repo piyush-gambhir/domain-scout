@@ -16,11 +16,11 @@ import { ProvidersController } from './providers.controller.js';
 import { ProvidersService } from './providers.service.js';
 import { FetchProviderTransport, ProviderTransport } from './transport.js';
 
-/**
- * Provider manifests, credentials, adapters, catalogs and the provider_check, quote, transfer,
- * aftermarket and catalog handlers. Tests replace ProviderTransport (and CREDENTIAL_ENV) through
- * Nest overrides so no test reaches a provider.
- */
+
+
+
+
+
 @Global()
 @Module({
   controllers: [ProvidersController],
@@ -47,7 +47,7 @@ export class ProvidersModule implements OnModuleInit {
     private readonly credentials: CredentialStore,
   ) {}
 
-  /** Session-only credentials live in this process; stopping it would silently drop them. */
+
   onModuleInit() {
     this.activity.addProbe('credentials', () => {
       const ids = this.credentials.sessionProviders();

@@ -8,14 +8,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 
-/*
- * Starts an isolated backend and web server for the run:
- * - backend: node apps/backend/dist/main.js --data-dir <tmp> --port <random> --web-origin <web>
- * - web: next start (or next dev with DS_E2E_NEXT=dev) with DOMAIN_SCOUT_BACKEND_URL pointing at it
- * Then exchanges a bootstrap code (API token from <dataDir>/run/api-token) through the browser at
- * /auth/bootstrap and saves the session cookies as Playwright storage state.
- * Tests read DS_E2E_WEB_URL, DS_E2E_STORAGE and DS_E2E_SESSION from the environment.
- */
+
+
+
+
+
+
+
+
 
 const webDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repoRoot = path.resolve(webDir, '../..');
@@ -112,7 +112,7 @@ export default async function globalSetup() {
     });
     await waitFor(`${webUrl}/session`, mode === 'dev' ? 120_000 : 30_000, web, 'web');
 
-    // Session bootstrap through the real browser flow. If the backend has no auth yet, run without one.
+
     const storagePath = path.join(stateDir, 'storage.json');
     let session = 'none';
     await writeFile(storagePath, JSON.stringify({ cookies: [], origins: [] }));
@@ -138,7 +138,7 @@ export default async function globalSetup() {
     process.env.DS_E2E_BACKEND_URL = backendUrl;
     process.env.DS_E2E_STORAGE = storagePath;
     process.env.DS_E2E_SESSION = session;
-    // Tests that mint their own bootstrap codes read the API token from here.
+
     process.env.DS_E2E_DATA_DIR = dataDir;
   } catch (error) {
     await teardown();

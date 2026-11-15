@@ -9,7 +9,7 @@ import { compare } from './money.js';
 import { requireDomain } from './domain.js';
 import { OffersService, type PricedOffer } from './offers.service.js';
 
-/** Ownership cost comparisons from retained offers; no provider is contacted. */
+
 @Injectable()
 export class ComparisonService {
   constructor(
@@ -23,7 +23,7 @@ export class ComparisonService {
   create(request: ComparisonRequest): Comparison {
     const horizonYears = request.horizonYears ?? this.settings.get().comparison.horizonYears;
     const path: PurchasePath = request.purchasePath ?? 'new_registration';
-    // Omitted uses the configured comparison currency; an explicit null keeps original currencies.
+
     const currency = request.currency === undefined ? this.settings.get().comparison.currency : request.currency;
     const fxRates = this.settings.get().fxRates;
     const rows: ComparisonRow[] = [];
@@ -54,9 +54,9 @@ export class ComparisonService {
 
     const ranked = rankRows(rows);
     const preferred = new Set(this.providers.manifests().filter((m) => this.providers.row(m.id).preferred === 1).map((m) => m.id));
-    // Ranked rows first; unranked rows (e.g. published prices with unknown premium status) still
-    // sort by their known amount within a currency so the cheapest appears first. A preference only
-    // breaks ties and never moves a provider above a cheaper comparable one.
+
+
+
     const amount = (row: (typeof ranked.rows)[number]) => row.horizonTotal ?? row.initialCommitment;
     ranked.rows.sort(
       (a, b) =>
@@ -78,7 +78,7 @@ export class ComparisonService {
     return { horizonYears, purchasePath: path, currency, generatedAt: this.clock.iso(), rows: ranked.rows, cheapest: ranked.cheapest, lowestSubtotal: ranked.lowestSubtotal, limits };
   }
 
-  /** Requested providers, or enabled named providers plus directory entries that list the suffix. */
+
   private candidates(suffix: string, providerIds: string[] | undefined) {
     if (providerIds?.length) return providerIds.map((id) => this.providers.require(id));
     return this.providers.manifests().filter((m) => {
@@ -88,7 +88,7 @@ export class ComparisonService {
     });
   }
 
-  /** An exact quote for the domain and path wins over the provider's published suffix price. */
+
   private pick(
     providerId: string,
     domain: string,
@@ -112,7 +112,7 @@ export class ComparisonService {
   }
 }
 
-/** Orders known amounts ascending within one currency; unknown amounts and other currencies keep their place. */
+
 function byAmount(a: string | null, aCurrency: string | null, b: string | null, bCurrency: string | null): number {
   if (a === null && b === null) return 0;
   if (a === null) return 1;

@@ -39,8 +39,8 @@ type recorded struct {
 	body         []byte
 }
 
-// fakeAPI mimics the local API: health without auth, bearer auth elsewhere,
-// ErrorResponse bodies for failures, and per-test routes.
+
+
 type fakeAPI struct {
 	t        *testing.T
 	srv      *httptest.Server
@@ -155,8 +155,8 @@ func itemJSON(subject, outcome string, resolved bool) string {
 		"44444444-4444-4444-8444-"+fmt.Sprintf("%012d", len(subject)), jobID, subject, subject, outcome, resolved)
 }
 
-// sse writes events on the response and keeps the stream open until the
-// client disconnects.
+
+
 func sseHandler(events ...string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
@@ -222,7 +222,7 @@ func (h *harness) run(args ...string) result {
 	return result{stdout: stdout.String(), stderr: stderr.String(), code: code}
 }
 
-// api runs a command against the fake via --backend-url.
+
 func (h *harness) api(f *fakeAPI, args ...string) result {
 	h.t.Helper()
 	return h.run(append([]string{"--backend-url", f.srv.URL}, args...)...)

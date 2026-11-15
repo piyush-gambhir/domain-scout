@@ -3,8 +3,8 @@ import { GIB, SMALL_SEARCH, buildJob, mockApp } from './app-fixtures';
 import { label24 } from './layout-fixtures';
 import { mockApi, ok, paged, uuid, startedWork } from './mock-api';
 
-// Journey 3, "decide and buy": saved names with fresh status, cost over a few years per provider and
-// the provider's own checkout link. Comparisons, prices and rechecks are fixtures.
+
+
 
 const FREE_COM = `${GIB[0]}.com`;
 const FREE_DEV = `${GIB[1]}.dev`;
@@ -20,7 +20,7 @@ test('Saved opens the default list and offers to recheck only the names checked 
   const taken = page.locator('[data-testid="saved-row"][data-domain="example.com"]');
   await expect(taken).toContainText('Taken');
   await expect(taken).not.toContainText('$');
-  // A taken name has no registration cost to compare.
+
   await expect(page.getByRole('button', { name: 'Compare provider costs for example.com' })).toHaveCount(0);
   await expect(page.locator(`[data-testid="saved-row"][data-domain="${FREE_COM}"]`)).toContainText('Not registered');
 
@@ -34,7 +34,7 @@ test('Saved opens the default list and offers to recheck only the names checked 
 });
 
 test('Recheck all covers stale names beyond the loaded page', async ({ page }) => {
-  // 230 names checked long ago; the list loads 200 at a time.
+
   const many = Array.from({ length: 230 }, (_, i) => `${label24(i + 900)}.com`);
   const { calls } = await mockApp(page, { lists: [{ name: 'Saved', domains: many }], staleSaved: many });
   await page.goto('/saved');
@@ -57,11 +57,11 @@ test('a saved name expands into a cost comparison by provider with Buy links to 
   await expect(rows.first()).toContainText('Cheapest total');
   await expect(rows.first().getByTestId('buy-link')).toHaveAttribute('href', CHECKOUT('porkbun', FREE_COM));
   await expect(rows.nth(1).getByTestId('buy-link')).toHaveAttribute('href', CHECKOUT('dynadot', FREE_COM));
-  // Totals with unknown tax say so instead of claiming a confirmed total.
+
   await expect(rows.nth(1)).toContainText('tax or fees unknown');
   const request = calls.find((c) => c.method === 'POST' && c.path === '/comparisons')?.body;
   expect(request).toMatchObject({ domains: [FREE_COM], purchasePath: 'new_registration' });
-  // Comparisons read retained prices; nothing is sent to a provider.
+
   expect(calls.some((c) => c.method === 'POST' && /^\/(quotes|provider-checks)$/.test(c.path))).toBe(false);
 });
 
@@ -77,7 +77,7 @@ test('the row Buy menu lists every provider price and links to its checkout for 
   await expect(links.first()).toHaveAttribute('href', CHECKOUT('porkbun', FREE_DEV));
   await expect(links.first()).toHaveAttribute('target', '_blank');
   await expect(links.first()).toContainText('$10.81');
-  // Registrars without a published price sit in a collapsed group.
+
   await expect(menu.getByRole('menuitem', { name: /Other registrars/ })).toBeVisible();
   await expect(menu.getByRole('menuitem', { name: /accredited sellers? listed by the registry/ })).toBeVisible();
 });
@@ -142,7 +142,7 @@ test('owned domains and saved searches live beside the lists', async ({ page }) 
   await nav.getByRole('list', { name: 'Saved searches' }).getByRole('link', { name: /Short names/ }).click();
   await expect(page.getByRole('textbox', { name: 'Search names or domains' })).toHaveValue(`example.com\n${GIB[0]}`);
   await expect(page.getByTestId('restored-search')).toContainText('Short names');
-  // Restoring a saved search fills the bar; it runs nothing.
+
   expect(startedWork(calls)).toEqual([]);
 });
 
@@ -162,7 +162,7 @@ test('saving from results creates the Saved list on first use, by key and by but
   await other.hover();
   await other.getByRole('button', { name: `Save ${GIB[0]}.io` }).click();
   await expect.poll(() => calls.filter((c) => c.method === 'POST' && /^\/collections\/[^/]+\/entries$/.test(c.path)).length).toBe(2);
-  // The list exists now, so it is not created twice.
+
   expect(calls.filter((c) => c.method === 'POST' && c.path === '/collections')).toHaveLength(1);
   await expect(page.getByTestId('sidebar').getByRole('link', { name: /^Saved/ })).toContainText('2');
 });
@@ -173,7 +173,7 @@ test('filtering a long list finds names past the first page', async ({ page }) =
   const { calls } = await mockApp(page, { lists: [{ name: 'Saved', domains }] });
   await page.goto('/saved');
   await expect(page.getByTestId('saved-row').first()).toBeVisible();
-  // The first page holds 200 names; the match is on the second.
+
   await expect(page.locator(`[data-testid="saved-row"][data-domain="${target}"]`)).toHaveCount(0);
   await page.getByRole('searchbox', { name: 'Filter this list' }).fill(target.split('.')[0]!);
   const rows = page.getByTestId('saved-row');

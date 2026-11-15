@@ -75,9 +75,9 @@ function item(jobId: string, domain: string, outcome: string): JobItem {
   };
 }
 
-/** Names in a TXT export (comment lines removed). */
+
 const txtNames = (body: string) => body.split('\n').filter((l) => l && !l.startsWith('#'));
-/** Data rows of a CSV export, as arrays of raw cells (no quoted commas in these fixtures). */
+
 const csvRows = (body: string) => body.trim().split('\r\n').slice(1).map((l) => l.split(','));
 
 describe('exports', () => {
@@ -181,7 +181,7 @@ describe('exports', () => {
     fx.confirmation('india.com', 'porkbun', 'available', '2026-10-05T11:51:00.000Z');
     fx.registry('juliet.com', 'rate_limited', '2026-10-05T11:50:00.000Z');
 
-    // Default TXT: india.com stays (a provider confirmed it available); registered and unresolved names do not.
+
     const byDefault = await exportOf({ format: 'txt', scope: { kind: 'collection', collectionId: collection.id } });
     const header = byDefault.body.split('\n').filter((l) => l.startsWith('#')).join('\n');
     expect(header).toContain('not a list of guaranteed registrable names');
@@ -197,7 +197,7 @@ describe('exports', () => {
     expect(txtNames(all.body)).toEqual(['hotel.com', 'india.com', 'juliet.com']);
     expect(all.body).toContain('# Includes every name in scope');
 
-    // The candidate filter is TXT-only: CSV keeps every row and warns only when it was asked for.
+
     const csvDefault = await exportOf({ format: 'csv', scope: { kind: 'collection', collectionId: collection.id } });
     expect(csvRows(csvDefault.body).map((r) => r[0])).toEqual(['hotel.com', 'india.com', 'juliet.com']);
     expect(csvDefault.meta.warnings.join(' ')).not.toContain('candidatesOnly');
@@ -323,7 +323,7 @@ describe('exports', () => {
     fx.registry(domain, 'no_record', at(-5));
     nameCheck('npm', 'not_found', -30);
     const github = nameCheck('github', 'not_found', -20);
-    // A long newer history of one service never hides the newest check of another.
+
     for (let n = 0; n < 205; n++) nameCheck('npm', 'not_found', -19 + n * 0.01);
     const npm = nameCheck('npm', 'exists', -10);
     nameCheck('github', 'exists', -1, 'unrelatedlabel');
@@ -334,7 +334,7 @@ describe('exports', () => {
 
     const listed = JSON.parse((await exportOf({ format: 'json', scope: { kind: 'domains', domains: [domain] } })).body);
     expect([...listed.resolved.evidenceIds.other].sort()).toEqual(expected);
-    // Domain rows keep the registry outcome as their status; checks are separate evidence.
+
     expect(listed.items[0]).toMatchObject({ domain, outcome: 'no_record' });
     expect(listed.items[0].checks.map((c: Record<string, string>) => [c.kind, c.id, c.label, c.outcome, c.checkedAt, c.source, c.reason])).toEqual([
       ['name_check', npm, 'npm (npm name)', 'exists', at(-10), 'npm.test', 'npm said exists'],
@@ -343,7 +343,7 @@ describe('exports', () => {
       ['diagnostic', dns, 'dns diagnostic', 'no_answer', at(-8), 'resolver.test', 'dns no_answer'],
     ]);
 
-    // CSV carries the same checks in one cell when the field is requested.
+
     const csv = (await exportOf({ format: 'csv', scope: { kind: 'domains', domains: [domain] }, fields: ['domain', 'outcome', 'checks'] })).body;
     expect(csv).toContain(`npm (npm name): exists (${at(-10)}, npm.test, npm said exists); github (github name): not_found (${at(-20)}, github.test, github said not_found)`);
     expect(csv).toContain(`dns diagnostic: no_answer (${at(-8)}, resolver.test, dns no_answer)`);

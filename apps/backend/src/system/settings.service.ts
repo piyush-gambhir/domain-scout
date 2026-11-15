@@ -7,7 +7,7 @@ import { Database, json } from '../storage/database.js';
 
 const KEY = 'app';
 
-/** Ordinary preferences stored as one JSON document. Secrets never go here. */
+
 @Injectable()
 export class SettingsService {
   private readonly logger = new Logger('Settings');
@@ -29,11 +29,11 @@ export class SettingsService {
     return this.cache;
   }
 
-  /**
-   * Validates, persists and caches a partial update. Runs in its own transaction and must not be
-   * called inside another one: an outer rollback would leave the cache and listeners holding
-   * settings that were never committed.
-   */
+
+
+
+
+
   patch(patch: z.output<typeof SettingsPatch>): SettingsShape {
     if (this.db.inTransaction) throw new Error('SettingsService.patch must not run inside another transaction');
     const next = Settings.parse(mergeSettings(this.get(), patch as Partial<SettingsShape>));
@@ -55,7 +55,7 @@ export class SettingsService {
     return next;
   }
 
-  /** Called after every committed patch (e.g. the jobs engine resizing its budgets). Returns an unsubscribe function. */
+
   onChange(listener: (settings: SettingsShape) => void): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);

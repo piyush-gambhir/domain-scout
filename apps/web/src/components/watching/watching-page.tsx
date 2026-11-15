@@ -20,7 +20,7 @@ import { StatusLabel } from '../status';
 import { Button } from '../ui/button';
 import { SkeletonRows } from '../ui/skeleton';
 
-/** Next check in words, including its lead word; a paused watch has none and an overdue one is due. */
+
 export function NextRun({ watch }: { watch: Watch }) {
   const now = useNow();
   if (watch.state === 'paused') return <span className="text-muted-foreground">Paused</span>;
@@ -38,7 +38,7 @@ export function MissedRuns({ count }: { count: number }) {
   return <StatusLabel status={{ label: plural(count, 'missed check'), tone: 'caution', unresolved: true }} />;
 }
 
-/** The newest notice per watch: what changed last. */
+
 function useLastChanges() {
   const notices = useQuery({
     queryKey: qk.noticeList({ latest: true }),
@@ -55,15 +55,15 @@ function useLastChanges() {
   }, [notices.data]);
 }
 
-/** Outcome order in a watch's summary: free names first. */
+
 const SUMMARY_ORDER = ['no_record', 'registered', 'inconclusive', 'rate_limited', 'blocked', 'invalid', 'unsupported'];
 const rank = (outcome: string) => (SUMMARY_ORDER.includes(outcome) ? SUMMARY_ORDER.indexOf(outcome) : SUMMARY_ORDER.length);
 
-/**
- * Current registry state of the watched names from each name's latest check: the plain status for
- * one name, counts per status for several (e.g. "2 not registered · 3 taken"). The dot takes the
- * tone of the first group, so any free name shows first.
- */
+
+
+
+
+
 function NamesState({ watch }: { watch: Watch }) {
   const { outcomes, unchecked } = watch.registry;
   const entries = Object.entries(outcomes).sort(([a], [b]) => rank(a) - rank(b));
@@ -140,7 +140,7 @@ function WatchRow({ watch, lastChange }: { watch: Watch; lastChange: Notice | un
   );
 }
 
-/** Names you are waiting on, and an inbox of what changed. */
+
 export function WatchingPage() {
   const [creating, setCreating] = useState(false);
   const unread = useUnreadNoticeCount();

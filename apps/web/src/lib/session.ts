@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 
-/* Set when any API call returns 401. The shell then replaces the page with the session screen. */
+
 let required = false;
 const listeners = new Set<() => void>();
 

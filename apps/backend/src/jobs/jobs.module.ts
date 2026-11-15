@@ -12,10 +12,10 @@ import { JobPlanner } from './planner.js';
 import { JobResultsService } from './results.service.js';
 import { JobScheduler } from './scheduler.js';
 
-/**
- * Jobs engine. Global so every module can submit work (JobSubmitter), react to finished jobs
- * (JobLifecycle) and read results with the shared filter (JobResults).
- */
+
+
+
+
 @Global()
 @Module({
   controllers: [JobsController, JobOperationsController],
@@ -40,7 +40,7 @@ export class JobsModule implements OnModuleInit {
     private readonly db: Database,
   ) {}
 
-  /** Unfinished jobs keep the backend running; stopping would interrupt them. */
+
   onModuleInit() {
     this.activity.addProbe('jobs', () => {
       const n = this.db.get<{ n: number }>(`SELECT COUNT(*) AS n FROM jobs WHERE state IN ('queued', 'running', 'cancelling')`)?.n ?? 0;

@@ -4,7 +4,7 @@ import { Database, json } from './database.js';
 
 export type ObservationKind = 'registry' | 'confirmation' | 'name_check' | 'diagnostic' | 'listing';
 
-/** Immutable evidence row. `payload` is the contract object without computed fields (freshness, reused). */
+
 export interface ObservationWrite {
   id: string;
   kind: ObservationKind;
@@ -16,11 +16,11 @@ export interface ObservationWrite {
   observedAt: string;
   staleAt: string;
   payload: Record<string, unknown>;
-  /** Sanitized raw response, stored only when settings.privacy.keepRawDiagnostics is on. */
+
   raw?: { contentType: string | null; body: string; truncated: boolean } | null;
 }
 
-/** Append-only price row. `payload` is the contract Offer without computed fields (freshness). */
+
 export interface OfferWrite {
   id: string;
   providerId: string;
@@ -69,26 +69,26 @@ export interface OfferRow {
   payload_json: string;
 }
 
-/** Freshness relative to `now`: expired beats stale when a provider gave an explicit quote expiry. */
+
 export function freshnessOf(staleAt: string, now: Date, expiresAt?: string | null): Freshness {
   const t = now.getTime();
   if (expiresAt && Date.parse(expiresAt) <= t) return 'expired';
   return Date.parse(staleAt) <= t ? 'stale' : 'fresh';
 }
 
-/** Contract object for an observation row, with freshness computed at read time. */
+
 export function hydrateObservation<T>(row: ObservationRow, now: Date, extra: Record<string, unknown> = {}): T {
   const payload = json.parse<Record<string, unknown>>(row.payload_json, {});
   return { ...payload, freshness: freshnessOf(row.stale_at, now), ...extra } as T;
 }
 
-/** Contract Offer for an offer row, with freshness computed at read time. */
+
 export function hydrateOffer<T>(row: OfferRow, now: Date): T {
   const payload = json.parse<Record<string, unknown>>(row.payload_json, {});
   return { ...payload, freshness: freshnessOf(row.stale_at, now, row.quote_expires_at) } as T;
 }
 
-/** Shared evidence store used by the jobs engine and every module that records sourced facts. */
+
 @Injectable()
 export class EvidenceRepository {
   constructor(private readonly db: Database) {}

@@ -57,7 +57,7 @@ const COLUMN_ALIASES: Record<string, keyof Omit<RawRow, 'row' | 'input'>> = {
 };
 const POSITIONAL: (keyof Omit<RawRow, 'row' | 'input'>)[] = ['domain', 'registrar', 'renewalDate', 'amount', 'currency', 'notes'];
 
-/** RFC 4180 style CSV: quoted fields, doubled quotes, CRLF or LF line ends. */
+
 export function parseCsv(text: string): { line: number; cells: string[] }[] {
   const rows: { line: number; cells: string[] }[] = [];
   let cells: string[] = [];
@@ -128,10 +128,10 @@ function csvRows(text: string): RawRow[] {
   });
 }
 
-/**
- * User-supplied portfolio facts (renewal date and price), kept apart from observed prices and
- * estimates. Comparisons read retained offers only and never contact a provider.
- */
+
+
+
+
 @Injectable()
 export class PortfolioService {
   constructor(
@@ -253,7 +253,7 @@ export class PortfolioService {
     if (!changes) throw AppError.notFound('Portfolio entry');
   }
 
-  /** Renewal and transfer alternatives from retained offers; user facts, observations and estimates stay apart. */
+
   compare(cursor: string | null | undefined, limit: number) {
     const { rows, nextCursor, total } = this.page(cursor, limit);
     const horizon = 3;
@@ -280,7 +280,7 @@ export class PortfolioService {
           observedAt: offer.observedAt,
           transferIncludesYears: offer.transfer.includesYears,
         });
-        // Estimate: transfer plus current renewals over the horizon, in the same currency as the user's price.
+
         if (entry.renewalPrice && transfer && renewal && transfer.currency === entry.renewalPrice.currency && offer.transfer.includesYears !== null) {
           const stay = multiply(entry.renewalPrice.amount, horizon)!;
           const renewals = Math.max(0, horizon - offer.transfer.includesYears);

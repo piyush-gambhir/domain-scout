@@ -1,15 +1,15 @@
 import type { Page } from '@playwright/test';
 import { EARLIER, LATER, NOW, PROVIDERS, SETTINGS, mockApi, ok, paged, provider, uuid } from './mock-api';
 
-/*
- * Large route fixtures for the layout checks: enough rows that every growing list overflows its pane.
- * Shapes follow packages/contracts. Domains are limited to the fixed test set and 24-character labels;
- * provider and shortlist names are fictional and never leave the page.
- */
+
+
+
+
+
 
 const LETTERS = 'abcdefghijklmnopqrstuvwxyz';
 
-/** Deterministic 24-character label for row n. */
+
 export function label24(n: number): string {
   let out = '';
   let x = n * 2654435761 + 12345;
@@ -32,7 +32,7 @@ const NAMED = [
   ['namecom', 'Name.com'],
 ] as const;
 
-/** Nine named registrars plus an 87-entry registry directory, as GET /providers returns them. */
+
 export function providerList() {
   const named = NAMED.map(([id, name]) => provider(id, name, [`api.${id}.provider.invalid`]));
   const directory = Array.from({ length: 87 }, (_, i) => ({
@@ -102,7 +102,7 @@ function offer(n: number, providerId: string, overrides: Record<string, unknown>
   };
 }
 
-/** nic.si with every evidence kind and 96 providers (9 named, 87 from the registry directory). */
+
 export function richEvidence() {
   const providers = providerList().map((p) => ({
     providerId: p.id,
@@ -182,7 +182,7 @@ export function richEvidence() {
   };
 }
 
-/** Rich evidence for any domain name, plus the full provider list. */
+
 export async function mockRichDomain(page: Page) {
   return mockApi(page, {
     'GET /providers': () => paged(providerList()),
@@ -190,7 +190,7 @@ export async function mockRichDomain(page: Page) {
   });
 }
 
-/* monitoring */
+
 
 export const BIG_WATCH = uuid(0xa100);
 
@@ -258,7 +258,7 @@ export async function mockBigMonitoring(page: Page) {
   });
 }
 
-/* price history */
+
 
 export async function mockManyPriceSeries(page: Page) {
   const point = (n: number, day: number, registration: string | null) => ({

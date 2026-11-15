@@ -30,7 +30,7 @@ const EVENT_TYPES: EventType[] = [
   'heartbeat',
 ];
 
-/** Replace items in every cached results page of a job, in place. */
+
 export function patchResultItems(client: QueryClient, jobId: string, items: Map<string, JobItem>) {
   client.setQueriesData<InfiniteData<ResultsPage>>({ queryKey: qk.jobResults(jobId) }, (data) => {
     if (!data) return data;
@@ -52,7 +52,7 @@ export function patchResultItems(client: QueryClient, jobId: string, items: Map<
   });
 }
 
-/** True when a results filter can change membership or order as items finish (anything beyond input order). */
+
 function changesWithResults(filter: unknown): boolean {
   if (!filter || typeof filter !== 'object') return false;
   return Object.entries(filter as Record<string, unknown>).some(
@@ -61,16 +61,16 @@ function changesWithResults(filter: unknown): boolean {
 }
 
 export interface JobEventsState {
-  /** True while the SSE stream is open; callers poll when it is not. */
+
   live: boolean;
 }
 
-/**
- * Subscribes to /api/v1/events for one job and keeps the job, results and evidence caches current.
- * Result updates are batched; terminal transitions and stream resets refetch authoritative state.
- * When the stream fails (endpoint missing, auth, network) it reports `live: false` so pages can
- * fall back to polling, and retries the stream later with an `after` cursor.
- */
+
+
+
+
+
+
 export function useJobEvents(jobId: string | null | undefined, onEvent?: (event: DomainEvent) => void): JobEventsState {
   const client = useQueryClient();
   const [live, setLive] = useState(false);
@@ -89,8 +89,8 @@ export function useJobEvents(jobId: string | null | undefined, onEvent?: (event:
     let lastMembershipRefresh = 0;
     let membershipTimer: ReturnType<typeof setTimeout> | null = null;
 
-    // In-place patches cannot add, drop or reorder rows. Filtered or sorted views refetch at most
-    // every 3 seconds (trailing), so new matches appear and totals stay right.
+
+
     const refreshMembership = () => {
       membershipTimer = null;
       lastMembershipRefresh = Date.now();
@@ -100,7 +100,7 @@ export function useJobEvents(jobId: string | null | undefined, onEvent?: (event:
           predicate: (query) => changesWithResults(query.queryKey[2]),
           refetchType: 'active',
         },
-        // Let a slow refetch finish instead of restarting it every window.
+
         { cancelRefetch: false },
       );
     };
@@ -136,7 +136,7 @@ export function useJobEvents(jobId: string | null | undefined, onEvent?: (event:
       }
       const id = Number(event.eventId ?? message.lastEventId);
       if (Number.isFinite(id) && id > 0) {
-        if (id <= lastId) return; // duplicate after a reconnect replay
+        if (id <= lastId) return;
         lastId = id;
       }
       onEventRef.current?.(event);
@@ -144,7 +144,7 @@ export function useJobEvents(jobId: string | null | undefined, onEvent?: (event:
         case 'job.updated': {
           const job = event.payload as Job;
           const previous = client.getQueryData<Job>(qk.job(job.id));
-          // Events omit the restorable input text (only GET /jobs/:id carries it); keep the cached copy.
+
           const text = job.input.text ?? previous?.input.text ?? null;
           client.setQueryData(qk.job(job.id), text === job.input.text ? job : { ...job, input: { ...job.input, text } });
           void client.invalidateQueries({ queryKey: qk.jobs() });
@@ -193,7 +193,7 @@ export function useJobEvents(jobId: string | null | undefined, onEvent?: (event:
       for (const type of EVENT_TYPES) source.addEventListener(type, handle as EventListener);
       source.onerror = () => {
         setLive(false);
-        // CONNECTING means the browser is already retrying with Last-Event-ID; CLOSED means it gave up.
+
         if (source?.readyState === EventSource.CLOSED) {
           source.close();
           retryTimer = setTimeout(() => {
@@ -221,13 +221,13 @@ export function useJobEvents(jobId: string | null | undefined, onEvent?: (event:
 
 const WATCH_EVENT_TYPES: EventType[] = ['watch.changed', 'watch.deleted', 'notice.created', 'stream.reset'];
 
-/** Watches deleted from this tab, so the tab that deleted one does not also announce it. */
+
 export const watchesDeletedHere = new Set<string>();
 
-/**
- * Keeps watch and notice views current across tabs: changes refresh them, and a deleted watch
- * disappears. Mounted only on monitoring pages, since browsers allow few open streams per host.
- */
+
+
+
+
 export function useWatchEvents(onDeleted?: (watchId: string) => void) {
   const client = useQueryClient();
   const onDeletedRef = useRef(onDeleted);
@@ -263,7 +263,7 @@ export function useWatchEvents(onDeleted?: (watchId: string) => void) {
         client.setQueryData(qk.watch(watch.id), watch);
         void client.invalidateQueries({ queryKey: qk.watches, exact: true });
       } else if (event.type === 'watch.deleted') {
-        // The tombstone carries only the id; the watch's own ref is null so its details never replay.
+
         const { watchId } = event.payload as { watchId: string };
         refresh();
         onDeletedRef.current?.(watchId);

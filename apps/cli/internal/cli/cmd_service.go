@@ -93,7 +93,7 @@ func (a *App) serviceCmd() *cobra.Command {
 			if err != nil {
 				var e *exitError
 				if errors.As(err, &e) && e.code == ExitSetup && dataDir != "" && a.opts.backendURL == "" {
-					// Nothing verified is running for this data directory.
+
 					a.progress("The backend is not running.")
 					return nil
 				}
@@ -121,7 +121,7 @@ func (a *App) serviceCmd() *cobra.Command {
 	return group("service", "Manage the local backend process", start, status, stop)
 }
 
-// waitStopped waits until the backend stops answering and its process exits.
+
 func (a *App) waitStopped(ctx context.Context, baseURL string, pid int) error {
 	deadline := time.Now().Add(a.opts.timeout)
 	for {
@@ -154,7 +154,7 @@ func (a *App) uiCmd() *cobra.Command {
 				return usageErr("--web-port must be a port number")
 			}
 			if webPort != launcher.DefaultWebPort {
-				// The backend only accepts browser requests from known UI origins.
+
 				a.webOrigins = []string{fmt.Sprintf("http://127.0.0.1:%d", webPort), fmt.Sprintf("http://localhost:%d", webPort)}
 			}
 			c, err := a.api(ctx)
@@ -187,11 +187,11 @@ func (a *App) uiCmd() *cobra.Command {
 			}
 			link := webURL + "/auth/bootstrap?code=" + url.QueryEscape(bc.Data.Code)
 			if jobID != "" {
-				// After sign-in the UI opens this search's results instead of an empty search.
+
 				link += "&next=" + url.QueryEscape("/search/"+jobID)
 			}
 			if noOpen {
-				// The link is single use and expires quickly; it goes to stderr, never stdout.
+
 				fmt.Fprintln(a.Stderr, link)
 				return nil
 			}

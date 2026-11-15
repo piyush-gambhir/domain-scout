@@ -8,7 +8,7 @@ const INPUT_SUFFIX = 'Input';
 
 const TEMP_PREFIX = '__route_';
 
-/** Registry holding every named schema plus the unnamed route parts under temporary ids. */
+
 function routeRegistry() {
   const registry = z.registry<{ id?: string; description?: string }>();
   const named = (z.globalRegistry as unknown as { _idmap: Map<string, z.ZodType> })._idmap;
@@ -47,7 +47,7 @@ function componentSchemas(registry: ReturnType<typeof routeRegistry>, io: 'input
   const out: Record<string, JsonSchema> = {};
   for (const [id, schema] of Object.entries(result.schemas)) {
     const { $schema: _ignored, $id: _id, ...rest } = schema;
-    // Responses stay open to added fields; requests are validated by the backend.
+
     out[id] = stripClosedObjects(rest) as JsonSchema;
   }
   return out;
@@ -79,12 +79,12 @@ function rewriteRefs(value: unknown, map: (name: string) => string): unknown {
   return value;
 }
 
-/**
- * OpenAPI 3.0 `nullable` only applies when `type` is in the same schema object, so
- * `{ nullable: true, allOf: [$ref] }` does not admit null for a primitive component. Inline primitive
- * components (strings, numbers, enums) at nullable use sites. Nullable object references keep the
- * allOf form, which generators (oapi-codegen) map to pointers; the backend validates with Zod.
- */
+
+
+
+
+
+
 function inlineNullablePrimitives(schemas: Record<string, JsonSchema>, refName: (name: string) => string = (n) => n) {
   const primitive = (name: string) => {
     const target = schemas[refName(name)] ?? schemas[name];
@@ -109,10 +109,10 @@ function inlineNullablePrimitives(schemas: Record<string, JsonSchema>, refName: 
   for (const id of Object.keys(schemas)) schemas[id] = visit(schemas[id]) as JsonSchema;
 }
 
-/**
- * Request bodies use the schema input form (fields with defaults are optional), responses use the
- * output form. An `XInput` component is emitted only where the two forms differ.
- */
+
+
+
+
 function buildSchemas() {
   const registry = routeRegistry();
   const output = componentSchemas(registry, 'output', '');
@@ -123,7 +123,7 @@ function buildSchemas() {
   for (const id of Object.keys(input)) {
     if (JSON.stringify(rewriteRefs(input[id], strip)) !== JSON.stringify(output[id])) differs.add(id);
   }
-  // A schema also differs when anything it references differs.
+
   let changed = true;
   while (changed) {
     changed = false;
@@ -148,7 +148,7 @@ function buildSchemas() {
     if (differs.has(id)) components[`${id}${INPUT_SUFFIX}`] = inputSchema(id);
   }
 
-  /** Schema for a route part: a $ref for named schemas, the inline schema otherwise. */
+
   const schemaFor = (schema: z.ZodType, io: 'input' | 'output'): JsonSchema => {
     const id = registry.get(schema)?.id as string;
     if (!id.startsWith(TEMP_PREFIX)) return { $ref: REF_PREFIX + (io === 'input' ? inputName(id) : id) };

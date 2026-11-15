@@ -1,11 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { CSRF_COOKIE, SESSION_COOKIE, backendUrl } from '@/lib/server/backend';
 
-/*
- * Browser bootstrap: the launcher opens /auth/bootstrap?code=...[&next=/search/<id>] with a single-use
- * code. Exchange it for a session, set the cookies and redirect with 303 so the code leaves the
- * address bar. `next` is honored only as a same-origin path.
- */
+
+
+
+
+
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
@@ -22,13 +22,13 @@ function redirect(location: string) {
   });
 }
 
-/** A same-origin path to open after sign-in: one leading slash, no scheme, host or backslash tricks. */
+
 function safeNext(value: string | null): string {
   if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) return '/';
   try {
     const base = 'http://ds.invalid';
     const url = new URL(value, base);
-    // Check the normalized path too: "/a/..//host" resolves to "//host", a protocol-relative redirect.
+
     if (url.origin !== base || url.pathname.startsWith('//') || url.pathname.includes('\\')) return '/';
     return `${url.pathname}${url.search}${url.hash}`;
   } catch {
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
     path: '/',
     ...(validExpiry ? { expires } : {}),
   });
-  // Readable by browser JavaScript so it can echo the token in X-CSRF-Token on mutations.
+
   response.cookies.set(CSRF_COOKIE, session.csrfToken, {
     httpOnly: false,
     sameSite: 'strict',

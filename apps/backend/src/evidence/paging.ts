@@ -1,6 +1,6 @@
 import { decodeCursor, encodeCursor } from '../core/envelope.js';
 
-/** Offset pagination behind an opaque cursor, for small local lists ordered by a stable key. */
+
 export function pageWindow(cursor: string | undefined | null, limit: number) {
   const offset = Math.max(0, decodeCursor<{ o: number }>(cursor)?.o ?? 0);
   return {

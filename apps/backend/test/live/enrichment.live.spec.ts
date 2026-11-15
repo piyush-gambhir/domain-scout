@@ -10,13 +10,13 @@ import { NodeDnsTransport, defaultFetch, nodeHttpProbe, nodeTlsProbe } from '../
 import type { JobItemRecord, OperationContext, OperationResult } from '../../src/jobs/operation.js';
 import type { SettingsService } from '../../src/system/settings.service.js';
 
-/**
- * Authorized live checks (docs/IMPLEMENTATION.md "Live network rule"): only names from the fixed test
- * set (example.com, google.com and their labels) and random 24-character gibberish names, sent only
- * to DNS resolvers, the domains' own TLS/HTTP endpoints, GitHub, npm, PyPI and crates.io.
- * Run with DOMAIN_SCOUT_LIVE_TESTS=1.
- */
-// Opt in with exactly DOMAIN_SCOUT_LIVE_TESTS=1; any other value (including 0) keeps these skipped.
+
+
+
+
+
+
+
 const live = process.env.DOMAIN_SCOUT_LIVE_TESTS === '1';
 
 const settings: Settings = structuredClone(DEFAULT_SETTINGS);
@@ -54,13 +54,13 @@ describe.skipIf(!live)('live enrichment checks', () => {
 
   afterAll(() => {
     const text = `Live enrichment results (${new Date().toISOString()}):\n${summary.join('\n')}\n`;
-    // The default reporter can hide console output of passing tests, so keep a file copy too.
+
     writeFileSync(join(tmpdir(), 'domain-scout-enrichment-live.txt'), text);
     console.log(text);
   });
 
-  // `google` is the fixed-set label. GitHub has that organization; for package registries the
-  // label may or may not exist, so only a definitive answer is required there.
+
+
   const known: [string, string, 'exists' | 'resolved'][] = [
     ['github', 'google', 'exists'],
     ['npm', 'google', 'resolved'],

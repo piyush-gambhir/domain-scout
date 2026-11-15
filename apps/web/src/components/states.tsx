@@ -19,25 +19,25 @@ export function ErrorState({ error, onRetry, className }: { error: unknown; onRe
   );
 }
 
-/** One short line, centered in whatever pane holds it. */
+
 export function EmptyState({ children, className }: { children: React.ReactNode; className?: string }) {
   return <p className={cn('flex flex-1 items-center justify-center py-8 text-center text-sm text-muted-foreground', className)}>{children}</p>;
 }
 
-/**
- * A page inside the app frame: a column that fills <main>. At lg and up it never grows past the
- * window; its panes divide the height and only growing data scrolls. Below lg it takes its natural
- * height and the document scrolls.
- */
+
+
+
+
+
 export function Page({ className, ...props }: React.ComponentProps<'div'>) {
   return <div className={cn('flex min-w-0 flex-1 flex-col gap-section px-4 pb-6 pt-3 md:px-gutter lg:min-h-0 lg:pb-4', className)} {...props} />;
 }
 
-/**
- * Compact page header: the title with short key facts inline (`meta`) and the primary actions on the
- * right. `children` is a second line across the full width for counts and secondary metadata; it
- * wraps there instead of squeezing beside the actions.
- */
+
+
+
+
+
 export function PageHeader({
   title,
   leading,
@@ -46,7 +46,7 @@ export function PageHeader({
   children,
 }: {
   title: React.ReactNode;
-  /** Before the title, e.g. the parent page as a breadcrumb or a back button. */
+
   leading?: React.ReactNode;
   meta?: React.ReactNode;
   actions?: React.ReactNode;
@@ -67,7 +67,7 @@ export function PageHeader({
   );
 }
 
-/** Muted parent-page link shown before a title, with a slash after it. */
+
 export function Crumb({ children }: { children: React.ReactNode }) {
   return (
     <span className="flex shrink-0 items-center gap-2 text-base text-muted-foreground">
@@ -77,17 +77,17 @@ export function Crumb({ children }: { children: React.ReactNode }) {
   );
 }
 
-/**
- * A pane that fills the rest of its column at lg and scrolls inside itself; natural height below lg.
- * The 4px inset keeps focus rings of edge-aligned controls inside the scrollport. Every scroll pane is
- * positioned so absolutely positioned descendants (sr-only text) stay inside it instead of
- * stretching an outer box.
- */
+
+
+
+
+
+
 export function ScrollPane({ className, ...props }: React.ComponentProps<'div'>) {
   return <div className={cn('relative -mx-1 px-1 lg:min-h-0 lg:flex-1 lg:overflow-y-auto', className)} {...props} />;
 }
 
-/** Section heading inside a page or panel. */
+
 export function SectionTitle({ children, className, id }: { children: React.ReactNode; className?: string; id?: string }) {
   return (
     <h2 id={id} className={cn('mb-2 text-sm font-semibold', className)}>
@@ -96,7 +96,7 @@ export function SectionTitle({ children, className, id }: { children: React.Reac
   );
 }
 
-/** Two-column definition list with muted terms. */
+
 export function Facts({ items, className }: { items: [React.ReactNode, React.ReactNode][]; className?: string }) {
   return (
     <dl className={cn('grid grid-cols-[minmax(6rem,auto)_1fr] gap-x-4 gap-y-1.5 text-sm', className)}>
@@ -110,7 +110,7 @@ export function Facts({ items, className }: { items: [React.ReactNode, React.Rea
   );
 }
 
-/** Inline label and number, for counts that sit in a header or toolbar line. */
+
 export function InlineStat({ label, value, testId, emphasis }: { label: string; value: React.ReactNode; testId?: string; emphasis?: boolean }) {
   return (
     <div className="flex items-baseline gap-1.5 whitespace-nowrap">

@@ -33,7 +33,7 @@ interface RuleNotes {
   notes: string | null;
 }
 
-/** Sourced eligibility rules the classifiers apply, shown per suffix. */
+
 const ELIGIBILITY_NOTES: Record<string, SuffixCoverage['eligibilityNotes']> = {
   com: [
     {
@@ -79,12 +79,12 @@ const ELIGIBILITY_NOTES: Record<string, SuffixCoverage['eligibilityNotes']> = {
   ],
 };
 
-/**
- * Per-suffix support status (A02): tested (fixtures and/or passing authorized live validation),
- * discovered (a registry destination is known, classification untested) or unsupported. Rows are
- * persisted in suffix_rules so other modules can read them; they are rebuilt from bundled data at
- * startup and after a bootstrap refresh.
- */
+
+
+
+
+
+
 @Injectable()
 export class CoverageService extends CoverageReader implements OnModuleInit {
   constructor(
@@ -98,10 +98,10 @@ export class CoverageService extends CoverageReader implements OnModuleInit {
     this.sync();
   }
 
-  /** Rebuilds suffix_rules from the current routes, fixture manifest and live validation record. */
+
   sync() {
     const data = loadRegistryData();
-    // Fixtures count only for the protocol the suffix is currently routed through.
+
     const fixtures = new Map<string, Set<string>>();
     for (const fixture of data.fixtures.fixtures) {
       if (!fixture.suffix) continue;
@@ -258,7 +258,7 @@ export class CoverageService extends CoverageReader implements OnModuleInit {
     return { items, nextCursor: more ? encodeCursor({ after: items.at(-1)!.suffix }) : null, total };
   }
 
-  /** Coverage for one suffix. Untested second-level suffixes inherit their TLD's route as discovered. */
+
   get(input: string): SuffixCoverage {
     const suffix = normalizeSuffix(input);
     const row = this.db.get<SuffixRuleRow>('SELECT * FROM suffix_rules WHERE suffix = ?', [suffix]);

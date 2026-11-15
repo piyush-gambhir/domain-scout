@@ -17,14 +17,14 @@ import (
 	"github.com/piyush-gambhir/domain-scout/cli/internal/runtime"
 )
 
-// reviveTimeout bounds waiting for a stopping backend to exit: its stop grace
-// period plus the close timeout, with margin.
+
+
 const reviveTimeout = 30 * time.Second
 
-// reviveBackend replaces a backend that stopped itself when idle, or is
-// stopping, so a command racing the stop or a long-lived MCP session carries
-// on. It waits until the backend with instance id gone no longer answers,
-// then starts (or finds) another one.
+
+
+
+
 func (a *App) reviveBackend(ctx context.Context, gone string) (base, token, instance string, err error) {
 	deadline := time.Now().Add(reviveTimeout)
 	for {
@@ -55,11 +55,11 @@ func (a *App) reviveBackend(ctx context.Context, gone string) (base, token, inst
 	}
 }
 
-// replaceOlderBackend stops a running backend older than this CLI (after an
-// upgrade) so this version's starts, unless that would lose work. It returns
-// the connection to keep using, or startOwn when the old backend stopped and
-// the caller should start this version's. A newer backend is never replaced,
-// and nothing is stopped unless this CLI can start its replacement.
+
+
+
+
+
 func (a *App) replaceOlderBackend(ctx context.Context, lc *launcher.Config, conn *connection, dataDir string) (next *connection, startOwn bool) {
 	running := conn.health.Response.Data.Version
 	cmp, ok := compareVersions(a.Version, running)
@@ -87,7 +87,7 @@ func (a *App) replaceOlderBackend(ctx context.Context, lc *launcher.Config, conn
 		a.progress("Could not restart the backend (version %s) for this CLI (%s): %v", running, a.Version, err)
 		return conn, false
 	case status == http.StatusNotFound:
-		// Backends without this route stop unconditionally, so a running one is never replaced.
+
 		a.progress("The backend (version %s) cannot be replaced safely while it runs. Run 'domain-scout service stop' to switch to version %s.", running, a.Version)
 		return conn, false
 	case status == http.StatusConflict:
@@ -105,7 +105,7 @@ func (a *App) replaceOlderBackend(ctx context.Context, lc *launcher.Config, conn
 		case errors.Is(err, runtime.ErrUnreachable):
 			return nil, true
 		case err == nil && !strings.EqualFold(h.Response.Data.InstanceId.String(), instance):
-			// Another CLI already started the replacement.
+
 			return &connection{url: strings.TrimRight(info.URL, "/"), health: h}, false
 		}
 		select {
@@ -114,12 +114,12 @@ func (a *App) replaceOlderBackend(ctx context.Context, lc *launcher.Config, conn
 		case <-time.After(100 * time.Millisecond):
 		}
 	}
-	// Starting now reports a clear "port in use" error if it never exited.
+
 	return nil, true
 }
 
-// stopUnlessBusy calls POST /service/stop-unless-busy for the verified
-// instance and returns the status with the error message, if any.
+
+
 func stopUnlessBusy(ctx context.Context, base, token, instance string) (int, string, error) {
 	body, _ := json.Marshal(map[string]string{"instanceId": instance})
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimRight(base, "/")+"/api/v1/service/stop-unless-busy", bytes.NewReader(body))
@@ -144,9 +144,9 @@ func stopUnlessBusy(ctx context.Context, base, token, instance string) (int, str
 
 var versionRe = regexp.MustCompile(`^v?(\d+)\.(\d+)\.(\d+)`)
 
-// compareVersions compares release versions such as 0.2.0 (prerelease and
-// build suffixes are ignored). ok is false when either is not a release
-// version, e.g. a development build ("dev").
+
+
+
 func compareVersions(a, b string) (cmp int, ok bool) {
 	pa, oka := parseVersion(a)
 	pb, okb := parseVersion(b)

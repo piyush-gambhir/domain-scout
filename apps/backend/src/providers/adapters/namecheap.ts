@@ -13,17 +13,17 @@ import {
   type ProviderAdapter,
 } from './types.js';
 
-/**
- * Namecheap XML API (https://www.namecheap.com/support/api/intro/). Every call is a GET with the
- * global parameters ApiUser, ApiKey, UserName, ClientIp and Command. Errors come back as
- * `ApiResponse Status="ERROR"` with HTTP 200, so the envelope decides success.
- */
+
+
+
+
+
 export const NAMECHEAP_BASE = 'https://api.namecheap.com/xml.response';
 const NAME = 'Namecheap';
 const CHECK_DOC = 'https://www.namecheap.com/support/api/methods/domains/check/';
 const PRICING_DOC = 'https://www.namecheap.com/support/api/methods/users/get-pricing/';
 
-/** Error texts that point at access configuration rather than the request. */
+
 const AUTH_PATTERN = /api ?key|apiuser|user ?name|client ?ip|request ?ip|whitelist|api access|not enabled|authenticat/i;
 
 function url(ctx: AdapterContext, command: string, extra: Record<string, string> = {}): string {
@@ -38,9 +38,9 @@ function url(ctx: AdapterContext, command: string, extra: Record<string, string>
   return `${NAMECHEAP_BASE}?${params.toString()}`;
 }
 
-/** Parses the envelope and returns CommandResponse, mapping ERROR responses. */
+
 function commandResponse(ctx: AdapterContext, response: ProviderHttpResponse): XmlNode {
-  // Namecheap answers HTTP 200 with an envelope; any other status keeps its HTTP meaning first.
+
   if (response.status === 401 || response.status === 403 || response.status === 429 || response.status >= 500) ctx.http.assertOk(response, NAME);
   let root: XmlNode;
   try {
@@ -81,7 +81,7 @@ interface TldPrices {
   transfer: string | null;
 }
 
-/** Pure parser for users.getPricing (ProductType=DOMAIN), exported for fixture tests. One-year prices per TLD. */
+
 export function parseNamecheapPricing(command: XmlNode): Map<string, TldPrices> {
   if (!findFirst(command, 'UserGetPricingResult')) throw new ProviderError('bad_response', 'Namecheap getPricing returned no UserGetPricingResult');
   const out = new Map<string, TldPrices>();
@@ -96,7 +96,7 @@ export function parseNamecheapPricing(command: XmlNode): Map<string, TldPrices> 
       );
       if (!price) continue;
       const entry = out.get(tld) ?? { currency: null, register: { price: null, regular: null }, renew: null, transfer: null };
-      // YourPrice is the account's price; Price is the list price when YourPrice is absent.
+
       const amount = parseAmount(price.attrs.YourPrice) ?? parseAmount(price.attrs.Price);
       entry.currency = entry.currency ?? price.attrs.Currency ?? null;
       if (action === 'register') entry.register = { price: amount, regular: parseAmount(price.attrs.RegularPrice) };
@@ -122,13 +122,13 @@ export interface NamecheapCheck {
 }
 
 const bool = (v: string | undefined) => (v === undefined ? null : v.toLowerCase() === 'true');
-/** Zero means "not reported" for these fields, never a free price. */
+
 const nonZero = (v: string | undefined) => {
   const amount = parseAmount(v);
   return amount && !isZero(amount) ? amount : null;
 };
 
-/** Pure parser for domains.check, exported for fixture tests. */
+
 export function parseNamecheapCheck(command: XmlNode, domain: string): NamecheapCheck | null {
   const result = findAll(command, 'DomainCheckResult').find((r) => (r.attrs.Domain ?? '').toLowerCase() === domain);
   if (!result) return null;
@@ -213,7 +213,7 @@ export class NamecheapAdapter implements ProviderAdapter {
     const parsed = await this.runCheck(ctx, domain);
     const check = toCheckResult(parsed);
     if (!parsed || check.status !== 'available') return { check, offers: [] };
-    // The check states premium status and premium prices; standard prices come from the account TLD price.
+
     const response = await ctx.http.request({
       method: 'GET',
       url: url(ctx, 'namecheap.users.getPricing', { ProductType: 'DOMAIN', ProductName: domain.suffix }),

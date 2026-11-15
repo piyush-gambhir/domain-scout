@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { ErrorResponse, JobResponse, type Job } from '@domain-scout/contracts';
 import { createJobsApp, fakeHandler, gate, type JobsTestApp } from './helpers.js';
 
-/** Item rows of a job in input order. */
+
 function items(t: JobsTestApp, jobId: string) {
   return t.db.all<{ subject: string; unicode: string; suffix: string | null; operation: string; target: string; source_key: string; seq: number }>(
     'SELECT subject, unicode, suffix, operation, target, source_key, seq FROM job_items WHERE job_id = ? ORDER BY seq',
@@ -164,7 +164,7 @@ describe('job planning', () => {
     const stored = (id: string) => JSON.parse(t.db.get<{ input_json: string }>('SELECT input_json FROM jobs WHERE id = ?', [id])!.input_json);
     expect(stored(configured.id).resolver).toBe('google');
 
-    // A later settings change does not alter the submitted job; an explicit resolver wins.
+
     t.settings.patch({ diagnostics: { resolver: 'cloudflare' } });
     expect(stored(configured.id).resolver).toBe('google');
     const explicit = JobResponse.parse(

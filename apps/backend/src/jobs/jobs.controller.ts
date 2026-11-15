@@ -12,7 +12,7 @@ const CLIENT_HEADER = 'x-domain-scout-client';
 
 type RequestHeaders = Record<string, string | string[] | undefined>;
 
-/** Which client submitted a job, from the X-Domain-Scout-Client header the web UI and CLI send. */
+
 export function clientOrigin(headers: RequestHeaders): JobOrigin {
   const raw = headers[CLIENT_HEADER];
   const value = (Array.isArray(raw) ? raw[0] : raw)?.toLowerCase();
@@ -79,7 +79,7 @@ export class JobsController {
   }
 }
 
-/** Operation-specific submission endpoints; each maps its body to the matching CreateJobRequest. */
+
 @Controller()
 export class JobOperationsController {
   constructor(private readonly jobs: JobsService) {}

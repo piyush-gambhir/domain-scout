@@ -12,10 +12,10 @@ import { ShutdownCoordinator } from './runtime/shutdown.js';
 import { NewerDatabaseError } from './storage/database.js';
 import { loadOrCreateApiToken } from './runtime/token.js';
 
-// Exit codes shared with the Go CLI contract: 2 invalid usage, 5 backend setup failure.
+
 const EXIT_USAGE = 2;
 const EXIT_SETUP = 5;
-/** Upper bound for app.close() after the stop hooks; a stuck close must not leave a zombie backend. */
+
 const CLOSE_TIMEOUT_MS = 10_000;
 
 function stderr(message: string) {
@@ -106,7 +106,7 @@ async function main() {
     removeRuntimeFile(paths.runtimeFile, instanceId);
     lock.release();
   };
-  // Covers crashes and process.exit paths; both calls are synchronous and idempotent.
+
   process.on('exit', removeRuntimeState);
 
   const coordinator = app.get(ShutdownCoordinator);
@@ -144,7 +144,7 @@ async function main() {
 
 await main();
 
-/** Optional longer bootstrap-code lifetime (60 to 3600 seconds), e.g. for a URL printed in container logs. */
+
 function bootstrapTtlFromEnv(value: string | undefined): number | undefined {
   const seconds = Number(value);
   if (!value || !Number.isFinite(seconds)) return undefined;

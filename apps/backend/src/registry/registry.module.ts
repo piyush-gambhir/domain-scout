@@ -11,11 +11,11 @@ import { RegistryOperationHandler } from './registry.handler.js';
 import { RoutesService } from './routes.service.js';
 import { NetWhoisTransport, WhoisTransport } from './whois/whois-transport.js';
 
-/**
- * Registry discovery: input normalization, routing (IANA RDAP bootstrap plus curated RDAP and WHOIS), RDAP
- * and WHOIS clients with registry-specific classifiers, the `registry` job handler and coverage.
- * Transports are providers so tests replace them with fakes (overrideProvider).
- */
+
+
+
+
+
 @Global()
 @Module({
   controllers: [RegistryController],

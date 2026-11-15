@@ -16,10 +16,10 @@ import {
   type ProviderAdapter,
 } from './types.js';
 
-/**
- * Name.com Core API v1 (https://docs.name.com/api/v1/overview, spec 1.35.0). HTTP Basic auth with
- * username and API token. Prices are USD. `/v4` is legacy and not used.
- */
+
+
+
+
 export const NAMECOM_BASE = 'https://api.name.com/core/v1';
 const NAME = 'Name.com';
 const CHECK_DOC = 'https://docs.name.com/api/v1/reference/domains/check-availability';
@@ -47,7 +47,7 @@ export interface NameComResult {
   reason: string | null;
 }
 
-/** Pure parser for checkAvailability (result order is not guaranteed), exported for fixture tests. */
+
 export function parseNameComCheck(body: unknown, domain: string): NameComResult | null {
   if (!isRecord(body) || !Array.isArray(body.results)) throw new ProviderError('bad_response', 'Name.com checkAvailability has no results array');
   const hit = body.results.find((r) => isRecord(r) && typeof r.domainName === 'string' && r.domainName.toLowerCase() === domain);
@@ -69,7 +69,7 @@ function toCheck(parsed: NameComResult | null): CheckResult {
     return { status: 'unavailable', premium: parsed.premium, reason: reason('provider_unavailable', `Name.com: not purchasable${parsed.reason ? ` (${parsed.reason})` : ''}`) };
   }
   if (parsed.purchaseType && parsed.purchaseType !== 'registration') {
-    // Purchasable only as an acquisition: not available for new registration.
+
     return {
       status: 'unavailable',
       premium: parsed.premium,
@@ -96,7 +96,7 @@ export function parseNameComPricing(body: unknown): NameComPricing {
   };
 }
 
-/** Pure parser for one tldpricing page, exported for fixture tests. */
+
 export function parseNameComTldPricing(body: unknown): { entries: CatalogEntry[]; suffixes: string[]; nextPage: number | null } {
   if (!isRecord(body) || !Array.isArray(body.pricing)) throw new ProviderError('bad_response', 'Name.com tldpricing has no pricing array');
   const entries: CatalogEntry[] = [];
@@ -164,7 +164,7 @@ export class NameComAdapter implements ProviderAdapter {
   private async checkAvailability(ctx: AdapterContext, domain: DomainParts) {
     const response = await ctx.http.request({
       method: 'POST',
-      // The colon is part of the path and must not be percent-encoded.
+
       url: `${NAMECOM_BASE}/domains:checkAvailability`,
       headers: headers(ctx, true),
       body: JSON.stringify({ domainNames: [domain.ascii] }),
@@ -204,7 +204,7 @@ export class NameComAdapter implements ProviderAdapter {
         draft({
           kind: 'exact_quote',
           currency: 'USD',
-          // purchasePrice is the total for years=1; null means a 1-year registration is not offered.
+
           registration: { amount: price.purchasePrice, years: 1 },
           renewal: { amount: price.renewalPrice, years: 1 },
           transfer: { amount: price.transferPrice, includesYears: null },
@@ -224,7 +224,7 @@ export class NameComAdapter implements ProviderAdapter {
       purchasePath: 'aftermarket',
       kind: 'exact_quote',
       currency: 'USD',
-      // A flat acquisition fee: years does not multiply it or guarantee a registration term.
+
       registration: { amount: parsed.purchasePrice, years: 1 },
       renewal: { amount: parsed.renewalPrice, years: 1 },
       premium: { status: parsed.premium ? 'confirmed' : 'unknown', registration: parsed.purchasePrice, renewal: null },

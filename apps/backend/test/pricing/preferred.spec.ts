@@ -5,7 +5,7 @@ import { EvidenceRepository } from '../../src/storage/evidence.js';
 import { EvidenceFixtures } from '../evidence/fakes.js';
 import { createTestApp, type TestApp } from '../helpers.js';
 
-/** R08: preferences change presentation only; they never beat a cheaper comparable price. */
+
 describe('preferred providers', () => {
   let t: TestApp;
   beforeAll(async () => {
@@ -22,7 +22,7 @@ describe('preferred providers', () => {
   it('orders a preferred provider first only among equal prices', async () => {
     const body = { domains: ['example.com'], providerIds: ['porkbun', 'dynadot', 'namecheap'], horizonYears: 3 };
     const comparison = ComparisonResponse.parse((await t.api.post('/comparisons').send(body).expect(200)).body).data;
-    // Published prices are not ranked (premium status unknown) but still list cheapest first.
+
     expect(comparison.rows.map((r) => [r.providerId, r.horizonTotal])).toEqual([
       ['namecheap', '27.00'],
       ['dynadot', '30.00'],

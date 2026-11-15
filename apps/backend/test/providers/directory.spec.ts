@@ -58,7 +58,7 @@ describe('provider directory', () => {
     await t.app.get(CatalogHandler).execute(jobItem('catalog', 'porkbun', 'porkbun'), operationContext(t));
     const uk = directory.forDomain('xq7mz9brandtest.co.uk', 'co.uk').find((p) => p.providerId === 'porkbun')!;
     expect(uk).toMatchObject({ supportsSuffix: 'yes', purchaseUrl: 'https://porkbun.com/checkout/search?q=xq7mz9brandtest.co.uk' });
-    // R03: .co.uk support says nothing about .uk.
+
     const plainUk = directory.forDomain('xq7mz9brandtest.uk', 'uk').find((p) => p.providerId === 'porkbun')!;
     expect(plainUk).toMatchObject({ supportsSuffix: 'no', purchaseUrl: null });
   });

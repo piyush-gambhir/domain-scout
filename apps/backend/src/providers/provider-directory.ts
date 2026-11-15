@@ -3,14 +3,14 @@ import type { ProviderReadiness } from '@domain-scout/contracts';
 import { ProviderDirectory, type SuffixProvider } from '../core/ports.js';
 import { ProvidersService } from './providers.service.js';
 
-/** ProviderDirectory port: provider support and matching purchase destinations for a suffix. */
+
 @Injectable()
 export class ProviderDirectoryService extends ProviderDirectory {
   constructor(private readonly providers: ProvidersService) {
     super();
   }
 
-  /** The nine named providers; directory entries are keyless and listed per suffix instead. */
+
   summary(): { id: string; name: string; readiness: ProviderReadiness }[] {
     return this.providers
       .manifests()
@@ -18,11 +18,11 @@ export class ProviderDirectoryService extends ProviderDirectory {
       .map((m) => ({ id: m.id, name: m.name, readiness: this.providers.readiness(m) }));
   }
 
-  /**
-   * Every named provider (with yes/no/unknown support) plus directory entries that list the suffix.
-   * The purchase URL is always built from the same provider's own template; it is null when the
-   * provider's catalog shows it does not sell the suffix.
-   */
+
+
+
+
+
   forDomain(domain: string, suffix: string): SuffixProvider[] {
     const out: SuffixProvider[] = [];
     for (const manifest of this.providers.manifests()) {

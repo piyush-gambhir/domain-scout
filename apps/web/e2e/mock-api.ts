@@ -1,12 +1,12 @@
 import type { Page, Request } from '@playwright/test';
 
-/*
- * Route fixtures for pages whose backend modules are still settling, or whose real calls would
- * touch the network or shared state (watch runs, quotes, coverage refresh, data deletion, service
- * stop). Handlers answer by method and path; anything unhandled falls back to an earlier layer,
- * then to the real local backend. Domain names are limited to example.com, google.com, nic.si, bbc.co.uk and random
- * 24-character labels. Shapes follow packages/contracts.
- */
+
+
+
+
+
+
+
 
 export const NOW = '2026-10-05T12:00:00.000Z';
 export const EARLIER = '2026-10-04T12:00:00.000Z';
@@ -56,10 +56,10 @@ function bodyOf(request: Request): unknown {
   }
 }
 
-/**
- * Installs handlers keyed as "METHOD /path/:param". Returns the list of every API call the page
- * made (handled or not), so tests can assert that nothing unexpected was requested.
- */
+
+
+
+
 export async function mockApi(page: Page, handlers: Record<string, Handler>): Promise<Call[]> {
   const calls: Call[] = [];
   const compiled = Object.entries(handlers).map(([key, handler]) => {
@@ -72,7 +72,7 @@ export async function mockApi(page: Page, handlers: Record<string, Handler>): Pr
     const path = url.pathname.replace(/^\/api\/v1/, '');
     const call: Call = { method: request.method(), path, search: url.searchParams, body: bodyOf(request), headers: request.headers() };
     calls.push(call);
-    // Event streams stay closed so pages poll fixtures instead of the real stream.
+
     if (path === '/events') return route.fulfill({ status: 404, body: '' });
     for (const { method, regex, handler } of compiled) {
       if (method !== call.method) continue;
@@ -81,7 +81,7 @@ export async function mockApi(page: Page, handlers: Record<string, Handler>): Pr
       const reply = await handler(call, { ...(match.groups ?? {}) });
       return route.fulfill({ status: reply.status ?? 200, contentType: 'application/json', body: JSON.stringify(reply.json) });
     }
-    // Next handler (an earlier mockApi layer), else the real local backend.
+
     return route.fallback();
   });
   return calls;
@@ -139,7 +139,7 @@ export const SETTINGS = {
   search: { defaultExtensions: ['com', 'io', 'dev', 'app', 'co', 'ai'] },
 };
 
-/** Deep merge of a SettingsPatch into settings state. */
+
 export function applyPatch<T extends Record<string, unknown>>(state: T, patch: Record<string, unknown>): T {
   const next: Record<string, unknown> = { ...state };
   for (const [key, value] of Object.entries(patch)) {
@@ -169,7 +169,7 @@ export function job(id: string, overrides: Record<string, unknown> = {}) {
   };
 }
 
-/** Published suffix prices as GET /prices returns them: three registrars, cheapest first. */
+
 export function suffixPrices(suffixes: string[], horizonYears = 3) {
   const base: Record<string, [string, string]> = { com: ['10.37', '11.08'], io: ['28.12', '45.00'], dev: ['10.81', '12.98'], app: ['12.98', '14.98'], co: ['8.99', '24.99'], ai: ['69.98', '69.98'], si: ['20.38', '17.50'] };
   const providers: [string, string, number][] = [
@@ -208,14 +208,14 @@ export function suffixPrices(suffixes: string[], horizonYears = 3) {
   });
 }
 
-/** Requests that would send names off the machine or start work. */
+
 export const EXTERNAL_OR_RUN = /^\/(jobs|rechecks|quotes|provider-checks|transfers|aftermarket|name-checks|diagnostics)(\/|$)/;
 
 export function startedWork(calls: Call[]): Call[] {
   return calls.filter((c) => c.method === 'POST' && EXTERNAL_OR_RUN.test(c.path) && c.path !== '/aftermarket/sources');
 }
 
-/** The page itself never scrolls sideways; wide tables scroll inside their own container. */
+
 export async function pageOverflow(page: Page): Promise<number> {
   return page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
 }

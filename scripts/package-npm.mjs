@@ -1,9 +1,9 @@
-// Builds the CLI-only npm distribution in release/npm: a `domain-scout` package holding the backend
-// (with its production dependencies bundled, so installs run the tested versions) and a launcher
-// script, plus one package per platform holding the Go CLI. The web UI is not included; release
-// archives (scripts/package.mjs), Docker and a repository checkout carry it.
-// Packages stay `private` until a publishing decision: install them from the packed tarballs.
-// Requires `pnpm build` first. Usage: node scripts/package-npm.mjs [--target darwin-arm64,linux-x64,...]
+
+
+
+
+
+
 import { execFileSync } from 'node:child_process';
 import { chmodSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -13,11 +13,11 @@ const repo = dirname(dirname(fileURLToPath(import.meta.url)));
 const out = join(repo, 'release', 'npm');
 const version = JSON.parse(readFileSync(join(repo, 'apps/backend/package.json'), 'utf8')).version;
 const NODE_RANGE = '>=24.11';
-/** Package names are placeholders until publishing is decided; a scope prevents resolving someone else's package. */
+
 const MAIN = 'domain-scout';
 const platformPackage = (target) => `@domain-scout/cli-${target}`;
 
-// Node platform-arch -> Go GOOS/GOARCH.
+
 const TARGETS = {
   'darwin-arm64': ['darwin', 'arm64'],
   'darwin-x64': ['darwin', 'amd64'],
@@ -30,8 +30,8 @@ const targets = targetArg ? targetArg.split(',') : Object.keys(TARGETS);
 for (const t of targets) if (!TARGETS[t]) throw new Error(`unknown target ${t}; expected ${Object.keys(TARGETS).join(', ')}`);
 
 const run = (cmd, args, opts = {}) => execFileSync(cmd, args, { stdio: 'inherit', cwd: repo, ...opts });
-// Windows runs the npm and pnpm .cmd shims only through a shell (Node refuses them otherwise),
-// so arguments are quoted for cmd.exe there.
+
+
 const win = process.platform === 'win32';
 const quote = (arg) => (win && /[\s"&|<>^]/.test(arg) ? `"${arg.replace(/"/g, '""')}"` : arg);
 const runTool = (name, args, opts = {}) => run(win ? `${name}.cmd` : name, win ? args.map(quote) : args, { shell: win, ...opts });
@@ -44,18 +44,18 @@ if (!existsSync(join(repo, 'apps/backend/dist/main.js'))) {
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 
-// Main package: the deployed backend at the package root (dist/, data/, a flat node_modules).
+
 const main = join(out, 'domain-scout');
-// Real copies, not hard links into pnpm's store: npm pack never finishes on a tree whose files share
-// inodes (pnpm hard-links on Linux and Windows; macOS clones, which is why it worked there).
+
+
 runTool('pnpm', ['--filter', '@domain-scout/backend', 'deploy', '--prod', '--legacy', '--config.node-linker=hoisted', '--config.package-import-method=copy', main]);
 rmSync(join(main, 'node_modules/.bin'), { recursive: true, force: true });
-// `deploy --prod` also prunes dev dependencies from the workspace's own node_modules; restore them.
+
 runTool('pnpm', ['install', '--frozen-lockfile', '--offline']);
 
 const deployed = JSON.parse(readFileSync(join(main, 'package.json'), 'utf8'));
-// Every dependency ships inside the tarball: npm never resolves them, so the lockfile's versions
-// (and pnpm overrides such as the multer fix) are what runs.
+
+
 const dependencies = Object.fromEntries(
   readdirSync(join(main, 'node_modules'))
     .flatMap((name) => (name.startsWith('@') ? readdirSync(join(main, 'node_modules', name)).map((sub) => `${name}/${sub}`) : [name]))
@@ -158,7 +158,7 @@ Data stays in the per-user application data directory. This package has no web U
 `,
 );
 
-// Platform packages: just the Go binary.
+
 for (const target of targets) {
   const [goos, goarch] = TARGETS[target];
   const [os, cpu] = target.split('-');

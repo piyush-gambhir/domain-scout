@@ -4,8 +4,8 @@ import { SMALL_SEARCH, buildJob, mockApp } from './app-fixtures';
 import { W1, W2, mockMonitoring } from './page-fixtures';
 import { NOW, PHONE, pageOverflow, uuid } from './mock-api';
 
-// Journey 4, "wait for a name": watch a taken name from results, then read what changed. Watches,
-// runs and notices are simulated in memory; a real run would query registries.
+
+
 
 test('w on a taken name watches it with the defaults', async ({ page }) => {
   const id = uuid(0xe701);
@@ -16,7 +16,7 @@ test('w on a taken name watches it with the defaults', async ({ page }) => {
   await expect(page.getByText('Watching example.com')).toBeVisible();
   expect(calls.find((c) => c.method === 'POST' && c.path === '/watches')?.body).toEqual({ name: 'example.com', domains: ['example.com'] });
 
-  // A second w does not create a duplicate.
+
   await expect(page.locator('[data-testid="grid-cell"][data-domain="example.com"]').getByRole('button', { name: 'Watching example.com' })).toBeAttached();
   await page.getByRole('button', { name: /^example\.com:/ }).focus();
   await page.keyboard.press('w');
@@ -32,7 +32,7 @@ test('Watching lists watches and an inbox of changes with before and after', asy
   await expect(rows).toHaveCount(2);
   await expect(rows.filter({ hasText: 'Launch names' })).toContainText('2 missed checks');
   await expect(rows.filter({ hasText: 'Slovenian names' })).toContainText('Paused');
-  // Several names show counts per state, free names first; one name shows its plain state.
+
   await expect(rows.filter({ hasText: 'Launch names' }).getByTestId('watch-names-state')).toHaveText('1 not registered · 1 taken');
   await expect(rows.filter({ hasText: 'Slovenian names' })).toContainText('Taken');
 
@@ -41,7 +41,7 @@ test('Watching lists watches and an inbox of changes with before and after', asy
   await expect(notice).toContainText('Taken');
   await expect(notice).toContainText('Not registered');
   await expect(notice.getByRole('link', { name: 'example.com' })).toHaveAttribute('href', '/domains/example.com');
-  // Price notices are about a whole extension and open its price history.
+
   await expect(inbox.getByRole('link', { name: '.com', exact: true })).toHaveAttribute('href', '/settings/prices?suffix=com');
   await expect(page.getByText(/\bAvailable\b/)).toHaveCount(0);
 });
@@ -80,7 +80,7 @@ test('a watch shows each name with its current state, its checks and its changes
   await expect(runs).toContainText('Completed with failures');
   await expect(runs.getByRole('link', { name: 'Results' }).first()).toHaveAttribute('href', `/search/${uuid(0xb1)}`);
 
-  // Mark all read on a watch is scoped to that watch.
+
   await page.getByRole('region', { name: 'Changes' }).getByRole('button', { name: 'Mark all read' }).click();
   await expect.poll(() => calls.find((c) => c.path === '/notices/read')?.body).toEqual({ all: true, watchId: W1 });
 });
@@ -146,7 +146,7 @@ test('pause, resume, run now with an idempotency key, and delete after confirmin
   await expect(page.getByTestId('watch-row')).toHaveCount(1);
 });
 
-/** Serves the event stream: empty (reconnect quickly) until `send` queues an event. */
+
 async function streamEvents(page: Page) {
   const pending: string[] = [];
   await page.route('**/api/v1/events**', (route) => {

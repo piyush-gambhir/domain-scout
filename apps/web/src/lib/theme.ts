@@ -10,10 +10,10 @@ import { readStorage } from './storage';
 
 export type ThemeChoice = Settings['appearance']['theme'];
 
-/** next-themes keeps the browser's choice under this localStorage key. */
+
 const THEME_STORAGE_KEY = 'theme';
 
-/** Theme switch that also saves settings.appearance.theme, so a new browser starts with the same theme. */
+
 export function useThemePreference() {
   const { theme, setTheme } = useTheme();
   const client = useQueryClient();
@@ -31,10 +31,10 @@ export function useThemePreference() {
   };
 }
 
-/**
- * Applies the saved theme once per page load when this browser has no choice of its own yet.
- * A choice made in this browser wins locally; every change through useThemePreference saves both.
- */
+
+
+
+
 export function ThemeSync() {
   const settings = useSettings();
   const { setTheme } = useTheme();

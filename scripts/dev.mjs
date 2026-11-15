@@ -1,7 +1,7 @@
-// `pnpm dev`: build shared packages, run the backend and web in watch mode, then open the UI
-// through the same single-use bootstrap exchange the CLI launcher uses.
-// Dev state lives in <repo>/.dev-data unless DOMAIN_SCOUT_DATA_DIR is set, so it never touches
-// the real application data directory.
+
+
+
+
 import { spawn, spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -33,7 +33,7 @@ function start(name, cmd, args, options) {
   children.push(child);
 }
 
-// The UI dev server is not started by the CLI launcher, so the backend must not stop when idle.
+
 start('backend', process.execPath, ['scripts/dev.mjs', '--data-dir', dataDir, '--port', String(backendPort), '--idle-timeout', '0'], {
   cwd: join(repo, 'apps/backend'),
 });

@@ -24,7 +24,7 @@ const CHUNK = 500;
 const DEFAULT_LIMIT = 200;
 const MAX_LIMIT = 1000;
 
-/** A best_prices row joined with the current offer it was derived from. */
+
 interface BestPriceRow {
   bp_suffix: string;
   bp_currency: string;
@@ -55,7 +55,7 @@ function marks(values: readonly unknown[]): string {
   return values.map(() => '?').join(', ');
 }
 
-/** Results for job views, CLI queries and exports: one filter/sort implementation and JobItem assembly. */
+
 @Injectable()
 export class JobResultsService implements JobResults {
   constructor(
@@ -106,10 +106,10 @@ export class JobResultsService implements JobResults {
     return this.hydrate(ordered);
   }
 
-  /**
-   * Assembles contract JobItems with batched evidence, best price and collection lookups. bestPrice
-   * uses `currency` (the filter's priceCurrency for result lists), else the comparison currency.
-   */
+
+
+
+
   hydrate(rows: ItemRow[], currency: string = this.priceCurrency()): JobItem[] {
     if (rows.length === 0) return [];
     const now = this.clock.now();
@@ -120,8 +120,8 @@ export class JobResultsService implements JobResults {
     rows.forEach((row, n) => {
       if (row.registry_observation_id) observationIds.add(row.registry_observation_id);
       for (const id of refs[n]!.observations ?? []) observationIds.add(id);
-      // A catalog item links its whole price list (hundreds of offers); it is browsable through the
-      // provider catalog endpoint, so results and result.observed events stay small.
+
+
       if (row.operation !== 'catalog') for (const id of refs[n]!.offers ?? []) offerIds.add(id);
     });
     const observations = new Map<string, ObservationRow>();
@@ -135,8 +135,8 @@ export class JobResultsService implements JobResults {
       for (const row of this.db.all<OfferRow>(`SELECT * FROM offers WHERE id IN (${marks(chunk)})`, chunk)) offers.set(row.id, row);
     }
 
-    // The offer behind each best price is the provider's current published row for the suffix,
-    // currency and term (the selection recomputeBestPrices uses), so price age and source survive.
+
+
     const best = new Map<string, BestPriceRow>();
     const suffixes = [...new Set(rows.map((r) => r.suffix).filter((s): s is string => s !== null))];
     for (const chunk of chunks(suffixes)) {

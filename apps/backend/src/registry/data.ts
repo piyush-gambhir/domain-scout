@@ -2,11 +2,11 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 
-/**
- * Bundled registry metadata in apps/backend/data/registry. The path is resolved from this module
- * so it works from both src (tests) and dist (compiled backend); dist/registry and src/registry are
- * both two levels below apps/backend.
- */
+
+
+
+
+
 export const REGISTRY_DATA_DIR = fileURLToPath(new URL('../../data/registry/', import.meta.url));
 
 function load<T extends z.ZodType>(file: string, schema: T): z.output<T> {
@@ -14,7 +14,7 @@ function load<T extends z.ZodType>(file: string, schema: T): z.output<T> {
   return schema.parse(JSON.parse(text));
 }
 
-/** IANA RDAP bootstrap for DNS (RFC 9224): `services` is a list of [suffixes, base URLs]. */
+
 export const BootstrapJson = z.object({
   version: z.string().optional(),
   publication: z.string(),
@@ -42,7 +42,7 @@ export const RootTldList = z.object({
 });
 export type RootTldList = z.infer<typeof RootTldList>;
 
-/** A registry's published per-IP query limit, kept before sending (see PublishedLimits). */
+
 export const PublishedLimit = z.object({
   queries: z.number().int().min(1),
   windowSeconds: z.number().int().min(1),
@@ -51,7 +51,7 @@ export const PublishedLimit = z.object({
 export type PublishedLimit = z.infer<typeof PublishedLimit>;
 
 export const WhoisRouteSpec = z.object({
-  /** TLD, or a second-level suffix run by its own registry (e.g. co.za). */
+
   tld: z.string(),
   host: z.string(),
   port: z.number().int().default(43),
@@ -62,9 +62,9 @@ export const WhoisRouteSpec = z.object({
   verifiedAt: z.string(),
   rateLimitCooldownSeconds: z.number().int().min(1),
   publishedLimits: z.array(PublishedLimit).min(1).optional(),
-  /** Second-level suffixes under this TLD that the registry does not serve (or not verifiably); '*' means all. */
+
   unservedSecondLevel: z.array(z.string()).optional(),
-  /** Where the classifier's reply patterns come from (documentation first, then dated captures). */
+
   formatSources: z.array(z.string()).optional(),
   notes: z.string().optional(),
 });
@@ -73,7 +73,7 @@ export type WhoisRouteSpec = z.infer<typeof WhoisRouteSpec>;
 export const WhoisRouting = z.object({
   updatedAt: z.string(),
   routes: z.array(WhoisRouteSpec),
-  /** Researched TLDs left unsupported, with the reason shown in coverage. */
+
   withoutClassifier: z.array(
     z.object({
       tld: z.string(),
@@ -86,13 +86,13 @@ export const WhoisRouting = z.object({
 });
 export type WhoisRouting = z.infer<typeof WhoisRouting>;
 
-/** Registry-published RDAP service for a TLD missing from the IANA bootstrap. */
+
 export const CuratedRdapSpec = z.object({
   tld: z.string(),
-  /** Base URL ending in `/`; queries are `<baseUrl>domain/<name>`. */
+
   baseUrl: z.url({ protocol: /^https$/ }).endsWith('/'),
   registryId: z.string(),
-  /** Registry documentation naming the service. */
+
   source: z.string(),
   verifiedAt: z.string(),
   publishedLimits: z.array(PublishedLimit).min(1).optional(),
@@ -127,7 +127,7 @@ export const BuiltInPresets = z.object({
 
 export const FixtureKind = z.enum(['captured_live', 'reconstructed']);
 
-/** Which suffixes have classifier fixtures (checked against test/fixtures/registry by a unit test). */
+
 export const FixtureManifest = z.object({
   fixtures: z.array(
     z.object({
@@ -174,7 +174,7 @@ export interface RegistryData {
 
 let cached: RegistryData | null = null;
 
-/** Loads and validates every bundled file once per process. */
+
 export function loadRegistryData(): RegistryData {
   cached ??= {
     bootstrap: load('rdap-bootstrap.json', BootstrapSnapshot),

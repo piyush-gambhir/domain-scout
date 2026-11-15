@@ -13,7 +13,7 @@ describe('jobs API', () => {
     const body = { domains: ['a.com'], providerIds: ['porkbun'] };
     const first = JobResponse.parse((await t.api.post('/quotes').set('Idempotency-Key', 'key-1').send(body).expect(201)).body).data;
     await t.finished(first.id);
-    // Same request with keys in another order and defaults spelled out: same fingerprint.
+
     const again = JobResponse.parse(
       (await t.api.post('/quotes').set('Idempotency-Key', 'key-1').send({ providerIds: ['porkbun'], domains: ['a.com'] }).expect(201)).body,
     ).data;
@@ -23,15 +23,15 @@ describe('jobs API', () => {
 
     const conflict = await t.api.post('/quotes').set('Idempotency-Key', 'key-1').send({ ...body, providerIds: ['namecheap'] }).expect(409);
     expect(ErrorResponse.parse(conflict.body).error.code).toBe('idempotency_conflict');
-    // A key is scoped to its operation: reusing it on another route conflicts too.
+
     await t.api.post('/provider-checks').set('Idempotency-Key', 'key-1').send(body).expect(409);
     await t.api.post('/jobs').set('Idempotency-Key', 'bad key').send({ type: 'registry_scan', input: { text: 'a.com' } }).expect(400);
 
-    // Without a key, each submission is a new job.
+
     const other = JobResponse.parse((await t.api.post('/quotes').send(body).expect(201)).body).data;
     expect(other.id).not.toBe(first.id);
 
-    // Internal submissions (monitoring, catalogs) use the same idempotency through SubmitOptions.
+
     const viaPort = t.jobs.submit({ type: 'registry_scan', input: { domains: ['z.com'], format: 'auto', extensions: [] }, recheck: false }, { idempotencyKey: 'run-1', operationId: 'runWatch' });
     expect(t.jobs.submit({ type: 'registry_scan', input: { domains: ['z.com'], format: 'auto', extensions: [] }, recheck: false }, { idempotencyKey: 'run-1', operationId: 'runWatch' }).id).toBe(viaPort.id);
   });
@@ -62,7 +62,7 @@ describe('jobs API', () => {
     const retried = await t.finished(retry.id);
     expect(retried.state).toBe('completed');
     expect(retried.counters.outcomes).toEqual({ no_record: 2 });
-    // The parent keeps its original results.
+
     expect(t.jobs.get(parent.id).counters).toEqual(done.counters);
     const replay = JobResponse.parse((await t.api.post(`/jobs/${parent.id}/retry`).set('Idempotency-Key', 'retry-1').send({}).expect(201)).body).data;
     expect(replay.id).toBe(retry.id);

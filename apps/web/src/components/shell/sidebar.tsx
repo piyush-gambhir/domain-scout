@@ -21,7 +21,7 @@ const itemClass =
 
 interface Badge {
   count: number;
-  /** Unread counts are filled; plain counts stay quiet text. */
+
   unread?: boolean;
   label: string;
 }
@@ -87,7 +87,7 @@ function Brand() {
   );
 }
 
-/** Navigation body shared by the desktop sidebar and the mobile drawer. */
+
 export function SidebarNav({
   rail,
   onNavigate,

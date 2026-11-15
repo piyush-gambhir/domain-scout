@@ -8,32 +8,32 @@ export interface RowOptions {
   providerId: string;
   path: PurchasePath;
   horizonYears: number;
-  /** Requested comparison currency; conversion needs an attributed rate. */
+
   currency: string | null;
   fxRates: FxRate[];
   destination: string | null;
-  /** Reference time for promotion expiry; defaults to the offer's observation time. */
+
   now?: Date;
 }
 
-/** Fields that make a total a base subtotal rather than incomplete. */
+
 const SUBTOTAL_FIELDS: Missing[] = ['tax', 'fees'];
 
-/**
- * Ownership cost for one offer. Pure and exact (decimal strings throughout):
- * - initial commitment: the minimum required term at purchase;
- * - horizon total: initial commitment plus the current renewal price for remaining years (an estimate);
- * - prepaid beyond horizon: years the minimum term covers past the horizon, shown separately;
- * - unknown amounts stay null and are listed in `missing`; tax and fees only make it a subtotal.
- */
+
+
+
+
+
+
+
 export function computeRow(offer: Offer | null, promotional: boolean, opts: RowOptions): ComparisonRow {
   if (!offer) return emptyRow(opts);
   const missing = new Set<Missing>();
   const notes: string[] = [];
   const native = offer.currency;
 
-  // Premium amounts are informational: adapters put the applicable price in the registration and
-  // renewal lines, and a premium amount without a stated term never becomes part of a total.
+
+
   const renewal = offer.renewal.amount;
   const renewalYears = Math.max(1, offer.renewal.years);
   const renewalPerYear = renewal === null ? null : renewalYears === 1 ? renewal : format(dec(renewal).dividedBy(renewalYears));
@@ -41,7 +41,7 @@ export function computeRow(offer: Offer | null, promotional: boolean, opts: RowO
 
   let initial: string | null = null;
   let initialYears: number | null = null;
-  /** Years of the initial commitment priced at the renewal rate (their amount is attributable). */
+
   let renewalPricedYears = 0;
 
   if (opts.path === 'transfer') {
@@ -83,7 +83,7 @@ export function computeRow(offer: Offer | null, promotional: boolean, opts: RowO
       }
     }
     if (promotional) {
-      // The price already includes the promotion, so its conditions decide whether the total holds.
+
       notes.push('The first-year price is promotional; later years use the renewal price');
       const promo = offer.promotion;
       const now = (opts.now ?? new Date(offer.observedAt)).getTime();
@@ -101,7 +101,7 @@ export function computeRow(offer: Offer | null, promotional: boolean, opts: RowO
     }
   }
 
-  // Fees: ICANN fee per registration year, other fees once at purchase. Unknown fees make a subtotal.
+
   const feesKnown = offer.fees.icann !== null && offer.fees.other.every((f) => f.amount !== null);
   if (!feesKnown) missing.add('fees');
   const oneTimeFees = sum(...offer.fees.other.map((f) => f.amount).filter((a): a is string => a !== null));
@@ -118,7 +118,7 @@ export function computeRow(offer: Offer | null, promotional: boolean, opts: RowO
       horizonTotal = initialWithFees;
       if (initialYears > horizon) {
         const beyond = initialYears - horizon;
-        // Only renewal-priced years of the term have an attributable amount.
+
         const amount = beyond <= renewalPricedYears && renewalPerYear !== null ? sum(multiply(renewalPerYear, beyond), icannFor(beyond)) : null;
         prepaid = { years: beyond, amount };
         notes.push(`The required term covers ${beyond} year(s) beyond the ${horizon}-year horizon; that prepaid cost is included in the total`);
@@ -133,7 +133,7 @@ export function computeRow(offer: Offer | null, promotional: boolean, opts: RowO
   }
   const initialCommitment = initial === null || initialYears === null ? initial : sum(initial, oneTimeFees, icannFor(initialYears));
 
-  // Optional conversion with an attributed rate; native amounts are kept when none is configured.
+
   let currency = native;
   let fx: ComparisonRow['fx'] = null;
   let converted = { initialCommitment, horizonTotal, prepaidAmount: prepaid?.amount ?? null };
@@ -205,20 +205,20 @@ function emptyRow(opts: RowOptions): ComparisonRow {
   };
 }
 
-/** Basis that makes totals comparable: same currency and the same fee and tax treatment. */
+
 function basis(row: ComparisonRow): string {
   return `${row.currency}|fees:${row.missing.includes('fees') ? 'unknown' : 'known'}|tax:${row.missing.includes('tax') ? 'unknown' : 'known'}`;
 }
 
 type Lowest = { domain: string; currency: string; providerId: string; horizonTotal: string };
 
-/**
- * Ranks complete, unexpired rows per domain within one comparable basis (competition ranking:
- * ties share a rank). Rows whose fees or tax are unknown rank only against rows with the same
- * basis, as base subtotals. `cheapest` holds confirmed totals only (known fees and tax);
- * `lowestSubtotal` holds the lowest base subtotal per domain and currency when a single subtotal
- * basis exists. Neither is claimed across different bases.
- */
+
+
+
+
+
+
+
 export function rankRows(rows: ComparisonRow[]): { rows: ComparisonRow[]; cheapest: Lowest[]; lowestSubtotal: Lowest[]; limits: string[] } {
   const groups = new Map<string, ComparisonRow[]>();
   for (const row of rows) {
@@ -239,7 +239,7 @@ export function rankRows(rows: ComparisonRow[]): { rows: ComparisonRow[]; cheape
   const cheapest: Lowest[] = [];
   const lowestSubtotal: Lowest[] = [];
   const limits: string[] = [];
-  // Per domain and currency: the confirmed-total group (at most one basis) and the subtotal groups.
+
   const byDomainCurrency = new Map<string, { confirmed: ComparisonRow[] | null; subtotals: ComparisonRow[][] }>();
   for (const [key, list] of groups) {
     const domain = key.split('\u0000')[0]!;

@@ -5,7 +5,7 @@ export function Label({ className, ...props }: React.ComponentProps<typeof Label
   return <LabelPrimitive.Root className={cn('text-sm font-medium text-foreground', className)} {...props} />;
 }
 
-/** Label + control stacked, with an optional hint line under the control. */
+
 export function Field({
   label,
   htmlFor,

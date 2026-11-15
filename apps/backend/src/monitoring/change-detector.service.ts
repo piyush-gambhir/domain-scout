@@ -13,12 +13,12 @@ import { comparableTerms } from '../pricing/comparable.js';
 type EvidenceRef = Notice['before'];
 type NoticeType = Notice['type'];
 
-/** Registry outcomes that answer "is there a registration record". Everything else never creates notices. */
+
 const COMPARABLE_OUTCOMES = ['registered', 'no_record'];
-/** Provider statuses for an exact name. `unknown` is unresolved and never compared. */
+
 const COMPARABLE_CONFIRMATIONS = ['available', 'unavailable', 'restricted'];
 
-/** Amount compared for each purchase path. */
+
 const PATH_AMOUNT: Record<string, 'registration' | 'renewal' | 'transfer'> = {
   new_registration: 'registration',
   renewal: 'renewal',
@@ -46,29 +46,29 @@ interface OfferRowFull {
   payload_json: string;
 }
 
-/**
- * job_items columns written by the jobs engine (shared schema): the registry observation id, and
- * `evidence_json` = { observations?: string[]; offers?: string[]; reusedRegistry?: boolean }.
- */
+
+
+
+
 interface JobItemEvidence {
   registry_observation_id: string | null;
   evidence_json: string;
 }
 
-/**
- * Compares the evidence a watch job produced with the previous comparable successful evidence for
- * the same subject, and records notices.
- *
- * Only these create notices: registry transitions between registered and no_record, provider
- * confirmation status changes among available/unavailable/restricted, and price changes between
- * offers with the same provider, scope, purchase path, kind, currency, region, term and promotion
- * flag where both amounts are known. Failures, timeouts, missing credentials, missing prices and
- * unresolved outcomes are skipped, so they can never produce a notice. Evidence from other jobs is
- * never the "after" side, and reused cached registry evidence is not new. Notices dedupe on
- * (watch, domain, type, before id, after id), so reprocessing a job adds nothing.
- *
- * Must run inside a Database.transaction: it writes notices and emits notice.created.
- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @Injectable()
 export class ChangeDetector {
   constructor(
@@ -107,7 +107,7 @@ export class ChangeDetector {
     return created;
   }
 
-  /** Evidence ids newly written by the job's items, in item order. */
+
   private jobEvidence(jobId: string): { observationIds: string[]; offerIds: string[] } {
     const observationIds: string[] = [];
     const offerIds: string[] = [];
@@ -131,7 +131,7 @@ export class ChangeDetector {
       const chunk = unique.slice(i, i + CHUNK);
       out.push(...this.db.all<T>(`SELECT * FROM ${table} WHERE id IN (${chunk.map(() => '?').join(',')})`, chunk));
     }
-    // Chronological with the same binary id tie-break SQLite uses for predecessors.
+
     return out.sort((a, b) => (a.observed_at !== b.observed_at ? (a.observed_at < b.observed_at ? -1 : 1) : a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   }
 
@@ -173,8 +173,8 @@ export class ChangeDetector {
     const column = PATH_AMOUNT[after.purchase_path] ?? 'registration';
     if (after[column] === null) return null;
     const scope = after.domain === null ? 'domain IS NULL AND suffix = ?' : 'domain = ?';
-    // Columns narrow the candidates; payload terms (renewal and transfer years, promotion conditions)
-    // must also match, so a changed campaign or term is never reported as a price change.
+
+
     const terms = comparableTerms(after.promotional === 1, after.payload_json);
     const before = this.db
       .all<OfferRowFull>(

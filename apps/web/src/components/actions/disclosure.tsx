@@ -1,6 +1,6 @@
 import { Send } from 'lucide-react';
 
-/** States exactly where names will be sent before an external request is submitted. */
+
 export function Disclosure({ children }: { children: React.ReactNode }) {
   return (
     <p className="mt-5 flex gap-2 rounded-md bg-input px-3 py-2.5 text-sm" data-testid="disclosure">

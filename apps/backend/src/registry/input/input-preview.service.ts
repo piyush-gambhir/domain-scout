@@ -15,13 +15,13 @@ import { loadRegistryData } from '../data.js';
 import { classifyDomain, classifyEntry, cleanEntry, reason, type SuffixLookup } from './domain-rules.js';
 import { parseText, type RawEntry } from './parse-input.js';
 
-/** Upper bound on preview rows after expansion; larger requests fail explicitly instead of exhausting memory. */
+
 export const MAX_PREVIEW_ROWS = 250_000;
 
-/**
- * Input normalization (A03, A04, B01-B03): parsing, validation, IDN conversion, base-name expansion
- * and deduplication. Purely local: nothing here touches the network.
- */
+
+
+
+
 @Injectable()
 export class InputPreviewService extends InputPreviewer implements SuffixLookup {
   private readonly rootTlds: Set<string>;
@@ -35,7 +35,7 @@ export class InputPreviewService extends InputPreviewer implements SuffixLookup 
     return this.rootTlds.has(tld);
   }
 
-  /** Built-in extension presets (user presets live in extension_presets, owned by collections). */
+
   presets(): ExtensionPreset[] {
     return loadRegistryData().presets.map((preset) => ({
       id: preset.id,
@@ -46,7 +46,7 @@ export class InputPreviewService extends InputPreviewer implements SuffixLookup 
     }));
   }
 
-  /** Suffixes for a built-in or saved preset id; throws a 400 for an unknown id. */
+
   presetExtensions(presetId: string): string[] {
     const builtIn = loadRegistryData().presets.find((preset) => preset.id === presetId);
     if (builtIn) return [...builtIn.extensions];
@@ -60,7 +60,7 @@ export class InputPreviewService extends InputPreviewer implements SuffixLookup 
     return verdict.domain;
   }
 
-  /** Like normalize() but keeps the reasons, for handlers that must explain an invalid item. */
+
   normalizeDetailed(domain: string): { domain: NormalizedDomain | null; reasons: InputReason[]; suggestion: string | null } {
     const cleaned = cleanEntry(domain);
     const verdict = classifyEntry(cleaned.value, this);
@@ -164,7 +164,7 @@ export class InputPreviewService extends InputPreviewer implements SuffixLookup 
     };
   }
 
-  /** Selected extensions plus the preset's, lower-cased A-labels without leading dots, first occurrence kept. */
+
   private resolveExtensions(source: InputSourceParsed): string[] {
     const requested = [...source.extensions, ...(source.presetId ? this.presetExtensions(source.presetId) : [])];
     const seen = new Set<string>();

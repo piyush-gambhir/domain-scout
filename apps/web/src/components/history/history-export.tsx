@@ -8,7 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 
 type HistoryEntry = OperationResponse<'listHistory'>['data'][number];
 
-/** Export menu for a history view. Files are built from the rows on screen; nothing is requested. */
+
 export function HistoryExportMenu({ label, disabled, onJson, onCsv }: { label: string; disabled: boolean; onJson: () => void; onCsv: () => void }) {
   return (
     <DropdownMenu>
@@ -30,7 +30,7 @@ interface Loaded<T> {
   contractVersion: string;
   rows: T[];
   total: number | null;
-  /** False when more pages exist than were loaded into the view. */
+
   complete: boolean;
 }
 
@@ -44,7 +44,7 @@ function priceFileName(scope: PriceHistoryScope, extension: string): string {
   return `domain-scout-price-history-${scopeSlug({ suffix: scope.suffix, domain: scope.domain, provider: scope.providerId })}-${fileStamp()}.${extension}`;
 }
 
-/** The comparable series shown, each with its points and gaps, as returned by the API. */
+
 export function downloadPriceHistoryJson(scope: PriceHistoryScope, loaded: Loaded<PriceSeries>) {
   const doc = {
     kind: 'domain-scout-price-history',
@@ -59,7 +59,7 @@ export function downloadPriceHistoryJson(scope: PriceHistoryScope, loaded: Loade
   downloadText(priceFileName(scope, 'json'), `${JSON.stringify(doc, null, 2)}\n`, 'application/json');
 }
 
-/** One row per observation, labeled with the comparable series it belongs to. */
+
 export function downloadPriceHistoryCsv(scope: PriceHistoryScope, loaded: Loaded<PriceSeries>) {
   const header = [
     'seriesKey',

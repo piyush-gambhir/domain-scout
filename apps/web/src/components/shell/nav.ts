@@ -4,11 +4,11 @@ export interface NavItem {
   href: string;
   label: string;
   icon: LucideIcon;
-  /** Extra path prefixes that mark this item active. */
+
   match?: string[];
 }
 
-/** The four things a person comes to do, in the order they do them. */
+
 export const NAV_ITEMS: NavItem[] = [
   { href: '/', label: 'Search', icon: Search, match: ['/search', '/domains'] },
   { href: '/saved', label: 'Saved', icon: Bookmark },

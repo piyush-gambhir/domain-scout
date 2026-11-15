@@ -44,7 +44,7 @@ describe('EnrichmentModule', () => {
   it('wires the diagnostic handler to settings for the default resolver', async () => {
     const handler = t.get(OperationRegistry).get('diagnostic')!;
     const dnssec = item('diagnostic', 'example.com', 'dnssec');
-    // Default settings use the system resolver, which cannot report DNSSEC validation: no request is made.
+
     expect(handler.sourceKey(dnssec)).toBeNull();
     expect(await handler.execute(dnssec, ctx())).toMatchObject({ outcome: 'error', error: { code: 'unsupported_resolver' } });
   });

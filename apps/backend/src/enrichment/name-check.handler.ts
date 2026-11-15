@@ -23,10 +23,10 @@ interface Observed {
   cooldownUntil?: string | null;
 }
 
-/**
- * `name_check` items: subject is the name, target is the service id. Only the selected service is
- * contacted; unsupported services and invalid names produce evidence without any request.
- */
+
+
+
+
 @Injectable()
 export class NameCheckHandler implements OperationHandler {
   readonly operation = 'name_check' as const;
@@ -81,7 +81,7 @@ export class NameCheckHandler implements OperationHandler {
     let response: Response;
     for (;;) {
       try {
-        // Redirects are not followed automatically: the name must only reach the declared service host.
+
         response = await this.fetch(url, {
           method: 'GET',
           redirect: 'manual',
@@ -102,8 +102,8 @@ export class NameCheckHandler implements OperationHandler {
       if (response.status < 300 || response.status >= 400) break;
       await discardBody(response);
       const location = parseLocation(response.headers.get('location'), url);
-      // At most one same-host canonical-name redirect (PyPI display names) is followed; the
-      // target's body is then verified like any other response.
+
+
       if (!followedCanonical && location && spec.canonicalRedirect?.(location, name)) {
         followedCanonical = true;
         url = location.toString();
@@ -175,8 +175,8 @@ export class NameCheckHandler implements OperationHandler {
       };
     }
     const json = parseObject(body.text);
-    // A 200 only counts as existence when the body names the requested record. Maintenance pages,
-    // empty bodies and truncated bodies without the identity field stay unresolved.
+
+
     const returned = spec.returnedName(json) ?? (json === null && body.truncated ? spec.textName(body.text) : null);
     if (returned === null) {
       return {
@@ -217,7 +217,7 @@ export class NameCheckHandler implements OperationHandler {
   ): OperationResult {
     const serviceId = (SERVICES[item.target as NameCheckServiceId]?.id ?? item.target) as NameCheckServiceId;
     const namespace = SERVICES[serviceId]?.namespace ?? item.target;
-    // Freshness is computed at read time; staleAt follows the registry freshness setting.
+
     const staleAt = new Date(checkedAt.getTime() + ctx.settings.freshness.registryMinutes * 60_000).toISOString();
     const check: Omit<NameCheck, 'freshness'> = {
       id: randomUUID(),

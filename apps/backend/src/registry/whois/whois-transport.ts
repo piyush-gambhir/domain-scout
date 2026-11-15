@@ -4,7 +4,7 @@ import { connect } from 'node:net';
 export interface WhoisRequest {
   host: string;
   port: number;
-  /** Query line without the CRLF terminator. */
+
   query: string;
   signal: AbortSignal;
   maxBytes: number;
@@ -12,7 +12,7 @@ export interface WhoisRequest {
 
 export interface WhoisResponse {
   text: string;
-  /** True when the size cap was reached or the connection failed after data arrived. */
+
   truncated: boolean;
 }
 
@@ -26,7 +26,7 @@ export class WhoisTransportError extends Error {
   }
 }
 
-/** WHOIS over TCP port 43 (RFC 3912). Tests override this provider with a fake. */
+
 export abstract class WhoisTransport {
   abstract query(request: WhoisRequest): Promise<WhoisResponse>;
 }

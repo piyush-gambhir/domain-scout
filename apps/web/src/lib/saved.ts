@@ -9,7 +9,7 @@ import { api } from './api';
 import { plural } from './format';
 import { qk, useCollections } from './queries';
 
-/** The list one keystroke saves to. Created on first save; any list with this name is the default. */
+
 export const DEFAULT_LIST_NAME = 'Saved';
 
 export function defaultListOf(collections: Collection[] | undefined): Collection | null {
@@ -18,7 +18,7 @@ export function defaultListOf(collections: Collection[] | undefined): Collection
 
 type ResultsPage = OperationResponse<'listJobResults'>;
 
-/** Updates collectionIds of every cached result row for these domains, so bookmarks flip at once. */
+
 function patchSavedMarks(client: ReturnType<typeof useQueryClient>, domains: Set<string>, listId: string, saved: boolean) {
   client.setQueriesData<InfiniteData<ResultsPage>>({ queryKey: ['jobResults'] }, (data) => {
     if (!data?.pages) return data;
@@ -40,12 +40,12 @@ function patchSavedMarks(client: ReturnType<typeof useQueryClient>, domains: Set
   });
 }
 
-/** One shared creation of the default list, so quick saves in a row never create two "Saved" lists. */
+
 let creatingDefault: Promise<Collection> | null = null;
 
 async function ensureDefaultList(): Promise<Collection> {
   creatingDefault ??= (async () => {
-    // Another tab may have created it since the list was loaded.
+
     const fresh = (await api.call('listCollections', { query: { limit: 1000 } })).data;
     return defaultListOf(fresh) ?? (await api.call('createCollection', { body: { name: DEFAULT_LIST_NAME } })).data;
   })().finally(() => {
@@ -54,16 +54,16 @@ async function ensureDefaultList(): Promise<Collection> {
   return creatingDefault;
 }
 
-/** Result queries filtered by list membership must refetch: an in-place patch cannot add or drop rows. */
+
 function byMembership(query: { queryKey: readonly unknown[] }): boolean {
   const filter = query.queryKey[2] as { inCollection?: boolean; collectionId?: string } | undefined;
   return Boolean(filter && (filter.inCollection !== undefined || filter.collectionId !== undefined));
 }
 
-/**
- * Save to (or remove from) the default list without a dialog. The list is created on first use.
- * Rows update immediately; lists, entries and evidence refresh afterwards.
- */
+
+
+
+
 export function useQuickSave() {
   const client = useQueryClient();
   const router = useRouter();
@@ -94,7 +94,7 @@ export function useQuickSave() {
 
 export type WatchIndex = Map<string, Watch>;
 
-/** Every watch, indexed by domain, so rows know whether a name is already watched. */
+
 export function useWatchIndex() {
   const query = useQuery({
     queryKey: qk.watchIndex,
@@ -110,7 +110,7 @@ export function useWatchIndex() {
   return { ...query, index };
 }
 
-/** Watch one domain with the defaults (registry evidence, default interval). Edit later from Watching. */
+
 export function useQuickWatch() {
   const client = useQueryClient();
   const router = useRouter();

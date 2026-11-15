@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { JobOperation } from '@domain-scout/contracts';
 import type { OperationHandler } from './operation.js';
 
-/** Modules register their handlers in onModuleInit; the jobs engine looks them up per item. */
+
 @Injectable()
 export class OperationRegistry {
   private readonly handlers = new Map<JobOperation, OperationHandler>();

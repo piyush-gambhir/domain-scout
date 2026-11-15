@@ -24,7 +24,7 @@ import { SwitchField } from '../ui/switch';
 const INTERVALS = [15, 60, 360, 720, 1440, 10080];
 export const MAX_WATCH_DOMAINS = 5000;
 
-/** Providers that can confirm or quote exact names now (enabled, supported, credentials present when required). */
+
 function eligibleProviders(providers: Provider[], keep: string[]): Provider[] {
   return providers.filter(
     (p) =>
@@ -35,7 +35,7 @@ function eligibleProviders(providers: Provider[], keep: string[]): Provider[] {
   );
 }
 
-/** "Porkbun (api.porkbun.com)": the provider and the hosts that receive names. */
+
 function providerDestination(provider: Provider): string {
   return provider.apiHosts.length ? `${provider.name} (${provider.apiHosts.join(', ')})` : provider.name;
 }
@@ -43,13 +43,13 @@ function providerDestination(provider: Provider): string {
 interface WatchFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Edit this watch; otherwise create one. */
+
   watch?: Watch;
-  /** Create from a selection (results, shortlists); otherwise domains are typed in. */
+
   target?: DomainTarget;
 }
 
-/** Inner body, mounted per opening so the draft starts from the watch or the defaults. */
+
 function WatchFormBody({ onOpenChange, watch, target }: Omit<WatchFormProps, 'open'>) {
   const router = useRouter();
   const client = useQueryClient();
@@ -58,7 +58,7 @@ function WatchFormBody({ onOpenChange, watch, target }: Omit<WatchFormProps, 'op
   const defaultInterval = settings.data?.monitoring.defaultIntervalMinutes ?? 1440;
   const [name, setName] = useState(watch?.name ?? '');
   const [domainsText, setDomainsText] = useState(watch?.domains.join('\n') ?? '');
-  // Null until the user picks one: a new watch then takes settings.monitoring.defaultIntervalMinutes.
+
   const [interval, setIntervalChoice] = useState<number | null>(watch?.intervalMinutes ?? null);
   const [includeRegistry, setIncludeRegistry] = useState(watch?.includeRegistry ?? true);
   const [includeCatalogPrices, setIncludeCatalogPrices] = useState(watch?.includeCatalogPrices ?? false);
@@ -103,9 +103,9 @@ function WatchFormBody({ onOpenChange, watch, target }: Omit<WatchFormProps, 'op
     },
   });
 
-  // Provider choices are known only once providers load; saving earlier would drop a watch's providers.
+
   const providersReady = providers.isSuccess;
-  // The backend needs registry checks or at least one provider; catalog tracking covers the chosen providers.
+
   const nothingToCheck = !includeRegistry && chosen.length === 0;
   const invalid = parsed?.invalid ?? [];
   const tooMany = domainCount > MAX_WATCH_DOMAINS;
@@ -213,7 +213,7 @@ function WatchFormBody({ onOpenChange, watch, target }: Omit<WatchFormProps, 'op
   );
 }
 
-/** Create or edit a watch. The disclosure names every host that receives names before saving. */
+
 export function WatchFormDialog({ open, onOpenChange, watch, target }: WatchFormProps) {
   const title = watch ? `Edit ${watch.name}` : target ? `Watch ${plural(target.count, 'domain')}` : 'New watch';
   return (

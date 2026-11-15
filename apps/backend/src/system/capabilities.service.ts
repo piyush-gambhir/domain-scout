@@ -10,7 +10,7 @@ import {
 import { CoverageReader, NameCheckCatalog, ProviderDirectory } from '../core/ports.js';
 import { OperationRegistry } from '../jobs/operation-registry.js';
 
-/** Operations a job type needs; the type is advertised once any of them has a registered handler. */
+
 const JOB_TYPE_OPERATIONS: Record<JobType, JobOperation[]> = {
   registry_scan: ['registry'],
   provider_check: ['provider_check'],
@@ -25,10 +25,10 @@ const JOB_TYPE_OPERATIONS: Record<JobType, JobOperation[]> = {
 
 type Token<T> = abstract new (...args: never[]) => T;
 
-/**
- * Feature summary for agents and the UI. Ports owned by other modules are optional: when a module
- * does not provide one, its section falls back to zeros or empty lists instead of failing.
- */
+
+
+
+
 @Injectable()
 export class CapabilitiesService {
   constructor(
@@ -60,7 +60,7 @@ export class CapabilitiesService {
     };
   }
 
-  /** Constructor injection only sees exported providers; fall back to a container-wide lookup. */
+
   private port<T>(token: Token<T>, injected: T | undefined): T | undefined {
     if (injected) return injected;
     try {

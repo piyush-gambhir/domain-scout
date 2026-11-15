@@ -106,7 +106,7 @@ export class CollectionsController {
   }
 }
 
-/** Cursor paging over a small list that is cheap to load whole. */
+
 function slice<T>(items: T[], cursor: string | undefined, limit: number) {
   const page = pageWindow(cursor, limit);
   const data = items.slice(page.offset, page.offset + page.limit);

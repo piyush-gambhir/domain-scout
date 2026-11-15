@@ -11,7 +11,7 @@ declare global {
     interface Request {
       /** Echoed X-Request-Id or a generated UUID; appears in every ErrorResponse. */
       requestId?: string;
-      /** Set by the AuthGuard. */
+
       auth?: RequestAuth;
     }
   }
@@ -19,7 +19,7 @@ declare global {
 
 const REQUEST_ID_PATTERN = /^[A-Za-z0-9._:-]{1,128}$/;
 
-/** Sends an ErrorResponse from Express middleware, where the Nest exception filter does not run. */
+
 export function sendError(req: Request, res: Response, status: number, code: ErrorCode, message: string): void {
   res.status(status).json({
     contractVersion: CONTRACT_VERSION,
@@ -36,12 +36,12 @@ export function sendError(req: Request, res: Response, status: number, code: Err
   });
 }
 
-/**
- * First middleware on every request: assigns the request id, then rejects any Host header other
- * than the loopback names on the port this connection arrived on (DNS rebinding protection).
- */
+
+
+
+
 export function requestContextMiddleware(config: Pick<AppConfig, 'host'>) {
-  // Another loopback bind address (e.g. 127.0.0.2) is also accepted; never a non-loopback name.
+
   const extra = isLoopbackHost(config.host) ? bracket(config.host.toLowerCase()) : null;
   return (req: Request, res: Response, next: NextFunction) => {
     const incoming = req.headers['x-request-id'];

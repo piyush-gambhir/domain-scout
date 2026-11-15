@@ -13,13 +13,13 @@ import {
   type ProviderAdapter,
 } from './types.js';
 
-/**
- * NameSilo API (https://www.namesilo.com/api-reference). All operations are GET with
- * `version=1&type=xml&key=...`; automated use goes through /apibatch. The official reference
- * renders only behind a browser challenge, so this adapter follows the documented request format
- * and the simplified XML fragments in NameSilo's own walkthrough. The surrounding envelope and
- * reply codes are not confirmed, so every capability stays at the documented level.
- */
+
+
+
+
+
+
+
 export const NAMESILO_BASE = 'https://www.namesilo.com/apibatch';
 const NAME = 'NameSilo';
 const DOC = 'https://www.namesilo.com/blog/en/building-a-domain-search-tool-with-a-registrar-api';
@@ -38,10 +38,10 @@ function parse(ctx: AdapterContext, response: ProviderHttpResponse): XmlNode {
   }
 }
 
-/**
- * Called when the expected data is missing. Reply codes are not confirmed by the readable
- * documentation, so success is judged by the presence of data and failures report the reply text.
- */
+
+
+
+
 function replyError(ctx: AdapterContext, root: XmlNode, what: string): ProviderError {
   const code = findFirst(root, 'code')?.text.trim() ?? '';
   const detail = findFirst(root, 'detail')?.text.trim() ?? '';
@@ -52,7 +52,7 @@ function replyError(ctx: AdapterContext, root: XmlNode, what: string): ProviderE
   return new ProviderError('bad_response', `NameSilo returned no ${what} (${message})`);
 }
 
-/** Pure parser for getPrices: elements with registration/renew/transfer children, named by TLD. */
+
 export function parseNameSiloPrices(root: XmlNode): Map<string, { registration: string | null; renew: string | null; transfer: string | null }> {
   const out = new Map<string, { registration: string | null; renew: string | null; transfer: string | null }>();
   const walk = (node: XmlNode) => {
@@ -77,7 +77,7 @@ export interface NameSiloAvailability {
   price: string | null;
 }
 
-/** Pure parser for checkRegisterAvailability buckets, exported for fixture tests. */
+
 export function parseNameSiloAvailability(root: XmlNode, domain: string): NameSiloAvailability {
   for (const bucket of ['available', 'unavailable', 'invalid'] as const) {
     for (const group of findAll(root, bucket)) {
@@ -105,7 +105,7 @@ export class NameSiloAdapter implements ProviderAdapter {
   readonly providerId = 'namesilo';
   readonly testOperation = 'getPrices';
 
-  /** Uses the account price list: no candidate name, and success means the key returned account data. */
+
   async testCredentials(ctx: AdapterContext) {
     const response = await ctx.http.request({ method: 'GET', url: url(ctx, 'getPrices') });
     const root = parse(ctx, response);

@@ -10,7 +10,7 @@ export interface SelectOption {
   disabled?: boolean;
 }
 
-/** Borderless single select on a tinted surface. */
+
 export function Select({
   value,
   onValueChange,

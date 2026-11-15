@@ -1,6 +1,6 @@
 import type { Database } from '../../src/storage/database.js';
 
-/** Direct inserts into the shared schema so system tests do not depend on other modules' services. */
+
 export function seedJob(
   db: Database,
   job: { id: string; type?: string; state: string; label?: string | null; input?: unknown; createdAt: string; total?: number; finished?: number; unresolved?: number; outcomes?: Record<string, number> },

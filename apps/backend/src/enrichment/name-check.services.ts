@@ -1,6 +1,6 @@
 import type { NameCheckService, NameCheckServiceId } from '@domain-scout/contracts';
 
-/** Manifest of name-check services. Only documented, keyless, dependable interfaces are supported. */
+
 export interface SupportedService {
   id: NameCheckServiceId;
   name: string;
@@ -9,21 +9,21 @@ export interface SupportedService {
   host: string;
   url(name: string): string;
   accept: string;
-  /** Returns a reason when the name breaks the service's naming rules (then no request is sent). */
+
   validate(name: string): string | null;
-  /** Small structured detail from the body; `json` is null when the bounded body did not parse. */
+
   detail(json: Record<string, unknown> | null, text: string): Record<string, unknown>;
-  /** Name the service returned, for identity checks; null when the body does not state one. */
+
   returnedName(json: Record<string, unknown> | null): string | null;
-  /** Identity field read from a truncated body's prefix, so truncation never skips verification. */
+
   textName(text: string): string | null;
-  /**
-   * Canonical name when a redirect only canonicalizes the requested name on the same host (PyPI
-   * redirects to the project's display name). The handler follows one such redirect and verifies
-   * the target body; null means the redirect is unexpected and is not followed.
-   */
+
+
+
+
+
   canonicalRedirect?(location: URL, name: string): string | null;
-  /** Service-specific name equivalence (case, separators). */
+
   same(a: string, b: string): boolean;
 }
 
@@ -75,8 +75,8 @@ export const SERVICES: Record<NameCheckServiceId, ServiceSpec> = {
     namespace: 'npm package name',
     supported: true,
     host: 'registry.npmjs.org',
-    // The latest-version manifest is small and always states "name", so identity is verifiable.
-    // Scoped names encode the slash (@scope%2Fname).
+
+
     url: (name) =>
       `https://registry.npmjs.org/${name.startsWith('@') ? `@${encodeURIComponent(name.slice(1))}` : encodeURIComponent(name)}/latest`,
     accept: 'application/json',
@@ -117,7 +117,7 @@ export const SERVICES: Record<NameCheckServiceId, ServiceSpec> = {
       try {
         decoded = decodeURIComponent(canonical);
       } catch {
-        return null; // A malformed escape is not a canonical-name redirect.
+        return null;
       }
       return pep503(decoded) === pep503(name) ? decoded : null;
     },

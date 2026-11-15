@@ -29,10 +29,10 @@ function Shortcut({ keys }: { keys: string[] }) {
   );
 }
 
-/**
- * Cmd/Ctrl+K palette for navigation and quick actions. It is also the only place keyboard
- * shortcuts are documented.
- */
+
+
+
+
 export function CommandPalette({
   open,
   onOpenChange,

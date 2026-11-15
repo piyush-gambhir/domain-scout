@@ -2,7 +2,7 @@ import { Decimal } from 'decimal.js';
 import type { ExportField, Offer } from '@domain-scout/contracts';
 import type { ScopedRecord } from './scope-resolver.service.js';
 
-/** Shown in every artifact so names are never presented as guaranteed registrable. */
+
 export const UNCERTAINTY_NOTICE = [
   'These are candidates, not a list of guaranteed registrable names.',
   '"no_record" means the registry returned no registration record when checked. It does not confirm eligibility, price or that the name can still be registered.',
@@ -10,7 +10,7 @@ export const UNCERTAINTY_NOTICE = [
   'Check again before purchase.',
 ];
 
-/** Fields structured exports always carry so statuses, source, check time and price type survive. */
+
 export const REQUIRED_STRUCTURED_FIELDS: readonly ExportField[] = ['domain', 'outcome', 'checkedAt', 'source', 'priceKind'];
 
 const KIND_RANK: Record<string, number> = { exact_quote: 0, published: 1, estimated: 2 };
@@ -24,11 +24,11 @@ export interface PriceSummary {
   observedAt: string | null;
 }
 
-/**
- * The price shown on a row: a new-registration offer with a known first-year amount, preferring
- * exact quotes over published and estimated prices, then the lowest amount within a currency.
- * Falls back to the job item's best published price. Null when no price is known.
- */
+
+
+
+
+
 export function pickPrice(record: ScopedRecord): PriceSummary | null {
   const candidates = record.offers.filter(
     (offer) => offer.purchasePath === 'new_registration' && offer.registration?.amount != null,
@@ -63,7 +63,7 @@ export function pickPrice(record: ScopedRecord): PriceSummary | null {
   return null;
 }
 
-/** TXT candidate filter: no registry record, or a provider confirmed the exact name as available. */
+
 export function isCandidate(record: ScopedRecord): boolean {
   return record.registry?.outcome === 'no_record' || record.confirmations.some((c) => c.status === 'available');
 }
@@ -81,12 +81,12 @@ interface Primary {
   reason: string | null;
 }
 
-/**
- * The evidence a row's outcome, check time, freshness, source and reason describe: registry
- * evidence when present; for job items without it, the item's own evidence (provider confirmation,
- * name check, diagnostic, listing or quote). Domain rows never borrow another kind's status as
- * their outcome; confirmations have their own column.
- */
+
+
+
+
+
+
 export function primaryEvidence(record: ScopedRecord): Primary {
   const registry = record.registry;
   if (registry) {
@@ -170,7 +170,7 @@ export function fieldValue(record: ScopedRecord, field: ExportField, price: Pric
     case 'priceObservedAt':
       return price?.observedAt ?? null;
     case 'checks':
-      // Each check keeps its own outcome and time; they never merge into the registry outcome.
+
       return record.other.length
         ? record.other
             .map((c) => `${c.label}: ${c.outcome} (${[c.checkedAt, c.source, c.reason].filter(Boolean).join(', ')})`)
@@ -181,10 +181,10 @@ export function fieldValue(record: ScopedRecord, field: ExportField, price: Pric
   }
 }
 
-/**
- * One CSV cell. Cells starting with = + - @ (or tab / carriage return) get a leading apostrophe so
- * spreadsheet apps treat them as text, not formulas. Then RFC 4180 quoting applies.
- */
+
+
+
+
 export function csvCell(value: string | null | undefined): string {
   if (value === null || value === undefined) return '';
   let text = value;

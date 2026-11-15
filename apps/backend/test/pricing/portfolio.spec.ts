@@ -108,7 +108,7 @@ describe('portfolio (F04)', () => {
     t.app.get(EvidenceRepository).insertOffer(record.write);
     const rows = PortfolioComparisonResponse.parse((await t.api.get('/portfolio/comparison').expect(200)).body).data;
     const row = rows.find((r) => r.entry.domain === 'xq7mz9portfolio.com')!;
-    // 10 transfer (1 year) + 2 more years at 30/year = 70, versus 150 at the user's price.
+
     expect(row.notes.find((n) => n.startsWith('Estimate: Name.com'))).toContain('70.00 USD versus 150.00');
   });
 

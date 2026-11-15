@@ -36,12 +36,12 @@ export interface HistoryQuery {
 
 type HistoryPayload = ComparablePayload;
 
-/**
- * Observed price history. Observations are grouped into comparable series (same provider, scope,
- * purchase path, price kind, currency, region, registration term, renewal term, transfer-included
- * years and promotion conditions); unmatched records never join a trend. Gaps are periods no
- * observation's freshness window covered; nothing is interpolated.
- */
+
+
+
+
+
+
 @Injectable()
 export class HistoryService {
   constructor(
@@ -54,7 +54,7 @@ export class HistoryService {
     const params: string[] = [];
     if (query.domain) {
       const ref = requireDomain(query.domain, this.previewer ?? null);
-      // Exact quotes for the domain plus suffix-level prices that apply to it.
+
       where.push('(domain = ? OR (domain IS NULL AND suffix = ?))');
       params.push(ref.ascii, ref.suffix);
     } else if (query.suffix) {
@@ -80,7 +80,7 @@ export class HistoryService {
     for (const row of rows) {
       const scope = row.domain ?? row.suffix;
       const promotional = row.promotional === 1;
-      // Renewal and transfer amounts are comparable only for the same covered years.
+
       const payload = json.parse<HistoryPayload>(row.payload_json, {});
       const renewalYears = payload.renewal?.years ?? 1;
       const transferYears = payload.transfer?.includesYears ?? null;
@@ -88,7 +88,7 @@ export class HistoryService {
         row.provider_id,
         scope,
         row.purchase_path,
-        // A published catalog price, an estimate and an exact quote are different measurements.
+
         row.kind,
         row.currency,
         row.region ?? '-',

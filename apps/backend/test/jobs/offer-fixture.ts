@@ -1,10 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import type { OfferWrite } from '../../src/storage/evidence.js';
 
-/**
- * A contract-shaped offer row for engine-level tests (catalog prices with `domain: null`, exact
- * quotes otherwise). Hand-written reconstruction of the Offer contract, not a captured response.
- */
+
+
+
+
 export function offerWrite(o: {
   providerId: string;
   domain: string | null;

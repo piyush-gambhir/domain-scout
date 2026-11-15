@@ -14,7 +14,7 @@ import { SessionRequired } from './session-required';
 import { DesktopSidebar, SidebarNav } from './sidebar';
 import { toggleSidebar, useSidebarCollapsed } from './sidebar-state';
 
-/** Cmd+B means bold in rich text editors; leave those alone. */
+
 function isRichText(target: EventTarget | null) {
   return target instanceof HTMLElement && target.isContentEditable;
 }
@@ -25,8 +25,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // Probe the session once so a missing session shows the session screen immediately.
-  // A 401 marks the session required (QueryCache handler); other errors are ignored here.
+
+
   useQuery({
     queryKey: qk.session,
     queryFn: ({ signal }) => api.call('getSession', { signal }).then((r) => r.data),
@@ -60,8 +60,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     else setDrawerOpen((open) => !open);
   };
 
-  // At lg and up the shell is exactly the window and never scrolls as a document; pages fill <main>
-  // and only their growing-data panes scroll. Below lg the page scrolls normally where it must.
+
+
   return (
     <div data-shell className="flex min-h-dvh lg:h-dvh lg:overflow-hidden">
       <a

@@ -15,11 +15,11 @@ import {
 } from './types.js';
 import type { ProviderHttpResponse } from '../transport.js';
 
-/**
- * Porkbun API v3 (https://porkbun.com/api/json/v3/spec, version 3.53, read 2026-10-05).
- * Prices are USD per the documentation. Errors arrive as `{status:"ERROR", code, message}` with
- * HTTP 400, 403 or 429, so the envelope is checked before the HTTP status.
- */
+
+
+
+
+
 export const PORKBUN_BASE = 'https://api.porkbun.com/api/json/v3';
 export const PORKBUN_PRICING_URL = `${PORKBUN_BASE}/pricing/get`;
 const NAME = 'Porkbun';
@@ -36,7 +36,7 @@ function headers(ctx: AdapterContext): Record<string, string> {
   };
 }
 
-/** Maps Porkbun error envelopes and statuses; returns the parsed success body. */
+
 function successBody(ctx: AdapterContext, response: ProviderHttpResponse): Record<string, unknown> {
   const body = tryJson(response);
   if (isRecord(body) && body.status === 'ERROR') {
@@ -53,7 +53,7 @@ function successBody(ctx: AdapterContext, response: ProviderHttpResponse): Recor
       throw new ProviderError('rate_limited', `Porkbun rate limit reached: ${message}`, { status: response.status, retryAt });
     }
     if (code === 'INVALID_TLD') throw new ProviderError('unsupported', `Porkbun does not sell this extension: ${message}`, { status: response.status });
-    // Unrecognized codes keep the HTTP meaning (401/403 auth, 5xx server error).
+
     ctx.http.assertOk(response, NAME, message);
     throw new ProviderError('rejected', `Porkbun rejected the request${code ? ` (${code})` : ''}: ${message}`, { status: response.status });
   }
@@ -64,7 +64,7 @@ function successBody(ctx: AdapterContext, response: ProviderHttpResponse): Recor
   return body;
 }
 
-/** Coupons are listed for information only; they are never applied to a price. */
+
 function couponPromotion(coupons: unknown): Offer['promotion'] {
   const list = Array.isArray(coupons) ? coupons : isRecord(coupons) ? Object.values(coupons) : [];
   const descriptions: string[] = [];
@@ -85,7 +85,7 @@ function couponPromotion(coupons: unknown): Offer['promotion'] {
   };
 }
 
-/** Pure parser for /pricing/get, exported for fixture tests. */
+
 export function parsePorkbunPricing(body: Record<string, unknown>): CatalogResult {
   const pricing = body.pricing;
   if (!isRecord(pricing)) throw new ProviderError('bad_response', 'Porkbun pricing response has no pricing object');
@@ -93,7 +93,7 @@ export function parsePorkbunPricing(body: Record<string, unknown>): CatalogResul
   const suffixes: string[] = [];
   for (const [key, raw] of Object.entries(pricing)) {
     if (!isRecord(raw)) continue;
-    // Special TLDs such as Handshake names are not DNS registry suffixes.
+
     if (raw.specialType !== undefined) continue;
     const suffix = domainToASCII(key.replace(/^\./, '').toLowerCase());
     if (!suffix || !/^[a-z0-9-]+(\.[a-z0-9-]+)*$/.test(suffix)) continue;
@@ -115,7 +115,7 @@ export function parsePorkbunPricing(body: Record<string, unknown>): CatalogResul
   return { suffixes, entries, source: PORKBUN_PRICING_URL };
 }
 
-/** Pure parser for /domain/checkDomain, exported for fixture tests. */
+
 export function parsePorkbunCheck(body: Record<string, unknown>) {
   const response = body.response;
   if (!isRecord(response)) throw new ProviderError('bad_response', 'Porkbun checkDomain response has no response object');
@@ -160,7 +160,7 @@ export class PorkbunAdapter implements ProviderAdapter {
   }
 
   async catalog(ctx: AdapterContext): Promise<CatalogResult> {
-    // Keyless and without candidate names: the whole public price list.
+
     const response = await ctx.http.request({ method: 'GET', url: PORKBUN_PRICING_URL, headers: { Accept: 'application/json' }, maxBytes: 16 * 1024 * 1024 });
     const body = successBody(ctx, response);
     return parsePorkbunPricing(body);
@@ -207,7 +207,7 @@ export class PorkbunAdapter implements ProviderAdapter {
                 requiresTermYears: null,
                 restrictions: null,
                 expiresAt: null,
-                // Porkbun quoted this price for the exact name to this account; no coupon is involved.
+
                 eligibilityVerified: true,
               }
             : null,
@@ -260,7 +260,7 @@ export class PorkbunAdapter implements ProviderAdapter {
         reason: reason('listed', 'Listed on the Porkbun marketplace'),
       };
     }
-    // Filtered mode caps results at 1000; a capped page without the name is not proof of absence.
+
     if (listings.length >= 1000) {
       return { status: 'unknown' as const, price: null, url: null, marketplace: 'Porkbun Marketplace', reason: reason('result_capped', 'Marketplace search hit its 1000-result cap') };
     }

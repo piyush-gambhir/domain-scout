@@ -5,7 +5,7 @@ import { CoverageService } from './coverage.service.js';
 import { InputPreviewService } from './input/input-preview.service.js';
 import { RoutesService } from './routes.service.js';
 
-/** Input preview and registry coverage. Method order matters: /coverage/summary precedes /coverage/:suffix. */
+
 @Controller()
 export class RegistryController {
   constructor(

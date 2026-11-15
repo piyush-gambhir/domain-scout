@@ -32,7 +32,7 @@ export interface AppErrorExtras {
   status?: number;
 }
 
-/** Error with a stable contract code. Throw it from services; the filter maps it to ErrorResponse. */
+
 export class AppError extends Error {
   readonly status: number;
   constructor(
@@ -87,7 +87,7 @@ export function toApiError(error: unknown, requestId: string): { status: number;
     const status = error.getStatus();
     const code: ErrorCode =
       status === 404 ? 'not_found' : status === 401 ? 'unauthorized' : status === 403 ? 'forbidden' : status < 500 ? 'invalid_request' : 'internal';
-    // Body-parser errors (e.g. payload too large) arrive here with a 4xx status.
+
     return { status, body: { ...base, code, message: error.message } };
   }
   const maybeStatus = (error as { status?: unknown })?.status;

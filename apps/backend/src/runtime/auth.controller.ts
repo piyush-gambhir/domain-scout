@@ -5,14 +5,14 @@ import { ok } from '../core/envelope.js';
 import { ApiInput, ApiRoute, type RouteInput } from '../core/route.js';
 import { AuthService } from './auth.service.js';
 
-/** Browser session bootstrap. The Next server sets the cookies; the backend only issues and validates. */
+
 @Controller()
 export class AuthController {
   constructor(private readonly auth: AuthService) {}
 
   @ApiRoute('createBootstrapCode')
   createBootstrapCode(@Req() req: Request) {
-    // A browser session must not mint codes for further sessions.
+
     if (req.auth?.kind !== 'token') throw new AppError('forbidden', 'Bootstrap codes require the API token');
     return ok(this.auth.createBootstrapCode());
   }
@@ -26,7 +26,7 @@ export class AuthController {
   getSession(@Req() req: Request) {
     const auth = req.auth;
     if (auth?.kind !== 'session') throw new AppError('forbidden', 'Only browser sessions have session info');
-    // The session id stays behind the HttpOnly cookie; page scripts only need the CSRF token.
+
     return ok({ csrfToken: auth.csrfToken, expiresAt: auth.expiresAt });
   }
 }

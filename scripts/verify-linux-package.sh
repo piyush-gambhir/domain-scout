@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Runs a packaged Linux archive inside a plain node:26 container and checks the CLI launcher, the
-# browser sign-in flow, the API through the web server, owner-only permissions and a clean stop.
-# No names leave the container. Usage: scripts/verify-linux-package.sh [arm64|amd64]
+
+
+
 set -euo pipefail
 arch="${1:-arm64}"
 repo="$(cd "$(dirname "$0")/.." && pwd)"

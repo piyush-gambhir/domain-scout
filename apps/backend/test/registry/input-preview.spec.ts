@@ -146,7 +146,7 @@ describe('normalization details', () => {
   it('rejects names over 253 characters', () => {
     const long = `${Array.from({ length: 5 }, () => 'a'.repeat(60)).join('.')}.com`;
     const p = preview({ domains: [long] });
-    // A 5-label name is first a host name; length is checked before the boundary.
+
     expect(codes(p.rows[0]!)).toEqual(['name_too_long']);
   });
 

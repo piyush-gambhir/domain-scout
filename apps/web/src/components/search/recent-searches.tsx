@@ -12,7 +12,7 @@ export function AgentTag() {
   return <span className="shrink-0 rounded bg-input px-1.5 py-px text-[11px] font-medium text-muted-foreground">Agent</span>;
 }
 
-/** The last few searches from this UI and from agents, one click from their results. */
+
 export function RecentSearches() {
   const query = { origins: PEOPLE_ORIGINS, type: 'registry_scan', limit: 8 };
   const history = useQuery({

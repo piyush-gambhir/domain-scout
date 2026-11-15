@@ -1,8 +1,8 @@
-/**
- * Minimal XML reader for the small, flat command responses of Namecheap and NameSilo. It supports
- * elements, attributes, text, entities, CDATA, comments and declarations. It is not a validating
- * parser: DTDs are skipped and never expanded, so entity-expansion attacks do not apply.
- */
+
+
+
+
+
 export interface XmlNode {
   name: string;
   attrs: Record<string, string>;
@@ -24,7 +24,7 @@ function decode(text: string): string {
   });
 }
 
-/** Strips a namespace prefix: `ns:Name` becomes `Name`. */
+
 function local(name: string): string {
   const i = name.indexOf(':');
   return i === -1 ? name : name.slice(i + 1);
@@ -75,7 +75,7 @@ export function parseXml(input: string): XmlNode {
       const nameMatch = /^\s*([^\s/>]+)/.exec(body);
       if (!nameMatch) throw new XmlError('Malformed start tag');
       const node: XmlNode = { name: local(nameMatch[1]!), attrs: parseAttrs(body.slice(nameMatch[0].length)), children: [], text: '' };
-      // A document has exactly one root: a second one (for example an appended error) is malformed.
+
       if (top === root && root.children.length > 0) throw new XmlError('Multiple root elements');
       top.children.push(node);
       if (!selfClosing) stack.push(node);
@@ -103,7 +103,7 @@ function findTagEnd(input: string, from: number): number {
   throw new XmlError('Unterminated start tag');
 }
 
-/** Strict attributes: name="value" or name='value' separated by whitespace, no duplicates. */
+
 function parseAttrs(text: string): Record<string, string> {
   const attrs: Record<string, string> = {};
   const re = /\s+([^\s=/>"']+)\s*=\s*("([^"]*)"|'([^']*)')/y;
@@ -121,7 +121,7 @@ function parseAttrs(text: string): Record<string, string> {
   return attrs;
 }
 
-/** Depth-first search for elements with a (case-insensitive) local name. */
+
 export function findAll(node: XmlNode, name: string): XmlNode[] {
   const out: XmlNode[] = [];
   const target = name.toLowerCase();

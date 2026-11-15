@@ -11,19 +11,19 @@ import type {
   PurchasePath,
 } from '@domain-scout/contracts';
 
-/*
- * Labels and tones for every status the UI shows. Tone drives only a small dot; the label is always
- * rendered next to it. `unresolved` statuses draw a hollow ring so they never read as positive,
- * even without color. A missing registry record reads "Not registered", never "Available".
- */
+
+
+
+
+
 export type Tone = 'positive' | 'neutral' | 'caution' | 'negative' | 'muted';
 
 export interface StatusInfo {
   label: string;
   tone: Tone;
-  /** Unresolved: the source gave no definitive answer. Rendered as a ring, never a filled positive dot. */
+
   unresolved?: boolean;
-  /** Finer reason behind a grouped label, e.g. "Rate limited" behind "Couldn't check". */
+
   detail?: string;
 }
 
@@ -32,7 +32,7 @@ export function humanize(code: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-/** Shown wherever "Not registered" appears without room for the full explanation. */
+
 export const NOT_REGISTERED_HINT = 'The registry has no record. Confirm with a provider before buying.';
 
 const REGISTRY: Record<string, StatusInfo> = {
@@ -45,7 +45,7 @@ const REGISTRY: Record<string, StatusInfo> = {
   unsupported: { label: 'Not supported', tone: 'muted', detail: 'No public registry lookup for this extension' },
 };
 
-/** Result groups a registry search is triaged into. */
+
 export type RegistryGroup = 'free' | 'taken' | 'problem' | 'pending';
 
 export const PROBLEM_OUTCOMES = ['inconclusive', 'rate_limited', 'blocked', 'unsupported', 'invalid'] as const;
@@ -57,7 +57,7 @@ export function registryGroup(outcome: string | null): RegistryGroup {
   return 'problem';
 }
 
-// Provider-reported state for one exact name; worded as the provider's claim, never as "Available".
+
 const PROVIDER_CHECK: Record<string, StatusInfo> = {
   available: { label: 'Can register', tone: 'positive' },
   unavailable: { label: "Can't register", tone: 'neutral' },
@@ -113,7 +113,7 @@ const BY_OPERATION: Record<JobOperation, Record<string, StatusInfo>> = {
   catalog: CATALOG,
 };
 
-/** Known outcomes per operation, for filter menus. */
+
 export function outcomeOptions(operation: JobOperation): { value: string; label: string }[] {
   return Object.entries(BY_OPERATION[operation]).map(([value, info]) => ({ value, label: info.detail && operation === 'registry' ? `${info.label}: ${info.detail}` : info.label }));
 }
@@ -188,7 +188,7 @@ export const JOB_OPERATION: Record<JobType, JobOperation> = {
   watch: 'registry',
 };
 
-/** Freshness stays quiet: older evidence reads as muted text, never as a warning color. */
+
 export const FRESHNESS: Record<Freshness, StatusInfo> = {
   fresh: { label: 'Fresh', tone: 'muted' },
   stale: { label: 'Older', tone: 'muted' },
@@ -239,7 +239,7 @@ export const WATCH_STATE: Record<string, StatusInfo> = {
   paused: { label: 'Paused', tone: 'muted' },
 };
 
-/** Missed runs and runs with failures are unresolved: they never read as a successful check. */
+
 export const WATCH_RUN_STATUS: Record<string, StatusInfo> = {
   scheduled: { label: 'Scheduled', tone: 'muted' },
   running: { label: 'Running', tone: 'neutral' },
@@ -260,7 +260,7 @@ export const NOTICE_TYPE: Record<string, string> = {
   price_changed: 'Price changed',
 };
 
-/** Before/after evidence values: registry outcomes and confirmation states get their labels; amounts stay as given. */
+
 export function evidenceStatus(kind: string, value: string): StatusInfo | null {
   if (kind === 'registry') return registryStatus(value);
   if (kind === 'confirmation') return PROVIDER_CHECK[value] ?? { label: humanize(value), tone: 'muted' };
@@ -275,7 +275,7 @@ export const LISTING_STATUS: Record<string, StatusInfo> = {
   unknown: { label: 'Unknown', tone: 'caution', unresolved: true },
 };
 
-/** Link text for a purchase destination. A website link opens the provider's home page with no name prefilled. */
+
 export const DESTINATION_LABEL: Record<string, string> = {
   search: 'Open',
   dashboard: 'Dashboard',
@@ -284,7 +284,7 @@ export const DESTINATION_LABEL: Record<string, string> = {
   listing: 'Listing',
 };
 
-/** Short qualifier shown beside destinations that do not lead straight to the name. */
+
 export const DESTINATION_NOTE: Record<string, string> = {
   dashboard: 'Sign-in required',
   website: 'Name not prefilled',

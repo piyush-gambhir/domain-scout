@@ -14,7 +14,7 @@ export interface BackendArgs {
   host: string;
   port: number;
   webOrigins: string[];
-  /** 0 disables stopping when idle. */
+
   idleTimeoutMs: number;
 }
 
@@ -28,7 +28,7 @@ export const USAGE = `Usage: domain-scout-backend [--data-dir DIR] [--host HOST]
                   (default DOMAIN_SCOUT_IDLE_TIMEOUT or ${DEFAULT_IDLE_TIMEOUT_MS / 1000})
   --web-origin  Browser origin allowed to use sessions; repeatable (default ${DEFAULT_WEB_ORIGINS.join(', ')})`;
 
-/** Parses backend flags. Precedence: flag, then environment, then defaults. Throws UsageError. */
+
 export function parseBackendArgs(
   argv: string[],
   env: Record<string, string | undefined> = process.env,
@@ -57,7 +57,7 @@ export function parseBackendArgs(
     throw new UsageError(`Invalid port "${portText}": expected an integer from 0 to 65535`);
   }
   const host = values.host ?? DEFAULT_HOST;
-  // The API is local-only; a non-loopback bind would expose it beyond this machine.
+
   if (!isLoopbackHost(host)) throw new UsageError(`Invalid --host "${host}": only loopback addresses are allowed`);
 
   const idleText = values['idle-timeout'] ?? nonEmpty(env.DOMAIN_SCOUT_IDLE_TIMEOUT) ?? String(DEFAULT_IDLE_TIMEOUT_MS / 1000);
@@ -77,7 +77,7 @@ export function parseBackendArgs(
   };
 }
 
-/** Canonical `scheme://host[:port]` form (what browsers send in Origin), or null when invalid. */
+
 export function normalizeOrigin(value: string): string | null {
   try {
     const url = new URL(value);
@@ -89,7 +89,7 @@ export function normalizeOrigin(value: string): string | null {
   }
 }
 
-/** Loopback addresses are the only ones the backend is designed to bind. */
+
 export function isLoopbackHost(host: string): boolean {
   const h = host.replace(/^\[|\]$/g, '').toLowerCase();
   return h === 'localhost' || h === '::1' || /^127\.\d+\.\d+\.\d+$/.test(h);

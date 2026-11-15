@@ -21,7 +21,7 @@ func isTerminal(s api.JobState) bool {
 	return false
 }
 
-// domainEvent is the DomainEvent envelope with the payload kept raw.
+
 type domainEvent struct {
 	ContractVersion string          `json:"contractVersion"`
 	EventID         string          `json:"eventId"`
@@ -32,20 +32,20 @@ type domainEvent struct {
 	Payload         json.RawMessage `json:"payload"`
 }
 
-// waitHooks let callers observe a wait (jobs watch prints events).
+
 type waitHooks struct {
-	// onEvent receives every job event, including stream.reset.
+
 	onEvent func(ev sse.Event) error
-	// onPoll receives the job envelope when it changes in polling fallback.
+
 	onPoll func(raw []byte) error
 }
 
-// streamIdleTimeout reconnects when not even a heartbeat arrives.
+
 var streamIdleTimeout = 45 * time.Second
 
-// waitJob observes a job until it reaches a terminal state. It prefers the
-// event stream and falls back to polling. Ctrl-C returns errInterrupted; the
-// job itself keeps running.
+
+
+
 func (a *App) waitJob(ctx context.Context, c *apiClient, id api.Uuid, hooks waitHooks) (*api.Job, error) {
 	jobID := id.String()
 	pr := &progressReporter{app: a}
@@ -81,7 +81,7 @@ func (a *App) waitJob(ctx context.Context, c *apiClient, id api.Uuid, hooks wait
 		OnEvent: func(ev sse.Event) (bool, error) {
 			var de domainEvent
 			if err := json.Unmarshal(ev.Data, &de); err != nil {
-				return false, nil // not a DomainEvent; ignore
+				return false, nil
 			}
 			if de.JobID == nil || !strings.EqualFold(*de.JobID, jobID) {
 				return false, nil
@@ -149,7 +149,7 @@ func (a *App) pollJob(ctx context.Context, c *apiClient, id api.Uuid, pr *progre
 	}
 }
 
-// progressReporter writes throttled progress lines to stderr.
+
 type progressReporter struct {
 	app      *App
 	state    string
@@ -173,12 +173,12 @@ func (p *progressReporter) counters(state string, c api.JobCounters) {
 	p.app.progress("%s: %d/%d finished, %d unresolved", state, c.Finished, c.Total, c.Unresolved)
 }
 
-// accessOutcomes are item outcomes meaning provider access is missing or was
-// rejected (the provider handlers' credential_required and credentials_invalid).
+
+
 var accessOutcomes = []string{"credential_required", "credentials_invalid"}
 
-// jobExit maps a finished job to the exit code contract. Missing or rejected
-// provider access wins over unresolved items.
+
+
 func jobExit(job *api.Job) error {
 	var parts []string
 	for _, outcome := range accessOutcomes {
@@ -205,13 +205,13 @@ func jobExit(job *api.Job) error {
 	}
 }
 
-// interruptedWait tells the user how to find the job again.
+
 func (a *App) interruptedWait(id api.Uuid) error {
 	fmt.Fprintf(a.Stderr, "Stopped waiting. Job %s keeps running; inspect it with 'domain-scout jobs show %s'.\n", id, id)
 	return &exitError{code: ExitInterrupted, note: true}
 }
 
-// jobResults fetches every result page of a job as one envelope.
+
 func (c *apiClient) jobResults(ctx context.Context, id api.Uuid, params api.ListJobResultsParams) ([]byte, error) {
 	limit := 1000
 	params.Limit = &limit
@@ -224,16 +224,16 @@ func (c *apiClient) jobResults(ctx context.Context, id api.Uuid, params api.List
 	})
 }
 
-// submit sends a job-creating request that carries an Idempotency-Key, so
-// connection failures are retried safely. Without wait it prints the job
-// envelope (exit 0 confirms submission only). With wait it observes the job,
-// prints all results and returns the job's exit code.
+
+
+
+
 func (a *App) submit(ctx context.Context, wait bool, fn callFn) error {
 	return a.submitWith(ctx, wait, true, fn)
 }
 
-// submitOnce is submit for operations without an Idempotency-Key; they are
-// never retried automatically.
+
+
 func (a *App) submitOnce(ctx context.Context, wait bool, fn callFn) error {
 	return a.submitWith(ctx, wait, false, fn)
 }

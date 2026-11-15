@@ -10,7 +10,7 @@ export const RegistryOutcome = z
   });
 export type RegistryOutcome = z.infer<typeof RegistryOutcome>;
 
-/** Outcomes that answer the question "is there a registration record". Everything else is unresolved. */
+
 export const RESOLVED_OUTCOMES: readonly RegistryOutcome[] = ['registered', 'no_record'];
 
 export const EligibilityStatus = z

@@ -1,6 +1,6 @@
 import type { Offer } from '@domain-scout/contracts';
 
-/** Compares non-negative decimal strings exactly (no floats). */
+
 export function compareDecimal(a: string, b: string): number {
   const [ai = '0', af = ''] = a.split('.');
   const [bi = '0', bf = ''] = b.split('.');
@@ -14,11 +14,11 @@ export function compareDecimal(a: string, b: string): number {
   return aFrac === bFrac ? 0 : aFrac < bFrac ? -1 : 1;
 }
 
-/**
- * Lowest known new-registration offer among comparable ones: same currency and same term. One-year
- * terms are preferred, then the largest comparable group. Unknown amounts are never treated as zero,
- * and offers with different terms or currencies are never ranked against each other.
- */
+
+
+
+
+
 export function lowestRegistrationOffer(offers: Offer[]): Offer | null {
   const priced = offers.filter((o) => o.purchasePath === 'new_registration' && o.registration.amount !== null);
   if (priced.length === 0) return null;
@@ -52,7 +52,7 @@ function fromScaled(value: bigint, scale: number): string {
   return `${negative ? '-' : ''}${int}${frac}`;
 }
 
-/** Exact sum of decimal strings (no floats). */
+
 export function addDecimal(...values: string[]): string {
   const scale = Math.max(0, ...values.map(scaleOf));
   return fromScaled(
@@ -61,16 +61,16 @@ export function addDecimal(...values: string[]): string {
   );
 }
 
-/** Exact product of a decimal string and a whole number. */
+
 export function multiplyDecimal(value: string, times: number): string {
   const scale = scaleOf(value);
   return fromScaled(toScaled(value, scale) * BigInt(times), scale);
 }
 
-/**
- * First-year price plus the yearly renewal for the remaining years: the same estimate GET /prices
- * returns. Null when the renewal is unknown or not yearly.
- */
+
+
+
+
 export function horizonEstimate(registration: string | null, registrationYears: number, renewal: string | null, renewalYears: number, horizon: number): string | null {
   if (registration === null) return null;
   const extra = horizon - registrationYears;

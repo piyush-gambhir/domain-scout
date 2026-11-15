@@ -9,15 +9,15 @@ import {
 } from '@domain-scout/contracts';
 
 export interface ClientOptions {
-  /** Origin of the backend or of the web server that forwards /api/v1, e.g. http://127.0.0.1:4317. Empty for same-origin. */
+
   baseUrl?: string;
   fetch?: typeof fetch;
-  /** Extra headers per request, e.g. Authorization or the CSRF token. */
+
   headers?: () => Record<string, string>;
   credentials?: "include" | "omit" | "same-origin";
 }
 
-/** Error thrown for non-2xx responses. `body` follows the ErrorResponse contract when the backend produced it. */
+
 export class ApiRequestError extends Error {
   constructor(
     readonly status: number,
@@ -64,7 +64,7 @@ export function createClient(options: ClientOptions = {}) {
   ): Promise<OperationResponse<Op>> {
     const def = routes[operationId];
     if ('produces' in def && def.produces === 'sse') {
-      // A stream never finishes as JSON; use url() with EventSource or a dedicated SSE reader.
+
       throw new Error(`${operationId} is a server-sent event stream; open client.url('${operationId}') instead`);
     }
     const a = (rest[0] ?? {}) as AnyArgs;

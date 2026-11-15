@@ -1,8 +1,8 @@
-// Container entry point: runs the backend (loopback only, inside the container) and the web server
-// (the only published port), prints a sign-in URL, and stops both gracefully on SIGTERM.
-//
-//   node container-start.mjs              start everything (Docker CMD)
-//   node container-start.mjs --print-url  print a fresh sign-in URL for the running app
+
+
+
+
+
 import { spawn } from 'node:child_process';
 import { readFileSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 const home = dirname(fileURLToPath(import.meta.url));
 const dataDir = process.env.DOMAIN_SCOUT_DATA_DIR ?? '/data';
 const backendPort = Number(process.env.DOMAIN_SCOUT_PORT ?? 4317);
-// The port the browser uses on the host; it decides the Origin the backend must accept.
+
 const publicPort = Number(process.env.DOMAIN_SCOUT_PUBLIC_PORT ?? 3000);
 const backendUrl = `http://127.0.0.1:${backendPort}`;
 const publicUrl = `http://localhost:${publicPort}`;
@@ -46,8 +46,8 @@ async function waitFor(url, timeoutMs) {
   return false;
 }
 
-// A fresh container cannot have a live backend for this volume, but a lock left by the previous
-// container can name a pid that is reused here, so clear transient runtime state first.
+
+
 for (const file of ['backend.lock', 'backend.lock.recover', 'run/backend.json', 'run/web.json']) {
   rmSync(join(dataDir, file), { force: true, recursive: true });
 }
@@ -59,7 +59,7 @@ const backend = spawn(
     join(home, 'lib/backend/dist/main.js'),
     '--data-dir', dataDir,
     '--port', String(backendPort),
-    // The container lives as long as the backend, so it never stops itself when idle.
+
     '--idle-timeout', '0',
     ...origins.flatMap((o) => ['--web-origin', o]),
   ],

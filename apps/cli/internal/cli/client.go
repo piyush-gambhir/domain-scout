@@ -20,15 +20,15 @@ import (
 
 func probeClient() *http.Client { return &http.Client{Timeout: 5 * time.Second} }
 
-// apiClient wraps the generated client with auth, timeouts, error mapping
-// and raw body access so JSON output stays verbatim. It is safe for
-// concurrent use (MCP tool calls).
+
+
+
 type apiClient struct {
 	timeout time.Duration
 	hc      *http.Client
 	version string
-	// revive replaces a backend that stopped (idle) or is stopping; nil with
-	// --backend-url. It returns the new backend's URL, token and instance id.
+
+
 	revive   func(ctx context.Context, gone string) (base, token, instance string, err error)
 	reviveMu sync.Mutex
 
@@ -37,10 +37,10 @@ type apiClient struct {
 	token    string
 	instance string
 	gen      *api.Client
-	epoch    int // bumped by every revive
+	epoch    int
 }
 
-// callFn invokes one generated client method.
+
 type callFn func(ctx context.Context, g *api.Client) (*http.Response, error)
 
 type response struct {
@@ -50,9 +50,9 @@ type response struct {
 }
 
 func newAPIClient(base, token, instance string, timeout time.Duration, version string) *apiClient {
-	// No client-wide timeout: event streams are long lived. Requests get a
-	// per-call deadline; waiting for response headers (including a stream's)
-	// is bounded separately so a silent backend cannot hang a wait.
+
+
+
 	tr := http.DefaultTransport.(*http.Transport).Clone()
 	tr.ResponseHeaderTimeout = timeout
 	c := &apiClient{timeout: timeout, hc: &http.Client{Transport: tr}, version: version, base: base, token: token, instance: instance}
@@ -68,7 +68,7 @@ func (c *apiClient) newGen(base string) *api.Client {
 			c.mu.RUnlock()
 		}
 		req.Header.Set("User-Agent", "domain-scout-cli/"+c.version)
-		// Lets History tell agent (CLI) runs apart from searches started in the UI.
+
 		req.Header.Set("X-Domain-Scout-Client", "cli")
 		return nil
 	}
@@ -76,22 +76,22 @@ func (c *apiClient) newGen(base string) *api.Client {
 	return gen
 }
 
-// current returns the generated client and its revive epoch.
+
 func (c *apiClient) current() (*api.Client, int) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.gen, c.epoch
 }
 
-// baseURL is the backend URL currently in use.
+
 func (c *apiClient) baseURL() string {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.base
 }
 
-// reconnect revives the backend once per failure: callers that failed on an
-// epoch another call has already revived simply retry.
+
+
 func (c *apiClient) reconnect(ctx context.Context, failed int) error {
 	c.reviveMu.Lock()
 	defer c.reviveMu.Unlock()
@@ -113,14 +113,14 @@ func (c *apiClient) reconnect(ctx context.Context, failed int) error {
 	return nil
 }
 
-// backendGone reports a request the backend never handled because it had
-// stopped (nothing listening) or was stopping, so a retry cannot repeat work.
+
+
 func backendGone(err error) bool {
 	var e *exitError
 	return errors.As(err, &e) && e.gone
 }
 
-// stoppingMessage is the backend's refusal while it stops (AuthGuard and the jobs engine).
+
 const stoppingMessage = "The backend is stopping"
 
 func isDialError(err error) bool {
@@ -141,9 +141,9 @@ func (c *apiClient) transportErr(parent, rctx context.Context, err error) error 
 	return e
 }
 
-// do performs one request and returns the body of a 2xx response or a typed
-// error for anything else. A backend that stopped itself when idle (or is
-// stopping) is replaced and the request sent once more.
+
+
+
 func (c *apiClient) do(ctx context.Context, fn callFn) (*response, error) {
 	gen, epoch := c.current()
 	res, err := c.doOnce(ctx, gen, fn)
@@ -179,8 +179,8 @@ func (c *apiClient) doOnce(ctx context.Context, gen *api.Client, fn callFn) (*re
 	return &response{status: resp.StatusCode, header: resp.Header, body: body}, nil
 }
 
-// doIdempotent retries connection failures. Callers pass the same
-// Idempotency-Key on every attempt so the backend never duplicates work.
+
+
 func (c *apiClient) doIdempotent(ctx context.Context, fn callFn) (*response, error) {
 	var lastErr error
 	for attempt := 0; attempt < 3; attempt++ {
@@ -202,7 +202,7 @@ func (c *apiClient) doIdempotent(ctx context.Context, fn callFn) (*response, err
 	return nil, lastErr
 }
 
-// download streams a 2xx body to w.
+
 func (c *apiClient) download(ctx context.Context, fn callFn, w io.Writer) error {
 	rctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
@@ -225,7 +225,7 @@ func (c *apiClient) download(ctx context.Context, fn callFn, w io.Writer) error 
 	return nil
 }
 
-// pageEnvelope is the paginated list envelope with items kept verbatim.
+
 type pageEnvelope struct {
 	ContractVersion string            `json:"contractVersion"`
 	Data            []json.RawMessage `json:"data"`
@@ -233,7 +233,7 @@ type pageEnvelope struct {
 	Total           *int              `json:"total"`
 }
 
-// all follows nextCursor until the end and returns one combined envelope.
+
 func (c *apiClient) all(ctx context.Context, start *string, fn func(cursor *string) callFn) ([]byte, error) {
 	combined := pageEnvelope{Data: []json.RawMessage{}}
 	cursor := start
@@ -274,7 +274,7 @@ func (c *apiClient) getJob(ctx context.Context, id api.Uuid) (*api.Job, []byte, 
 	return &jr.Data, res.body, nil
 }
 
-// openEvents returns an sse.Stream opener for GET /events with params.
+
 func (c *apiClient) openEvents(params api.StreamEventsParams) func(ctx context.Context, lastID string) (io.ReadCloser, error) {
 	return func(ctx context.Context, lastID string) (io.ReadCloser, error) {
 		gen, _ := c.current()
@@ -294,10 +294,10 @@ func (c *apiClient) openEvents(params api.StreamEventsParams) func(ctx context.C
 			switch {
 			case resp.StatusCode == http.StatusNotFound, resp.StatusCode == http.StatusMethodNotAllowed,
 				resp.StatusCode == http.StatusNotAcceptable, resp.StatusCode == http.StatusNotImplemented:
-				// No stream here: callers fall back to polling.
+
 				return nil, fmt.Errorf("%w: HTTP %d", sse.ErrUnsupported, resp.StatusCode)
 			case resp.StatusCode < 500 && resp.StatusCode != http.StatusTooManyRequests:
-				// Request or auth failures keep their ErrorResponse and exit code.
+
 				return nil, sse.Permanent(apiError(resp.StatusCode, body))
 			}
 			return nil, fmt.Errorf("event stream returned HTTP %d", resp.StatusCode)
@@ -310,7 +310,7 @@ func (c *apiClient) openEvents(params api.StreamEventsParams) func(ctx context.C
 	}
 }
 
-// newIdempotencyKey returns a random key reused across retries of one submission.
+
 func newIdempotencyKey() string {
 	var b [16]byte
 	_, _ = rand.Read(b[:])

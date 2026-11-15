@@ -13,7 +13,7 @@ import { hashString } from '@/lib/utils';
 export type Format = 'auto' | 'lines' | 'csv';
 export type SearchMode = 'names' | 'ideas';
 
-/** Advanced choices behind "Options". Defaults mean: detect the format, reuse recent results, label automatically. */
+
 export interface SearchOptions {
   format: Format;
   csvColumn: string;
@@ -29,10 +29,10 @@ export function optionsChanged(options: SearchOptions): number {
 
 export const FALLBACK_EXTENSIONS = DEFAULT_SETTINGS.search.defaultExtensions;
 
-/**
- * The remembered extension set (settings.search.defaultExtensions), shared with the CLI. `remember`
- * saves a user's change after a short pause so quick edits make one request.
- */
+
+
+
+
 export function useDefaultExtensions() {
   const settings = useSettings();
   const patch = usePatchSettings();
@@ -54,7 +54,7 @@ export function useDefaultExtensions() {
   );
   useEffect(
     () => () => {
-      // Leaving the page still saves the last change.
+
       if (timer.current) clearTimeout(timer.current);
       if (pending.current) mutate({ search: { defaultExtensions: pending.current } });
     },
@@ -63,7 +63,7 @@ export function useDefaultExtensions() {
   return { value: settings.data?.search.defaultExtensions ?? null, loaded: settings.isSuccess || settings.isError, remember };
 }
 
-/** A readable label for History when the user gives none: the names typed, or the file name. */
+
 export function autoLabel(text: string, fileName: string | null): string | undefined {
   if (fileName) return fileName.slice(0, 200);
   const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
@@ -77,7 +77,7 @@ export function autoLabel(text: string, fileName: string | null): string | undef
   return (tokens.length > 5 ? `${head} and ${tokens.length - 5} more` : head).slice(0, 200);
 }
 
-/** Local parse of what a search would check. Nothing leaves the machine. */
+
 export function useInputPreview(text: string, options: SearchOptions, extensions: string[], enabled = true) {
   const request = useMemo(
     () => ({ text, format: options.format, csvColumn: options.format === 'csv' ? options.csvColumn.trim() : '', extensions }),
@@ -108,11 +108,11 @@ export interface SubmitInput {
   extensions: string[];
   options: SearchOptions;
   fileName: string | null;
-  /** Query string for the results view, e.g. a restored filter. */
+
   resultsQuery?: string;
 }
 
-/** Starts a registry search and opens its results. */
+
 export function useSubmitSearch() {
   const router = useRouter();
   const client = useQueryClient();
@@ -131,7 +131,7 @@ export function useSubmitSearch() {
         recheck: input.options.recheck,
       };
       const job = (await api.call('createJob', { body, idempotencyKey: idempotency.keyFor(body) })).data;
-      // The create response omits the input text; keep what was typed so the results bar shows it.
+
       const withText = { ...job, input: { ...job.input, text: job.input.text ?? input.text, format: job.input.format ?? body.input.format, csvColumn: job.input.csvColumn ?? body.input.csvColumn ?? null } };
       return { job: withText, resultsQuery: input.resultsQuery ?? '' };
     },
@@ -149,7 +149,7 @@ export function useSubmitSearch() {
 const TEXT_TYPES = /\.(txt|csv|tsv|list)$/i;
 export const MAX_TEXT = 5_000_000;
 
-/** Reads a dropped or chosen file as search text. CSV files switch the format to CSV. */
+
 export async function readSearchFile(file: File): Promise<{ text: string; format: Format; fileName: string } | { error: string }> {
   if (file.size > MAX_TEXT) return { error: 'That file is larger than 5 MB.' };
   if (!TEXT_TYPES.test(file.name) && !file.type.startsWith('text/')) return { error: 'Use a TXT or CSV file.' };

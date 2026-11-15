@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import type { Job } from '@domain-scout/contracts';
 import { qk } from '@/lib/queries';
 
-/** Toast for a submitted job with a shortcut to its progress page. */
+
 export function useJobStarted() {
   const router = useRouter();
   const client = useQueryClient();

@@ -24,7 +24,7 @@ updates:
       docker-images:
         patterns: ['*']
     ignore:
-      # Digest refreshes only: Node and Go versions move by hand with .nvmrc and apps/cli/go.mod.
+
       - dependency-name: '*'
         update-types: ['version-update:semver-major', 'version-update:semver-minor', 'version-update:semver-patch']
   - package-ecosystem: npm

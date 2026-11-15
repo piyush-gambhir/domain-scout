@@ -40,7 +40,7 @@ export class AppModule {
       ],
       providers: [
         { provide: APP_FILTER, useClass: AppExceptionFilter },
-        // Local auth for every route; see runtime/auth.guard.ts.
+
         { provide: APP_GUARD, useClass: AuthGuard },
       ],
     };

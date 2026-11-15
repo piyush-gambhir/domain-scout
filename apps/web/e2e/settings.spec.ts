@@ -4,9 +4,9 @@ import { expect, test } from './fixtures';
 import { mockPriceHistory, mockSettings } from './page-fixtures';
 import { EARLIER, NOW, PHONE, SETTINGS, mockApi, ok, pageOverflow, paged, uuid } from './mock-api';
 
-// Settings writes go to an in-memory fixture: the real backend is shared by parallel specs, and a
-// saved theme or concurrency change would leak into them. Coverage, health and capabilities are
-// read from the real backend. Coverage refresh (IANA), data deletion and service stop are fixtures.
+
+
+
 
 test('settings sections are pages of their own, Providers first', async ({ page }) => {
   await mockSettings(page);
@@ -243,7 +243,7 @@ test.describe('at 375px', () => {
   test.use({ viewport: PHONE });
   test('settings sections fit without sideways scrolling', async ({ page }) => {
     await mockSettings(page);
-    // Wait for each section's loaded content, not its heading, before measuring.
+
     const loaded: Record<string, (p: Page) => ReturnType<Page['getByText']>> = {
       checks: (p) => p.getByLabel('Checks in flight'),
       preferences: (p) => p.getByLabel('Ownership horizon'),
@@ -251,7 +251,7 @@ test.describe('at 375px', () => {
       exports: (p) => p.getByText('No snapshots.'),
       coverage: (p) => p.getByTestId('coverage-row').first(),
       data: (p) => p.getByRole('button', { name: 'Delete selected data' }),
-      // Health and capabilities load separately; the protocol fact appears only with health data.
+
       service: (p) => p.getByRole('region', { name: 'Service' }).getByText('Protocol', { exact: true }),
     };
     for (const [section, locate] of Object.entries(loaded)) {
@@ -263,9 +263,9 @@ test.describe('at 375px', () => {
   });
 });
 
-/* Price history lives under Settings now; domain panels link here for one extension. */
 
-/** Picks a format from an export menu and returns the downloaded file's name and text. */
+
+
 async function exportAs(page: Page, menu: string, format: 'JSON' | 'CSV'): Promise<{ name: string; text: string }> {
   await page.getByRole('button', { name: menu }).click();
   const download: Promise<Download> = page.waitForEvent('download');
@@ -281,7 +281,7 @@ test('price history shows each comparable series with gaps left as gaps', async 
   await expect(series).toHaveCount(2);
   const first = series.filter({ hasText: 'Porkbun' });
   await expect(first).toContainText('New registration · Published · USD · No region · 1 yr term · Standard');
-  // Two separate line segments: the line never bridges the gap or the unknown amount.
+
   await expect(first.getByTestId('price-segment')).toHaveCount(2);
   await expect(first.getByTestId('price-gap')).toHaveCount(1);
   await expect(first).toContainText('No observations from');
@@ -319,7 +319,7 @@ test('exports the shown price series as JSON and points as CSV, named by scope',
   const lines = csv.text.trimEnd().split('\r\n');
   expect(lines[0]).toBe('seriesKey,providerId,scope,purchasePath,currency,region,termYears,promotional,offerId,observedAt,kind,registration,renewal,transfer');
   expect(lines).toHaveLength(7);
-  // An unknown amount stays blank, never zero.
+
   expect(lines[5]).toMatch(/,2026-09-22T00:00:00\.000Z,published,,11\.08,8\.00$/);
   for (const text of [json.text, csv.text]) {
     for (const cookie of await context.cookies()) expect(text).not.toContain(cookie.value);

@@ -24,7 +24,7 @@ describe('provider credentials (R09)', () => {
   });
   afterAll(async () => {
     vi.restoreAllMocks();
-    // Nothing logged during the lifecycle may contain a secret.
+
     expect(logged.join('\n')).not.toContain(SECRET);
     await t.close();
   });
@@ -55,7 +55,7 @@ describe('provider credentials (R09)', () => {
     expect(p.credentials).toMatchObject({ configured: true, storage: 'session', storageLocation: null });
     expect(p.readiness).toBe('ready');
     expect(existsSync(join(t.config.dataDir, 'credentials.json'))).toBe(false);
-    // Not in SQLite either.
+
     const db = t.app.get(Database);
     const dump = db.all('SELECT * FROM providers').map((r) => JSON.stringify(r)).join('\n') + db.all('SELECT * FROM settings').map((r) => JSON.stringify(r)).join('\n');
     expect(dump).not.toContain(SECRET);
@@ -106,7 +106,7 @@ describe('provider credentials (R09)', () => {
     t.env.DOMAIN_SCOUT_PORKBUN_SECRET_API_KEY = 'sk1_env_secret_0001';
     expect((await provider()).credentials.storage).toBe('env');
     const res = await t.api.delete('/providers/porkbun/credentials').expect(200);
-    // Environment variables cannot be removed from the app; they stay the active source.
+
     expect(res.body.data.credentials.storage).toBe('env');
     expect(JSON.parse(readFileSync(join(t.config.dataDir, 'credentials.json'), 'utf8')).providers.porkbun).toBeUndefined();
     delete t.env.DOMAIN_SCOUT_PORKBUN_API_KEY;

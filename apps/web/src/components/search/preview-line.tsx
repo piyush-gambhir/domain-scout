@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { Kbd } from '../ui/kbd';
 
-/** What Enter would check, computed locally: "12 checks", plus rows that need attention. */
+
 export function PreviewLine({ preview, stale, has, className }: { preview: InputPreview | undefined; stale: boolean; has: boolean; className?: string }) {
   if (!has) return null;
   const counts = preview?.counts;
@@ -26,7 +26,7 @@ export function PreviewLine({ preview, stale, has, className }: { preview: Input
   );
 }
 
-/** Rows the search would skip or that need a choice, with the suggested fix where one exists. */
+
 export function ProblemRows({ rows, onUseSuggestion }: { rows: InputPreviewRow[]; onUseSuggestion: (row: InputPreviewRow) => (() => void) | undefined }) {
   if (rows.length === 0) return null;
   return (

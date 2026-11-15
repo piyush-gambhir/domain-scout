@@ -95,7 +95,7 @@ function SavedSearch({ criteria, onDelete }: { criteria: SavedCriteria; onDelete
   );
 }
 
-/** Lists, the owned-domains view and saved searches, one click each. */
+
 function Switcher({ collections, activeId, owned }: { collections: Collection[]; activeId: string | null; owned: boolean }) {
   const router = useRouter();
   const client = useQueryClient();
@@ -155,10 +155,10 @@ function Switcher({ collections, activeId, owned }: { collections: Collection[];
   );
 }
 
-/**
- * The decision workspace. /saved opens the default list, /saved/[id] a list, /saved/owned the
- * domains you already own.
- */
+
+
+
+
 export function SavedPage({ listId, owned = false }: { listId?: string; owned?: boolean }) {
   const router = useRouter();
   const pathname = usePathname();

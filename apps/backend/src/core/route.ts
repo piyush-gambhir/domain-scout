@@ -17,11 +17,11 @@ import { AppError, zodDetails } from './errors.js';
 
 export const ROUTE_OPERATION = 'domain-scout:operation';
 
-/**
- * Binds a controller method to a contract operation: HTTP method, path and success status come from
- * `routes` in @domain-scout/contracts, so the server cannot drift from the published OpenAPI document.
- * Controllers must be mounted at the root (`@Controller()`); the global prefix adds /api/v1.
- */
+
+
+
+
+
 export function ApiRoute(operationId: OperationId) {
   const def = routes[operationId];
   const method = { get: Get, post: Post, put: Put, patch: Patch, delete: Delete }[def.method];
@@ -31,7 +31,7 @@ export function ApiRoute(operationId: OperationId) {
 
 type Out<T> = T extends z.ZodType ? z.output<T> : undefined;
 
-/** Validated request parts for an operation. */
+
 export type RouteInput<Op extends OperationId> = {
   params: Routes[Op] extends { params: infer P } ? Out<P> : undefined;
   query: Routes[Op] extends { query: infer Q } ? Out<Q> : undefined;
@@ -47,7 +47,7 @@ function parsePart(schema: z.ZodType | undefined, value: unknown, part: string) 
   return result.data;
 }
 
-/** Param decorator returning `{ params, query, body }` validated against the operation's schemas. */
+
 export const ApiInput = createParamDecorator((_data: unknown, ctx: ExecutionContext) => {
   const operationId = Reflect.getMetadata(ROUTE_OPERATION, ctx.getHandler()) as OperationId | undefined;
   if (!operationId) throw new Error('@ApiInput() requires @ApiRoute() on the same handler');

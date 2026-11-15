@@ -31,16 +31,16 @@ names to the selected providers. no_record means no registry record.`
 	return cmd
 }
 
-// MCP owns the transport, not the process's stdout.
+
 type mcpWriter struct{ io.Writer }
 
 func (mcpWriter) Close() error { return nil }
 
 type mcpAdapter struct {
 	app *App
-	// Tool calls may arrive concurrently; initialize the shared client once.
+
 	mu sync.Mutex
-	// Serializes find-or-create by shortlist name so concurrent adds share one list.
+
 	shortlistMu sync.Mutex
 }
 
@@ -284,7 +284,7 @@ func (a *mcpAdapter) submit(ctx context.Context, c *apiClient, wait *bool, timeo
 	if err != nil {
 		return timeoutResult(err, res.body)
 	}
-	// One page keeps large scans out of the agent's context; job_results filters and pages the rest.
+
 	limit := mcpWaitResults
 	results, err := c.do(waitCtx, func(ctx context.Context, g *api.Client) (*http.Response, error) {
 		return g.ListJobResults(ctx, jr.Data.Id, &api.ListJobResultsParams{Limit: &limit})

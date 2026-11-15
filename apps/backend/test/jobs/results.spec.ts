@@ -7,7 +7,7 @@ import { createJobsApp, fakeHandler, registryResult, type JobsTestApp } from './
 
 const HOUR = 3_600_000;
 
-/** A published catalog price (suffix-level offer) plus the best_prices row derived from it. */
+
 function publishedPrice(t: JobsTestApp, suffix: string, currency: string, amount: string, observedAt: string): string {
   const id = randomUUID();
   const staleAt = new Date(Date.parse(observedAt) + 24 * HOUR).toISOString();
@@ -228,7 +228,7 @@ describe('job results', () => {
     await check('maxLength=2', ['ab.com', 'c.com']);
     await check('maxPrice=12', ['ab.com', 'mmmm.dev', 'c.com']);
     await check('maxPrice=9.5&priceCurrency=EUR', ['ab.com', 'c.com']);
-    // Returned prices use the same currency as the filter.
+
     expect((await get('priceCurrency=EUR&sort=price')).data.map((i) => i.bestPrice?.amount ?? null)).toEqual(['9.00', '9.00', null, null, null]);
     await check(`collectionId=${collectionId}`, ['ab.com']);
     await check('inCollection=true', ['ab.com']);
@@ -246,8 +246,8 @@ describe('job results', () => {
   });
 
   it('filters registry rows by the newest provider confirmation for their domain (S01)', async () => {
-    // Registry items carry no confirmation of their own; the provider-check job confirmed ab.com
-    // available and c.com unavailable.
+
+
     const check = async (query: string, job: string, expected: string[]) => {
       const page = JobItemListResponse.parse((await t.api.get(`/jobs/${job}/results?${query}`).expect(200)).body);
       expect(subjects(page.data), query).toEqual(expected);
@@ -257,7 +257,7 @@ describe('job results', () => {
     await check('confirmations=unavailable', jobId, ['c.com']);
     await check('confirmations=unknown', jobId, []);
     await check('confirmations=available&outcomes=no_record&sort=domain&order=desc', jobId, ['ab.com']);
-    // Sorting uses the same evidence rule: available before unavailable, unconfirmed rows last.
+
     const bySort = async (query: string) =>
       subjects(JobItemListResponse.parse((await t.api.get(`/jobs/${jobId}/results?${query}`).expect(200)).body).data);
     expect((await bySort('sort=confirmation')).slice(0, 2)).toEqual(['ab.com', 'c.com']);
@@ -268,8 +268,8 @@ describe('job results', () => {
     );
     expect([...subjects(paged.data), ...subjects(second.data)]).toEqual(['ab.com', 'c.com']);
 
-    // A newer confirmation from another provider supersedes the older one for registry rows, while
-    // provider-check items keep matching on the evidence they recorded themselves.
+
+
     const id = randomUUID();
     const at = new Date(t.clock.now().getTime() + 60_000).toISOString();
     const staleAt = new Date(Date.parse(at) + 900_000).toISOString();
@@ -288,7 +288,7 @@ describe('job results', () => {
     await check('confirmations=available', jobId, []);
     await check('confirmations=unavailable', jobId, ['ab.com', 'c.com']);
     await check('confirmations=available', checkJobId, ['ab.com']);
-    // Unresolved and unconfirmed rows stay countable through the other filters.
+
     await check('resolved=false', jobId, ['mmmm.dev']);
   });
 

@@ -58,7 +58,7 @@ const MAX_BULK_DOMAINS = 10_000;
 
 type DialogName = 'shortlist' | 'providers' | 'names' | 'diagnostics' | 'watch' | 'criteria' | null;
 
-/** Outcome counts that double as filter toggles; they sit inline in the page header. */
+
 function OutcomeChips({ job, activeOutcomes, onOutcome }: { job: Job; activeOutcomes: string[]; onOutcome: (outcome: string) => void }) {
   const operation = JOB_OPERATION[job.type];
   const outcomes = Object.entries(job.counters.outcomes).filter(([, count]) => count > 0);
@@ -87,7 +87,7 @@ function OutcomeChips({ job, activeOutcomes, onOutcome }: { job: Job; activeOutc
   );
 }
 
-/** Thin progress line under the header, only while the job runs. */
+
 function ProgressLine({ job }: { job: Job }) {
   const { counters } = job;
   const percent = counters.total ? Math.round((counters.finished / counters.total) * 1000) / 10 : 0;
@@ -105,7 +105,7 @@ function ProgressLine({ job }: { job: Job }) {
   );
 }
 
-/** "3 destinations" that opens the list of hosts this job sends names to. */
+
 function Destinations({ destinations }: { destinations: string[] }) {
   if (destinations.length === 0) return null;
   return (
@@ -143,12 +143,12 @@ export function JobView({ jobId }: { jobId: string }) {
   const job = useLiveJob(jobId);
   const filter = useMemo(() => filterFromParams(new URLSearchParams(searchParams.toString())), [searchParams]);
   const filterKey = JSON.stringify(filter);
-  // Providers chosen with restored criteria; they preselect provider requests and saved criteria.
+
   const selectedProviders = useMemo(() => providersFromParams(new URLSearchParams(searchParams.toString())), [searchParams]);
   const detailName = searchParams.get('d');
   const running = job.data ? !isTerminal(job.data) : false;
   const operation = job.data ? JOB_OPERATION[job.data.type] : 'registry';
-  // Name checks are about names and catalog refreshes about providers; neither has domain subjects.
+
   const domainJob = job.data?.type !== 'name_check' && job.data?.type !== 'catalog_refresh';
 
   const setUrl = useCallback((params: URLSearchParams) => {
@@ -179,7 +179,7 @@ export function JobView({ jobId }: { jobId: string }) {
   });
   const rows = useMemo(() => results.data?.pages.flatMap((page) => page.data) ?? [], [results.data]);
 
-  // Whether the stream or polling saw it, a job reaching a terminal state gets one final results refetch.
+
   const jobState = job.data?.state;
   const previousJobState = useRef<string | undefined>(undefined);
   useEffect(() => {
@@ -190,7 +190,7 @@ export function JobView({ jobId }: { jobId: string }) {
     if (previous && previous !== jobState) {
       void client.invalidateQueries({ queryKey: qk.jobResults(jobId) });
     } else if (!previous) {
-      // First sighting is already terminal: refetch only if the rows were loaded before it.
+
       const jobUpdated = client.getQueryState(qk.job(jobId))?.dataUpdatedAt ?? 0;
       const stale = client
         .getQueryCache()
@@ -205,7 +205,7 @@ export function JobView({ jobId }: { jobId: string }) {
   const selectedCount = selection.count(total);
   const collections = useCollections();
 
-  // "/" focuses the result search when not typing elsewhere.
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) return;
@@ -218,7 +218,7 @@ export function JobView({ jobId }: { jobId: string }) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  /** All matching items for the current selection, paging through the filter in all-matching mode. */
+
   const resolveItems = useCallback(async (): Promise<JobItem[]> => {
     if (selection.mode === 'ids') return selection.explicitItems;
     const items: JobItem[] = [];
@@ -260,8 +260,8 @@ export function JobView({ jobId }: { jobId: string }) {
     },
   });
 
-  // Saving stores the filter as shown plus chosen providers and budget; nothing runs. The price cap
-  // is saved as the budget (prefilled from it), so clearing the budget removes the cap.
+
+
   const saveCriteria = useMutation({
     mutationFn: async (choice: { name: string; providerIds: string[]; budget: { amount: string; currency: string } | null }) => {
       const input = job.data?.input;
@@ -447,7 +447,7 @@ export function JobView({ jobId }: { jobId: string }) {
             </>
           }
         >
-          {/* Key numbers and the outcome breakdown at body size; type, times and destinations muted after them. */}
+
           <dl className="flex items-center gap-x-3 text-sm text-muted-foreground" data-testid="job-counters">
             <div className="flex items-baseline gap-1">
               <dt className="sr-only">Completed</dt>
@@ -520,7 +520,7 @@ export function JobView({ jobId }: { jobId: string }) {
           count={total === null ? plural(rows.length, 'result') : plural(total, 'result')}
         />
 
-        {/* Below lg the page scrolls; the table keeps a window-tall pane of its own. */}
+
         <div className="@container/pane relative flex min-h-0 flex-1 flex-col max-lg:h-[calc(100dvh-4rem)] max-lg:flex-none">
           {results.isError ? (
             <ErrorState error={results.error} onRetry={() => results.refetch()} />
@@ -531,7 +531,7 @@ export function JobView({ jobId }: { jobId: string }) {
           ) : (
             <div
               className={cn('flex min-h-0 flex-1 flex-col transition-opacity', results.isPlaceholderData && 'opacity-60')}
-              // Rows from the previous filter stay visible while the new one loads, but cannot be acted on.
+
               inert={results.isPlaceholderData}
               aria-busy={results.isPlaceholderData}
             >
@@ -557,7 +557,7 @@ export function JobView({ jobId }: { jobId: string }) {
               aria-label="Selected results"
               className={cn(
                 'z-30 flex max-w-[calc(100%-1rem)] flex-nowrap items-center gap-0.5 overflow-x-auto rounded-xl bg-popover p-1.5 shadow-[0_8px_40px_rgb(0_0_0/0.18)] dark:shadow-[0_8px_40px_rgb(0_0_0/0.7)]',
-                // Floats over the bottom of the table pane, centered on it, so it never covers the docked panel.
+
                 'absolute bottom-3 left-1/2 -translate-x-1/2 max-lg:fixed max-lg:bottom-4 max-lg:max-w-[calc(100vw-1.5rem)] md:max-lg:left-[calc(50%+var(--sidebar-width)/2)]',
               )}
             >
@@ -662,7 +662,7 @@ function JobsCrumb() {
   );
 }
 
-/** Icon plus label; the label hides when the table pane is narrow (a docked panel is open) and stays the accessible name. */
+
 function ToolbarButton({ label, children, ...props }: { label: string; children: React.ReactNode } & Omit<React.ComponentProps<typeof Button>, 'children'>) {
   return (
     <Button size="sm" variant="ghost" className="px-2 @2xl/pane:px-2.5" {...props}>

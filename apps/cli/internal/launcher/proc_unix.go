@@ -8,13 +8,13 @@ import (
 	"syscall"
 )
 
-// detach starts the child in its own session so terminal signals (Ctrl-C)
-// and the CLI exiting do not stop it.
+
+
 func detach(cmd *exec.Cmd) {
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 }
 
-// ProcessAlive reports whether a process with pid exists.
+
 func ProcessAlive(pid int) bool {
 	if pid <= 0 {
 		return false

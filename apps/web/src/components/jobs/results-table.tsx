@@ -15,7 +15,7 @@ import { Checkbox } from '../ui/checkbox';
 import { Skeleton } from '../ui/skeleton';
 import type { Selection } from './selection';
 
-/** Matches --spacing-row (h-row) in globals.css. */
+
 const ROW_HEIGHT = 36;
 const HEADER_HEIGHT = 32;
 
@@ -28,10 +28,10 @@ export interface ResultsTableProps {
   selection: Selection;
   activeId: string | null;
   showTarget: boolean;
-  /** Rows whose subject is a domain open the detail panel; name-check rows do not. */
+
   canOpen: (item: JobItem) => boolean;
   onOpen: (item: JobItem) => void;
-  /** Extra space after the last row, e.g. under a floating selection toolbar. */
+
   bottomInset?: number;
 }
 
@@ -45,7 +45,7 @@ function checkedTime(item: JobItem) {
   return { iso: item.finishedAt, freshness: null, staleAt: null };
 }
 
-/** One line: amount, kind, then freshness before the age so truncation never hides that a price is old. */
+
 function BestPriceCell({ item }: { item: JobItem }) {
   const best = item.bestPrice;
   const freshness = useFreshness(best?.freshness ?? null, null);
@@ -64,20 +64,20 @@ function BestPriceCell({ item }: { item: JobItem }) {
   );
 }
 
-/**
- * Calls a header or cell template as a plain function. flexRender mounts it as a component, and the
- * column definitions change with the selection, so every visible cell would remount and drop focus
- * (a toggled checkbox, or the row a closed detail panel returns to).
- */
+
+
+
+
+
 function renderTemplate<P>(template: string | ((props: P) => React.ReactNode) | undefined, props: P): React.ReactNode {
   return typeof template === 'function' ? template(props) : (template ?? null);
 }
 
-/*
- * Columns follow the width of the table itself (container queries), so a docked panel or a narrow
- * window drops the least important columns instead of squeezing every one:
- * base: select, domain, outcome; @lg adds the best price; @2xl adds checked time, target and the shortlist mark.
- */
+
+
+
+
+
 const GRID =
   'grid-cols-[2.25rem_minmax(0,1fr)_7.5rem] @lg:grid-cols-[2.25rem_minmax(0,1fr)_7.5rem_minmax(8rem,14rem)] @2xl:grid-cols-[2.25rem_minmax(0,1fr)_7.5rem_7.5rem_minmax(10rem,16rem)_1.5rem]';
 const GRID_TARGET =
@@ -89,14 +89,14 @@ const VISIBILITY: Record<string, string> = {
   shortlist: 'hidden @2xl:flex',
 };
 
-/** Core features only: the server filters, sorts and pages, and CSS hides columns, so no table state is needed. */
+
 const features = tableFeatures({});
 type ResultColumn = ColumnDef<typeof features, JobItem>;
 
-/**
- * Virtualized results grid inside its own scroll container, which fills the rest of the page. Rows
- * come from server-side filtering, sorting and cursor pages; more pages load as it scrolls near the end.
- */
+
+
+
+
 export function ResultsTable(props: ResultsTableProps) {
   const { rows, total, hasNextPage, fetchNextPage, isFetchingNextPage, selection, activeId, showTarget, canOpen, onOpen, bottomInset = 0 } = props;
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -208,15 +208,15 @@ export function ResultsTable(props: ResultsTableProps) {
   const table = useTable({ features, data: rows, columns, getRowId: (row) => row.id });
   const tableRows = table.getRowModel().rows;
 
-  // React Compiler is not enabled; TanStack Virtual is used as documented.
+
   // eslint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({
     count: hasNextPage ? tableRows.length + 1 : tableRows.length,
     getScrollElement: () => scrollRef.current,
     estimateSize: () => ROW_HEIGHT,
     overscan: 12,
-    // The sticky header sits above the rows inside the same scroll container, and rows scrolled
-    // into view by keyboard must land below it, not under it.
+
+
     scrollMargin: HEADER_HEIGHT,
     scrollPaddingStart: HEADER_HEIGHT,
     paddingEnd: bottomInset,
@@ -228,8 +228,8 @@ export function ResultsTable(props: ResultsTableProps) {
     if (hasNextPage && !isFetchingNextPage && lastIndex >= tableRows.length - 20) fetchNextPage();
   }, [hasNextPage, isFetchingNextPage, lastIndex, tableRows.length, fetchNextPage]);
 
-  // Row the keyboard is moving to. Repeated keys continue from it even before it has rendered and
-  // taken focus, so holding an arrow key never skips or stalls.
+
+
   const pendingRow = useRef<number | null>(null);
   const focusRow = (index: number) => {
     if (index < 0 || index >= tableRows.length) return;

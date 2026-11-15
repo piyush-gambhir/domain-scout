@@ -15,7 +15,7 @@ import { ProviderError, type DomainParts } from '../../src/providers/adapters/ty
 import { REGISTRAR_MANIFESTS } from '../../src/providers/manifests.js';
 import { FakeTransport, adapterContext, fixture } from './helpers.js';
 
-// Fixtures are reconstructed from official documentation (see each file's provenance); no live keys exist.
+
 const name = (ascii: string): DomainParts => {
   const [label, ...rest] = ascii.split('.');
   return { ascii, label: label!, suffix: rest.join('.') };
@@ -184,7 +184,7 @@ describe('Namecheap adapter', () => {
     expect(new URL(t.requests[1]!.url).searchParams.get('ProductName')).toBe('com');
     expect(quote.check?.status).toBe('available');
     expect(quote.offers[0]).toMatchObject({ kind: 'exact_quote', registration: { amount: '11.28' }, premium: { status: 'not_premium' } });
-    // A zero IcannFee is "not reported", never a free fee.
+
     expect(quote.offers[0]!.fees.icann).toBeNull();
   });
 
@@ -272,7 +272,7 @@ describe('GoDaddy adapter', () => {
       fxRates: [],
       destination: null,
     });
-    // USD 10 plus the USD 0.50 fee; the EUR fee stays unknown, so the row is a subtotal, never USD 12.
+
     expect(row).toMatchObject({ currency: 'USD', initialCommitment: '10.50', horizonTotal: '10.50', subtotalOnly: true });
     expect(row.missing).toContain('fees');
   });
@@ -364,7 +364,7 @@ describe('Spaceship adapter', () => {
   it('quotes premium operation prices', async () => {
     const t = new FakeTransport().on(/\/available$/, fixture('spaceship', 'premium', { domain: DOMAIN.ascii }));
     const offer = (await adapter.quote(adapterContext(t, creds), DOMAIN)).offers[0]!;
-    // The term of operation prices is undocumented: they stay premium amounts and never form a total.
+
     expect(offer).toMatchObject({ registration: { amount: null }, renewal: { amount: null }, premium: { status: 'confirmed', registration: '10.99', renewal: null } });
     expect(offer.source.label).toContain('register 10.99, renew 10.99 USD');
   });
@@ -517,7 +517,7 @@ describe('Hostinger adapter', () => {
       kind: 'published',
       currency: 'USD',
       registration: { amount: '9.99', years: 1 },
-      // Whether the regular catalog price is the renewal price is undocumented.
+
       renewal: { amount: null, years: 1 },
       premium: { status: 'unknown' },
     });
@@ -614,11 +614,11 @@ describe('manifests', () => {
     );
     for (const m of REGISTRAR_MANIFESTS) {
       for (const [name, cap] of Object.entries(m.capabilities)) {
-        // No live keys exist: nothing authenticated can be live_tested.
+
         if (cap.requiresCredentials) expect(cap.level, `${m.id}.${name}`).not.toBe('live_tested');
         if (cap.level !== 'unsupported') expect(cap.source, `${m.id}.${name}`).toBeTruthy();
       }
-      // Storefront templates were not opened.
+
       expect(m.purchaseLink?.verifiedAt ?? null).toBeNull();
       for (const f of m.credentialFields) expect(f.envVar).toMatch(/^DOMAIN_SCOUT_[A-Z0-9_]+$/);
     }

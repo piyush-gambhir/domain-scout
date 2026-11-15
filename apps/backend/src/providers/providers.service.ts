@@ -54,11 +54,11 @@ export interface Destination {
   kind: 'search' | 'dashboard' | 'website';
 }
 
-/**
- * Provider manifests, preferences, readiness and credentials. The single place that turns a
- * provider id into a purchase destination, so a displayed price and its link always come from the
- * same provider and purchase path.
- */
+
+
+
+
+
 @Injectable()
 export class ProvidersService implements OnModuleInit {
   private readonly manifestList: ProviderManifest[];
@@ -144,7 +144,7 @@ export class ProvidersService implements OnModuleInit {
         this.clock.iso(),
         id,
       ]);
-      // Best prices consider enabled providers only, with preferred ones winning ties.
+
       recomputeBestPrices(this.db);
     });
     return this.get(id);
@@ -173,7 +173,7 @@ export class ProvidersService implements OnModuleInit {
     );
   }
 
-  /** Records an authentication failure seen by an operation or test; readiness becomes credentials_invalid. */
+
   markCredentialsInvalid(id: string, message: string) {
     const now = this.clock.iso();
     this.db.run('UPDATE providers SET credential_status = ?, credential_status_message = ?, credential_status_at = ?, updated_at = ? WHERE id = ?', [
@@ -189,7 +189,7 @@ export class ProvidersService implements OnModuleInit {
     this.db.run('UPDATE providers SET credential_status = NULL, credential_status_message = NULL, credential_status_at = NULL WHERE id = ?', [id]);
   }
 
-  /** Adapter context with the provider's credentials, the configured timeout and secret scrubbing. */
+
   context(manifest: ProviderManifest, signal?: AbortSignal, credentials?: ResolvedCredentials, minTimeoutMs = 0): AdapterContext {
     const resolved = credentials ?? this.credentials.resolve(manifest);
     const values = resolved.values ?? {};
@@ -241,7 +241,7 @@ export class ProvidersService implements OnModuleInit {
     return test;
   }
 
-  /** Destination for a provider, domain and purchase path, built from that provider's own template. */
+
   destination(providerId: string, domain: string, path: PurchasePath): Destination | null {
     const manifest = this.manifestById.get(providerId);
     if (!manifest) return null;
@@ -249,7 +249,7 @@ export class ProvidersService implements OnModuleInit {
     return link ? { url: fillTemplate(link.template, domain), kind: link.kind } : null;
   }
 
-  /** yes: listed by a catalog or registry directory; no: a loaded catalog omits it; unknown otherwise. */
+
   supportsSuffix(manifest: ProviderManifest, suffix: string): 'yes' | 'no' | 'unknown' {
     if (manifest.knownSuffixes?.suffixes.includes(suffix)) return 'yes';
     if (manifest.kind === 'directory') return 'no';
@@ -271,8 +271,8 @@ export class ProvidersService implements OnModuleInit {
     const latest = this.db.get<FetchRow>('SELECT * FROM catalog_fetches WHERE provider_id = ? ORDER BY fetched_at DESC, rowid DESC LIMIT 1', [manifest.id]);
     const lastError = latest && latest.status === 'failed' ? json.parse<Reason | null>(latest.error_json, null) : null;
     if (!ok) return { suffixCount: 0, fetchedAt: null, staleAt: null, freshness: null, source: latest?.source ?? null, lastError };
-    // The deadline stored with the catalog's offers at ingestion is authoritative, so status agrees
-    // with the offers after a settings change. A catalog without priced entries has none stored.
+
+
     const stored = this.db.get<{ stale_at: string | null }>('SELECT MIN(stale_at) AS stale_at FROM offers WHERE catalog_fetch_id = ?', [ok.id])?.stale_at;
     const staleAt = stored ?? new Date(Date.parse(ok.fetched_at) + this.settings.get().freshness.catalogHours * 3_600_000).toISOString();
     return {
@@ -337,7 +337,7 @@ export class ProvidersService implements OnModuleInit {
   }
 }
 
-/** Hosts that receive candidate names: the API host when any name-level capability is implemented. */
+
 export function disclosureHosts(manifest: ProviderManifest): string[] {
   const { exactCheck, quote, transfer, aftermarket } = manifest.capabilities;
   const discloses = [exactCheck, quote, transfer, aftermarket].some((c) => c.level !== 'unsupported');

@@ -30,10 +30,10 @@ const LIST_KEYS = ['outcomes', 'suffixes', 'states', 'confirmations'] as const;
 
 const CONFIRMATIONS: ConfirmationStatus[] = ['available', 'unavailable', 'restricted', 'unknown'];
 
-/** Provider confirmation choices; registry rows match on the newest confirmation for their domain. */
+
 export const CONFIRMATION_OPTIONS = CONFIRMATIONS.map((value) => ({ value, label: confirmationStatus(value).label }));
 
-/** URL search params <-> ResultFilter. Lists are comma separated, like the API query form. */
+
 export function filterFromParams(params: URLSearchParams): ResultFilter {
   const filter: ResultFilter = {};
   const q = params.get('q');
@@ -73,7 +73,7 @@ export function filterToParams(filter: ResultFilter, base: URLSearchParams): URL
   return params;
 }
 
-/** Same filter in the API's query-string form. */
+
 export function filterToQuery(filter: ResultFilter) {
   return {
     q: filter.q,
@@ -92,7 +92,7 @@ export function filterToQuery(filter: ResultFilter) {
   };
 }
 
-/** Short human description of a filter, e.g. for saved criteria. Empty when nothing narrows or sorts. */
+
 export function describeFilter(filter: ResultFilter, operation: JobOperation = 'registry'): string[] {
   const parts: string[] = [];
   if (filter.q) parts.push(`Matching "${filter.q}"`);
@@ -209,7 +209,7 @@ function MoreFiltersBody({
   collections: { value: string; label: string }[];
   showConfirmations: boolean;
 }) {
-  // Mounted only while the popover is open, so the draft always starts from the active filter.
+
   const [maxPrice, setMaxPrice] = useState(filter.maxPrice ?? '');
   const priceInvalid = maxPrice !== '' && !/^\d+(\.\d+)?$/.test(maxPrice);
   const resolved = filter.resolved === undefined ? 'all' : filter.resolved ? 'resolved' : 'unresolved';
@@ -306,7 +306,7 @@ function MoreFiltersBody({
   );
 }
 
-/** Less common filters: resolution, provider confirmation, length, price cap and shortlist. */
+
 function MoreFilters({
   filter,
   onChange,
@@ -341,7 +341,7 @@ function MoreFilters({
   );
 }
 
-/** Search, the common filters, the result count and sort in one row. */
+
 export function ResultFilters({
   filter,
   onChange,
@@ -356,11 +356,11 @@ export function ResultFilters({
   onChange: (patch: Partial<ResultFilter>) => void;
   outcomeOptions: { value: string; label: string }[];
   suffixOptions: { value: string; label: string }[];
-  /** Domain results only: name checks and catalog refreshes have no provider confirmations. */
+
   showConfirmations: boolean;
   collections: { value: string; label: string }[];
   searchRef: React.RefObject<HTMLInputElement | null>;
-  /** "1,500 results", shown before the sort control. */
+
   count: React.ReactNode;
 }) {
   const [q, setQ] = useState(filter.q ?? '');

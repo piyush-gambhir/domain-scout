@@ -95,7 +95,7 @@ describe('watch scheduling', () => {
     });
     expect(ctx.jobs.submitted[0]!.options).toEqual({ watchId: watch.id });
 
-    // Still running: later ticks do not pile up runs, even once the next slot is due.
+
     clock.advance(DAY + MINUTE);
     expect(ctx.scheduler.tick()).toHaveLength(0);
 
@@ -160,7 +160,7 @@ describe('watch scheduling', () => {
     expect(after.body.data.id).toBe(first.body.data.id);
     expect(ctx.jobs.submitted).toHaveLength(1);
 
-    // A manual run resets the cadence; the scheduler does not also fire the original slot.
+
     const current = WatchResponse.parse((await ctx.http.get(`/api/v1/watches/${watch.id}`).expect(200)).body).data;
     expect(current.nextRunAt).toBe(new Date(Date.parse(T0) + DAY).toISOString());
     expect(ctx.scheduler.tick()).toHaveLength(0);
@@ -203,13 +203,13 @@ describe('missed runs while the backend is stopped', () => {
       await first.http.post(`/api/v1/watches/${paused.id}/pause`).expect(200);
       const [jobId] = first.scheduler.tick();
       first.lifecycle.emit(first.jobs.finish(jobId!, 'completed', clock.iso()));
-      // Stop with a second run in progress so restart has to close it.
+
       clock.advance(DAY);
       const [inFlight] = first.scheduler.tick();
       expect(inFlight).toBeDefined();
       await first.t.close();
 
-      // Down until T0 + 4.5 days: the slots at T0 + 2, 3 and 4 days were missed.
+
       clock.advance(3.5 * DAY);
       const second = await boot(clock, dataDir);
       expect(second.jobs.submitted).toHaveLength(1);
@@ -228,18 +228,18 @@ describe('missed runs while the backend is stopped', () => {
       expect(runs.find((r) => r.status === 'cancelled')!.jobId).toBe(inFlight);
       expect(runs.find((r) => r.status === 'catch_up')!.note).toContain('Catch-up run after 3 missed checks');
 
-      // No replay of every missed interval: further ticks before the next slot start nothing.
+
       expect(second.scheduler.tick()).toHaveLength(0);
       second.lifecycle.emit(second.jobs.finish(second.jobs.submitted[0]!.job.id, 'completed', clock.iso()));
       expect(second.scheduler.tick()).toHaveLength(0);
 
-      // The next regular run clears the missed count.
+
       clock.set(new Date(Date.parse(T0) + 5 * DAY));
       expect(second.scheduler.tick()).toHaveLength(1);
       const later = WatchResponse.parse((await second.http.get(`/api/v1/watches/${daily.id}`).expect(200)).body).data;
       expect(later.missedRuns).toBe(0);
 
-      // The paused watch was never counted or run.
+
       const pausedNow = WatchResponse.parse((await second.http.get(`/api/v1/watches/${paused.id}`).expect(200)).body).data;
       expect(pausedNow).toMatchObject({ state: 'paused', missedRuns: 0, lastRunAt: null });
       await second.t.close();
@@ -256,7 +256,7 @@ describe('runs whose job was deleted', () => {
     try {
       const watch = await createWatch(ctx.http);
       const [jobId] = ctx.scheduler.tick();
-      // Deleting the job sets watch_runs.job_id to NULL through the foreign key.
+
       ctx.t.get(Database).run('DELETE FROM jobs WHERE id = ?', [jobId!]);
       clock.advance(DAY);
       expect(ctx.scheduler.tick()).toHaveLength(1);

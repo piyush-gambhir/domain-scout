@@ -15,7 +15,7 @@ export function Switch({ className, ...props }: React.ComponentProps<typeof Swit
   );
 }
 
-/** Switch with a clickable text label on the left. */
+
 export function SwitchField({
   id,
   label,

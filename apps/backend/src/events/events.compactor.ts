@@ -3,7 +3,7 @@ import { EventsService } from './events.service.js';
 
 const COMPACT_INTERVAL_MS = 60 * 60 * 1000;
 
-/** Compacts transient events on startup and hourly. The timer is unref'd so it never keeps the process alive. */
+
 @Injectable()
 export class EventsCompactor implements OnApplicationBootstrap, OnModuleDestroy {
   private readonly logger = new Logger('Events');

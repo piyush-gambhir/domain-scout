@@ -37,12 +37,12 @@ interface JobRow {
 
 type Cursor = { createdAt: string; id: string };
 
-/** Escapes LIKE wildcards so user text matches literally. */
+
 export function likePattern(text: string): string {
   return `%${text.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
 }
 
-/** Past jobs, newest first, read straight from the shared jobs schema. */
+
 @Injectable()
 export class HistoryService {
   constructor(private readonly db: Database) {}
@@ -62,7 +62,7 @@ export class HistoryService {
     const q = query.q?.trim();
     if (q) {
       const pattern = likePattern(q.toLowerCase());
-      // Label, or any item subject (ASCII domain or name) or its Unicode form.
+
       where.push(`(j.label LIKE ? ESCAPE '\\' OR EXISTS (
         SELECT 1 FROM job_items i WHERE i.job_id = j.id AND (i.subject LIKE ? ESCAPE '\\' OR i.unicode LIKE ? ESCAPE '\\')))`);
       params.push(pattern, pattern, likePattern(q));
@@ -111,7 +111,7 @@ export class HistoryService {
     return { items, nextCursor: more && last ? encodeCursor({ createdAt: last.created_at, id: last.id }) : null, total };
   }
 
-  /** Distinct item suffixes for jobs whose input declared no extensions (e.g. full domains). */
+
   private itemSuffixes(jobIds: string[]): Map<string, string[]> {
     const out = new Map<string, string[]>();
     if (jobIds.length === 0) return out;
@@ -125,7 +125,7 @@ export class HistoryService {
   }
 }
 
-/** Extensions the user selected: `extensions` or `input.extensions` in the stored request. */
+
 function declaredExtensions(inputJson: string): string[] {
   const input = json.parse<Record<string, unknown>>(inputJson, {});
   const nested = (input.input as Record<string, unknown> | undefined)?.extensions;

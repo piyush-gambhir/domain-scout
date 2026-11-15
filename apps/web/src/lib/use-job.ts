@@ -10,7 +10,7 @@ export function isTerminal(job: Pick<Job, 'state'> | undefined | null): boolean 
   return Boolean(job && TERMINAL_JOB_STATES.includes(job.state));
 }
 
-/** A job kept current by SSE, polling every 2 s while the stream is down and the job is active. */
+
 export function useLiveJob(jobId: string | null | undefined) {
   const { live } = useJobEvents(jobId);
   const query = useQuery({

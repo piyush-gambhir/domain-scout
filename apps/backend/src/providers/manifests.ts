@@ -1,15 +1,15 @@
 import { DOMAIN_HUNTER_REGISTRARS, cap, field, unsupported, type ProviderManifest } from './manifest.js';
 
-/*
- * The nine named providers. Sources are official documentation read on 2026-10-05 (see
- * docs/REFERENCES.md and the provider research report). No provider API was called and no live keys
- * exist, so authenticated capabilities are at most fixture_tested. Storefront search templates come
- * from the pinned Domain Hunter reference; their prefill behavior was not confirmed or opened, so
- * they stay documented with verifiedAt null.
- */
+
+
+
+
+
+
+
 
 const PORKBUN_SPEC = 'https://porkbun.com/api/json/v3/spec';
-/** Time of the authorized live catalog fetch (test/live/catalog.live.spec.ts). */
+
 const PORKBUN_LIVE_FETCHED_AT = '2026-10-05T14:07:00.133Z';
 const NAMECHEAP_CHECK = 'https://www.namecheap.com/support/api/methods/domains/check/';
 const NAMECHEAP_PRICING = 'https://www.namecheap.com/support/api/methods/users/get-pricing/';

@@ -1,5 +1,5 @@
-// Package launcher locates installed backend and web assets, checks the Node
-// runtime and starts detached local servers. It never downloads anything.
+
+
 package launcher
 
 import (
@@ -20,23 +20,23 @@ import (
 	"github.com/piyush-gambhir/domain-scout/cli/internal/runtime"
 )
 
-// Environment variables understood by the launcher.
+
 const (
 	EnvBackendEntry = "DOMAIN_SCOUT_BACKEND_ENTRY"
 	EnvNode         = "DOMAIN_SCOUT_NODE"
 	EnvPort         = "DOMAIN_SCOUT_PORT"
 )
 
-// DefaultPort and DefaultWebPort are the loopback ports from the runtime protocol.
+
 const (
 	DefaultPort    = 4317
 	DefaultWebPort = 3000
 )
 
-// MinNode is the oldest supported Node.js version.
+
 var MinNode = [3]int{24, 11, 0}
 
-// SetupError is a backend setup or version failure (CLI exit code 5).
+
 type SetupError struct{ Msg string }
 
 func (e *SetupError) Error() string { return e.Msg }
@@ -45,21 +45,21 @@ func setupErr(format string, args ...any) error {
 	return &SetupError{Msg: fmt.Sprintf(format, args...)}
 }
 
-// Config carries everything the launcher reads from the environment so tests
-// can inject it.
+
+
 type Config struct {
 	DataDir    string
 	Getenv     func(string) string
 	LookPath   func(string) (string, error)
-	Executable string // resolved path of the running CLI binary
+	Executable string
 	Cwd        string
-	// Env is appended to the inherited environment of spawned processes.
+
 	Env []string
-	// Timeout bounds how long startup waits for a server to become ready.
+
 	Timeout time.Duration
-	// Progress receives human progress lines for stderr; nil discards them.
+
 	Progress func(format string, args ...any)
-	// PollInterval between readiness checks; zero means 100ms.
+
 	PollInterval time.Duration
 }
 
@@ -85,9 +85,9 @@ func (c *Config) timeout() time.Duration {
 
 var probeClient = &http.Client{Timeout: 3 * time.Second}
 
-// Discover returns the verified running backend for the data directory, or
-// runtime.ErrUnreachable when none is running. Identity and protocol
-// mismatches are returned as errors.
+
+
+
 func (c *Config) Discover(ctx context.Context) (*runtime.BackendInfo, *runtime.Health, error) {
 	info, err := runtime.ReadBackendInfo(c.DataDir)
 	if err != nil {
@@ -105,7 +105,7 @@ func (c *Config) Discover(ctx context.Context) (*runtime.BackendInfo, *runtime.H
 
 var nodeVersionRe = regexp.MustCompile(`^v?(\d+)\.(\d+)\.(\d+)`)
 
-// ParseNodeVersion parses `node --version` output such as "v26.12.1".
+
 func ParseNodeVersion(s string) ([3]int, error) {
 	m := nodeVersionRe.FindStringSubmatch(strings.TrimSpace(s))
 	if m == nil {
@@ -118,7 +118,7 @@ func ParseNodeVersion(s string) ([3]int, error) {
 	return v, nil
 }
 
-// VersionAtLeast compares semantic version triples.
+
 func VersionAtLeast(v, min [3]int) bool {
 	for i := range v {
 		if v[i] != min[i] {
@@ -130,7 +130,7 @@ func VersionAtLeast(v, min [3]int) bool {
 
 func minNodeString() string { return fmt.Sprintf("%d.%d.%d", MinNode[0], MinNode[1], MinNode[2]) }
 
-// FindNode locates node (DOMAIN_SCOUT_NODE, then PATH) and checks its version.
+
 func (c *Config) FindNode(ctx context.Context) (string, error) {
 	path := c.Getenv(EnvNode)
 	if path == "" {
@@ -158,8 +158,8 @@ func (c *Config) FindNode(ctx context.Context) (string, error) {
 	return path, nil
 }
 
-// searchRoots returns the executable directory and the working directory with
-// all their ancestors, nearest first, without duplicates.
+
+
 func (c *Config) searchRoots() []string {
 	var roots []string
 	seen := map[string]bool{}
@@ -188,9 +188,9 @@ func fileExists(p string) bool {
 	return err == nil && !st.IsDir()
 }
 
-// FindBackendEntry resolves the backend entry point: DOMAIN_SCOUT_BACKEND_ENTRY,
-// the packaged layout <exeDir>/../lib/backend/dist/main.js, then a repository
-// checkout containing apps/backend/dist/main.js above the executable or cwd.
+
+
+
 func (c *Config) FindBackendEntry() (string, error) {
 	if p := c.Getenv(EnvBackendEntry); p != "" {
 		if !fileExists(p) {
@@ -213,7 +213,7 @@ func (c *Config) FindBackendEntry() (string, error) {
 	return "", setupErr("backend assets not found. Use a packaged release (lib/backend next to bin/), build the repository with `pnpm turbo run build --filter @domain-scout/backend`, or set %s to the backend main.js.", EnvBackendEntry)
 }
 
-// PortFree reports whether host:port can be bound right now.
+
 func PortFree(host string, port int) bool {
 	l, err := net.Listen("tcp", net.JoinHostPort(host, strconv.Itoa(port)))
 	if err != nil {
@@ -223,7 +223,7 @@ func PortFree(host string, port int) bool {
 	return true
 }
 
-// spawn starts a detached child with output appended to logPath.
+
 func (c *Config) spawn(name string, args []string, dir string, env []string, logPath string) (*exec.Cmd, <-chan error, error) {
 	if err := os.MkdirAll(filepath.Dir(logPath), 0o700); err != nil {
 		return nil, nil, setupErr("cannot create the log directory: %v", err)
@@ -248,8 +248,8 @@ func (c *Config) spawn(name string, args []string, dir string, env []string, log
 	return cmd, exited, nil
 }
 
-// StartBackend starts the backend detached and waits until backend.json
-// exists and the health endpoint verifies its identity.
+
+
 func (c *Config) StartBackend(ctx context.Context, port int, webOrigins []string) (*runtime.BackendInfo, *runtime.Health, error) {
 	entry, err := c.FindBackendEntry()
 	if err != nil {
@@ -260,8 +260,8 @@ func (c *Config) StartBackend(ctx context.Context, port int, webOrigins []string
 		return nil, nil, err
 	}
 	if !PortFree("127.0.0.1", port) {
-		// Another CLI may be starting the backend for this data directory (it holds the lock and
-		// listens before it publishes backend.json); an unrelated process fails at once.
+
+
 		wait := time.Duration(0)
 		if fileExists(filepath.Join(c.DataDir, "backend.lock")) {
 			wait = otherStarterWait
@@ -290,7 +290,7 @@ func (c *Config) StartBackend(ctx context.Context, port int, webOrigins []string
 		case <-ctx.Done():
 			return nil, nil, ctx.Err()
 		case <-exited:
-			// Another process won the instance lock for this data directory: wait for it to be ready.
+
 			wait := time.Duration(0)
 			if strings.Contains(tailFile(logPath, 3), "is using this data directory") || strings.Contains(tailFile(logPath, 3), "locked by another Domain Scout backend") {
 				wait = time.Until(deadline)
@@ -314,11 +314,11 @@ func (c *Config) StartBackend(ctx context.Context, port int, webOrigins []string
 	}
 }
 
-// otherStarterWait bounds waiting for a backend another process is starting.
+
 const otherStarterWait = 5 * time.Second
 
-// awaitOther polls for a verified backend started by another process, for up
-// to wait (at least one attempt).
+
+
 func (c *Config) awaitOther(ctx context.Context, wait time.Duration) (*runtime.BackendInfo, *runtime.Health, error) {
 	deadline := time.Now().Add(wait)
 	for {
@@ -334,7 +334,7 @@ func (c *Config) awaitOther(ctx context.Context, wait time.Duration) (*runtime.B
 	}
 }
 
-// webAnswers reports whether an HTTP server answers at url.
+
 func webAnswers(ctx context.Context, url string) bool {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -352,8 +352,8 @@ func webAnswers(ctx context.Context, url string) bool {
 	return true
 }
 
-// webCommand resolves how to run the UI server: the packaged standalone
-// server.js or a built repository checkout via `next start`.
+
+
 func (c *Config) webCommand(port int) (args []string, dir string, err error) {
 	if c.Executable != "" {
 		server := filepath.Clean(filepath.Join(filepath.Dir(c.Executable), "..", "lib", "web", "server.js"))
@@ -375,9 +375,9 @@ func (c *Config) webCommand(port int) (args []string, dir string, err error) {
 	return nil, "", setupErr("web UI assets not found. The npm package is CLI-only; use a release archive (lib/web next to bin/), the Docker image or a built repository checkout for the UI.")
 }
 
-// EnsureWeb reuses the UI server recorded in web.json when it runs on the
-// requested port and forwards to backendURL. A recorded server with another
-// port or backend was started by this launcher, so it is replaced.
+
+
+
 func (c *Config) EnsureWeb(ctx context.Context, backendURL string, port int) (string, error) {
 	url := fmt.Sprintf("http://127.0.0.1:%d", port)
 	if info, err := runtime.ReadWebInfo(c.DataDir); err == nil {
@@ -414,8 +414,8 @@ func (c *Config) EnsureWeb(ctx context.Context, backendURL string, port int) (st
 	if err != nil {
 		return "", err
 	}
-	// Nothing records an unready UI server, so stop it on any failure rather
-	// than leave an invisible process holding the port.
+
+
 	fail := func(err error) (string, error) {
 		_ = cmd.Process.Kill()
 		select {
@@ -448,8 +448,8 @@ func (c *Config) EnsureWeb(ctx context.Context, backendURL string, port int) (st
 	}
 }
 
-// stopProcess terminates a UI server this launcher recorded and waits
-// briefly for it to exit.
+
+
 func stopProcess(pid int) {
 	p, err := os.FindProcess(pid)
 	if err != nil {
@@ -461,7 +461,7 @@ func stopProcess(pid int) {
 	}
 }
 
-// BrowserCommand returns the OS command that opens url in the default browser.
+
 func BrowserCommand(goos, url string) (string, []string) {
 	switch goos {
 	case "darwin":
@@ -473,7 +473,7 @@ func BrowserCommand(goos, url string) (string, []string) {
 	}
 }
 
-// OpenBrowser opens url with the OS opener without waiting for the browser.
+
 func OpenBrowser(goos, url string) error {
 	name, args := BrowserCommand(goos, url)
 	cmd := exec.Command(name, args...)

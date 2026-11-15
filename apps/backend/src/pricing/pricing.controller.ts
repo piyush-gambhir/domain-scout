@@ -12,7 +12,7 @@ import { PortfolioService } from './portfolio.service.js';
 import { SuffixPricesService } from './suffix-prices.service.js';
 import { TransfersService } from './transfers.service.js';
 
-/** Offset pagination for small, fully computed lists. */
+
 function slice<T>(all: T[], cursor: string | undefined, limit: number) {
   const offset = decodeCursor<{ o: number }>(cursor)?.o ?? 0;
   const items = all.slice(offset, offset + limit);

@@ -2,11 +2,11 @@ import { Injectable, type Type } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { InputPreviewer, ProviderDirectory } from '../core/ports.js';
 
-/**
- * Ports implemented by other modules that the engine can run without. Looked up across the whole
- * container on first use rather than constructor-injected: the engine works however the implementing
- * module exports them, and an implementation that itself injects JobSubmitter cannot form a DI cycle.
- */
+
+
+
+
+
 @Injectable()
 export class OptionalPorts {
   private readonly cache = new Map<unknown, unknown>();

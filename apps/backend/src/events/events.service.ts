@@ -30,19 +30,19 @@ interface EventRow {
   payload_json: string;
 }
 
-/** Transient progress events are replayable for this long, then compacted. */
+
 export const TRANSIENT_RETENTION_MS = 24 * 60 * 60 * 1000;
 const DELETED_THROUGH_KEY = 'events.deletedThrough';
 const DELETE_BATCH = 5000;
 
-/**
- * Durable event log. Call `emit` inside the same Database.transaction as the state change it
- * describes. Subscribers are only woken up; they re-read committed rows by cursor, so a rolled-back
- * event is never delivered.
- *
- * Every deletion (compaction, scoped data deletion) records the highest deleted id. A replay cursor
- * below that watermark may have missed events, so SSE answers it with `stream.reset`.
- */
+
+
+
+
+
+
+
+
 @Injectable()
 export class EventsService {
   private readonly wake = new EventEmitter();
@@ -54,17 +54,17 @@ export class EventsService {
     this.wake.setMaxListeners(0);
   }
 
-  /**
-   * Appends an event. The payload is validated against the contract for `type` (heartbeats excepted)
-   * and stored in its parsed form; an invalid payload throws, rolling back the caller's transaction
-   * so a malformed event never enters durable replay.
-   */
+
+
+
+
+
   emit(type: EventType, refs: EventRefs, payload: unknown): number {
     let stored = payload;
     if (type !== 'heartbeat') {
       const result = EventPayloads[type].safeParse(payload);
       if (!result.success) {
-        // A plain Error (not ZodError) so an HTTP caller gets 500: this is a server bug, not bad input.
+
         const issue = result.error.issues[0];
         throw new Error(`Invalid ${type} event payload at ${issue?.path.join('.') || '(root)'}: ${issue?.message}`);
       }
@@ -79,13 +79,13 @@ export class EventsService {
     return lastInsertRowid;
   }
 
-  /** Register a wake-up listener; returns an unsubscribe function. */
+
   onWake(listener: (eventId: number) => void): () => void {
     this.wake.on('event', listener);
     return () => this.wake.off('event', listener);
   }
 
-  /** Committed events after `afterId`, optionally filtered. */
+
   read(afterId: number, filter: EventFilter = {}, limit = 500): DomainEvent[] {
     const where = ['id > ?'];
     const params: (string | number)[] = [afterId];
@@ -115,25 +115,25 @@ export class EventsService {
       }));
   }
 
-  /** Oldest retained event id, used to detect expired replay cursors. */
+
   oldestId(): number | null {
     return this.db.get<{ id: number | null }>('SELECT MIN(id) AS id FROM events')?.id ?? null;
   }
 
-  /** Highest id ever assigned (AUTOINCREMENT high-water mark), even if that event was deleted since. */
+
   latestId(): number {
     const seq = this.db.get<{ seq: number | null }>("SELECT seq FROM sqlite_sequence WHERE name = 'events'")?.seq ?? 0;
     const max = this.db.get<{ id: number | null }>('SELECT MAX(id) AS id FROM events')?.id ?? 0;
     return Math.max(seq, max);
   }
 
-  /** Highest event id removed so far; replay cursors below it are expired. */
+
   deletedThrough(): number {
     const row = this.db.get<{ value_json: string }>('SELECT value_json FROM metadata WHERE key = ?', [DELETED_THROUGH_KEY]);
     return json.parse<number>(row?.value_json, 0);
   }
 
-  /** Deletes transient events older than the replay window, in bounded batches. Returns the count. */
+
   compact(now: Date = this.clock.now()): number {
     const cutoff = new Date(now.getTime() - TRANSIENT_RETENTION_MS).toISOString();
     let total = 0;
@@ -153,10 +153,10 @@ export class EventsService {
     }
   }
 
-  /**
-   * Deletes every event referencing the given jobs or watches (their payloads carry domain names).
-   * Call inside the transaction that deletes those records. Returns the count.
-   */
+
+
+
+
   deleteFor(refs: { jobIds?: string[]; watchIds?: string[] }): number {
     let total = 0;
     for (const [column, ids] of [
@@ -175,13 +175,13 @@ export class EventsService {
     return total;
   }
 
-  /**
-   * Deletes events whose payload copies evidence, catalog fetches or notices that no longer exist,
-   * so scoped data deletion leaves no replayable copy. `evidence` covers observations (registry,
-   * confirmations, listings, name checks, diagnostics), `prices` covers offers, best prices and
-   * catalog fetches, `notices` covers notice.created. Call inside the deleting transaction. Returns
-   * the count.
-   */
+
+
+
+
+
+
+
   deleteOrphanedCopies(scope: { evidence?: boolean; prices?: boolean; notices?: boolean }): number {
     const conditions: string[] = [];
     const missingObservation = (path: string) =>
@@ -213,7 +213,7 @@ export class EventsService {
     return ids.length;
   }
 
-  /** Deletes every event (used when all jobs and watches are removed). Returns the count. */
+
   deleteAll(): number {
     const maxId = this.db.get<{ id: number | null }>('SELECT MAX(id) AS id FROM events')?.id;
     if (maxId == null) return 0;

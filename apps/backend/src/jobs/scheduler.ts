@@ -22,7 +22,7 @@ import type { JobItemRecord, OperationContext, OperationHandler, OperationResult
 import { OperationRegistry } from './operation-registry.js';
 import { JobResultsService } from './results.service.js';
 
-/** Longest single timer; the scheduler re-evaluates at least this often while work is waiting. */
+
 const MAX_TIMER_MS = 60_000;
 
 interface QueuedItem {
@@ -33,13 +33,13 @@ interface QueuedItem {
   suffix: string | null;
   operation: JobOperation;
   target: string;
-  /** Completed attempts so far. */
+
   attempts: number;
-  /** Epoch ms before which the item must not start (retry backoff); 0 when ready. */
+
   notBefore: number;
 }
 
-/** Pending items of one job for one source key, loaded from SQLite in small batches. */
+
 interface SourceQueue {
   key: string;
   items: QueuedItem[];
@@ -47,14 +47,14 @@ interface SourceQueue {
   exhausted: boolean;
 }
 
-/** Shared budget for one source key across every job and watch. */
+
 interface SourceState {
   inFlight: number;
   lastStart: number;
   cooldownUntil: number;
-  /** Latest cooldown already written to source_cooldowns (memory can be ahead while a write is pending). */
+
   persistedUntil: number;
-  /** Job that started the latest call, so contended sources rotate between jobs. */
+
   lastJob: string | null;
 }
 
@@ -90,17 +90,17 @@ class JobRun {
   constructor(
     readonly id: string,
     readonly type: JobType,
-    /** Cleared when the watch is deleted mid-run (see JobScheduler.refs). */
+
     public watchId: string | null,
     readonly input: StoredJobInput,
     public snap: RunSnapshot,
   ) {}
 }
 
-/**
- * Delay before automatic retry `attempt + 1`: exponential from the base, capped, with equal jitter
- * (half fixed, half random) so concurrent retries spread out.
- */
+
+
+
+
 export function backoffDelay(
   attempt: number,
   options: Pick<JobsEngineOptions, 'backoffBaseMs' | 'backoffMaxMs'>,
@@ -126,14 +126,14 @@ function isResult(value: unknown): value is OperationResult {
   );
 }
 
-/**
- * The jobs engine: dispatches pending items under shared global and per-source budgets, applies
- * cooldowns and retries, and records every outcome. Handlers only return results; this class writes
- * evidence, the item, job counters and events in one transaction per state change.
- *
- * Fairness: jobs take turns (round robin). Within a job, the lowest input position among sources that
- * may start now goes first, so a busy or cooling source never blocks the others.
- */
+
+
+
+
+
+
+
+
 @Injectable()
 export class JobScheduler {
   private readonly logger = new Logger('JobScheduler');
@@ -148,7 +148,7 @@ export class JobScheduler {
   private stopping = false;
   private stopRun: Promise<void> | null = null;
   private closed = false;
-  /** Completions whose transaction failed; retried by the next pass so no item stays running. */
+
   private readonly unsaved = new Map<string, { jobId: string; record: () => void }>();
   private lastPrune = 0;
 
@@ -173,7 +173,7 @@ export class JobScheduler {
     return this.runs.has(jobId);
   }
 
-  /** Shared cooldowns survive restarts so a new process does not ignore a source's Retry-After. */
+
   loadCooldowns() {
     const rows = this.db.all<{ source_key: string; until: string }>('SELECT source_key, until FROM source_cooldowns WHERE until > ?', [
       this.clock.iso(),
@@ -184,10 +184,10 @@ export class JobScheduler {
     }
   }
 
-  /**
-   * Startup recovery: work left active by a previous process becomes interrupted. Resume is explicit.
-   * Each job commits on its own, so one failed write does not hold back the others.
-   */
+
+
+
+
   recover(exclude: ReadonlySet<string> = new Set()): Job[] {
     const now = this.clock.iso();
     const rows = this.db
@@ -206,7 +206,7 @@ export class JobScheduler {
 
   private recoverJob(row: JobRow, now: string): Job {
     return this.db.transaction(() => {
-      // The aborted attempt did not complete, so it does not count.
+
       this.db.run(
         `UPDATE job_items SET state = 'interrupted', attempts = MAX(attempts - 1, 0), updated_at = ?
          WHERE job_id = ? AND state = 'running'`,
@@ -220,7 +220,7 @@ export class JobScheduler {
     });
   }
 
-  /** Starts dispatching a persisted queued job. */
+
   add(jobId: string) {
     if (this.isStopping) throw new AppError('unavailable', 'The backend is stopping', { retryable: true });
     if (this.runs.has(jobId)) return;
@@ -244,7 +244,7 @@ export class JobScheduler {
     }
     const run = this.runs.get(jobId);
     if (!run) {
-      // Interrupted (or left active without a run): nothing is in flight, so it is cancelled directly.
+
       const now = this.clock.iso();
       const snap = this.store.snapshot(row);
       this.db.transaction(() => {
@@ -276,7 +276,7 @@ export class JobScheduler {
     }
     const now = this.clock.iso();
     this.db.transaction(() => {
-      // Finished items and their check times stay as they are; only unfinished work runs again.
+
       this.db.run(
         `UPDATE job_items SET state = 'pending', not_before = NULL, updated_at = ?
          WHERE job_id = ? AND state IN ('pending', 'interrupted', 'running')`,
@@ -290,15 +290,15 @@ export class JobScheduler {
     return this.store.job(jobId);
   }
 
-  /**
-   * Graceful stop: no new dispatch; in-flight calls may finish until `signal` aborts (the stop
-   * deadline), then they are aborted and recorded as interrupted. Active jobs become interrupted
-   * (cancelling ones cancelled). Idempotent.
-   */
+
+
+
+
+
   stop(signal?: AbortSignal): Promise<void> {
     if (!this.stopRun) {
-      // Both are set before the body runs: it notifies listeners, which must neither admit work nor
-      // start a second stop.
+
+
       this.stopping = true;
       this.stopRun = Promise.resolve().then(() => this.runStop(signal));
     }
@@ -317,8 +317,8 @@ export class JobScheduler {
       else signal.addEventListener('abort', abortAll, { once: true });
       await Promise.allSettled(pending);
     }
-    // Results already returned by handlers are kept rather than repeated after resume, and a job
-    // they complete finishes normally instead of being marked interrupted.
+
+
     this.flushUnsaved();
     this.unsaved.clear();
     for (const run of [...this.runs.values()]) this.safeFinalize(run);
@@ -346,8 +346,8 @@ export class JobScheduler {
     }
     this.runs.clear();
     this.order = [];
-    // Jobs committed but never admitted (submitted inside a caller transaction) are interrupted too.
-    // Tracked jobs whose write failed above are left for startup recovery rather than relabeled here.
+
+
     try {
       for (const job of this.recover(tracked)) this.lifecycle.notify(job);
     } catch (error) {
@@ -356,12 +356,12 @@ export class JobScheduler {
     this.closed = true;
   }
 
-  /** Re-evaluates budgets now, e.g. after concurrency settings changed. */
+
   wake() {
     this.schedulePump();
   }
 
-  // Dispatch
+
 
   private schedulePump() {
     if (this.pumpQueued || this.isStopping) return;
@@ -422,7 +422,7 @@ export class JobScheduler {
     }
   }
 
-  /** Next item of `run` that may start now, or the earliest time one might. */
+
   private pick(run: JobRun, now: number, settings: Settings): { queue: SourceQueue; index: number } | number {
     let best: { queue: SourceQueue; index: number; seq: number } | null = null;
     let wakeAt = Number.POSITIVE_INFINITY;
@@ -438,7 +438,7 @@ export class JobScheduler {
           if (this.sweep(run, queue, source)) wakeAt = now;
           continue;
         }
-        // A busy source wakes the scheduler when its call completes.
+
         if (source.inFlight >= settings.concurrency.perSource) continue;
         const sourceAt = Math.max(source.lastStart + settings.concurrency.minSourceIntervalMs, source.cooldownUntil);
         if (sourceAt > now) {
@@ -458,10 +458,10 @@ export class JobScheduler {
     return best ?? wakeAt;
   }
 
-  /**
-   * Per-source turns: a free source goes to the next job after the one that used it last that has a
-   * ready item for it, so one job's turns on other sources cannot crowd others off a shared source.
-   */
+
+
+
+
   private sourceTurn(run: JobRun, pick: { queue: SourceQueue; index: number }, now: number): { run: JobRun; queue: SourceQueue; index: number } {
     const key = pick.queue.key;
     const count = this.order.length;
@@ -488,7 +488,7 @@ export class JobScheduler {
         if (notBefore <= now) return { index: i, wakeAt: now };
         wakeAt = Math.min(wakeAt, notBefore);
       }
-      // Items waiting on backoff leave the source idle: look further down the same source.
+
       if (!this.load(run, queue)) return { index: -1, wakeAt };
     }
   }
@@ -503,7 +503,7 @@ export class JobScheduler {
     if (rows.length < this.options.batchSize) queue.exhausted = true;
     if (rows.length === 0) return false;
     queue.lastSeq = rows[rows.length - 1]!.seq;
-    // A requeued retry can already be buffered after a sweep reset this queue's cursor.
+
     const buffered = new Set(queue.items.map((i) => i.id));
     for (const row of rows) {
       if (buffered.has(row.id) || this.inFlight.has(row.id)) continue;
@@ -542,7 +542,7 @@ export class JobScheduler {
         [attempt, now, now, item.id],
       );
     });
-    // Only after the commit: a failed transaction leaves the item buffered for the next pass.
+
     queue.items.splice(index, 1);
     if (queue.key !== '') {
       const source = this.source(queue.key);
@@ -566,7 +566,7 @@ export class JobScheduler {
     try {
       limit = handler?.timeoutMs?.(this.record(run, item), settings) ?? limit;
     } catch {
-      // A failing hook keeps the default limit; execution errors surface below.
+
     }
     entry.timeoutMs = limit;
     const timer = setTimeout(() => controller.abort(new ItemAbort('timeout')), limit);
@@ -582,11 +582,11 @@ export class JobScheduler {
         allowCache: run.input.recheck !== true,
       };
       const work = Promise.resolve().then(() => {
-        // Spacing counts from the real request start, which can trail dispatch by other synchronous work.
+
         if (entry.sourceKey !== '') this.source(entry.sourceKey).lastStart = this.clock.now().getTime();
         return handler.execute(record, ctx);
       });
-      // Settles as soon as the call is aborted, even if a handler ignores its signal.
+
       const aborted = new Promise<never>((_, reject) => {
         const onAbort = () => reject(controller.signal.reason);
         if (controller.signal.aborted) onAbort();
@@ -614,7 +614,7 @@ export class JobScheduler {
     }
     if (this.closed) return;
     const kind = controller.signal.aborted ? abortKind(controller.signal.reason) : null;
-    // A deferred retry of this record replays the decision as of when the response arrived.
+
     const receivedAt = this.clock.now().getTime();
     const record =
       kind === 'cancel' || kind === 'shutdown'
@@ -626,7 +626,7 @@ export class JobScheduler {
     try {
       record();
     } catch (error) {
-      // Nothing was committed; keep the outcome (never call the handler again) and retry the write.
+
       this.logger.error(`Could not record item ${item.id}: ${(error as Error).message}`);
       this.unsaved.set(item.id, { jobId: run.id, record });
       this.arm(1000);
@@ -635,7 +635,7 @@ export class JobScheduler {
     this.schedulePump();
   }
 
-  /** Retries failed completion writes. Returns false while some still fail. */
+
   private flushUnsaved(): boolean {
     let allSaved = true;
     for (const [id, { record }] of [...this.unsaved]) {
@@ -659,7 +659,7 @@ export class JobScheduler {
     }
   }
 
-  /** Drops budget state for idle sources (e.g. one host key per diagnosed domain) once no limit applies. */
+
   private pruneSources(now: number, settings: Settings) {
     if (now - this.lastPrune < 60_000) return;
     this.lastPrune = now;
@@ -696,7 +696,7 @@ export class JobScheduler {
         retryable: true,
       };
     }
-    // Thrown errors may carry upstream URLs, so only the error class reaches stored results.
+
     const error = settled.error as Error | undefined;
     this.logger.warn(`Handler for ${item.operation} threw: ${error?.message ?? String(settled.error)}`);
     return {
@@ -714,9 +714,9 @@ export class JobScheduler {
     const now = receivedAt;
     const cooldown = sourceKey === '' ? null : this.cooldownFrom(result, now);
     const longCooldown = cooldown !== null && cooldown.until - now > settings.concurrency.maxCooldownWaitSeconds * 1000;
-    // Honor the source's request even if the writes below fail and are retried later.
+
     if (cooldown) this.reserveCooldown(sourceKey, cooldown);
-    // RESOLVED_ITEM_OUTCOMES is authoritative: unsupported or credential_required are not answers.
+
     const resolved = RESOLVED_ITEM_OUTCOMES[item.operation].includes(result.outcome);
     if (result.resolved !== resolved) {
       this.logger.warn(`Handler for ${item.operation} reported resolved=${result.resolved} for outcome ${result.outcome}`);
@@ -737,11 +737,11 @@ export class JobScheduler {
       try {
         this.finishItem(run, entry, attempt, { ...result, resolved }, retryAt, cooldown);
       } catch {
-        // One immediate retry absorbs a passing write failure without discarding a valid result.
+
         this.finishItem(run, entry, attempt, { ...result, resolved }, retryAt, cooldown);
       }
     } catch (error) {
-      // Evidence that cannot be stored (constraint or shape errors) must not leave the item running.
+
       this.logger.error(`Could not store evidence for item ${item.id}: ${(error as Error).message}`);
       this.finishItem(
         run,
@@ -777,7 +777,7 @@ export class JobScheduler {
     next.counters.running -= 1;
     next.counters.pending += 1;
     this.commit(run, next, false, () => {
-      // Evidence of an attempt that will be retried is not kept; the final attempt's evidence is.
+
       this.db.run(
         `UPDATE job_items SET state = 'pending', attempts = ?, not_before = ?, error_json = ?, updated_at = ? WHERE id = ?`,
         [attempt, new Date(notBefore).toISOString(), result.error ? json.stringify(result.error) : null, now, item.id],
@@ -874,15 +874,15 @@ export class JobScheduler {
     next.counters.running -= 1;
     next.counters.interrupted += 1;
     this.commit(run, next, false, () => {
-      // The aborted attempt did not complete, so it does not count against retries.
+
       this.db.run(`UPDATE job_items SET state = 'interrupted', attempts = ?, updated_at = ? WHERE id = ?`, [attempt - 1, now, item.id]);
     });
   }
 
-  /**
-   * A source asked to wait longer than the configured maximum: settle this job's pending items for it
-   * as unresolved with retryAt instead of holding the job open. Returns true when more remain.
-   */
+
+
+
+
   private sweep(run: JobRun, queue: SourceQueue, source: SourceState): boolean {
     const rows = this.db.all<ItemRow>(
       `SELECT * FROM job_items WHERE job_id = ? AND source_key = ? AND state = 'pending' ORDER BY seq LIMIT ?`,
@@ -938,14 +938,14 @@ export class JobScheduler {
     this.events.emit('source.cooldown', this.refs(run), { sourceId: key, until: cooldown.iso, reason: cooldown.reason });
   }
 
-  /** After a committed write: the cooldown is durable and applies to scheduling. */
+
   private rememberCooldown(key: string, cooldown: Cooldown) {
     const source = this.source(key);
     source.persistedUntil = Math.max(source.persistedUntil, cooldown.until);
     this.reserveCooldown(key, cooldown);
   }
 
-  /** Applies a cooldown to scheduling before it is durable (its write failed and will be retried). */
+
   private reserveCooldown(key: string, cooldown: Cooldown) {
     const source = this.source(key);
     source.cooldownUntil = Math.max(source.cooldownUntil, cooldown.until);
@@ -958,7 +958,7 @@ export class JobScheduler {
     let state: JobState | null = null;
     if (snap.state === 'cancelling') state = 'cancelled';
     else if (snap.counters.pending === 0 && snap.counters.running === 0 && snap.counters.interrupted === 0) {
-      // Interrupted items outside a cancel come from a stop; runStop records the job as interrupted.
+
       state = snap.counters.unresolved > 0 ? 'completed_with_errors' : 'completed';
     }
     if (!state) return;
@@ -977,7 +977,7 @@ export class JobScheduler {
     if (this.cursor >= this.order.length) this.cursor = 0;
   }
 
-  /** Persists `next` (plus `write`) in one transaction; memory changes only after commit. */
+
   private commit(run: JobRun, next: RunSnapshot, emitUpdated: boolean, write?: () => void) {
     const now = this.clock.iso();
     this.db.transaction(() => {
@@ -995,10 +995,10 @@ export class JobScheduler {
     this.events.emit('job.progress', this.refs(run), { jobId: run.id, counters });
   }
 
-  /**
-   * Event refs for a run. Deleting a watch sets its jobs' watch_id to NULL; a running job re-reads it
-   * so its later events stop referencing the deleted watch. Call inside the emitting transaction.
-   */
+
+
+
+
   private refs(run: JobRun): { jobId: string; watchId: string | null } {
     if (run.watchId !== null) {
       const row = this.db.get<{ watch_id: string | null }>('SELECT watch_id FROM jobs WHERE id = ?', [run.id]);

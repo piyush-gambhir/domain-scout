@@ -19,7 +19,7 @@ export class MonitoringModule implements OnModuleInit {
     private readonly db: Database,
   ) {}
 
-  /** Active watches only run while the backend does. A restart keeps them, so it is not blocked. */
+
   onModuleInit() {
     this.activity.addProbe(
       'watches',

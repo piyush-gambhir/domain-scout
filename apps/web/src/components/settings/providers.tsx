@@ -40,7 +40,7 @@ function usePatchProvider(id: string) {
     },
     onSuccess: (provider) => client.setQueryData<Provider[]>(qk.providers, (list) => list?.map((p) => (p.id === provider.id ? provider : p))),
     onSettled: () => {
-      // Enabling or disabling a provider changes every price list and Buy menu.
+
       void client.invalidateQueries({ queryKey: ['evidence'] });
       void client.invalidateQueries({ queryKey: ['prices'] });
     },
@@ -67,7 +67,7 @@ function Credentials({ provider }: { provider: Provider }) {
   const save = useMutation({
     mutationFn: async () => (await api.call('putProviderCredentials', { params: { id: provider.id }, body: { values: entered, storage } })).data,
     onSuccess: (updated) => {
-      // Secrets leave the form as soon as they are saved; the API never returns them.
+
       setValues({});
       replaceProvider(client, updated);
       toast.success(`Saved ${provider.name} credentials`);
@@ -379,7 +379,7 @@ function ProviderItem({ provider, current, onSelect, showReadiness }: { provider
   );
 }
 
-/** Registry-published registrar lists: one collapsed row that opens into a searchable list. */
+
 function DirectoryList({ entries, selectedId, onSelect }: { entries: Provider[]; selectedId: string | undefined; onSelect: (id: string) => void }) {
   const id = useId();
   const containsSelected = entries.some((p) => p.id === selectedId);
@@ -427,7 +427,7 @@ function DirectoryList({ entries, selectedId, onSelect }: { entries: Provider[];
   );
 }
 
-/** Provider keys, capabilities, catalogs and purchase links. Lives under Settings. */
+
 export function ProvidersSettings() {
   const router = useRouter();
   const searchParams = useSearchParams();

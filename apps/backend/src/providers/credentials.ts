@@ -7,7 +7,7 @@ import { AppError } from '../core/errors.js';
 import { writeOwnerOnlyFile } from '../runtime/files.js';
 import type { ProviderManifest } from './manifest.js';
 
-/** Environment source for credentials; a token so tests supply their own variables. */
+
 export const CREDENTIAL_ENV = Symbol('CREDENTIAL_ENV');
 export type CredentialEnv = Record<string, string | undefined>;
 
@@ -19,23 +19,23 @@ interface CredentialFileShape {
 }
 
 export interface ResolvedCredentials {
-  /** Values from the winning source; null when nothing is configured. Never leaves the backend. */
+
   values: Record<string, string> | null;
   storage: CredentialStorage | null;
   storageLocation: string | null;
   fields: { key: string; set: boolean }[];
-  /** All required fields are set in the winning source. */
+
   configured: boolean;
 }
 
-/**
- * Provider credentials from three sources, highest precedence first:
- *   session  kept in memory until the backend stops (explicit console/CLI choice)
- *   env      DOMAIN_SCOUT_<PROVIDER>_<FIELD> variables
- *   file     <dataDir>/credentials.json, owner-only (0600 / owner ACL), outside SQLite and the repo
- * One source wins as a whole; fields are never mixed across sources. Values are never returned by
- * the API, logged, exported or written to SQLite.
- */
+
+
+
+
+
+
+
+
 @Injectable()
 export class CredentialStore {
   private readonly session = new Map<string, Record<string, string>>();
@@ -48,7 +48,7 @@ export class CredentialStore {
     this.filePath = join(config.dataDir, CREDENTIALS_FILE);
   }
 
-  /** Providers with session-only credentials, which are lost when the backend stops. */
+
   sessionProviders(): string[] {
     return [...this.session.keys()];
   }
@@ -69,7 +69,7 @@ export class CredentialStore {
     return { values: null, storage: null, storageLocation: null, fields: fieldsOf(null), configured: false };
   }
 
-  /** Saves a complete credential set to one storage. Saving to the file clears a session copy so it takes effect. */
+
   save(manifest: ProviderManifest, values: Record<string, string>, storage: 'session' | 'file', now: string) {
     const allowed = new Set(manifest.credentialFields.map((f) => f.key));
     if (allowed.size === 0) throw new AppError('unsupported', `${manifest.name} has no account integration to configure`);
@@ -99,7 +99,7 @@ export class CredentialStore {
     this.writeFile(file);
   }
 
-  /** Disconnect: removes session and file copies. Environment variables cannot be removed from here. */
+
   remove(manifest: ProviderManifest) {
     this.session.delete(manifest.id);
     const file = this.readFile();
@@ -124,7 +124,7 @@ export class CredentialStore {
       const parsed = JSON.parse(readFileSync(this.filePath, 'utf8')) as Partial<CredentialFileShape>;
       return { version: 1, providers: parsed.providers && typeof parsed.providers === 'object' ? parsed.providers : {} };
     } catch {
-      // A corrupt file is treated as empty; it is replaced on the next explicit save.
+
       return { version: 1, providers: {} };
     }
   }

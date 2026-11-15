@@ -10,7 +10,7 @@ export const Dialog = DialogPrimitive.Root;
 export const DialogTrigger = DialogPrimitive.Trigger;
 export const DialogClose = DialogPrimitive.Close;
 
-/** The element to return to: a menu item is replaced by the trigger of its (closing) menu. */
+
 function openerOf(active: Element | null): HTMLElement | null {
   if (!(active instanceof HTMLElement)) return null;
   const menu = active.closest<HTMLElement>('[role="menu"]');
@@ -23,7 +23,7 @@ function openerOf(active: Element | null): HTMLElement | null {
 
 const DIALOG = '[role="dialog"], [role="alertdialog"]';
 
-/** Last element focused outside any dialog, tracked from the first dialog hook onward. */
+
 let lastOutside: HTMLElement | null = null;
 let tracking = false;
 function trackFocus() {
@@ -38,10 +38,10 @@ function trackFocus() {
   );
 }
 
-/** Remembers what had focus when a dialog opened and returns focus there on close. Radix only
- * restores focus to a registered Trigger, and most dialogs here open from menus or toolbars. A
- * dialog whose field uses autoFocus skips Radix's open hook, so it falls back to the last element
- * focused outside any dialog. */
+
+
+
+
 export function useReturnFocus() {
   const opener = useRef<HTMLElement | null>(null);
   useEffect(trackFocus, []);

@@ -6,7 +6,7 @@ import { MIGRATIONS } from './migrations.js';
 export type SqlParams = Record<string, SQLInputValue> | SQLInputValue[];
 type Row = Record<string, unknown>;
 
-/** The database was migrated by a newer Domain Scout than this backend. */
+
 export class NewerDatabaseError extends Error {
   constructor(
     readonly schemaVersion: number,
@@ -20,10 +20,10 @@ export class NewerDatabaseError extends Error {
   }
 }
 
-/**
- * Thin synchronous wrapper over node:sqlite. One backend process owns the database.
- * Keep transactions short: the driver is synchronous and blocks the event loop while it runs.
- */
+
+
+
+
 export class Database {
   private readonly db: DatabaseSync;
   private readonly statements = new Map<string, StatementSync>();
@@ -70,15 +70,15 @@ export class Database {
     this.db.exec(sql);
   }
 
-  /** True while a `transaction()` callback is running. */
+
   get inTransaction(): boolean {
     return this.depth > 0;
   }
 
-  /** Runs `fn` in a transaction. Nested calls use savepoints. `fn` must be synchronous. */
+
   transaction<T>(fn: () => T): T {
-    // Cleanup is chosen from the entry depth, and depth is restored exactly once, so a failing
-    // COMMIT or RELEASE rolls back the right scope and surfaces its own error.
+
+
     const depth = this.depth;
     const savepoint = `sp_${depth}`;
     this.db.exec(depth === 0 ? 'BEGIN IMMEDIATE' : `SAVEPOINT ${savepoint}`);
@@ -91,10 +91,10 @@ export class Database {
     } catch (error) {
       try {
         if (depth > 0) this.db.exec(`ROLLBACK TO ${savepoint}; RELEASE ${savepoint}`);
-        // SQLite may already have rolled back (e.g. after SQLITE_FULL); only roll back what is open.
+
         else if (this.db.isTransaction) this.db.exec('ROLLBACK');
       } catch {
-        // Keep the original error; a failed rollback is secondary.
+
       }
       throw error;
     } finally {
@@ -107,7 +107,7 @@ export class Database {
       'CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at TEXT NOT NULL)',
     );
     const applied = new Set(this.all<{ version: number }>('SELECT version FROM schema_migrations').map((r) => r.version));
-    // An older backend must not run on a schema it does not know (e.g. an older npx copy after an upgrade).
+
     const latest = Math.max(...MIGRATIONS.map((m) => m.version));
     const newest = Math.max(0, ...applied);
     if (newest > latest) throw new NewerDatabaseError(newest, latest);
@@ -127,7 +127,7 @@ export class Database {
     return ran;
   }
 
-  /** Flush the WAL into the main file, e.g. before shutdown or after large deletions. */
+
   checkpoint() {
     this.db.exec('PRAGMA wal_checkpoint(TRUNCATE)');
   }
@@ -138,7 +138,7 @@ export class Database {
   }
 }
 
-/** JSON column helpers. */
+
 export const json = {
   stringify(value: unknown): string {
     return JSON.stringify(value ?? null);

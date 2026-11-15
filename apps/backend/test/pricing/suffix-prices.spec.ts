@@ -22,7 +22,7 @@ describe('suffix prices', () => {
     const [com, io] = res.data;
     expect(com!.suffix).toBe('com');
     expect(com!.offers.map((o) => [o.providerId, o.registration, o.horizonTotal])).toEqual([
-      ['namecheap', '6.79', null], // renewal unknown: no estimate, never zero
+      ['namecheap', '6.79', null],
       ['dynadot', '9.99', '35.97'],
       ['porkbun', '11.08', '33.24'],
     ]);

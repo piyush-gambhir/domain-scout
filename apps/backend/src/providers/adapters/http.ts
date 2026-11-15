@@ -5,14 +5,14 @@ export interface HttpOptions {
   timeoutMs: number;
   signal?: AbortSignal;
   now: () => Date;
-  /** Secret values to scrub from any message that could surface (errors, reasons). */
+
   secrets: string[];
 }
 
-/**
- * Transport bound to one adapter call: applies the timeout and cancellation signal, maps network
- * failures to ProviderError and scrubs secrets from every message it produces.
- */
+
+
+
+
 export class ProviderHttp {
   constructor(
     private readonly transport: ProviderTransport,
@@ -32,7 +32,7 @@ export class ProviderHttp {
     }
   }
 
-  /** Replaces every configured secret (and its URL-encoded form) and common secret shapes with a placeholder. */
+
   scrub(text: string): string {
     return scrubSecrets(text, this.options.secrets);
   }
@@ -41,7 +41,7 @@ export class ProviderHttp {
     return this.options.now();
   }
 
-  /** Retry-After (seconds or HTTP date), RateLimit-Reset (seconds) or X-RateLimit-Reset (epoch seconds). */
+
   retryAt(response: ProviderHttpResponse, fallbackSeconds = 60): string {
     const now = this.options.now().getTime();
     const header = response.headers['retry-after'];
@@ -58,10 +58,10 @@ export class ProviderHttp {
     return new Date(now + fallbackSeconds * 1000).toISOString();
   }
 
-  /**
-   * Common HTTP status handling. Providers with envelope errors (HTTP 200 or 400 with an error body)
-   * inspect the body before calling this.
-   */
+
+
+
+
   assertOk(response: ProviderHttpResponse, provider: string, detail?: string | null): void {
     const { status } = response;
     if (status >= 200 && status < 300) return;
@@ -82,11 +82,11 @@ export class ProviderHttp {
 
 const REDACTED = '[redacted]';
 
-/**
- * Credential shapes a provider could echo in its own text even when the configured value differs
- * (an older key, a token for another account): URL userinfo, credential-named query parameters,
- * Authorization schemes and well-known key prefixes.
- */
+
+
+
+
+
 const SECRET_SHAPES: [RegExp, string][] = [
   [/\b([a-z][a-z0-9+.-]*:\/\/)[^\s/?#@]+@/gi, `$1${REDACTED}@`],
   [
@@ -101,7 +101,7 @@ const SECRET_SHAPES: [RegExp, string][] = [
   [/\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]+/g, REDACTED],
 ];
 
-/** Removes configured secret values (raw and URL-encoded) and common credential shapes from provider text. */
+
 export function scrubSecrets(text: string, secrets: readonly string[] = []): string {
   let out = text;
   for (const secret of secrets) {
@@ -122,7 +122,7 @@ export function parseJson<T = unknown>(response: ProviderHttpResponse, provider:
   }
 }
 
-/** Parses JSON when possible, for error bodies that may be empty or HTML. */
+
 export function tryJson(response: ProviderHttpResponse): unknown {
   try {
     return JSON.parse(response.body);
@@ -139,7 +139,7 @@ export function str(value: unknown): string | null {
   return typeof value === 'string' ? value : typeof value === 'number' ? String(value) : null;
 }
 
-/** Interprets yes/no/true/false strings and booleans; null when absent or unrecognized. */
+
 export function yesNo(value: unknown): boolean | null {
   if (typeof value === 'boolean') return value;
   if (typeof value !== 'string') return null;
