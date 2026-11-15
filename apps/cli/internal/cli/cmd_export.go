@@ -12,7 +12,6 @@ import (
 	"github.com/piyush-gambhir/domain-scout/cli/internal/api"
 )
 
-
 func (a *App) writeArtifact(ctx context.Context, c *apiClient, out string, fn callFn) error {
 	if out == "" {
 		return c.download(ctx, fn, a.Stdout)
@@ -52,7 +51,6 @@ func (a *App) exportCmd() *cobra.Command {
 				return usageErr("--format must be txt, csv or json")
 			}
 
-
 			candidatesSet := cmd.Flags().Changed("candidates-only")
 			if candidatesSet && f != api.ExportCreateInputFormatTxt {
 				return usageErr("--candidates-only applies only to --format txt")
@@ -89,7 +87,6 @@ func (a *App) exportCmd() *cobra.Command {
 			if err := json.Unmarshal(res.body, &er); err != nil {
 				return failErr("backend returned a malformed export: %v", err)
 			}
-
 
 			for _, w := range er.Data.Warnings {
 				a.progress("warning: %s", w)

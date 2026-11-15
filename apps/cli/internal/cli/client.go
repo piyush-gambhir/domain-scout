@@ -20,14 +20,10 @@ import (
 
 func probeClient() *http.Client { return &http.Client{Timeout: 5 * time.Second} }
 
-
-
-
 type apiClient struct {
 	timeout time.Duration
 	hc      *http.Client
 	version string
-
 
 	revive   func(ctx context.Context, gone string) (base, token, instance string, err error)
 	reviveMu sync.Mutex
@@ -40,7 +36,6 @@ type apiClient struct {
 	epoch    int
 }
 
-
 type callFn func(ctx context.Context, g *api.Client) (*http.Response, error)
 
 type response struct {
@@ -50,8 +45,6 @@ type response struct {
 }
 
 func newAPIClient(base, token, instance string, timeout time.Duration, version string) *apiClient {
-
-
 
 	tr := http.DefaultTransport.(*http.Transport).Clone()
 	tr.ResponseHeaderTimeout = timeout
@@ -76,21 +69,17 @@ func (c *apiClient) newGen(base string) *api.Client {
 	return gen
 }
 
-
 func (c *apiClient) current() (*api.Client, int) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.gen, c.epoch
 }
 
-
 func (c *apiClient) baseURL() string {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.base
 }
-
-
 
 func (c *apiClient) reconnect(ctx context.Context, failed int) error {
 	c.reviveMu.Lock()
@@ -113,13 +102,10 @@ func (c *apiClient) reconnect(ctx context.Context, failed int) error {
 	return nil
 }
 
-
-
 func backendGone(err error) bool {
 	var e *exitError
 	return errors.As(err, &e) && e.gone
 }
-
 
 const stoppingMessage = "The backend is stopping"
 
@@ -140,9 +126,6 @@ func (c *apiClient) transportErr(parent, rctx context.Context, err error) error 
 	e.gone = isDialError(err)
 	return e
 }
-
-
-
 
 func (c *apiClient) do(ctx context.Context, fn callFn) (*response, error) {
 	gen, epoch := c.current()
@@ -179,8 +162,6 @@ func (c *apiClient) doOnce(ctx context.Context, gen *api.Client, fn callFn) (*re
 	return &response{status: resp.StatusCode, header: resp.Header, body: body}, nil
 }
 
-
-
 func (c *apiClient) doIdempotent(ctx context.Context, fn callFn) (*response, error) {
 	var lastErr error
 	for attempt := 0; attempt < 3; attempt++ {
@@ -201,7 +182,6 @@ func (c *apiClient) doIdempotent(ctx context.Context, fn callFn) (*response, err
 	}
 	return nil, lastErr
 }
-
 
 func (c *apiClient) download(ctx context.Context, fn callFn, w io.Writer) error {
 	rctx, cancel := context.WithTimeout(ctx, c.timeout)
@@ -225,14 +205,12 @@ func (c *apiClient) download(ctx context.Context, fn callFn, w io.Writer) error 
 	return nil
 }
 
-
 type pageEnvelope struct {
 	ContractVersion string            `json:"contractVersion"`
 	Data            []json.RawMessage `json:"data"`
 	NextCursor      *string           `json:"nextCursor"`
 	Total           *int              `json:"total"`
 }
-
 
 func (c *apiClient) all(ctx context.Context, start *string, fn func(cursor *string) callFn) ([]byte, error) {
 	combined := pageEnvelope{Data: []json.RawMessage{}}
@@ -274,7 +252,6 @@ func (c *apiClient) getJob(ctx context.Context, id api.Uuid) (*api.Job, []byte, 
 	return &jr.Data, res.body, nil
 }
 
-
 func (c *apiClient) openEvents(params api.StreamEventsParams) func(ctx context.Context, lastID string) (io.ReadCloser, error) {
 	return func(ctx context.Context, lastID string) (io.ReadCloser, error) {
 		gen, _ := c.current()
@@ -309,7 +286,6 @@ func (c *apiClient) openEvents(params api.StreamEventsParams) func(ctx context.C
 		return resp.Body, nil
 	}
 }
-
 
 func newIdempotencyKey() string {
 	var b [16]byte

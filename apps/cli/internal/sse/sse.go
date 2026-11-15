@@ -1,6 +1,3 @@
-
-
-
 package sse
 
 import (
@@ -16,12 +13,10 @@ import (
 	"time"
 )
 
-
 const (
 	TypeHeartbeat = "heartbeat"
 	TypeReset     = "stream.reset"
 )
-
 
 type Event struct {
 	ID    string
@@ -29,28 +24,21 @@ type Event struct {
 	Type  string
 	Data  []byte
 
-
 	CursorOnly bool
 }
 
-
 const maxRetry = time.Minute
-
 
 type Parser struct {
 	r     *bufio.Reader
 	retry time.Duration
 }
 
-
 func NewParser(r io.Reader) *Parser {
 	return &Parser{r: bufio.NewReaderSize(r, 64*1024)}
 }
 
-
 func (p *Parser) Retry() time.Duration { return p.retry }
-
-
 
 func (p *Parser) Next() (Event, error) {
 	var (
@@ -61,7 +49,6 @@ func (p *Parser) Next() (Event, error) {
 	for {
 		line, err := p.r.ReadString('\n')
 		if err != nil {
-
 
 			return Event{}, err
 		}
@@ -117,9 +104,7 @@ func typeFromData(data []byte) string {
 	return "message"
 }
 
-
 var (
-
 	ErrUnsupported = errors.New("event stream not supported")
 
 	ErrUnavailable = errors.New("event stream unavailable")
@@ -130,33 +115,22 @@ type permanentError struct{ err error }
 func (p *permanentError) Error() string { return p.err.Error() }
 func (p *permanentError) Unwrap() error { return p.err }
 
-
-
 func Permanent(err error) error { return &permanentError{err: err} }
 
-
 type Handlers struct {
-
-
 	OnConnect func() (stop bool, err error)
 
 	OnEvent func(Event) (stop bool, err error)
 
-
 	OnReset func(Event) (stop bool, err error)
 }
 
-
 type Stream struct {
-
-
 	Open func(ctx context.Context, lastEventID string) (io.ReadCloser, error)
 
 	LastEventID string
 
-
 	IdleTimeout time.Duration
-
 
 	MaxFailures int
 
@@ -164,7 +138,6 @@ type Stream struct {
 
 	seen dedup
 }
-
 
 func DefaultBackoff(n int) time.Duration {
 	d := 250 * time.Millisecond
@@ -176,8 +149,6 @@ func DefaultBackoff(n int) time.Duration {
 	}
 	return d
 }
-
-
 
 func (s *Stream) Run(ctx context.Context, h Handlers) error {
 	maxFailures := s.MaxFailures
@@ -251,8 +222,6 @@ func pickDelay(server, fallback time.Duration) time.Duration {
 	return fallback
 }
 
-
-
 func (s *Stream) consume(ctx context.Context, body io.ReadCloser, h Handlers) (delivered bool, retry time.Duration, stop bool, err error) {
 	ar := &activityReader{r: body}
 	if s.IdleTimeout > 0 {
@@ -297,7 +266,6 @@ func (s *Stream) consume(ctx context.Context, body io.ReadCloser, h Handlers) (d
 			continue
 		case TypeReset:
 
-
 			s.LastEventID = ev.ID
 			if h.OnReset != nil {
 				stop, err := h.OnReset(ev)
@@ -341,8 +309,6 @@ func (a *activityReader) any() bool {
 	defer a.mu.Unlock()
 	return a.n > 0
 }
-
-
 
 type dedup struct {
 	high    uint64

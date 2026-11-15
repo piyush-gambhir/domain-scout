@@ -85,7 +85,6 @@ func TestNDJSONOutput(t *testing.T) {
 		}
 	}
 
-
 	f.reply("GET", "/api/v1/presets", 200, `{"contractVersion":"9.8.7","data":[{"id":"popular","name":"Popular","extensions":["com"],"builtIn":true,"createdAt":null},{"contractVersion":"1.2.3","id":"x"},{}],"nextCursor":null,"total":3}`)
 	r = newHarness(t).api(f, "presets", "list", "-o", "ndjson")
 	expectCode(t, r, ExitOK)
@@ -95,7 +94,6 @@ func TestNDJSONOutput(t *testing.T) {
 	if r.stdout != want {
 		t.Fatalf("rows not stamped as expected:\n%s", r.stdout)
 	}
-
 
 	f.reply("POST", "/api/v1/inputs/preview", 200, envelope(`{"rows":[{"row":1,"original":"Acme","status":"valid","domain":null,"reasons":[],"suggestion":null,"duplicateOf":null,"expandedFrom":null},{"row":2,"original":"x..y","status":"invalid","domain":null,"reasons":[{"code":"invalid_characters","message":"bad"}],"suggestion":null,"duplicateOf":null,"expandedFrom":null}],"domains":["acme.com"],"extensions":["com"],"counts":{"inputRows":2,"valid":1,"duplicate":0,"invalid":1,"ambiguous":0,"uniqueDomains":1,"totalChecks":1}}`))
 	r = newHarness(t).api(f, "input", "preview", "Acme", "x..y", "--tlds", ".COM", "-o", "ndjson")
@@ -137,7 +135,6 @@ func TestScanSubmissionReturnsJobAndExitZero(t *testing.T) {
 	if exts := input["extensions"].([]any); len(exts) != 2 || exts[1] != "io" {
 		t.Fatalf("extensions wrong: %v", exts)
 	}
-
 
 	r = newHarness(t).api(f, "scan", "acme", "--idempotency-key", "my-key")
 	expectCode(t, r, ExitOK)
@@ -198,7 +195,6 @@ func TestScanWaitStreamsThenPrintsResultsExit3(t *testing.T) {
 	if ev.query.Get("jobId") != jobID || ev.header.Get("Accept") != "text/event-stream" {
 		t.Fatalf("event stream request wrong: %v %v", ev.query, ev.header)
 	}
-
 
 	r = newHarness(t).api(f, "scan", "acme", "--wait", "--quiet")
 	expectCode(t, r, ExitUnresolved)
@@ -403,7 +399,6 @@ func TestRuntimeDiscoveryAndIdentityMismatch(t *testing.T) {
 		t.Fatal("discovered backend was not used")
 	}
 
-
 	other := t.TempDir()
 	writeRuntime(t, other, f.srv.URL, "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb")
 	r = h.run("--data-dir", other, "jobs", "list")
@@ -414,7 +409,6 @@ func TestRuntimeDiscoveryAndIdentityMismatch(t *testing.T) {
 	if len(f.requests("GET", "/api/v1/jobs")) != 1 {
 		t.Fatal("a mismatched backend must not receive API calls")
 	}
-
 
 	h.env["DOMAIN_SCOUT_DATA_DIR"] = dataDir
 	expectCode(t, h.run("jobs", "list"), ExitOK)
@@ -671,7 +665,6 @@ func TestProvidersConfigureNeverEchoesSecrets(t *testing.T) {
 		}
 	}
 
-
 	h = newHarness(t)
 	h.env["PORKBUN_API_KEY"] = "pk_Zq9_env"
 	r = h.api(f, "providers", "configure", "porkbun", "--from-env", "--value", "secretApiKey=sk_Zq9_flag", "--test")
@@ -684,7 +677,6 @@ func TestProvidersConfigureNeverEchoesSecrets(t *testing.T) {
 		t.Fatal("storage defaults to session")
 	}
 
-
 	r = newHarness(t).api(f, "providers", "configure", "porkbun", "--value", "apiKey=Zq9one", "--value", "token=Zq9two")
 	expectCode(t, r, ExitUsage)
 	if !strings.Contains(r.stderr, "token") || strings.Contains(r.stderr, "Zq9") {
@@ -695,7 +687,6 @@ func TestProvidersConfigureNeverEchoesSecrets(t *testing.T) {
 	if !strings.Contains(r.stderr, "secretApiKey (env PORKBUN_SECRET_API_KEY)") || strings.Contains(r.stderr, "Zq9") {
 		t.Fatalf("stderr %s", r.stderr)
 	}
-
 
 	f.reply("POST", "/api/v1/provider-checks", 409, errJSON("credential_required", "Namecheap needs credentials"))
 	r = newHarness(t).api(f, "provider-check", "acme.com", "--providers", "namecheap")
@@ -762,7 +753,6 @@ func TestNotesSetCanClearShortlistNotes(t *testing.T) {
 	expectCode(t, newHarness(t).api(f, "notes", "set", jobID), ExitUsage)
 }
 
-
 func TestServiceLifecycleAutostartAndUI(t *testing.T) {
 	if goruntime.GOOS == "windows" {
 		t.Skip("POSIX only")
@@ -791,7 +781,6 @@ func TestServiceLifecycleAutostartAndUI(t *testing.T) {
 	})
 
 	expectCode(t, h.run("--data-dir", dataDir, "service", "status"), ExitSetup)
-
 
 	r := h.run("--data-dir", dataDir, "jobs", "list")
 	expectCode(t, r, ExitOK)
@@ -874,9 +863,6 @@ func killFromFile(path string) {
 		}
 	}
 }
-
-
-
 
 func freePort(t *testing.T) int {
 	t.Helper()
@@ -1006,8 +992,6 @@ func TestRejectedCredentialsAreAccessExit(t *testing.T) {
 	}
 }
 
-
-
 func TestSettingsBackedDefaultsAreSentOnlyWhenGiven(t *testing.T) {
 	f := newFakeAPI(t)
 	f.reply("POST", "/api/v1/comparisons", 200, envelope(`{}`))
@@ -1076,8 +1060,6 @@ func TestNoticesReadAllForOneWatch(t *testing.T) {
 		t.Fatal("usage errors must not reach the API")
 	}
 }
-
-
 
 func TestSavedPresetIDIsReusedByScanAndPreview(t *testing.T) {
 	const presetID = "5f0c3d2e-8a41-4c6b-9d7e-2b1f0a9c8e71"

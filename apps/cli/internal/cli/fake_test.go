@@ -39,8 +39,6 @@ type recorded struct {
 	body         []byte
 }
 
-
-
 type fakeAPI struct {
 	t        *testing.T
 	srv      *httptest.Server
@@ -155,8 +153,6 @@ func itemJSON(subject, outcome string, resolved bool) string {
 		"44444444-4444-4444-8444-"+fmt.Sprintf("%012d", len(subject)), jobID, subject, subject, outcome, resolved)
 }
 
-
-
 func sseHandler(events ...string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
@@ -221,7 +217,6 @@ func (h *harness) run(args ...string) result {
 	code := a.Run(h.ctx, args)
 	return result{stdout: stdout.String(), stderr: stderr.String(), code: code}
 }
-
 
 func (h *harness) api(f *fakeAPI, args ...string) result {
 	h.t.Helper()

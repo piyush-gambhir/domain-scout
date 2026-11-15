@@ -1,6 +1,3 @@
-
-
-
 package runtime
 
 import (
@@ -9,14 +6,9 @@ import (
 	"strings"
 )
 
-
 const ProtocolVersion = 1
 
-
 const EnvDataDir = "DOMAIN_SCOUT_DATA_DIR"
-
-
-
 
 func DefaultDataDir(goos string, getenv func(string) string, home string) (string, error) {
 	switch goos {
@@ -44,8 +36,6 @@ func DefaultDataDir(goos string, getenv func(string) string, home string) (strin
 		return joinFor(goos, home, ".local", "share", "domain-scout"), nil
 	}
 }
-
-
 
 func ResolveDataDir(flag string, goos string, getenv func(string) string, home string) (string, error) {
 	if flag != "" {

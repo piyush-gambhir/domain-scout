@@ -14,7 +14,6 @@ import (
 	"github.com/piyush-gambhir/domain-scout/cli/internal/api"
 )
 
-
 type BackendInfo struct {
 	URL             string `json:"url"`
 	PID             int    `json:"pid"`
@@ -26,23 +25,16 @@ type BackendInfo struct {
 	DataDir         string `json:"dataDir"`
 }
 
-
-
 type WebInfo struct {
 	URL string `json:"url"`
 	PID int    `json:"pid"`
 
-
 	BackendURL string `json:"backendUrl,omitempty"`
 }
 
-
 func RunDir(dataDir string) string { return filepath.Join(dataDir, "run") }
 
-
 func LogDir(dataDir string) string { return filepath.Join(dataDir, "logs") }
-
-
 
 func ReadBackendInfo(dataDir string) (*BackendInfo, error) {
 	b, err := os.ReadFile(filepath.Join(RunDir(dataDir), "backend.json"))
@@ -59,7 +51,6 @@ func ReadBackendInfo(dataDir string) (*BackendInfo, error) {
 	return &info, nil
 }
 
-
 func ReadToken(dataDir string) (string, error) {
 	b, err := os.ReadFile(filepath.Join(RunDir(dataDir), "api-token"))
 	if err != nil {
@@ -72,7 +63,6 @@ func ReadToken(dataDir string) (string, error) {
 	return tok, nil
 }
 
-
 func ReadWebInfo(dataDir string) (*WebInfo, error) {
 	b, err := os.ReadFile(filepath.Join(RunDir(dataDir), "web.json"))
 	if err != nil {
@@ -84,7 +74,6 @@ func ReadWebInfo(dataDir string) (*WebInfo, error) {
 	}
 	return &info, nil
 }
-
 
 func WriteWebInfo(dataDir string, info WebInfo) error {
 	dir := RunDir(dataDir)
@@ -99,14 +88,11 @@ func WriteWebInfo(dataDir string, info WebInfo) error {
 	return os.Rename(tmp, filepath.Join(dir, "web.json"))
 }
 
-
 func RemoveWebInfo(dataDir string) {
 	_ = os.Remove(filepath.Join(RunDir(dataDir), "web.json"))
 }
 
-
 var (
-
 	ErrUnreachable = errors.New("backend unreachable")
 
 	ErrNotBackend = errors.New("not a Domain Scout backend")
@@ -116,12 +102,10 @@ var (
 	ErrProtocolMismatch = errors.New("backend protocol version mismatch")
 )
 
-
 type Health struct {
 	Response api.HealthResponse
 	Raw      []byte
 }
-
 
 func FetchHealth(ctx context.Context, hc *http.Client, baseURL string) (*Health, error) {
 	req, err := api.NewGetHealthRequest(strings.TrimRight(baseURL, "/"))
@@ -150,9 +134,6 @@ func FetchHealth(ctx context.Context, hc *http.Client, baseURL string) (*Health,
 	return &Health{Response: h, Raw: body}, nil
 }
 
-
-
-
 func Verify(ctx context.Context, hc *http.Client, info *BackendInfo) (*Health, error) {
 	h, err := FetchHealth(ctx, hc, info.URL)
 	if err != nil {
@@ -167,7 +148,6 @@ func Verify(ctx context.Context, hc *http.Client, info *BackendInfo) (*Health, e
 	}
 	return h, nil
 }
-
 
 func CheckProtocol(h *Health) error {
 	if h.Response.Data.ProtocolVersion != ProtocolVersion {

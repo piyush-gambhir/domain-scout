@@ -10,13 +10,11 @@ import (
 	"text/tabwriter"
 )
 
-
 const (
 	outputJSON   = "json"
 	outputTable  = "table"
 	outputNDJSON = "ndjson"
 )
-
 
 type col struct {
 	header string
@@ -26,17 +24,12 @@ type col struct {
 	full bool
 }
 
-
-
 type view struct {
-
-
 	list string
 	cols []col
 
 	summary []col
 }
-
 
 func (a *App) emit(body []byte, v view) error {
 	switch a.opts.output {
@@ -88,7 +81,6 @@ func writeCompact(w io.Writer, raw json.RawMessage) error {
 	return err
 }
 
-
 func envelopeVersion(body []byte) string {
 	var env struct {
 		ContractVersion string `json:"contractVersion"`
@@ -96,9 +88,6 @@ func envelopeVersion(body []byte) string {
 	_ = json.Unmarshal(body, &env)
 	return env.ContractVersion
 }
-
-
-
 
 func stampVersion(raw json.RawMessage, version string) (json.RawMessage, error) {
 	trimmed := bytes.TrimSpace(raw)
@@ -126,7 +115,6 @@ func stampVersion(raw json.RawMessage, version string) (json.RawMessage, error) 
 	buf.Write(inner)
 	return buf.Bytes(), nil
 }
-
 
 func extract(body []byte, list string) (items []json.RawMessage, single json.RawMessage, err error) {
 	var env struct {
@@ -229,7 +217,6 @@ func writeKeyValues(w io.Writer, raw json.RawMessage) {
 	}
 }
 
-
 func inferColumns(raw json.RawMessage) []col {
 	obj := decodeObject(raw)
 	var cols []col
@@ -242,7 +229,6 @@ func inferColumns(raw json.RawMessage) []col {
 	}
 	return cols
 }
-
 
 func orderedKeys(raw json.RawMessage) []string {
 	dec := json.NewDecoder(bytes.NewReader(raw))
@@ -278,7 +264,6 @@ func lookup(row map[string]any, path string) any {
 }
 
 const maxCell = 72
-
 
 func cell(v any) string {
 	switch x := v.(type) {
@@ -319,10 +304,7 @@ func clip(s string) string {
 	return s[:maxCell-3] + "..."
 }
 
-
-
 func c(header, path string) col { return col{header: header, path: path} }
-
 
 func link(header, path string) col { return col{header: header, path: path, full: true} }
 
@@ -348,7 +330,6 @@ func count(path string) func(map[string]any) string {
 		return "-"
 	}
 }
-
 
 func firstOffer(fn func(map[string]any) string) func(map[string]any) string {
 	return func(row map[string]any) string {

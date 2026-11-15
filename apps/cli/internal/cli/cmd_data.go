@@ -247,9 +247,6 @@ func (a *App) settingsCmd() *cobra.Command {
 	return group("settings", "Backend settings", show, set)
 }
 
-
-
-
 func settingsPatch(pairs []string) (map[string]any, error) {
 	root := map[string]any{}
 	for _, pair := range pairs {

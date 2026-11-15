@@ -17,13 +17,7 @@ import (
 	"github.com/piyush-gambhir/domain-scout/cli/internal/runtime"
 )
 
-
-
 const reviveTimeout = 30 * time.Second
-
-
-
-
 
 func (a *App) reviveBackend(ctx context.Context, gone string) (base, token, instance string, err error) {
 	deadline := time.Now().Add(reviveTimeout)
@@ -54,11 +48,6 @@ func (a *App) reviveBackend(ctx context.Context, gone string) (base, token, inst
 		}
 	}
 }
-
-
-
-
-
 
 func (a *App) replaceOlderBackend(ctx context.Context, lc *launcher.Config, conn *connection, dataDir string) (next *connection, startOwn bool) {
 	running := conn.health.Response.Data.Version
@@ -118,8 +107,6 @@ func (a *App) replaceOlderBackend(ctx context.Context, lc *launcher.Config, conn
 	return nil, true
 }
 
-
-
 func stopUnlessBusy(ctx context.Context, base, token, instance string) (int, string, error) {
 	body, _ := json.Marshal(map[string]string{"instanceId": instance})
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimRight(base, "/")+"/api/v1/service/stop-unless-busy", bytes.NewReader(body))
@@ -143,9 +130,6 @@ func stopUnlessBusy(ctx context.Context, base, token, instance string) (int, str
 }
 
 var versionRe = regexp.MustCompile(`^v?(\d+)\.(\d+)\.(\d+)`)
-
-
-
 
 func compareVersions(a, b string) (cmp int, ok bool) {
 	pa, oka := parseVersion(a)

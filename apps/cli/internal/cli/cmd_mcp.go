@@ -31,7 +31,6 @@ names to the selected providers. no_record means no registry record.`
 	return cmd
 }
 
-
 type mcpWriter struct{ io.Writer }
 
 func (mcpWriter) Close() error { return nil }

@@ -14,7 +14,6 @@ import (
 	"github.com/piyush-gambhir/domain-scout/cli/internal/sse"
 )
 
-
 type inputFlags struct {
 	file      string
 	format    string
@@ -294,7 +293,6 @@ func (a *App) jobsCmd() *cobra.Command {
 	return group("jobs", "Inspect and control durable jobs", list, show, results, watch, cancel, resume, retry, del)
 }
 
-
 func (a *App) idCmd(use, short, what string, v view, fn func(ctx context.Context, g *api.Client, id api.Uuid) (*http.Response, error)) *cobra.Command {
 	return a.newCmd(use, short, cobra.ExactArgs(1), func(ctx context.Context, cmd *cobra.Command, args []string) error {
 		id, err := parseID(args[0], what)
@@ -304,8 +302,6 @@ func (a *App) idCmd(use, short, what string, v view, fn func(ctx context.Context
 		return a.show(ctx, v, func(ctx context.Context, g *api.Client) (*http.Response, error) { return fn(ctx, g, id) })
 	})
 }
-
-
 
 func (a *App) emitEvent(ev sse.Event) error {
 	if a.opts.output != outputTable {

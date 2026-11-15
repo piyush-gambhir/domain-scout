@@ -13,15 +13,12 @@ const (
 	stillActive                    = 259
 )
 
-
-
 func detach(cmd *exec.Cmd) {
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP | detachedProcess,
 		HideWindow:    true,
 	}
 }
-
 
 func ProcessAlive(pid int) bool {
 	if pid <= 0 {

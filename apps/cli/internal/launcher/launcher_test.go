@@ -54,7 +54,6 @@ func noEnv(string) string { return "" }
 func TestFindBackendEntry(t *testing.T) {
 	root := t.TempDir()
 
-
 	pkg := filepath.Join(root, "pkg")
 	touch(t, filepath.Join(pkg, "lib", "backend", "dist", "main.js"))
 	c := &Config{Getenv: noEnv, Executable: filepath.Join(pkg, "bin", "domain-scout"), Cwd: root}
@@ -62,7 +61,6 @@ func TestFindBackendEntry(t *testing.T) {
 	if err != nil || got != filepath.Join(pkg, "lib", "backend", "dist", "main.js") {
 		t.Fatalf("packaged: %q %v", got, err)
 	}
-
 
 	repo := filepath.Join(root, "repo")
 	touch(t, filepath.Join(repo, "apps", "backend", "dist", "main.js"))
@@ -76,7 +74,6 @@ func TestFindBackendEntry(t *testing.T) {
 	if got, err = c.FindBackendEntry(); err != nil || !strings.HasPrefix(got, repo) {
 		t.Fatalf("repo walk from exe: %q %v", got, err)
 	}
-
 
 	override := filepath.Join(root, "custom", "main.js")
 	touch(t, override)
@@ -143,9 +140,6 @@ func TestBrowserCommand(t *testing.T) {
 	}
 }
 
-
-
-
 func freePort(t *testing.T) int {
 	t.Helper()
 	for range 100 {
@@ -211,15 +205,12 @@ func TestStartBackendDetachedAndDiscoverable(t *testing.T) {
 		t.Fatalf("log should record the launch command, got %q", log)
 	}
 
-
 	c2 := packagedConfig(t)
 	var se *SetupError
 	if _, _, err := c2.StartBackend(ctx, port, nil); !errors.As(err, &se) || !strings.Contains(err.Error(), "in use") {
 		t.Fatalf("port conflict must be a setup error, got %v", err)
 	}
 }
-
-
 
 func TestStartBackendWaitsForAnotherStarter(t *testing.T) {
 	c := packagedConfig(t)
@@ -332,7 +323,6 @@ func TestEnsureWebReplacesServerForOtherPortOrBackend(t *testing.T) {
 		t.Fatalf("web.json should record the backend: %+v", old)
 	}
 
-
 	port := portOf(t, first)
 	if _, err := c.EnsureWeb(ctx, "http://127.0.0.1:4400", port); err != nil {
 		t.Fatal(err)
@@ -342,7 +332,6 @@ func TestEnsureWebReplacesServerForOtherPortOrBackend(t *testing.T) {
 	if second.PID == old.PID || second.BackendURL != "http://127.0.0.1:4400" || ProcessAlive(old.PID) {
 		t.Fatalf("server for the old backend must be replaced: old %+v new %+v", old, second)
 	}
-
 
 	newPort := freePort(t)
 	url, err := c.EnsureWeb(ctx, "http://127.0.0.1:4400", newPort)

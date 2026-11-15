@@ -121,7 +121,6 @@ func (a *App) serviceCmd() *cobra.Command {
 	return group("service", "Manage the local backend process", start, status, stop)
 }
 
-
 func (a *App) waitStopped(ctx context.Context, baseURL string, pid int) error {
 	deadline := time.Now().Add(a.opts.timeout)
 	for {

@@ -5,8 +5,6 @@ import (
 	"testing"
 )
 
-
-
 func TestOfferTableShowsPurchaseDetails(t *testing.T) {
 	f := newFakeAPI(t)
 	url := "https://porkbun.com/checkout/search?q=" + strings.Repeat("x", 80) + ".com"

@@ -207,9 +207,6 @@ func (a *App) configureCmd() *cobra.Command {
 	return cmd
 }
 
-
-
-
 func (a *App) credentialValues(fields []api.CredentialField, flagValues []string, fromEnv, stdin bool) (map[string]string, error) {
 	known := map[string]api.CredentialField{}
 	for _, f := range fields {
@@ -336,8 +333,6 @@ func (a *App) catalogCmd() *cobra.Command {
 	list.Flags().StringVar(&suffix, "suffix", "", "only this suffix")
 	return group("catalog", "Provider price catalogs", refresh, list)
 }
-
-
 
 func (a *App) providerJob(use, short string, create func(ctx context.Context, g *api.Client, key string, body api.ProviderJobBody) (*http.Response, error)) *cobra.Command {
 	var (

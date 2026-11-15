@@ -21,7 +21,6 @@ func isTerminal(s api.JobState) bool {
 	return false
 }
 
-
 type domainEvent struct {
 	ContractVersion string          `json:"contractVersion"`
 	EventID         string          `json:"eventId"`
@@ -32,19 +31,13 @@ type domainEvent struct {
 	Payload         json.RawMessage `json:"payload"`
 }
 
-
 type waitHooks struct {
-
 	onEvent func(ev sse.Event) error
 
 	onPoll func(raw []byte) error
 }
 
-
 var streamIdleTimeout = 45 * time.Second
-
-
-
 
 func (a *App) waitJob(ctx context.Context, c *apiClient, id api.Uuid, hooks waitHooks) (*api.Job, error) {
 	jobID := id.String()
@@ -149,7 +142,6 @@ func (a *App) pollJob(ctx context.Context, c *apiClient, id api.Uuid, pr *progre
 	}
 }
 
-
 type progressReporter struct {
 	app      *App
 	state    string
@@ -173,11 +165,7 @@ func (p *progressReporter) counters(state string, c api.JobCounters) {
 	p.app.progress("%s: %d/%d finished, %d unresolved", state, c.Finished, c.Total, c.Unresolved)
 }
 
-
-
 var accessOutcomes = []string{"credential_required", "credentials_invalid"}
-
-
 
 func jobExit(job *api.Job) error {
 	var parts []string
@@ -205,12 +193,10 @@ func jobExit(job *api.Job) error {
 	}
 }
 
-
 func (a *App) interruptedWait(id api.Uuid) error {
 	fmt.Fprintf(a.Stderr, "Stopped waiting. Job %s keeps running; inspect it with 'domain-scout jobs show %s'.\n", id, id)
 	return &exitError{code: ExitInterrupted, note: true}
 }
-
 
 func (c *apiClient) jobResults(ctx context.Context, id api.Uuid, params api.ListJobResultsParams) ([]byte, error) {
 	limit := 1000
@@ -224,15 +210,9 @@ func (c *apiClient) jobResults(ctx context.Context, id api.Uuid, params api.List
 	})
 }
 
-
-
-
-
 func (a *App) submit(ctx context.Context, wait bool, fn callFn) error {
 	return a.submitWith(ctx, wait, true, fn)
 }
-
-
 
 func (a *App) submitOnce(ctx context.Context, wait bool, fn callFn) error {
 	return a.submitWith(ctx, wait, false, fn)

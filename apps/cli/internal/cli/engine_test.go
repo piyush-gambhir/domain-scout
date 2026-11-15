@@ -20,8 +20,6 @@ func listJobs(ctx context.Context, g *api.Client) (*http.Response, error) {
 	return g.ListJobs(ctx, &api.ListJobsParams{})
 }
 
-
-
 func TestClientRevivesAStoppedBackend(t *testing.T) {
 	served := func(name string) *httptest.Server {
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +59,6 @@ func TestClientRevivesAStoppedBackend(t *testing.T) {
 	}
 }
 
-
 func TestClientDoesNotReviveForOtherErrors(t *testing.T) {
 	var calls atomic.Int32
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -78,8 +75,6 @@ func TestClientDoesNotReviveForOtherErrors(t *testing.T) {
 		t.Fatalf("err %v after %d calls", err, calls.Load())
 	}
 }
-
-
 
 func installedBackend(t *testing.T, env ...string) (*harness, string) {
 	t.Helper()
@@ -111,7 +106,6 @@ func runningInstance(t *testing.T, dataDir string) string {
 	}
 	return info.InstanceID
 }
-
 
 func TestCommandSurvivesTheBackendStoppingWhenIdle(t *testing.T) {
 	h, dataDir := installedBackend(t, "FAKE_NODE_STOP_ONCE=GET /api/v1/jobs")
@@ -149,7 +143,6 @@ func TestNewerCLIReplacesAnOlderIdleBackend(t *testing.T) {
 	}
 }
 
-
 func TestReplacementKeepsTheOldBackendsPort(t *testing.T) {
 	h, dataDir := installedBackend(t, "FAKE_NODE_APP_VERSION=0.9.0")
 	custom := freePort(t)
@@ -178,8 +171,6 @@ func TestNewerCLIKeepsABusyOlderBackend(t *testing.T) {
 		t.Fatal("a busy backend must keep running")
 	}
 }
-
-
 
 func TestNewerCLIKeepsAnOlderBackendItCannotReplaceSafely(t *testing.T) {
 	for _, tc := range []struct {

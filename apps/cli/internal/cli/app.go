@@ -1,5 +1,3 @@
-
-
 package cli
 
 import (
@@ -22,9 +20,7 @@ import (
 	"github.com/piyush-gambhir/domain-scout/cli/internal/runtime"
 )
 
-
 const EnvAPIToken = "DOMAIN_SCOUT_API_TOKEN"
-
 
 type App struct {
 	Stdin      io.Reader
@@ -47,7 +43,6 @@ type App struct {
 	opts   options
 	client *apiClient
 
-
 	webOrigins []string
 	started    bool
 }
@@ -60,7 +55,6 @@ type options struct {
 	dataDir    string
 	timeout    time.Duration
 }
-
 
 func New(version string) *App {
 	exe, _ := os.Executable()
@@ -82,7 +76,6 @@ func New(version string) *App {
 		Version:    version,
 	}
 }
-
 
 func (a *App) Run(ctx context.Context, args []string) int {
 	a.opts = options{output: outputJSON}
@@ -163,9 +156,7 @@ missing, 5 backend setup or version failure, 130 interrupted wait.`,
 	return root
 }
 
-
 type runFunc func(ctx context.Context, cmd *cobra.Command, args []string) error
-
 
 func (a *App) newCmd(use, short string, args cobra.PositionalArgs, run runFunc) *cobra.Command {
 	return &cobra.Command{
@@ -195,7 +186,6 @@ func (a *App) newCmd(use, short string, args cobra.PositionalArgs, run runFunc) 
 		},
 	}
 }
-
 
 func group(use, short string, children ...*cobra.Command) *cobra.Command {
 	g := &cobra.Command{Use: use, Short: short, Args: cobra.NoArgs}
@@ -234,7 +224,6 @@ func (a *App) launcherConfig(dataDir string) *launcher.Config {
 	}
 }
 
-
 func (a *App) backendPort() (int, error) {
 	if v := a.Getenv(launcher.EnvPort); v != "" {
 		p, err := strconv.Atoi(v)
@@ -246,15 +235,10 @@ func (a *App) backendPort() (int, error) {
 	return launcher.DefaultPort, nil
 }
 
-
 type connection struct {
 	url    string
 	health *runtime.Health
 }
-
-
-
-
 
 func (a *App) connect(ctx context.Context, autostart bool) (*connection, string, error) {
 	dataDir, err := a.dataDir()
@@ -318,7 +302,6 @@ func (a *App) connect(ctx context.Context, autostart bool) (*connection, string,
 	return &connection{url: strings.TrimRight(info.URL, "/"), health: h}, dataDir, nil
 }
 
-
 func urlPort(raw string) int {
 	u, err := url.Parse(raw)
 	if err != nil {
@@ -339,7 +322,6 @@ func asSetup(err error) error {
 	}
 	return setupErr("%v", err)
 }
-
 
 func (a *App) api(ctx context.Context) (*apiClient, error) {
 	if a.client != nil {

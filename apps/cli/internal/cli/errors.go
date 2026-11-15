@@ -10,7 +10,6 @@ import (
 	"github.com/piyush-gambhir/domain-scout/cli/internal/api"
 )
 
-
 const (
 	ExitOK          = 0
 	ExitFailure     = 1
@@ -21,9 +20,7 @@ const (
 	ExitInterrupted = 130
 )
 
-
 const ContractVersion = "1.0.0"
-
 
 type exitError struct {
 	code    int
@@ -33,9 +30,7 @@ type exitError struct {
 	parsed  *api.ErrorResponse
 	note    bool
 
-
 	retryable bool
-
 
 	gone bool
 }
@@ -54,10 +49,7 @@ func setupErr(format string, args ...any) error {
 	return &exitError{code: ExitSetup, errCode: api.ErrorCodeUnavailable, msg: fmt.Sprintf(format, args...)}
 }
 
-
 var errInterrupted = &exitError{code: ExitInterrupted, errCode: api.ErrorCodeUnavailable, msg: "interrupted"}
-
-
 
 func apiError(status int, body []byte) error {
 	var parsed api.ErrorResponse
@@ -118,7 +110,6 @@ func exitForAPIError(status int, code api.ErrorCode) int {
 	}
 }
 
-
 func classify(err error) *exitError {
 	var e *exitError
 	if errors.As(err, &e) {
@@ -126,8 +117,6 @@ func classify(err error) *exitError {
 	}
 	return &exitError{code: ExitFailure, errCode: api.ErrorCodeInternal, msg: err.Error()}
 }
-
-
 
 func writeError(w io.Writer, mode string, e *exitError, quiet bool) {
 	if e.note {
@@ -150,7 +139,6 @@ func writeError(w io.Writer, mode string, e *exitError, quiet bool) {
 	b, _ := json.Marshal(localErrorEnvelope(e))
 	fmt.Fprintln(w, string(b))
 }
-
 
 func localErrorEnvelope(e *exitError) map[string]any {
 	return map[string]any{

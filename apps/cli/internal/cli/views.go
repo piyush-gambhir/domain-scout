@@ -1,6 +1,5 @@
 package cli
 
-
 var (
 	plainView = view{}
 
@@ -57,7 +56,6 @@ var (
 			c("COMPLETE", "complete"), c("RANK", "rank"), c("MISSING", "missing"), c("FRESHNESS", "freshness"),
 		},
 	}
-
 
 	suffixPricesView = view{cols: []col{
 		c("SUFFIX", "suffix"), {header: "PROVIDERS", fn: count("offers")},

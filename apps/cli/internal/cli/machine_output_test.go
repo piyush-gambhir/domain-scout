@@ -47,7 +47,6 @@ func TestCancelledWaitMachineOutput(t *testing.T) {
 				return
 			}
 
-
 			out := decodeJSON(t, r.stdout)
 			data, ok := out["data"].([]any)
 			if out["contractVersion"] != "1.0.0" || !ok || len(data) != 1 || !reflect.DeepEqual(data[0], decodeJSON(t, finished)) {

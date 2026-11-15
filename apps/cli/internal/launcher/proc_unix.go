@@ -8,12 +8,9 @@ import (
 	"syscall"
 )
 
-
-
 func detach(cmd *exec.Cmd) {
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 }
-
 
 func ProcessAlive(pid int) bool {
 	if pid <= 0 {

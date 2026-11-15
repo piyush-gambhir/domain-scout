@@ -59,8 +59,6 @@ func TestParserFields(t *testing.T) {
 	}
 }
 
-
-
 type sseServer struct {
 	t       *testing.T
 	mu      sync.Mutex
@@ -84,7 +82,6 @@ func newSSEServer(t *testing.T, conns ...func(w http.ResponseWriter, flush func(
 		w.WriteHeader(200)
 		fl := w.(http.Flusher)
 		fl.Flush()
-
 
 		hold := func(d time.Duration) {
 			select {

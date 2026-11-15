@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -9,7 +8,6 @@ import (
 
 	"github.com/piyush-gambhir/domain-scout/cli/internal/cli"
 )
-
 
 var version = "dev"
 

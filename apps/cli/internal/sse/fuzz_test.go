@@ -7,10 +7,6 @@ import (
 	"testing"
 )
 
-
-
-
-
 func FuzzParser(f *testing.F) {
 	f.Add([]byte("id: 1\nevent: job.updated\ndata: {\"a\":1,\ndata:  \"b\":2}\n\n"))
 	f.Add([]byte(": comment\r\nretry: 1500\r\nid: 2\r\n\r\n"))
@@ -45,8 +41,6 @@ func FuzzParser(f *testing.F) {
 		}
 	})
 }
-
-
 
 func FuzzParserRoundTrip(f *testing.F) {
 	f.Add("7", "job.updated", `{"jobId":"j1"}`)

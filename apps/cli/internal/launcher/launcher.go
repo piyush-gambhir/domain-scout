@@ -1,5 +1,3 @@
-
-
 package launcher
 
 import (
@@ -20,22 +18,18 @@ import (
 	"github.com/piyush-gambhir/domain-scout/cli/internal/runtime"
 )
 
-
 const (
 	EnvBackendEntry = "DOMAIN_SCOUT_BACKEND_ENTRY"
 	EnvNode         = "DOMAIN_SCOUT_NODE"
 	EnvPort         = "DOMAIN_SCOUT_PORT"
 )
 
-
 const (
 	DefaultPort    = 4317
 	DefaultWebPort = 3000
 )
 
-
 var MinNode = [3]int{24, 11, 0}
-
 
 type SetupError struct{ Msg string }
 
@@ -44,8 +38,6 @@ func (e *SetupError) Error() string { return e.Msg }
 func setupErr(format string, args ...any) error {
 	return &SetupError{Msg: fmt.Sprintf(format, args...)}
 }
-
-
 
 type Config struct {
 	DataDir    string
@@ -85,9 +77,6 @@ func (c *Config) timeout() time.Duration {
 
 var probeClient = &http.Client{Timeout: 3 * time.Second}
 
-
-
-
 func (c *Config) Discover(ctx context.Context) (*runtime.BackendInfo, *runtime.Health, error) {
 	info, err := runtime.ReadBackendInfo(c.DataDir)
 	if err != nil {
@@ -105,7 +94,6 @@ func (c *Config) Discover(ctx context.Context) (*runtime.BackendInfo, *runtime.H
 
 var nodeVersionRe = regexp.MustCompile(`^v?(\d+)\.(\d+)\.(\d+)`)
 
-
 func ParseNodeVersion(s string) ([3]int, error) {
 	m := nodeVersionRe.FindStringSubmatch(strings.TrimSpace(s))
 	if m == nil {
@@ -118,7 +106,6 @@ func ParseNodeVersion(s string) ([3]int, error) {
 	return v, nil
 }
 
-
 func VersionAtLeast(v, min [3]int) bool {
 	for i := range v {
 		if v[i] != min[i] {
@@ -129,7 +116,6 @@ func VersionAtLeast(v, min [3]int) bool {
 }
 
 func minNodeString() string { return fmt.Sprintf("%d.%d.%d", MinNode[0], MinNode[1], MinNode[2]) }
-
 
 func (c *Config) FindNode(ctx context.Context) (string, error) {
 	path := c.Getenv(EnvNode)
@@ -157,8 +143,6 @@ func (c *Config) FindNode(ctx context.Context) (string, error) {
 	}
 	return path, nil
 }
-
-
 
 func (c *Config) searchRoots() []string {
 	var roots []string
@@ -188,9 +172,6 @@ func fileExists(p string) bool {
 	return err == nil && !st.IsDir()
 }
 
-
-
-
 func (c *Config) FindBackendEntry() (string, error) {
 	if p := c.Getenv(EnvBackendEntry); p != "" {
 		if !fileExists(p) {
@@ -213,7 +194,6 @@ func (c *Config) FindBackendEntry() (string, error) {
 	return "", setupErr("backend assets not found. Use a packaged release (lib/backend next to bin/), build the repository with `pnpm turbo run build --filter @domain-scout/backend`, or set %s to the backend main.js.", EnvBackendEntry)
 }
 
-
 func PortFree(host string, port int) bool {
 	l, err := net.Listen("tcp", net.JoinHostPort(host, strconv.Itoa(port)))
 	if err != nil {
@@ -222,7 +202,6 @@ func PortFree(host string, port int) bool {
 	_ = l.Close()
 	return true
 }
-
 
 func (c *Config) spawn(name string, args []string, dir string, env []string, logPath string) (*exec.Cmd, <-chan error, error) {
 	if err := os.MkdirAll(filepath.Dir(logPath), 0o700); err != nil {
@@ -248,8 +227,6 @@ func (c *Config) spawn(name string, args []string, dir string, env []string, log
 	return cmd, exited, nil
 }
 
-
-
 func (c *Config) StartBackend(ctx context.Context, port int, webOrigins []string) (*runtime.BackendInfo, *runtime.Health, error) {
 	entry, err := c.FindBackendEntry()
 	if err != nil {
@@ -260,7 +237,6 @@ func (c *Config) StartBackend(ctx context.Context, port int, webOrigins []string
 		return nil, nil, err
 	}
 	if !PortFree("127.0.0.1", port) {
-
 
 		wait := time.Duration(0)
 		if fileExists(filepath.Join(c.DataDir, "backend.lock")) {
@@ -314,10 +290,7 @@ func (c *Config) StartBackend(ctx context.Context, port int, webOrigins []string
 	}
 }
 
-
 const otherStarterWait = 5 * time.Second
-
-
 
 func (c *Config) awaitOther(ctx context.Context, wait time.Duration) (*runtime.BackendInfo, *runtime.Health, error) {
 	deadline := time.Now().Add(wait)
@@ -333,7 +306,6 @@ func (c *Config) awaitOther(ctx context.Context, wait time.Duration) (*runtime.B
 		}
 	}
 }
-
 
 func webAnswers(ctx context.Context, url string) bool {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -351,8 +323,6 @@ func webAnswers(ctx context.Context, url string) bool {
 	resp.Body.Close()
 	return true
 }
-
-
 
 func (c *Config) webCommand(port int) (args []string, dir string, err error) {
 	if c.Executable != "" {
@@ -374,9 +344,6 @@ func (c *Config) webCommand(port int) (args []string, dir string, err error) {
 	}
 	return nil, "", setupErr("web UI assets not found. The npm package is CLI-only; use a release archive (lib/web next to bin/), the Docker image or a built repository checkout for the UI.")
 }
-
-
-
 
 func (c *Config) EnsureWeb(ctx context.Context, backendURL string, port int) (string, error) {
 	url := fmt.Sprintf("http://127.0.0.1:%d", port)
@@ -415,7 +382,6 @@ func (c *Config) EnsureWeb(ctx context.Context, backendURL string, port int) (st
 		return "", err
 	}
 
-
 	fail := func(err error) (string, error) {
 		_ = cmd.Process.Kill()
 		select {
@@ -448,8 +414,6 @@ func (c *Config) EnsureWeb(ctx context.Context, backendURL string, port int) (st
 	}
 }
 
-
-
 func stopProcess(pid int) {
 	p, err := os.FindProcess(pid)
 	if err != nil {
@@ -461,7 +425,6 @@ func stopProcess(pid int) {
 	}
 }
 
-
 func BrowserCommand(goos, url string) (string, []string) {
 	switch goos {
 	case "darwin":
@@ -472,7 +435,6 @@ func BrowserCommand(goos, url string) (string, []string) {
 		return "xdg-open", []string{url}
 	}
 }
-
 
 func OpenBrowser(goos, url string) error {
 	name, args := BrowserCommand(goos, url)

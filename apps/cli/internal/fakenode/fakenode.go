@@ -1,8 +1,3 @@
-
-
-
-
-
 package fakenode
 
 import (
@@ -18,7 +13,6 @@ import (
 	"time"
 )
 
-
 const (
 	EnvActive   = "FAKE_NODE"
 	EnvVersion  = "FAKE_NODE_VERSION"
@@ -31,13 +25,11 @@ const (
 
 	EnvNoConditionalStop = "FAKE_NODE_NO_CONDITIONAL_STOP"
 
-
 	EnvStopOnce = "FAKE_NODE_STOP_ONCE"
 
 	EnvLocked = "FAKE_NODE_LOCKED"
 	Token     = "fake-token"
 )
-
 
 func Main() {
 	if os.Getenv(EnvActive) != "1" {
