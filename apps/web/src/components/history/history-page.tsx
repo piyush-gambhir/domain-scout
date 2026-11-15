@@ -64,7 +64,7 @@ function HistoryRow({ entry, onDelete }: { entry: HistoryEntry; onDelete: () => 
   });
   const title = entry.label ?? (search ? plural(entry.total, 'check') : jobTypeLabel(entry.type));
   const status = jobStateStatus(entry.state);
-  // Finished searches show what they found; only stopped or failed work shows its state.
+
   const showState = ['interrupted', 'cancelled', 'cancelling'].includes(entry.state);
   return (
     <li className="group/row grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 gap-y-0.5 rounded-md px-2.5 py-1.5 transition-colors hover:bg-hover sm:grid-cols-[minmax(0,1fr)_minmax(9rem,17rem)_6rem_auto]" data-testid="history-row">
@@ -150,7 +150,7 @@ function HistoryRow({ entry, onDelete }: { entry: HistoryEntry; onDelete: () => 
   );
 }
 
-/** Recent searches from this UI and from agents; system and watch jobs on request. */
+
 export function HistoryPage() {
   const client = useQueryClient();
   const [q, setQ] = useState('');

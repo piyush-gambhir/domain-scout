@@ -1,5 +1,3 @@
-// Package cli implements the domain-scout command tree. Every command maps to
-// one or more local API operations; the CLI never scans or stores data itself.
 package cli
 
 import (
@@ -22,10 +20,8 @@ import (
 	"github.com/piyush-gambhir/domain-scout/cli/internal/runtime"
 )
 
-// EnvAPIToken supplies the API token when --backend-url is used.
 const EnvAPIToken = "DOMAIN_SCOUT_API_TOKEN"
 
-// App holds the process environment so tests can run commands in-process.
 type App struct {
 	Stdin      io.Reader
 	Stdout     io.Writer
@@ -36,18 +32,17 @@ type App struct {
 	Cwd        string
 	Home       string
 	LookPath   func(string) (string, error)
-	// OpenURL opens the browser; nil uses the OS opener.
+
 	OpenURL func(url string) error
-	// LauncherEnv is appended to the environment of spawned servers.
+
 	LauncherEnv []string
-	// PollInterval is the job polling fallback interval; zero means 1s.
+
 	PollInterval time.Duration
 	Version      string
 
 	opts   options
 	client *apiClient
-	// webOrigins are passed to a backend this process starts (ui with a
-	// non-default --web-port); started reports whether it started one.
+
 	webOrigins []string
 	started    bool
 }
@@ -61,7 +56,6 @@ type options struct {
 	timeout    time.Duration
 }
 
-// New wires an App to the real process environment.
 func New(version string) *App {
 	exe, _ := os.Executable()
 	if resolved, err := filepath.EvalSymlinks(exe); err == nil {
@@ -83,7 +77,6 @@ func New(version string) *App {
 	}
 }
 
-// Run executes args and returns the process exit code.
 func (a *App) Run(ctx context.Context, args []string) int {
 	a.opts = options{output: outputJSON}
 	root := a.rootCmd()
@@ -97,7 +90,7 @@ func (a *App) Run(ctx context.Context, args []string) int {
 	}
 	var e *exitError
 	if !errors.As(err, &e) {
-		// Anything cobra rejects before our code runs is a usage error.
+
 		path := root.Name()
 		if cmd != nil {
 			path = cmd.CommandPath()
@@ -163,10 +156,8 @@ missing, 5 backend setup or version failure, 130 interrupted wait.`,
 	return root
 }
 
-// runFunc is the body of a command.
 type runFunc func(ctx context.Context, cmd *cobra.Command, args []string) error
 
-// newCmd builds a leaf command whose errors are always typed exit errors.
 func (a *App) newCmd(use, short string, args cobra.PositionalArgs, run runFunc) *cobra.Command {
 	return &cobra.Command{
 		Use:   use,
@@ -196,7 +187,6 @@ func (a *App) newCmd(use, short string, args cobra.PositionalArgs, run runFunc) 
 	}
 }
 
-// group builds a parent command that only holds subcommands.
 func group(use, short string, children ...*cobra.Command) *cobra.Command {
 	g := &cobra.Command{Use: use, Short: short, Args: cobra.NoArgs}
 	g.RunE = func(cmd *cobra.Command, args []string) error {
@@ -234,7 +224,6 @@ func (a *App) launcherConfig(dataDir string) *launcher.Config {
 	}
 }
 
-// backendPort is DOMAIN_SCOUT_PORT or the protocol default.
 func (a *App) backendPort() (int, error) {
 	if v := a.Getenv(launcher.EnvPort); v != "" {
 		p, err := strconv.Atoi(v)
@@ -246,16 +235,11 @@ func (a *App) backendPort() (int, error) {
 	return launcher.DefaultPort, nil
 }
 
-// connection is a verified backend plus its health response.
 type connection struct {
 	url    string
 	health *runtime.Health
 }
 
-// connect finds a verified backend: --backend-url, or the runtime file for
-// the data directory. With autostart it launches installed backend assets
-// when none is running. The data directory is returned alongside an error
-// only when no backend is running.
 func (a *App) connect(ctx context.Context, autostart bool) (*connection, string, error) {
 	dataDir, err := a.dataDir()
 	if err != nil {
@@ -287,7 +271,7 @@ func (a *App) connect(ctx context.Context, autostart bool) (*connection, string,
 		if next, startOwn := a.replaceOlderBackend(ctx, lc, conn, dataDir); !startOwn {
 			return next, dataDir, nil
 		}
-		// The older backend stopped; start this version's below, on the port it used.
+
 		replacedPort = urlPort(info.URL)
 	case ctx.Err() != nil:
 		return nil, "", errInterrupted
@@ -318,7 +302,6 @@ func (a *App) connect(ctx context.Context, autostart bool) (*connection, string,
 	return &connection{url: strings.TrimRight(info.URL, "/"), health: h}, dataDir, nil
 }
 
-// urlPort is the port of a backend URL such as http://127.0.0.1:4317, or 0.
 func urlPort(raw string) int {
 	u, err := url.Parse(raw)
 	if err != nil {
@@ -340,7 +323,6 @@ func asSetup(err error) error {
 	return setupErr("%v", err)
 }
 
-// api returns an authenticated client for a verified (auto-started) backend.
 func (a *App) api(ctx context.Context) (*apiClient, error) {
 	if a.client != nil {
 		return a.client, nil

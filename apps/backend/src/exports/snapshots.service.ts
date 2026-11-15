@@ -26,11 +26,11 @@ interface SnapshotOptions {
   resolved: unknown;
 }
 
-/**
- * Local share snapshots: a self-contained HTML report plus the same data as JSON. Contents come only
- * from retained evidence; private notes are left out unless include.notes is set. Raw diagnostics,
- * offer source URLs and anything credential-related are never included.
- */
+
+
+
+
+
 @Injectable()
 export class SnapshotsService {
   constructor(
@@ -107,7 +107,7 @@ export class SnapshotsService {
     const resolution = this.resolver.resolve(body.scope);
     const byDomain = new Map<string, SnapshotItem>();
     for (const record of resolution.records) {
-      // A job can hold several items per domain (one per provider); a report shows each name once.
+
       const existing = byDomain.get(record.domain);
       if (existing) merge(existing, this.item(record, body));
       else byDomain.set(record.domain, this.item(record, body));
@@ -187,7 +187,7 @@ export class SnapshotsService {
         renewal: offer.renewal?.amount ?? null,
         observedAt: offer.observedAt,
         freshnessAtCreation: offer.freshness,
-        // Only the label: source URLs can carry query parameters and are not needed in a report.
+
         source: offer.source?.label ?? null,
       }));
       if (!item.prices.length && record.bestPrice) {

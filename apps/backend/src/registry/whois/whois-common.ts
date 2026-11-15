@@ -5,12 +5,12 @@ import { plusSeconds } from '../retry-after.js';
 import { normalizeHostName, sanitizeField, toIso } from '../sanitize.js';
 import type { WhoisRouteSpec } from '../data.js';
 
-/**
- * Shared pieces of the registry-specific WHOIS classifiers (whois-classifiers.ts and
- * cctld-classifiers.ts). Each classifier names exact positive, negative and throttle/error patterns
- * for its registry; text that matches none of them is inconclusive. There is deliberately no generic
- * "short reply means free" rule (the failure mode found in reference projects).
- */
+
+
+
+
+
+
 export interface WhoisContext {
   domain: NormalizedDomain;
   spec: WhoisRouteSpec;
@@ -23,7 +23,7 @@ export interface WhoisParser {
   classify(text: string, ctx: WhoisContext): Classification;
 }
 
-/** Applies the checks shared by every registry, then the registry's own classifier. */
+
 export function classifyWhois(parser: WhoisParser, response: { text: string; truncated: boolean }, ctx: WhoisContext): Classification {
   const host = ctx.spec.host;
   if (response.text.trim() === '') {
@@ -38,7 +38,7 @@ export function classifyWhois(parser: WhoisParser, response: { text: string; tru
 export const UNRECOGNIZED = (host: string) =>
   unresolved('inconclusive', 'unrecognized_response', `${host} reply did not match any known registered, free or error pattern`);
 
-/** A name line without the rest of the registry's record shape may be a reply cut short. */
+
 export const INCOMPLETE = (host: string, missing: string) =>
   unresolved('inconclusive', 'incomplete_record', `${host} reply names the domain but lacks ${missing}`, { retryable: true });
 
@@ -85,11 +85,11 @@ export function registered(ctx: WhoisContext, matchedName: string, registration:
   };
 }
 
-/** A-label form of a name printed by a registry (may be upper case or Unicode). */
+
 export function asciiName(value: string | undefined): string | null {
   if (!value) return null;
   const name = value.trim().toLowerCase().replace(/\.$/, '');
-  // domainToASCII() would silently drop a path, query or port; such a value is not a domain name.
+
   if (name === '' || /[\s/?#@:\\%"']/.test(name)) return null;
   return domainToASCII(name) || null;
 }
@@ -110,7 +110,7 @@ export function fields(values: string[], max = 30): string[] {
   return values.map((value) => sanitizeField(value, 80)).filter((value): value is string => value !== null).slice(0, max);
 }
 
-/** Local date-time with a fixed registry offset (e.g. +09:00 for JPRS) to ISO. */
+
 export function localToIso(value: string | undefined, offset: string): string | null {
   if (!value) return null;
   const match = /^(\d{4})[/-](\d{2})[/-](\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?/.exec(value.trim());
@@ -129,7 +129,7 @@ export const NO_DETAILS: RegistrationDetails = {
   dnssec: null,
 };
 
-/** no_record where the same reply states that the name is reserved or restricted (A06). */
+
 export function noRecordStated(ctx: WhoisContext, matchedName: string | null, detail: string, eligibility: Eligibility): Classification {
   return { ...noRecord(ctx, matchedName, detail), eligibility };
 }
@@ -138,13 +138,13 @@ export function unknownStatus(ctx: WhoisContext, status: string, matchedName: st
   return unresolved('inconclusive', 'unknown_status', `${ctx.spec.host} reported an unknown status "${sanitizeField(status, 60)}"`, { matchedName });
 }
 
-/** The registry refused this client outright (documented block reply). */
+
 export function blockedBy(ctx: WhoisContext, detail: string, seconds: number): Classification {
   const cooldownUntil = plusSeconds(ctx.now, seconds);
   return unresolved('blocked', 'blocked', `${ctx.spec.host} refused the query: ${detail}`, { cooldownUntil, retryAt: cooldownUntil });
 }
 
-/** Registry policy says the name cannot be registered (outcome invalid, restricted eligibility). */
+
 export function registryInvalid(ctx: WhoisContext, matchedName: string | null, detail: string, source: string): Classification {
   return {
     ...unresolved('inconclusive', 'registry_reports_invalid', `${ctx.spec.host} ${detail}`),
@@ -154,10 +154,10 @@ export function registryInvalid(ctx: WhoisContext, matchedName: string | null, d
   };
 }
 
-/**
- * Trimmed lines indented deeper than the header line matched by `header` (a whole-line pattern with
- * the m flag), up to the first line that is not.
- */
+
+
+
+
 export function block(text: string, header: RegExp): string[] {
   const match = header.exec(text);
   if (!match) return [];
@@ -171,7 +171,7 @@ export function block(text: string, header: RegExp): string[] {
   return out;
 }
 
-/** Date part of `YYYY-MM-DD`, `YYYYMMDD` or day-first `DD/MM/YYYY`, `DD.MM.YYYY`, `DD-MM-YYYY` (registry local time dropped) as UTC midnight. */
+
 export function dateOnly(value: string | undefined): string | null {
   const text = value?.trim() ?? '';
   const ymd = /^(\d{4})-?(\d{2})-?(\d{2})(?:\D|$)/.exec(text);
@@ -182,28 +182,28 @@ export function dateOnly(value: string | undefined): string | null {
 
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
 
-/** UTC midnight for a day, an English month name (or prefix) and a year. */
+
 export function dayMonthYear(day: string, month: string, year: string): string | null {
   const index = MONTHS.indexOf(month.slice(0, 3).toLowerCase());
   if (index === -1) return null;
   return toIso(`${year}-${String(index + 1).padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00Z`);
 }
 
-/**
- * Distinct names printed by a reply's identity lines, as A-labels. `pattern` (g and m flags) should
- * capture the whole rest of the line, so a malformed occurrence is never skipped: it counts as ''
- * (unreadable) and therefore still differs. More than one means the reply mixes records.
- */
+
+
+
+
+
 export function names(text: string, pattern: RegExp): string[] {
   return [...new Set(all(text, pattern).map((value) => asciiName(value) ?? ''))];
 }
 
-/** Distinct values of a field (`pattern` with g and m flags, capturing the rest of the line). More than one is a contradiction. */
+
 export function values(text: string, pattern: RegExp): string[] {
   return [...new Set(all(text, pattern).map((value) => value.toLowerCase()))];
 }
 
-/** A reply that states two different things (two names, two statuses, a negative plus a record). */
+
 export function conflicting(ctx: WhoisContext, what: string): Classification {
   return unresolved('inconclusive', 'conflicting_reply', `${ctx.spec.host} reply contains conflicting ${what}`);
 }

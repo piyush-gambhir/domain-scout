@@ -26,7 +26,7 @@ function respondWithFixture(file: string) {
   return fixture;
 }
 
-/** What the jobs engine does with the result: persist the evidence rows. */
+
 function persist(result: OperationResult) {
   for (const write of result.evidence) if (write.kind === 'observation') evidence.insertObservation(write.row);
 }
@@ -141,7 +141,7 @@ describe('cache reuse versus recheck', () => {
     expect(stale.reused).toBeUndefined();
     expect(h.http.calls).toHaveLength(3);
 
-    // Prior evidence stays identifiable after rechecks (A09).
+
     const rows = evidence.observations('registry', 'google.com');
     expect(rows).toHaveLength(2);
     expect(rows.map((r) => hydrateObservation<{ freshness: string }>(r, h.clock.now()).freshness)).toEqual(['stale', 'stale']);

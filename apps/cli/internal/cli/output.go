@@ -10,34 +10,27 @@ import (
 	"text/tabwriter"
 )
 
-// Output modes.
 const (
 	outputJSON   = "json"
 	outputTable  = "table"
 	outputNDJSON = "ndjson"
 )
 
-// col is one table column: a dotted JSON path or a computed value.
 type col struct {
 	header string
 	path   string
 	fn     func(row map[string]any) string
-	// full keeps the whole value (URLs); other cells are clipped to maxCell.
+
 	full bool
 }
 
-// view describes how table and ndjson modes render a response. JSON mode
-// always prints the API envelope verbatim and ignores the view.
 type view struct {
-	// list names a key inside data whose array is rendered as rows; empty
-	// renders data itself (an array for pages, an object otherwise).
 	list string
 	cols []col
-	// summary columns are printed as key/value lines above the rows (table mode).
+
 	summary []col
 }
 
-// emit prints an API envelope to stdout in the selected output mode.
 func (a *App) emit(body []byte, v view) error {
 	switch a.opts.output {
 	case outputJSON:
@@ -50,7 +43,7 @@ func (a *App) emit(body []byte, v view) error {
 		if single != nil {
 			items = []json.RawMessage{single}
 		}
-		// Rows leave the envelope, so each object row carries its contractVersion.
+
 		version := envelopeVersion(body)
 		for _, it := range items {
 			row, err := stampVersion(it, version)
@@ -88,7 +81,6 @@ func writeCompact(w io.Writer, raw json.RawMessage) error {
 	return err
 }
 
-// envelopeVersion returns the envelope's contractVersion, or "" when absent.
 func envelopeVersion(body []byte) string {
 	var env struct {
 		ContractVersion string `json:"contractVersion"`
@@ -97,9 +89,6 @@ func envelopeVersion(body []byte) string {
 	return env.ContractVersion
 }
 
-// stampVersion adds "contractVersion" as the first key of an object row that
-// does not already have one. Other keys keep their order; non-object rows are
-// returned unchanged.
 func stampVersion(raw json.RawMessage, version string) (json.RawMessage, error) {
 	trimmed := bytes.TrimSpace(raw)
 	if version == "" || len(trimmed) == 0 || trimmed[0] != '{' {
@@ -127,7 +116,6 @@ func stampVersion(raw json.RawMessage, version string) (json.RawMessage, error) 
 	return buf.Bytes(), nil
 }
 
-// extract returns the rows of an envelope: an array (items) or one object (single).
 func extract(body []byte, list string) (items []json.RawMessage, single json.RawMessage, err error) {
 	var env struct {
 		Data json.RawMessage `json:"data"`
@@ -229,7 +217,6 @@ func writeKeyValues(w io.Writer, raw json.RawMessage) {
 	}
 }
 
-// inferColumns uses the scalar top-level fields of the first row, in order.
 func inferColumns(raw json.RawMessage) []col {
 	obj := decodeObject(raw)
 	var cols []col
@@ -243,7 +230,6 @@ func inferColumns(raw json.RawMessage) []col {
 	return cols
 }
 
-// orderedKeys lists an object's keys in document order.
 func orderedKeys(raw json.RawMessage) []string {
 	dec := json.NewDecoder(bytes.NewReader(raw))
 	if tok, err := dec.Token(); err != nil || tok != json.Delim('{') {
@@ -279,7 +265,6 @@ func lookup(row map[string]any, path string) any {
 
 const maxCell = 72
 
-// cell renders one JSON value for a human table.
 func cell(v any) string {
 	switch x := v.(type) {
 	case nil:
@@ -305,7 +290,7 @@ func cell(v any) string {
 		}
 		return clip(strings.Join(parts, ","))
 	case map[string]any:
-		b, _ := json.Marshal(x) // map keys are sorted by encoding/json
+		b, _ := json.Marshal(x)
 		return clip(string(b))
 	default:
 		return fmt.Sprint(x)
@@ -319,11 +304,8 @@ func clip(s string) string {
 	return s[:maxCell-3] + "..."
 }
 
-// Column helpers.
-
 func c(header, path string) col { return col{header: header, path: path} }
 
-// link is an unclipped column for URLs; keep it last so long values do not push other columns.
 func link(header, path string) col { return col{header: header, path: path, full: true} }
 
 func money(amountPath, currencyPath string) func(map[string]any) string {
@@ -349,7 +331,6 @@ func count(path string) func(map[string]any) string {
 	}
 }
 
-// firstOffer applies fn to the first element of a row's offers.
 func firstOffer(fn func(map[string]any) string) func(map[string]any) string {
 	return func(row map[string]any) string {
 		arr, ok := row["offers"].([]any)

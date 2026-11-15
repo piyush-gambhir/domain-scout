@@ -46,7 +46,7 @@ describe('history', () => {
     expect(page.data.map((e) => e.jobId)).toEqual([cancelledDone, interrupted, checks, scan]);
     const byId = Object.fromEntries(page.data.map((e) => [e.jobId, e]));
     expect(byId[scan]).toMatchObject({ type: 'registry_scan', label: 'Brand ideas 100%', total: 2, unresolved: 1, extensions: ['com', 'io'], resumable: false });
-    // Outcome counts let history summarize a search without loading the job.
+
     expect(byId[scan]).toMatchObject({ finished: 2, outcomes: { no_record: 1, inconclusive: 1 } });
     expect(byId[checks]).toMatchObject({ finished: 0, outcomes: {} });
     expect(byId[checks]!.extensions).toEqual(['si']);

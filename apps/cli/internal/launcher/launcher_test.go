@@ -54,7 +54,6 @@ func noEnv(string) string { return "" }
 func TestFindBackendEntry(t *testing.T) {
 	root := t.TempDir()
 
-	// Packaged layout: <prefix>/bin/domain-scout and <prefix>/lib/backend/dist/main.js.
 	pkg := filepath.Join(root, "pkg")
 	touch(t, filepath.Join(pkg, "lib", "backend", "dist", "main.js"))
 	c := &Config{Getenv: noEnv, Executable: filepath.Join(pkg, "bin", "domain-scout"), Cwd: root}
@@ -63,7 +62,6 @@ func TestFindBackendEntry(t *testing.T) {
 		t.Fatalf("packaged: %q %v", got, err)
 	}
 
-	// Repository layout found by walking up from the working directory.
 	repo := filepath.Join(root, "repo")
 	touch(t, filepath.Join(repo, "apps", "backend", "dist", "main.js"))
 	c = &Config{Getenv: noEnv, Executable: filepath.Join(root, "elsewhere", "domain-scout"), Cwd: filepath.Join(repo, "apps", "cli", "internal")}
@@ -71,13 +69,12 @@ func TestFindBackendEntry(t *testing.T) {
 	if err != nil || got != filepath.Join(repo, "apps", "backend", "dist", "main.js") {
 		t.Fatalf("repo walk from cwd: %q %v", got, err)
 	}
-	// ...and from the executable (apps/cli/bin/domain-scout).
+
 	c = &Config{Getenv: noEnv, Executable: filepath.Join(repo, "apps", "cli", "bin", "domain-scout"), Cwd: root}
 	if got, err = c.FindBackendEntry(); err != nil || !strings.HasPrefix(got, repo) {
 		t.Fatalf("repo walk from exe: %q %v", got, err)
 	}
 
-	// The environment override wins and must exist.
 	override := filepath.Join(root, "custom", "main.js")
 	touch(t, override)
 	env := func(k string) string {
@@ -143,9 +140,6 @@ func TestBrowserCommand(t *testing.T) {
 	}
 }
 
-// freePort returns a free loopback port below the operating systems' ephemeral ranges (Linux
-// 32768-60999, macOS and Windows 49152-65535), so the OS cannot hand it to another process's
-// outgoing connection or port-0 listener before the test uses it.
 func freePort(t *testing.T) int {
 	t.Helper()
 	for range 100 {
@@ -211,7 +205,6 @@ func TestStartBackendDetachedAndDiscoverable(t *testing.T) {
 		t.Fatalf("log should record the launch command, got %q", log)
 	}
 
-	// The port is now taken: a second start reports the conflict without spawning.
 	c2 := packagedConfig(t)
 	var se *SetupError
 	if _, _, err := c2.StartBackend(ctx, port, nil); !errors.As(err, &se) || !strings.Contains(err.Error(), "in use") {
@@ -219,8 +212,6 @@ func TestStartBackendDetachedAndDiscoverable(t *testing.T) {
 	}
 }
 
-// Two CLIs starting at once: the loser's backend exits on the instance lock, and
-// its CLI waits for the winner to publish backend.json instead of failing.
 func TestStartBackendWaitsForAnotherStarter(t *testing.T) {
 	c := packagedConfig(t)
 	ctx := context.Background()
@@ -234,7 +225,7 @@ func TestStartBackendWaitsForAnotherStarter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// The winner has not published yet when the loser starts.
+
 	os.Remove(runtimeFile)
 	go func() {
 		time.Sleep(300 * time.Millisecond)
@@ -246,7 +237,7 @@ func TestStartBackendWaitsForAnotherStarter(t *testing.T) {
 	if err != nil || info.InstanceID != winner.InstanceID {
 		t.Fatalf("want the winner's backend, got %+v, %v", info, err)
 	}
-	// Same port, still starting elsewhere: reuse it as soon as it is published.
+
 	info, _, err = c.StartBackend(ctx, urlPortForTest(t, winner.URL), nil)
 	if err != nil || info.InstanceID != winner.InstanceID {
 		t.Fatalf("a taken port for this data directory should reuse its backend, got %+v, %v", info, err)
@@ -332,7 +323,6 @@ func TestEnsureWebReplacesServerForOtherPortOrBackend(t *testing.T) {
 		t.Fatalf("web.json should record the backend: %+v", old)
 	}
 
-	// Same port, different backend: replaced.
 	port := portOf(t, first)
 	if _, err := c.EnsureWeb(ctx, "http://127.0.0.1:4400", port); err != nil {
 		t.Fatal(err)
@@ -343,7 +333,6 @@ func TestEnsureWebReplacesServerForOtherPortOrBackend(t *testing.T) {
 		t.Fatalf("server for the old backend must be replaced: old %+v new %+v", old, second)
 	}
 
-	// Different port: replaced too.
 	newPort := freePort(t)
 	url, err := c.EnsureWeb(ctx, "http://127.0.0.1:4400", newPort)
 	if err != nil || portOf(t, url) != newPort {
@@ -365,7 +354,7 @@ func TestEnsureWebFailureLeavesNoProcess(t *testing.T) {
 	if _, err := c.EnsureWeb(context.Background(), "http://127.0.0.1:4317", port); !errors.As(err, &se) {
 		t.Fatalf("want a setup error, got %v", err)
 	}
-	time.Sleep(2 * time.Second) // past the fake server's listen delay
+	time.Sleep(2 * time.Second)
 	if !PortFree("127.0.0.1", port) {
 		t.Fatal("an unready UI server was left running")
 	}

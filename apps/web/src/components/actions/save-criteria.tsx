@@ -13,7 +13,7 @@ import { Field } from '../ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { SkeletonRows } from '../ui/skeleton';
 
-/** Budget amount and currency inputs. The amount is kept as typed; parseBudget validates it. */
+
 export function BudgetFields({
   idPrefix,
   amount,
@@ -53,17 +53,17 @@ export function BudgetFields({
   );
 }
 
-/** Compact provider multi-select for forms; selection only, nothing is sent to providers. */
+
 export function ProviderPicker({ value, onChange }: { value: string[]; onChange: (ids: string[]) => void }) {
   const providers = useProviders();
-  // Registry directory entries have no price or quote source, so only named registrars are offered.
+
   const options = (providers.data ?? [])
     .filter((p) => value.includes(p.id) || (p.enabled && p.kind === 'registrar'))
     .map((p) => ({ value: p.id, label: p.name }));
   return <MultiSelect label="Providers" options={options} value={value.length ? value : undefined} onChange={(ids) => onChange(ids ?? [])} />;
 }
 
-/** Name-only save control for pages whose criteria fields are already on the form. */
+
 export function SaveCriteriaPopover({
   disabled,
   onSave,
@@ -91,7 +91,7 @@ export function SaveCriteriaPopover({
           onSubmit={(event) => {
             event.preventDefault();
             if (disabled || !name.trim()) return;
-            // Failures are reported by the global mutation handler; the popover stays open.
+
             void onSave(name.trim()).then(
               () => {
                 setName('');
@@ -117,7 +117,7 @@ export interface CriteriaChoice {
   budget: Budget | null;
 }
 
-/** Mounted only while the dialog is open, so it always starts from the current view. */
+
 function SaveCriteriaBody({
   summary,
   initialProviders,
@@ -211,7 +211,7 @@ function SaveCriteriaBody({
   );
 }
 
-/** Saves the current results view as named criteria: its filter plus chosen providers and budget. */
+
 export function SaveCriteriaDialog({
   open,
   onOpenChange,
@@ -234,7 +234,7 @@ export function SaveCriteriaDialog({
       <DialogContent
         title="Save criteria"
         onOpenAutoFocus={(event) => {
-          // Start in the name field rather than on the close button.
+
           event.preventDefault();
           document.getElementById('criteria-name')?.focus();
         }}

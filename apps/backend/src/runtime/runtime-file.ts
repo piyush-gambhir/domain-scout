@@ -2,7 +2,7 @@ import { readFileSync, rmSync } from 'node:fs';
 import { CONTRACT_VERSION, PROTOCOL_VERSION } from '@domain-scout/contracts';
 import { writeOwnerOnlyFile } from './files.js';
 
-/** Contents of `<dataDir>/run/backend.json`; clients verify instanceId/protocolVersion via /health. */
+
 export interface BackendRuntimeInfo {
   url: string;
   pid: number;
@@ -36,7 +36,7 @@ export function readRuntimeFile(path: string): BackendRuntimeInfo | null {
   }
 }
 
-/** Removes the runtime file only when it still describes this instance. */
+
 export function removeRuntimeFile(path: string, instanceId: string): void {
   if (readRuntimeFile(path)?.instanceId === instanceId) rmSync(path, { force: true });
 }

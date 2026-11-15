@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-/** Bundled word lists live in apps/backend/data/themes; this path works from src (tests) and dist. */
+
 export const DEFAULT_THEME_DIR = fileURLToPath(new URL('../../data/themes/', import.meta.url));
 
 export interface Theme {
@@ -17,7 +17,7 @@ export interface ThemeWord {
 
 const WORD = /^[a-z]+$/;
 
-/** Local theme word lists, read once from disk. Never fetched from a network source. */
+
 export class ThemeLibrary {
   private loaded: Theme[] | null = null;
 
@@ -39,7 +39,7 @@ export class ThemeLibrary {
         const words = [...new Set(parsed.words.filter((w): w is string => typeof w === 'string' && WORD.test(w)))];
         themes.push({ id: parsed.id, name: parsed.name, words });
       } catch {
-        // A malformed bundled file is skipped rather than failing generation.
+
       }
     }
     this.loaded = themes;
@@ -50,10 +50,10 @@ export class ThemeLibrary {
     return this.all().find((t) => t.id === id);
   }
 
-  /**
-   * Words from the selected themes, interleaved across themes so a bounded slice stays varied.
-   * Unknown theme ids are skipped. A word shared by two themes keeps the first theme.
-   */
+
+
+
+
   pool(ids: string[]): ThemeWord[] {
     const selected = [...new Set(ids)].map((id) => this.get(id)).filter((t): t is Theme => t !== undefined);
     const out: ThemeWord[] = [];

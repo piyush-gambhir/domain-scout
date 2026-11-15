@@ -4,8 +4,8 @@ import { expect, test } from './fixtures';
 import { GIB, SMALL_SEARCH, buildJob, mockApp } from './app-fixtures';
 import { PHONE, mockApi, ok, pageOverflow, uuid, startedWork } from './mock-api';
 
-// Journey 5, "review agent work": searches from this UI and from agents (the CLI) in one list, each
-// reopening its results. Jobs are fixtures; the real backend has no finished searches.
+
+
 
 const UI = uuid(0xe801);
 const AGENT = uuid(0xe802);
@@ -19,7 +19,7 @@ function jobs() {
   Object.assign(stopped.job, { state: 'interrupted', destinations: ['rdap.verisign.com', 'rdap.arnes.si'] });
   const system = buildJob(SYSTEM, GIB[0], ['com'], { label: 'Catalog refresh', origin: 'system' });
   system.job.type = 'catalog_refresh';
-  // Direct API calls, and searches from before origins were recorded, read as api.
+
   const legacy = buildJob(LEGACY, GIB[0], ['io'], { label: 'Older search', origin: 'api' });
   return [buildJob(UI, SMALL_SEARCH, SIX, { label: 'Launch names' }), buildJob(AGENT, `${GIB[1]} ${GIB[2]}`, SIX, { label: 'Agent shortlist', origin: 'cli' }), stopped, system, legacy];
 }
@@ -39,13 +39,13 @@ test('history shows searches from this UI and from agents, with what each found'
   expect(calls.find((c) => c.path === '/history')?.search.get('origins')).toBe('ui,cli,api');
   await expect(rows.filter({ hasText: 'Agent shortlist' })).toContainText('Agent');
   await expect(rows.filter({ hasText: 'Launch names' })).not.toContainText('Agent');
-  // The summary says how many names can be registered, from the history entry's own counts.
+
   await expect(rows.filter({ hasText: 'Launch names' })).toContainText(/\d+ not registered of 20/);
   await expect(rows.filter({ hasText: 'Agent shortlist' })).toContainText('not registered of 12');
   expect(calls.some((c) => c.method === 'GET' && c.path === '/jobs')).toBe(false);
   await expect(rows.filter({ hasText: 'Catalog refresh' })).toHaveCount(0);
 
-  // System and watch jobs appear on request, with a type filter.
+
   await page.getByRole('switch', { name: 'System and watch jobs' }).click();
   await expect(rows).toHaveCount(5);
   expect(calls.filter((c) => c.path === '/history').at(-1)?.search.has('origins')).toBe(false);
@@ -68,7 +68,7 @@ test('opening a job that is not a search lists its items in a selectable results
   await page.goto(`/search/${SYSTEM}`);
   const table = page.getByRole('table', { name: 'Results' });
   await expect(table.getByRole('columnheader', { name: 'Domain' })).toBeVisible();
-  // One header row plus the job's single item, with a cell under every column.
+
   await expect(table.getByRole('row')).toHaveCount(2);
   const columns = await table.locator('[role="columnheader"]').count();
   await expect(table.getByRole('row').nth(1).locator('[role="cell"]')).toHaveCount(columns);
@@ -89,7 +89,7 @@ test('stopped searches resume after naming where names go, and finished ones del
   const resumes = await mockApi(page, { 'POST /jobs/:id/resume': (_c, p) => ok({ ...jobs()[2]!.job, id: p.id, state: 'running' }) });
   const stopped = page.getByTestId('history-row').filter({ hasText: 'Stopped search' });
   await expect(stopped).toContainText('Interrupted');
-  // Resuming contacts the job's destinations again; they are named before the click.
+
   await expect(stopped.getByTestId('resume-destinations')).toContainText('rdap.verisign.com, rdap.arnes.si');
   await stopped.getByRole('button', { name: 'Resume' }).click();
   await expect(page.getByText('Resumed Stopped search')).toBeVisible();
@@ -113,7 +113,7 @@ test('"Search again with these names" fills the search bar without running anyth
   expect(startedWork(calls)).toEqual([]);
 });
 
-/** Picks a format from an export menu and returns the downloaded file's name and text. */
+
 async function exportAs(page: Page, format: 'JSON' | 'CSV'): Promise<{ name: string; text: string }> {
   await page.getByRole('button', { name: 'Export history' }).click();
   const download: Promise<Download> = page.waitForEvent('download');
@@ -122,7 +122,7 @@ async function exportAs(page: Page, format: 'JSON' | 'CSV'): Promise<{ name: str
   return { name: file.suggestedFilename(), text: await readFile((await file.path())!, 'utf8') };
 }
 
-/** Exported history is built from API data only: no session or CSRF cookie values. */
+
 async function expectNoCredentials(context: BrowserContext, text: string) {
   for (const cookie of await context.cookies()) expect(text).not.toContain(cookie.value);
   expect(text).not.toMatch(/ds_session|ds_csrf|authorization|bearer/i);

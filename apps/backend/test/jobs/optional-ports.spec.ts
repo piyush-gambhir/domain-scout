@@ -7,7 +7,7 @@ import { fakeDirectory, fakePreviewer } from './helpers.js';
 
 const previewer = fakePreviewer();
 
-/** Implements a port without exporting it and without being global, as a feature module might. */
+
 @Module({ providers: [{ provide: InputPreviewer, useValue: previewer }] })
 class HiddenPreviewerModule {}
 

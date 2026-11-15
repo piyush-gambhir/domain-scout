@@ -10,33 +10,28 @@ import (
 	"github.com/piyush-gambhir/domain-scout/cli/internal/api"
 )
 
-// Exit codes (docs/BUILD_HANDOFF.md "Go command contract").
 const (
-	ExitOK          = 0   // success or accepted submission
-	ExitFailure     = 1   // local operation failure
-	ExitUsage       = 2   // invalid request or usage (HTTP 400 too)
-	ExitUnresolved  = 3   // job finished with unresolved items; results still printed
-	ExitAccess      = 4   // required provider access missing
-	ExitSetup       = 5   // backend setup or version failure
-	ExitInterrupted = 130 // interrupted client wait
+	ExitOK          = 0
+	ExitFailure     = 1
+	ExitUsage       = 2
+	ExitUnresolved  = 3
+	ExitAccess      = 4
+	ExitSetup       = 5
+	ExitInterrupted = 130
 )
 
-// ContractVersion is the API contract this client was generated from.
 const ContractVersion = "1.0.0"
 
-// exitError carries an exit code and what to print on stderr.
 type exitError struct {
 	code    int
-	errCode api.ErrorCode // contract error code for locally produced errors
+	errCode api.ErrorCode
 	msg     string
-	raw     []byte // verbatim ErrorResponse from the API, when there is one
+	raw     []byte
 	parsed  *api.ErrorResponse
-	note    bool // a plain stderr note rather than an error (exit 3 and 4 after printed results)
-	// retryable marks connection failures that are safe to retry with the
-	// same Idempotency-Key.
+	note    bool
+
 	retryable bool
-	// gone marks a request the backend never handled because it had stopped
-	// or was stopping; the client may start a new backend and resend it.
+
 	gone bool
 }
 
@@ -54,11 +49,8 @@ func setupErr(format string, args ...any) error {
 	return &exitError{code: ExitSetup, errCode: api.ErrorCodeUnavailable, msg: fmt.Sprintf(format, args...)}
 }
 
-// errInterrupted ends a wait on Ctrl-C; the job keeps running.
 var errInterrupted = &exitError{code: ExitInterrupted, errCode: api.ErrorCodeUnavailable, msg: "interrupted"}
 
-// apiError maps an HTTP error response to an exit code. The contract error
-// code wins over the status: credential_required is always exit 4.
 func apiError(status int, body []byte) error {
 	var parsed api.ErrorResponse
 	ok := json.Unmarshal(body, &parsed) == nil && parsed.Error.Code != ""
@@ -105,7 +97,7 @@ func exitForAPIError(status int, code api.ErrorCode) int {
 	case api.ErrorCodeInvalidRequest, api.ErrorCodeIdempotencyConflict, api.ErrorCodeUnsupported:
 		return ExitUsage
 	case api.ErrorCodeUnauthorized, api.ErrorCodeForbidden:
-		// The local token or runtime files do not match this backend.
+
 		return ExitSetup
 	}
 	switch {
@@ -118,7 +110,6 @@ func exitForAPIError(status int, code api.ErrorCode) int {
 	}
 }
 
-// classify converts any error into an exitError.
 func classify(err error) *exitError {
 	var e *exitError
 	if errors.As(err, &e) {
@@ -127,8 +118,6 @@ func classify(err error) *exitError {
 	return &exitError{code: ExitFailure, errCode: api.ErrorCodeInternal, msg: err.Error()}
 }
 
-// writeError prints err to stderr: the ErrorResponse JSON in machine output
-// modes, a readable line in table mode.
 func writeError(w io.Writer, mode string, e *exitError, quiet bool) {
 	if e.note {
 		if !quiet && e.msg != "" {
@@ -151,7 +140,6 @@ func writeError(w io.Writer, mode string, e *exitError, quiet bool) {
 	fmt.Fprintln(w, string(b))
 }
 
-// localErrorEnvelope is the API ErrorResponse shape for errors raised in the CLI itself.
 func localErrorEnvelope(e *exitError) map[string]any {
 	return map[string]any{
 		"contractVersion": ContractVersion,

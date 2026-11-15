@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { Tooltip } from '../ui/tooltip';
 import { type SearchMode, readSearchFile } from './search-state';
 
-/** Grows with its content up to a few lines, then scrolls. */
+
 function useAutoHeight(ref: React.RefObject<HTMLTextAreaElement | null>, value: string, lineHeight: number, maxLines: number) {
   useLayoutEffect(() => {
     const el = ref.current;
@@ -24,28 +24,28 @@ export interface SearchFieldProps {
   onChange: (value: string) => void;
   mode: SearchMode;
   onModeChange: (mode: SearchMode) => void;
-  /** Enter in names mode. */
+
   onSubmit: () => void;
   canSubmit: boolean;
   pending: boolean;
   size: 'hero' | 'compact';
   inputRef?: React.RefObject<HTMLTextAreaElement | null>;
-  /** A dropped or chosen file replaced the text. */
+
   onFile: (file: { text: string; format: 'auto' | 'lines' | 'csv'; fileName: string }) => void;
   fileName: string | null;
   onClearFile: () => void;
-  /** Options control rendered inside the field (a popover trigger). */
+
   options: React.ReactNode;
   autoFocus?: boolean;
-  /** Lines shown before the field scrolls; a long list can stay one line until focused. */
+
   maxLines?: number;
 }
 
-/**
- * The one input a search starts from: names, domains or a pasted list. Enter searches, Shift+Enter
- * adds a line, and a TXT or CSV file can be dropped, pasted or chosen. "Ideas" turns it into keywords
- * for local name suggestions.
- */
+
+
+
+
+
 export function SearchField({
   value,
   onChange,
@@ -140,8 +140,8 @@ export function SearchField({
         className={cn(
           'min-w-0 flex-1 resize-none bg-transparent text-foreground outline-none placeholder:text-muted-foreground',
           hero ? 'py-2.5 text-[15px] leading-6' : 'py-1.5 text-sm leading-5',
-          // Collapsed: one unwrapped line, the rest of a long list waits until the field has focus.
-          // The clip hides the next line peeking through the bottom padding.
+
+
           maxLines === 1 && 'overflow-hidden whitespace-pre [clip-path:inset(0_0_0.375rem_0)]',
         )}
       />
@@ -216,7 +216,7 @@ export function SearchField({
   );
 }
 
-/** Icon button that opens the Options popover; a dot marks changed options. */
+
 export function OptionsTrigger({ changed, ...props }: { changed: number } & React.ComponentProps<'button'>) {
   return (
     <button

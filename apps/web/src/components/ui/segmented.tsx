@@ -3,7 +3,7 @@
 import { RadioGroup } from 'radix-ui';
 import { cn } from '@/lib/utils';
 
-/** Single choice shown as a segmented control. Arrow keys move between options. */
+
 export function Segmented<T extends string>({
   value,
   onValueChange,

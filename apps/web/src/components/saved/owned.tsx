@@ -336,7 +336,7 @@ function Comparison() {
   );
 }
 
-/** Domains you own, with your renewal facts kept apart from observed provider prices. Read-only. */
+
 export function Portfolio() {
   return (
     <div className="flex flex-col gap-8 lg:min-h-0 lg:flex-1 lg:flex-row lg:gap-10">

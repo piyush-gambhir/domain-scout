@@ -9,14 +9,14 @@ import { CURRENT_PUBLISHED, LATEST_FETCH_CTE, LATEST_FETCH_JOIN } from './curren
 
 export interface PricedOffer {
   offer: Offer;
-  /** The registration amount includes a promotion (offers.promotional). */
+
   promotional: boolean;
   staleAt: string;
 }
 
 type Row = OfferRow & { promotional: number };
 
-/** Read side for offers: latest catalog prices per provider and suffix, and exact quotes per domain. */
+
 @Injectable()
 export class OffersService {
   constructor(
@@ -29,7 +29,7 @@ export class OffersService {
     return { offer: hydrateOffer<Offer>(row, this.clock.now()), promotional: row.promotional === 1, staleAt: row.stale_at };
   }
 
-  /** Current published variants (one per currency and term) for a provider and suffix, newest first. */
+
   publishedVariants(providerId: string, suffix: string): PricedOffer[] {
     const rows = this.db.all<Row>(
       `WITH ${LATEST_FETCH_CTE},
@@ -45,10 +45,10 @@ export class OffersService {
     return rows.map((r) => this.priced(r));
   }
 
-  /**
-   * The published price used for one provider: a variant in the requested currency when there is
-   * one, preferring a one-year term, else the newest variant.
-   */
+
+
+
+
   latestPublished(providerId: string, suffix: string, currency?: string | null): PricedOffer | null {
     const variants = this.publishedVariants(providerId, suffix);
     const inCurrency = currency ? variants.filter((v) => v.offer.currency === currency) : variants;
@@ -56,7 +56,7 @@ export class OffersService {
     return pool.find((v) => v.offer.registration.years === 1) ?? pool[0] ?? null;
   }
 
-  /** Latest exact quote from a provider for a domain and purchase path. */
+
   latestQuote(providerId: string, domain: string, path: PurchasePath): PricedOffer | null {
     const row = this.db.get<Row>(
       `SELECT * FROM offers WHERE provider_id = ? AND domain = ? AND purchase_path = ? AND kind = 'exact_quote'
@@ -66,7 +66,7 @@ export class OffersService {
     return row ? this.priced(row) : null;
   }
 
-  /** Latest published prices of one provider, one row per suffix, ordered by suffix. */
+
   providerCatalog(providerId: string, suffix: string | null, cursor: string | null, limit: number) {
     const offset = decodeCursor<{ o: number }>(cursor)?.o ?? 0;
     const params: (string | number)[] = [providerId];
@@ -93,11 +93,11 @@ export class OffersService {
     return { items, nextCursor, total };
   }
 
-  /**
-   * Offers relevant to one domain: each provider's latest published price for its suffix (with the
-   * destination filled for this domain from the same provider) and the latest exact quote per
-   * provider and purchase path.
-   */
+
+
+
+
+
   domainOffers(domain: string, suffix: string): Offer[] {
     const out: Offer[] = [];
     for (const manifest of this.providers.manifests()) {

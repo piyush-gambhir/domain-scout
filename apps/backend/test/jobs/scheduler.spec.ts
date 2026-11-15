@@ -90,19 +90,19 @@ describe('job scheduler', () => {
     const a = scan(t, ['a1.com', 'a2.com', 'a3.com']);
     const b = scan(t, ['b1.com', 'b2.com', 'b3.com', 'b1.org']);
     await Promise.all([t.finished(a.id), t.finished(b.id)]);
-    // Dispatch times as the scheduler recorded them (handler bodies start a few microtasks later).
+
     const shared = t.db
       .all<{ started_at: string }>(`SELECT started_at FROM job_items WHERE suffix = 'com' ORDER BY started_at`)
       .map((r) => Date.parse(r.started_at));
     expect(shared).toHaveLength(6);
     for (let i = 1; i < shared.length; i++) expect(shared[i]! - shared[i - 1]!).toBeGreaterThanOrEqual(80);
-    // Spacing also holds between actual request starts, which trail dispatch.
+
     const starts = handler.calls.filter((c) => c.item.suffix === 'com').map((c) => c.at);
     for (let i = 1; i < starts.length; i++) expect(starts[i]! - starts[i - 1]!).toBeGreaterThanOrEqual(79);
     expect(maxInFlight).toBe(1);
-    // Fair turns between jobs on the shared source.
+
     expect(handler.calls.filter((c) => c.item.suffix === 'com').map((c) => c.item.subject[0])).toEqual(['a', 'b', 'a', 'b', 'a', 'b']);
-    // Another source is not held back by the shared one.
+
     const other = Date.parse(t.db.get<{ started_at: string }>(`SELECT started_at FROM job_items WHERE suffix = 'org'`)!.started_at);
     expect(other).toBeLessThan(shared[1]!);
   });
@@ -165,7 +165,7 @@ describe('job scheduler', () => {
     const observed = t.jobEvents(job.id).filter((e) => e.type === 'result.observed').map((e) => (e.payload as JobItem).subject);
     expect(observed.sort()).toEqual(['a.com', 'b.com', 'c.com', 'd.org']);
 
-    // A later job does not contact the cooling source either.
+
     const later = await t.finished(scan(t, ['e.com']).id);
     expect(later.counters.outcomes).toEqual({ rate_limited: 1 });
     expect(handler.calls).toHaveLength(2);
@@ -186,11 +186,11 @@ describe('job scheduler', () => {
     expect(done.state).toBe('completed');
     expect(handler.calls.map((c) => c.attempt)).toEqual([1, 2, 3]);
     const [first, second, third] = handler.calls.map((c) => c.at);
-    expect(second! - first!).toBeGreaterThanOrEqual(19); // 40 ms base, equal jitter: 20..40
-    expect(third! - second!).toBeGreaterThanOrEqual(39); // doubled: 40..80
+    expect(second! - first!).toBeGreaterThanOrEqual(19);
+    expect(third! - second!).toBeGreaterThanOrEqual(39);
     const row = itemRows(t, job.id)[0]!;
     expect(row).toMatchObject({ attempts: 3, outcome: 'no_record', resolved: 1, error_json: null });
-    // Evidence from retried attempts is not kept; only the final observation is.
+
     expect(t.db.get<{ n: number }>("SELECT COUNT(*) AS n FROM observations WHERE subject = 'flaky.com'")!.n).toBe(1);
   });
 
@@ -272,7 +272,7 @@ describe('job scheduler', () => {
     const kept = rows.filter((r) => r.state === 'finished').map((r) => ({ id: r.registry_observation_id, at: r.finished_at }));
     expect(kept.every((k) => k.id !== null)).toBe(true);
 
-    // Completed evidence is readable while cancelled.
+
     const results = (await t.api.get(`/jobs/${job.id}/results?states=finished`).expect(200)).body;
     expect(results.data.map((i: JobItem) => i.evidence.registry?.outcome)).toEqual(['no_record', 'no_record']);
 
@@ -330,7 +330,7 @@ describe('job scheduler', () => {
     let outage = true;
     let refused = 0;
     store.saveRun = (jobId, snap, now) => {
-      // Completion writes fail (including the immediate retry and the error fallback); dispatch writes work.
+
       if (outage && snap.counters.finished >= 1) {
         refused += 1;
         throw new Error('injected write outage');
@@ -357,7 +357,7 @@ describe('job scheduler', () => {
     const save = store.saveRun.bind(store);
     let outage = false;
     store.saveRun = (jobId, snap, now) => {
-      // Fail only completion writes (nothing running afterwards); dispatch writes still succeed.
+
       if (outage && snap.counters.running === 0) throw new Error('injected write outage');
       save(jobId, snap, now);
     };
@@ -437,7 +437,7 @@ describe('job scheduler', () => {
       void scheduler.stop();
     });
     const job = t.db.transaction(() => scan(t, ['a.com']));
-    // Stop before the admission microtask runs and before any call starts.
+
     await scheduler.stop();
     expect(t.jobs.get(job.id).state).toBe('interrupted');
     expect(notified).toEqual([`${job.id}:interrupted`]);

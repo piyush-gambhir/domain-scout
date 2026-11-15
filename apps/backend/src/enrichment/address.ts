@@ -1,6 +1,6 @@
 import { BlockList, isIP } from 'node:net';
 
-/** Address ranges a diagnostic must never connect to (local, private, shared, reserved or multicast). */
+
 const NON_PUBLIC = new BlockList();
 for (const [network, prefix] of [
   ['0.0.0.0', 8],
@@ -32,7 +32,7 @@ for (const [network, prefix] of [
   NON_PUBLIC.addSubnet(network, prefix, 'ipv6');
 }
 
-/** IPv4 address embedded in an IPv4-mapped IPv6 address (::ffff:a.b.c.d in any spelling). */
+
 function mappedIpv4(address: string): string | null {
   let canonical: string;
   try {
@@ -47,7 +47,7 @@ function mappedIpv4(address: string): string | null {
   return [high >> 8, high & 0xff, low >> 8, low & 0xff].join('.');
 }
 
-/** True only for a syntactically valid IP address outside every non-public range. */
+
 export function isPublicAddress(address: string): boolean {
   const family = isIP(address);
   if (family === 4) return !NON_PUBLIC.check(address, 'ipv4');
@@ -57,7 +57,7 @@ export function isPublicAddress(address: string): boolean {
   return !NON_PUBLIC.check(address, 'ipv6');
 }
 
-/** LDH hostname with at least two labels and a non-numeric TLD (rejects IP literals). */
+
 export function isValidHostname(name: string): boolean {
   if (name.length < 3 || name.length > 253 || isIP(name) !== 0) return false;
   const labels = name.split('.');

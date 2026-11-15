@@ -122,7 +122,7 @@ describe('provider handlers', () => {
     expect(failed.error?.message).toContain('hpanel.hostinger.com');
     expect(ok.outcome).toBe('quoted');
     expect(db.get<{ outcome: string }>('SELECT outcome FROM observations WHERE kind = ? AND subject = ?', ['registry', DOMAIN])?.outcome).toBe('no_record');
-    // The auth failure marks only Hostinger's credentials invalid.
+
     const providers = (await t.api.get('/providers?limit=20').expect(200)).body.data as { id: string; readiness: string }[];
     expect(providers.find((p) => p.id === 'hostinger')?.readiness).toBe('credentials_invalid');
     expect(providers.find((p) => p.id === 'porkbun')?.readiness).toBe('ready');
@@ -146,7 +146,7 @@ describe('provider handlers', () => {
     expect(result.outcome).toBe('unknown');
     expect(serialized(result)).toContain('[redacted]');
     expect(serialized(result)).not.toContain(key);
-    // Codes are scrubbed too (a provider could echo a token as a reason code).
+
     const cfToken = CLOUDFLARE_ENV.DOMAIN_SCOUT_CLOUDFLARE_API_TOKEN;
     const cf = JSON.stringify({ success: true, errors: [], messages: [], result: { domains: [{ name: DOMAIN, registrable: false, reason: `odd_${cfToken}` }] } });
     t.transport.on(/domain-check/, { status: 200, headers: {}, body: cf });

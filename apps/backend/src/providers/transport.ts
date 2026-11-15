@@ -7,20 +7,20 @@ export interface ProviderHttpRequest {
   body?: string;
   timeoutMs: number;
   signal?: AbortSignal;
-  /** Response bodies above this size fail instead of being buffered without bound. */
+
   maxBytes?: number;
 }
 
 export interface ProviderHttpResponse {
   status: number;
-  /** Lower-case header names. */
+
   headers: Record<string, string>;
   body: string;
 }
 
 export type TransportFailure = 'timeout' | 'aborted' | 'network' | 'too_large' | 'redirect';
 
-/** Network-level failure before an HTTP status was received. Messages never include URLs or headers. */
+
 export class TransportError extends Error {
   constructor(
     readonly kind: TransportFailure,
@@ -31,11 +31,11 @@ export class TransportError extends Error {
   }
 }
 
-/**
- * Outbound HTTP for provider APIs and catalogs. Injected by class token so tests replace it with a
- * fixture transport and never touch the network. Implementations must not log requests: provider
- * credentials travel in headers, bodies or query strings.
- */
+
+
+
+
+
 export abstract class ProviderTransport {
   abstract send(request: ProviderHttpRequest): Promise<ProviderHttpResponse>;
 }
@@ -54,7 +54,7 @@ export class FetchProviderTransport extends ProviderTransport {
         headers: request.headers,
         body: request.body,
         signal,
-        // Provider destinations are fixed; a redirect would send credentials or names elsewhere.
+
         redirect: 'error',
       });
     } catch (error) {

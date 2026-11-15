@@ -70,7 +70,7 @@ describe('generation strategies', () => {
       expect(candidate.rule).toMatch(/^syllables CVC?(-CVC?){1,2} seed 7$/);
       expect(candidate.name).toMatch(/^[a-z]{4,9}$/);
     }
-    // A smaller limit returns a prefix of the same sequence.
+
     const short = gen({ strategies: ['syllables'], seed: 7, limit: 10 }).candidates.map((x) => x.name);
     expect(a.candidates.map((x) => x.name).slice(0, short.length)).toEqual(short);
   });
@@ -132,7 +132,7 @@ describe('rules, validation and counts', () => {
     expect(
       names({ roots: ['web3', 'my-brand'], strategies: ['roots'], rules: { allowDigits: true, allowHyphens: true } }),
     ).toEqual(['web3', 'my-brand']);
-    // Exclusion matches exact labels and labels containing the term.
+
     expect(names({ roots: ['bad', 'badcloud', 'cloud'], strategies: ['roots'], rules: { exclude: ['Bad'] } })).toEqual(['cloud']);
   });
 
@@ -185,7 +185,7 @@ describe('rules, validation and counts', () => {
   });
 
   it('expandedChecks counts each complete domain once when a label and a hack overlap', () => {
-    // Expansion yields bitly.ly and bit.ly; the hack bit.ly equals the label bit under ly.
+
     const result = gen({ roots: ['bitly', 'bit'], strategies: ['roots', 'hacks'], extensions: ['ly'] });
     expect(result.candidates.map((c) => c.name)).toEqual(['bitly', 'bit.ly', 'bit']);
     expect(result.expandedChecks).toBe(2);

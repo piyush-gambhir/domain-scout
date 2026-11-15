@@ -3,19 +3,19 @@
 import { useState } from 'react';
 import type { JobItem } from '@domain-scout/contracts';
 
-/**
- * Row selection for a filtered, paginated result set.
- * - `ids`: explicit rows.
- * - `all`: every row matching the current filter, minus explicit exclusions.
- * Changing the filter clears the selection so bulk actions never reach rows that are not shown.
- */
+
+
+
+
+
+
 type Mode = { kind: 'ids'; items: Map<string, JobItem> } | { kind: 'all'; excluded: Set<string> };
 
 export interface Selection {
   mode: 'ids' | 'all';
   isSelected: (id: string) => boolean;
   count: (total: number | null) => number;
-  /** Selected rows among the loaded ones (ids mode) for labels; all mode uses count(). */
+
   explicitItems: JobItem[];
   excluded: Set<string>;
   toggle: (item: JobItem, index: number, range: boolean, rows: JobItem[]) => void;
@@ -30,7 +30,7 @@ export function useSelection(filterKey: string): Selection {
   const [anchor, setAnchor] = useState<number | null>(null);
   const [forFilter, setForFilter] = useState(filterKey);
   if (forFilter !== filterKey) {
-    // Reset during render (derived state) rather than in an effect, so no stale frame acts on it.
+
     setForFilter(filterKey);
     setState({ kind: 'ids', items: new Map() });
     setAnchor(null);

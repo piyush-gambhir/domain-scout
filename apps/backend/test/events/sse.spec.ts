@@ -108,7 +108,7 @@ describe('SSE events', () => {
     await expired.waitFor(() => expired.events().some((m) => m.id === String(live)));
     expect(expired.events().map((m) => m.event)).toEqual(['stream.reset', 'source.cooldown']);
 
-    // A cursor at or past the deletion watermark replays normally.
+
     const fresh = await open(`?after=${transient}`);
     await fresh.waitFor(() => fresh.events().length >= 2);
     expect(fresh.events().map((m) => Number(m.id))).toEqual([durable, live]);
@@ -176,7 +176,7 @@ describe('SSE backpressure', () => {
   });
   afterAll(() => t.close());
 
-  /** Response whose socket buffer is full until `drain`. */
+
   class StalledResponse extends EventEmitter {
     writes: string[] = [];
     accepting = false;

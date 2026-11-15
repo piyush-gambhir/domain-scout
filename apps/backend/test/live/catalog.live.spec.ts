@@ -8,12 +8,12 @@ import { FetchProviderTransport, ProviderTransport, type ProviderHttpRequest, ty
 import { createTestApp, type TestApp } from '../helpers.js';
 import { jobItem, operationContext } from '../providers/helpers.js';
 
-/**
- * Authorized live fetch (docs/IMPLEMENTATION.md "Live network rule"): Porkbun's keyless public
- * pricing endpoint only, with no credentials and no candidate names. One request per run.
- * Run with DOMAIN_SCOUT_LIVE_TESTS=1; add DOMAIN_SCOUT_CAPTURE_FIXTURES=1 to refresh the trimmed
- * fixture in test/fixtures/providers/porkbun/pricing-live.json.
- */
+
+
+
+
+
+
 const live = process.env.DOMAIN_SCOUT_LIVE_TESTS === '1';
 const capture = process.env.DOMAIN_SCOUT_CAPTURE_FIXTURES === '1';
 const KEEP = ['com', 'net', 'org', 'io', 'dev', 'si', 'de', 'uk', 'co.uk', 'app', 'ai'];

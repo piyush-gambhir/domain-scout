@@ -9,31 +9,31 @@ import { EventsService, type EventFilter } from './events.service.js';
 
 export interface SseOptions {
   heartbeatMs: number;
-  /** Events read per query while replaying; bounds memory and event-loop blocking. */
+
   batchSize: number;
 }
-/** Provider token; tests override it to shorten the heartbeat. */
+
 export const SSE_OPTIONS = Symbol('SSE_OPTIONS');
 export const DEFAULT_SSE_OPTIONS: SseOptions = { heartbeatMs: 15_000, batchSize: 500 };
 
-/** One SSE message. JSON.stringify never emits raw newlines, so `data:` stays one line. */
+
 export function formatSse(event: DomainEvent): string {
-  // An `id: 0` line would reset the browser's Last-Event-ID, so a cursor of 0 is never sent.
+
   const id = event.eventId && event.eventId !== '0' ? `id: ${event.eventId}\n` : '';
   return `${id}event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`;
 }
 
-/**
- * GET /events: server-sent DomainEvents. Replays from Last-Event-ID (or ?after=), then streams live
- * events as they commit. Without a cursor the stream starts at the current end. A cursor older than
- * the retained events (or from another database) gets `stream.reset`, after which the stream
- * continues live from the current end and the client must refetch state. Heartbeats carry the
- * latest scanned cursor so reconnects do not rescan filtered-out events. `stream.reset` and
- * `heartbeat` are sent regardless of the `types` filter.
- */
+
+
+
+
+
+
+
+
 @Controller()
 export class EventsController {
-  /** Open streams and their cleanup functions. */
+
   private readonly open = new Map<Response, () => void>();
   private readonly options: SseOptions;
 
@@ -44,7 +44,7 @@ export class EventsController {
     @Inject(SSE_OPTIONS) options: Partial<SseOptions>,
   ) {
     this.options = { ...DEFAULT_SSE_OPTIONS, ...options };
-    // End streams first so app.close() is not held open by long-lived responses.
+
     shutdown.onStopping(() => this.closeAll(), 'sse');
   }
 
@@ -83,7 +83,7 @@ export class EventsController {
 
     let closed = false;
     let waitingForDrain = false;
-    // Every write goes through here: when the socket buffer is full, stop producing until 'drain'.
+
     const send = (chunk: string) => {
       if (res.write(chunk) || waitingForDrain) return;
       waitingForDrain = true;
@@ -98,7 +98,7 @@ export class EventsController {
         const batch = this.events.read(position, filter, this.options.batchSize);
         const complete = batch.length < this.options.batchSize;
         for (const event of batch) send(formatSse(event));
-        // A short batch means every matching event up to the current end was delivered.
+
         position = complete ? Math.max(position, this.events.latestId()) : Number(batch[batch.length - 1]!.eventId);
         if (complete || waitingForDrain) return;
       }
@@ -106,7 +106,7 @@ export class EventsController {
 
     const unsubscribe = this.events.onWake(pump);
     const heartbeat = setInterval(() => {
-      // A stalled reader gets no further heartbeats until it drains, so buffers stay bounded.
+
       if (!closed && !waitingForDrain) send(formatSse(this.synthetic('heartbeat', position, {})));
     }, this.options.heartbeatMs);
     heartbeat.unref();
@@ -124,7 +124,7 @@ export class EventsController {
     pump();
   }
 
-  /** Ends every open stream (used when stopping). */
+
   closeAll() {
     for (const [res, cleanup] of [...this.open]) {
       cleanup();
@@ -161,7 +161,7 @@ function parseFilter(query: RouteInput<'streamEvents'>['query']): EventFilter {
   };
 }
 
-/** Last-Event-ID takes precedence over ?after=. Null means "start at the current end". */
+
 function parseCursor(header: string | string[] | undefined, after: string | undefined): number | null {
   const raw = (typeof header === 'string' && header.trim() !== '' ? header : after)?.trim();
   if (raw === undefined || raw === '') return null;

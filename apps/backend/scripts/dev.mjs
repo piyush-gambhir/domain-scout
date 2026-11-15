@@ -1,5 +1,5 @@
-// Backend dev loop: incremental tsc into dist/ plus node --watch on the output.
-// Spawned without a shell so it behaves the same on macOS, Linux and Windows.
+
+
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -18,7 +18,7 @@ function run(cmd, cmdArgs) {
   return child;
 }
 
-// One synchronous build first so node --watch has an entry point.
+
 const first = spawn(process.execPath, [tsc, '-p', 'tsconfig.build.json'], { cwd: root, stdio: 'inherit' });
 first.on('exit', (code) => {
   if (code !== 0 || !existsSync(join(root, 'dist/main.js'))) {

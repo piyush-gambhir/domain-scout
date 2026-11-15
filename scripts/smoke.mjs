@@ -1,7 +1,7 @@
-// End-to-end smoke test: one local backend driven by the Go CLI, the HTTP API and the web UI.
-// Checks that every interface sees the same job and evidence, that a restart keeps state, and
-// that the browser session flow works. Sends only the fixed live test set to registry RDAP servers.
-// Requires `pnpm build`. Usage: node scripts/smoke.mjs [--keep]
+
+
+
+
 import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -55,25 +55,25 @@ async function main() {
   }
   console.log(`data dir ${dataDir}, backend :${backendPort}, web :${webPort}`);
 
-  // 1. The CLI launcher starts the backend and the web UI and hands out a sign-in link.
+
   const ui = run(['ui', '--no-open', '--web-port', String(webPort)]);
   const signIn = ui.stderr.match(/https?:\/\/\S+\/auth\/bootstrap\?code=\S+/)?.[0];
   check('cli ui starts backend and web and prints a sign-in link', Boolean(signIn));
 
-  // 2. A registry scan through the CLI, waiting for completion.
+
   const scan = run(['scan', ...Object.keys(expected), '--wait']);
   const cliItems = JSON.parse(scan.stdout).data;
   const cliOutcomes = outcomes(cliItems);
   check('cli scan classifies the fixed live set', JSON.stringify(cliOutcomes) === JSON.stringify({ ...cliOutcomes, ...expected }), JSON.stringify(cliOutcomes));
   const jobId = cliItems[0]?.jobId;
 
-  // 3. The HTTP API (what the web forwards to) sees the same job and evidence.
+
   const viaApi = await api(`/jobs/${jobId}/results?limit=100`);
   check('api returns the same outcomes as the cli', JSON.stringify(outcomes(viaApi.body.data)) === JSON.stringify(cliOutcomes));
   const evidence = await api('/domains/nic.si/evidence');
   check('domain evidence names the registry source', evidence.body?.data?.registry?.[0]?.source?.destination?.includes('register.si') === true);
 
-  // 4. Browser session flow through the web server, then the same results via its /api/v1 forwarder.
+
   const boot = await fetch(signIn, { redirect: 'manual' });
   const cookies = (boot.headers.getSetCookie?.() ?? []).map((c) => c.split(';')[0]).join('; ');
   check('bootstrap sets the session cookies and redirects', boot.status === 303 && cookies.includes('ds_session=') && cookies.includes('ds_csrf='));
@@ -85,7 +85,7 @@ async function main() {
   const noSession = await fetch(`http://127.0.0.1:${webPort}/api/v1/settings`);
   check('api through the web requires a session', noSession.status === 401);
 
-  // 5. Shortlist and a scoped export through the CLI match the scan.
+
   const list = JSON.parse(run(['shortlist', 'create', 'Smoke']).stdout).data;
   run(['shortlist', 'add', list.id, 'nic.si', `${gibberish}.si`]);
   const csv = run(['export', '--scope', 'collection', '--shortlist', list.id, '--format', 'csv']).stdout;
@@ -95,11 +95,11 @@ async function main() {
   const names = txt.split('\n').filter((l) => l && !l.startsWith('#'));
   check('txt export defaults to candidates (no registry record)', names.sort().join(',') === [`${gibberish}.com`, `${gibberish}.si`].sort().join(','), names.join(','));
 
-  // 6. Restart the backend: jobs, evidence and shortlists survive; the browser session too.
+
   run(['service', 'stop']);
   run(['service', 'start', '--port', String(backendPort)]);
-  // run() blocks the event loop, so fetch's pool has not yet seen the old backend close its
-  // keep-alive sockets; one I/O turn lets it drop them instead of reusing a reset connection.
+
+
   await new Promise((resolve) => setImmediate(resolve));
   const afterRestart = await api(`/jobs/${jobId}/results?limit=100`);
   check('results survive a backend restart', JSON.stringify(outcomes(afterRestart.body.data)) === JSON.stringify(cliOutcomes));
@@ -108,7 +108,7 @@ async function main() {
   const session = await fetch(`http://127.0.0.1:${webPort}/api/v1/auth/session`, { headers: { cookie: cookies } });
   check('browser session survives a backend restart', session.status === 200);
 
-  // 7. Usage errors are machine-readable and exit 2 without prompting.
+
   const bad = run(['data', 'delete', '--categories', 'jobs'], { allowFail: true });
   check('destructive commands refuse without --yes (exit 2)', bad.status === 2 && bad.stdout === '');
 }

@@ -14,7 +14,6 @@ import (
 	"github.com/piyush-gambhir/domain-scout/cli/internal/sse"
 )
 
-// inputFlags build an InputSource from --file/stdin, positional names, --tlds and --preset.
 type inputFlags struct {
 	file      string
 	format    string
@@ -38,7 +37,7 @@ func (a *App) inputSource(args []string, f *inputFlags) (api.InputSourceInput, e
 	if !format.Valid() {
 		return src, usageErr("--format must be auto, lines or csv")
 	}
-	// A "-" argument reads stdin, like --file -.
+
 	var names []string
 	for _, arg := range args {
 		if arg == "-" {
@@ -224,7 +223,7 @@ func (a *App) jobsCmd() *cobra.Command {
 				return err
 			}
 			if printed == 0 {
-				// The job was already finished: print its final state.
+
 				_, raw, err := c.getJob(ctx, id)
 				if err != nil {
 					return err
@@ -294,7 +293,6 @@ func (a *App) jobsCmd() *cobra.Command {
 	return group("jobs", "Inspect and control durable jobs", list, show, results, watch, cancel, resume, retry, del)
 }
 
-// idCmd builds a command taking one UUID argument and printing one response.
 func (a *App) idCmd(use, short, what string, v view, fn func(ctx context.Context, g *api.Client, id api.Uuid) (*http.Response, error)) *cobra.Command {
 	return a.newCmd(use, short, cobra.ExactArgs(1), func(ctx context.Context, cmd *cobra.Command, args []string) error {
 		id, err := parseID(args[0], what)
@@ -305,8 +303,6 @@ func (a *App) idCmd(use, short, what string, v view, fn func(ctx context.Context
 	})
 }
 
-// emitEvent prints one stream event: the DomainEvent JSON per line in json
-// and ndjson modes, a short line in table mode.
 func (a *App) emitEvent(ev sse.Event) error {
 	if a.opts.output != outputTable {
 		return writeCompact(a.Stdout, ev.Data)

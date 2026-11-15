@@ -21,7 +21,7 @@ const CAPABILITY_BY_OPERATION: Partial<Record<JobOperation, CapabilityName>> = {
 
 const LISTING_CAVEAT = 'Listing evidence is not proof of seller authority, checkout availability or final acquisition cost.';
 
-/** An offer counts only when it states the amount its purchase path is about. */
+
 function hasPrice(draft: OfferDraft): boolean {
   if (draft.purchasePath === 'transfer') return draft.transfer.amount !== null;
   if (draft.purchasePath === 'renewal') return draft.renewal.amount !== null;
@@ -39,10 +39,10 @@ function finish(operation: JobOperation, outcome: string, extra: Partial<Operati
   };
 }
 
-/**
- * Shared logic for the provider handlers. Each item is one domain at one provider (target). The
- * candidate name goes only to that provider's API host, recorded as the destination.
- */
+
+
+
+
 abstract class ProviderOperation implements OperationHandler {
   abstract readonly operation: JobOperation;
 
@@ -102,7 +102,7 @@ abstract class ProviderOperation implements OperationHandler {
     ctx: OperationContext,
   ): Promise<OperationResult>;
 
-  /** Maps adapter failures to item outcomes; one provider's failure never touches other evidence. */
+
   protected failure(manifest: ProviderManifest, actx: AdapterContext, error: unknown): OperationResult {
     const message = actx.http.scrub(describeFailure(manifest, error));
     if (!(error instanceof ProviderError)) {
@@ -130,7 +130,7 @@ abstract class ProviderOperation implements OperationHandler {
     }
   }
 
-  /** Provider-supplied text can echo request parameters; scrub secrets before it becomes evidence. */
+
   protected scrubbed(actx: AdapterContext, check: CheckResult): CheckResult {
     return { ...check, reason: { code: actx.http.scrub(check.reason.code), message: actx.http.scrub(check.reason.message) } };
   }
@@ -150,10 +150,10 @@ abstract class ProviderOperation implements OperationHandler {
     return { kind: 'observation', row: write };
   }
 
-  /**
-   * Published prices stay suffix-level (domain null); exact quotes belong to the domain. Provider
-   * text is scrubbed of secrets and the offer validated before it becomes evidence.
-   */
+
+
+
+
   protected offer(manifest: ProviderManifest, actx: AdapterContext, domain: DomainParts, raw: OfferDraft, ctx: OperationContext): EvidenceWrite {
     const draft = scrubDraft(raw, (text) => actx.http.scrub(text));
     const now = ctx.now();
@@ -213,7 +213,7 @@ export class QuoteHandler extends ProviderOperation {
     const check = result.check ? this.scrubbed(actx, result.check) : null;
     const offers = result.offers.filter(hasPrice);
     const evidence: EvidenceWrite[] = [];
-    // The quote response also states availability: keep it as its own confirmation evidence.
+
     if (check && check.status !== 'unknown') evidence.push(this.confirmation(manifest, domain, check, ctx));
     for (const draft of offers) evidence.push(this.offer(manifest, actx, domain, draft, ctx));
     const status = check?.status ?? 'unknown';
@@ -319,7 +319,7 @@ export class AftermarketHandler extends ProviderOperation {
   }
 }
 
-/** catalog_refresh items: subject is the provider id; no candidate name leaves the machine. */
+
 @Injectable()
 export class CatalogHandler implements OperationHandler {
   readonly operation = 'catalog' as const;
@@ -342,7 +342,7 @@ export class CatalogHandler implements OperationHandler {
     return manifest ? (manifest.catalogHost ?? manifest.apiHost) : null;
   }
 
-  /** Full price lists are large (Porkbun's took about 10 s live); allow two minutes. */
+
   timeoutMs(): number {
     return 120_000;
   }
@@ -354,7 +354,7 @@ export class CatalogHandler implements OperationHandler {
     const result = await this.catalogs.refresh(this.providerId(item), ctx.signal);
     const retryable = result.error?.retryable ?? false;
     return finish('catalog', result.outcome, {
-      // The catalog service writes the offers with its fetch; linking them lets watches detect price changes.
+
       ...(result.offerIds.length ? { reused: { offerIds: result.offerIds } } : {}),
       error: result.error,
       retryable,
@@ -364,7 +364,7 @@ export class CatalogHandler implements OperationHandler {
   }
 }
 
-/** Registers every provider handler with the jobs engine. */
+
 @Injectable()
 export class ProviderHandlersRegistrar implements OnModuleInit {
   constructor(

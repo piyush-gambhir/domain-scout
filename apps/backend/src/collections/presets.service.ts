@@ -6,11 +6,11 @@ import { AppError } from '../core/errors.js';
 import { InputPreviewer } from '../core/ports.js';
 import { Database, json } from '../storage/database.js';
 
-/**
- * Built-in presets come from the registry module (InputPreviewer.presets(), bundled data) and use
- * plain slug ids. Saved presets live in extension_presets and use UUIDs, so the id spaces never
- * collide. This list is used only when the registry module is not loaded.
- */
+
+
+
+
+
 const FALLBACK_PRESETS: ExtensionPreset[] = [
   { id: 'popular', name: 'Popular', extensions: ['com', 'net', 'org', 'io', 'ai', 'app', 'dev'], builtIn: true, createdAt: null },
   { id: 'tech', name: 'Tech', extensions: ['io', 'dev', 'app', 'ai', 'tech'], builtIn: true, createdAt: null },
@@ -31,7 +31,7 @@ export class PresetsService {
     @Optional() private readonly previewer?: InputPreviewer,
   ) {}
 
-  /** Built-in presets first, then saved presets in creation order. */
+
   list(): ExtensionPreset[] {
     const saved = this.db
       .all<PresetRow>('SELECT * FROM extension_presets ORDER BY created_at, name')

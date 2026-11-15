@@ -43,11 +43,11 @@ export class SystemController {
     return this.stopAfterResponse(res);
   }
 
-  /**
-   * A newer CLI replacing this (older) backend. Refuses when the caller verified another instance
-   * (a concurrent CLI already replaced it) or while work would be lost. Backends that predate this
-   * route answer 404, so CLIs keep using them.
-   */
+
+
+
+
+
   @ApiRoute('stopServiceUnlessBusy')
   stopServiceUnlessBusy(@ApiInput() input: RouteInput<'stopServiceUnlessBusy'>, @Res({ passthrough: true }) res: Response) {
     if (input.body.instanceId.toLowerCase() !== this.config.instanceId.toLowerCase()) {
@@ -64,7 +64,7 @@ export class SystemController {
     return this.stopAfterResponse(res);
   }
 
-  /** Answers 202 first; the stop starts once the response has been flushed (or the client left). */
+
   private stopAfterResponse(res: Response) {
     let started = false;
     const start = () => {

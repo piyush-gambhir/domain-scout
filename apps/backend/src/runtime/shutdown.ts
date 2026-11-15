@@ -3,27 +3,27 @@ import { APP_CONFIG, type AppConfig } from '../core/config.js';
 import { Database } from '../storage/database.js';
 
 export const DEFAULT_STOP_GRACE_MS = 5_000;
-/** Extra time after the grace deadline for hooks to record interrupted work once aborted. */
+
 const CLEANUP_AFTER_ABORT_MS = 1_000;
 
 export interface StopContext {
   reason: string;
   graceMs: number;
-  /** Epoch ms when in-flight work must be abandoned. */
+
   deadline: number;
-  /** Aborts at the deadline: abort in-flight calls, then mark unfinished work interrupted. */
+
   signal: AbortSignal;
 }
 
 export type StoppingHook = (ctx: StopContext) => void | Promise<void>;
 
-/**
- * Coordinates graceful stop. Modules register `onStopping` hooks (the jobs engine: halt dispatch,
- * abort in-flight work by `ctx.signal`, mark unfinished items interrupted). `stop()` runs every hook
- * concurrently within the grace period, checkpoints SQLite, then hands over to the exit handler
- * that main.ts installs (close the app, remove runtime file and lock, exit). Embedded/test apps have
- * no exit handler, so the process keeps running.
- */
+
+
+
+
+
+
+
 @Injectable()
 export class ShutdownCoordinator implements OnModuleDestroy {
   private readonly logger = new Logger('Shutdown');
@@ -40,24 +40,24 @@ export class ShutdownCoordinator implements OnModuleDestroy {
     this.graceMs = config.stopGraceMs ?? DEFAULT_STOP_GRACE_MS;
   }
 
-  /** True once a stop has begun; new work should be refused. */
+
   get isStopping(): boolean {
     return this.hooksRun !== null;
   }
 
-  /** Registers a hook run once when the backend stops. Returns an unregister function. */
+
   onStopping(hook: StoppingHook, name = 'hook'): () => void {
     const key = Symbol(name);
     this.hooks.set(key, { name, hook });
     return () => this.hooks.delete(key);
   }
 
-  /** Installed by main.ts only. */
+
   setExitHandler(handler: (reason: string) => Promise<void>): void {
     this.exitHandler = handler;
   }
 
-  /** Starts a stop (idempotent) and resolves when it completes. */
+
   stop(reason: string): Promise<void> {
     this.stopRun ??= (async () => {
       await this.runHooks(reason);
@@ -71,7 +71,7 @@ export class ShutdownCoordinator implements OnModuleDestroy {
     return this.stopRun;
   }
 
-  /** Runs stopping hooks when the app is closed directly (tests, or close without stop()). */
+
   async onModuleDestroy() {
     await this.runHooks('close');
   }

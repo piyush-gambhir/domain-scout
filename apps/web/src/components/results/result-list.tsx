@@ -44,13 +44,13 @@ type Entry =
 
 export type ListSelection = Map<string, JobItem>;
 
-/*
- * Columns follow the width of the list (container queries), so a docked panel or a narrow window
- * drops the least important ones first.
- */
+
+
+
+
 const COLS =
   'grid-cols-[2rem_minmax(0,1fr)_7.5rem] @md:grid-cols-[2rem_minmax(0,1fr)_8.5rem_5.5rem] @2xl:grid-cols-[2rem_minmax(0,1fr)_8.5rem_minmax(8rem,11rem)_5.5rem] @4xl:grid-cols-[2rem_minmax(0,1fr)_8.5rem_minmax(8rem,11rem)_6rem_6.5rem_5.5rem] @5xl:grid-cols-[2rem_minmax(0,1fr)_8.5rem_minmax(8rem,11rem)_6rem_6.5rem_6.5rem_5.5rem]';
-// Narrow panes keep domain and status; a tap opens the full domain page with every action.
+
 const SHOW = { price: 'hidden @2xl:flex', more: 'hidden @4xl:flex', checked: 'hidden @5xl:flex', actions: 'hidden @md:flex' };
 
 export function ListFilterBar({ filters, onChange, suffixes, currency }: { filters: ListFilters; onChange: (next: ListFilters) => void; suffixes: string[]; currency: string }) {
@@ -182,7 +182,7 @@ export function ListFilterBar({ filters, onChange, suffixes, currency }: { filte
 
 interface ListProps {
   job: Job;
-  /** The list one keystroke saves to; the bookmark shows membership there. */
+
   savedListId: string | null;
   filters: ListFilters;
   prices: PricesBySuffix;
@@ -200,17 +200,17 @@ interface ListProps {
   onSelection: (next: ListSelection) => void;
   poll: boolean;
   bottomInset: number;
-  /** Suffixes seen in loaded rows, so the page can fetch their published prices. */
+
   onSuffixes?: (suffixes: string[]) => void;
 }
 
 const iconButton =
   'grid size-7 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-background hover:text-foreground [&_svg]:size-4';
 
-/**
- * A large search triaged into what can be registered (cheapest first), what is taken and what could
- * not be checked. Each section pages from the backend as it scrolls; taken names start collapsed.
- */
+
+
+
+
 export function ResultList(props: ListProps) {
   const { job, savedListId, filters, prices, currency, horizon, names, activeDomain, checking, overrides, watchIndex, buyFor, onBuyFor, actions, selection, onSelection, poll, bottomInset, onSuffixes } = props;
   const counts = groupCounts(job);
@@ -246,7 +246,7 @@ export function ResultList(props: ListProps) {
         continue;
       }
       for (const item of section.items) list.push({ kind: 'row', group, item: withOverride(item, overrides) });
-      // A failed next page stops loading until retried instead of retrying on every scroll.
+
       if (section.isFetchNextPageError) list.push({ kind: 'error', group });
       else if (section.hasNextPage) list.push({ kind: 'more', group });
     }
@@ -279,14 +279,14 @@ export function ResultList(props: ListProps) {
     overrides,
   ]);
 
-  // Prices are fetched per suffix by the page; report suffixes that only the list has loaded.
+
   const loadedSuffixes = [...new Set([...free.items, ...taken.items, ...problem.items, ...pending.items].map((i) => i.suffix).filter((x): x is string => Boolean(x)))].sort().join(',');
   useEffect(() => {
     if (loadedSuffixes) onSuffixes?.(loadedSuffixes.split(','));
   }, [loadedSuffixes, onSuffixes]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  // React Compiler is not enabled; TanStack Virtual is used as documented.
+
   // eslint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({
     count: entries.length,
@@ -297,7 +297,7 @@ export function ResultList(props: ListProps) {
   });
   const virtualItems = virtualizer.getVirtualItems();
 
-  // A visible "more" row loads that section's next page.
+
   useEffect(() => {
     for (const v of virtualItems) {
       const entry = entries[v.index];
@@ -518,7 +518,7 @@ function ListRow({
   watched: boolean;
   saved: boolean;
   selected: boolean;
-  /** Any row is selected: checkboxes stay visible so a range is easy to extend. */
+
   selecting: boolean;
   onSelect: (on: boolean) => void;
   buyOpen: boolean;

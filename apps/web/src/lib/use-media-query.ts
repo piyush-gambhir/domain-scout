@@ -18,7 +18,7 @@ export function useMediaQuery(query: string, serverValue = false): boolean {
   );
 }
 
-/** Matches the lg breakpoint where the app fills the window and domain details dock beside tables. */
+
 export function useIsWide(): boolean {
   return useMediaQuery('(min-width: 1024px)', true);
 }

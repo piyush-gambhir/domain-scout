@@ -10,22 +10,22 @@ const BOOTSTRAP_METADATA_KEY = 'registry.rdap_bootstrap';
 const BOOTSTRAP_MAX_BYTES = 5 * 1024 * 1024;
 const BOOTSTRAP_TIMEOUT_MS = 30_000;
 
-/**
- * Where a suffix's registration data is queried. Second-level suffixes route through their TLD unless
- * a curated route names their own registry (co.za).
- */
+
+
+
+
 export interface RegistryRoute {
-  /** Routed suffix: a TLD, or a second-level suffix with its own registry. */
+
   tld: string;
-  /** Shared budget and cooldown key; RDAP and WHOIS hosts of one operator share it. */
+
   registryId: string;
   protocol: 'rdap' | 'whois';
-  /** RDAP base URL ending in `/`, or WHOIS `host:port`. */
+
   endpoint: string;
   host: string;
   routing: 'iana_bootstrap' | 'curated';
   routingUpdatedAt: string;
-  /** Registry-published RDAP service used because the TLD is missing from the IANA bootstrap. */
+
   curatedRdap: CuratedRdapSpec | null;
   whois: WhoisRouteSpec | null;
 }
@@ -34,28 +34,28 @@ export interface BootstrapInfo {
   source: string;
   publishedAt: string | null;
   fetchedAt: string;
-  /** `bundled` ships with the app; `refreshed` was fetched by POST /coverage/refresh. */
+
   origin: 'bundled' | 'refreshed';
 }
 
-/**
- * Registry routing, in order of preference: the IANA RDAP bootstrap, registry-published RDAP
- * services missing from the bootstrap (curated-rdap.json), then curated WHOIS routes with a
- * registry-specific classifier. DNS is never a fallback: a TLD without a route is unsupported.
- */
+
+
+
+
+
 @Injectable()
 export class RoutesService {
   private readonly logger = new Logger('RegistryRoutes');
   private routes = new Map<string, RegistryRoute>();
-  /** TLDs whose bootstrap entry lists only plain-HTTP endpoints, with those URLs. */
+
   private httpOnly = new Map<string, string[]>();
   private rdapHostSet = new Set<string>();
   private info!: BootstrapInfo;
   private readonly operatorByHost = new Map<string, string>();
-  /**
-   * Reviewed second-level zones each TLD's registry does not (verifiably) serve, from the curated
-   * data. They apply whichever endpoint wins, so an IANA bootstrap refresh cannot reopen them.
-   */
+
+
+
+
   private readonly unservedZones = new Map<string, string[]>();
 
   constructor(
@@ -67,7 +67,7 @@ export class RoutesService {
     for (const operator of data.operators.registries) {
       for (const host of [...operator.rdapHosts, ...operator.whoisHosts]) this.operatorByHost.set(host, operator.id);
     }
-    // Curated routes name their operator explicitly, so a 404 from their host counts as authoritative.
+
     for (const spec of data.curatedRdap.routes) this.operatorByHost.set(new URL(spec.baseUrl).host, spec.registryId);
     for (const spec of data.whois.routes) this.operatorByHost.set(spec.host, spec.registryId);
     for (const spec of [...data.curatedRdap.routes, ...data.whois.routes]) {
@@ -79,7 +79,7 @@ export class RoutesService {
     if (selected.origin === 'refreshed') {
       try {
         const stored = this.compute(selected.snapshot, 'refreshed');
-        // Same usability guard as refresh(): never start with far fewer RDAP routes than the bundled data.
+
         if (this.routeCount(stored.routes, 'rdap') >= this.routeCount(bundled.routes, 'rdap') / 2) state = stored;
         else this.logger.warn('Ignoring a stored RDAP bootstrap with too few usable endpoints');
       } catch (error) {
@@ -89,10 +89,10 @@ export class RoutesService {
     this.apply(state);
   }
 
-  /**
-   * Route for a registration suffix (`com`, `co.uk`), or null when unsupported. A second-level suffix
-   * with its own registry route (`co.za`) uses it; others route through their TLD.
-   */
+
+
+
+
   route(suffix: string): RegistryRoute | null {
     const stub = this.testRoutes.get(suffix);
     if (stub) return stub;
@@ -101,12 +101,12 @@ export class RoutesService {
     return this.unserved(suffix) ? null : (this.routes.get(suffix.slice(suffix.lastIndexOf('.') + 1)) ?? null);
   }
 
-  /** Second-level zones under a TLD that are never routed through it ('*' means all). */
+
   unservedSecondLevel(tld: string): string[] {
     return this.unservedZones.get(tld) ?? [];
   }
 
-  /** Why a suffix has no route, for messages: names the TLD route that excludes a second-level zone. */
+
   unsupportedReason(suffix: string): string {
     const tld = suffix.slice(suffix.lastIndexOf('.') + 1);
     const route = this.routes.get(tld);
@@ -131,7 +131,7 @@ export class RoutesService {
     return this.httpOnly.get(tld) ?? null;
   }
 
-  /** RDAP hosts named by the bootstrap or the curated operator list; the only redirect targets we follow. */
+
   isVerifiedRdapHost(host: string): boolean {
     return this.rdapHostSet.has(host.toLowerCase());
   }
@@ -140,18 +140,18 @@ export class RoutesService {
     return this.info;
   }
 
-  /**
-   * Test-only RDAP routes from DOMAIN_SCOUT_TEST_RDAP_ROUTES ({"com": "http://127.0.0.1:9999/"}), used
-   * by the local acceptance run against a stub registry. Only loopback URLs are accepted, so the
-   * override can never send candidate names anywhere but this machine.
-   */
+
+
+
+
+
   private readonly testRoutes: Map<string, RegistryRoute> = testRdapRoutes(process.env.DOMAIN_SCOUT_TEST_RDAP_ROUTES);
 
   registryIdForHost(host: string): string {
     return this.operatorByHost.get(host) ?? host;
   }
 
-  /** Fetches the live IANA bootstrap (no candidate names), stores it and rebuilds routes. */
+
   async refresh(): Promise<BootstrapInfo> {
     const signal = AbortSignal.timeout(BOOTSTRAP_TIMEOUT_MS);
     let snapshot: BootstrapSnapshot;
@@ -185,7 +185,7 @@ export class RoutesService {
     if (nextPublished < currentPublished) {
       throw unavailable(`Fetched bootstrap (published ${snapshot.bootstrap.publication}) is older than the current one; keeping the current routes`);
     }
-    // Build everything before persisting, so a bad file can never replace working routes.
+
     const state = this.compute(snapshot, 'refreshed');
     const current = this.routeCount(this.routes, 'rdap');
     const next = this.routeCount(state.routes, 'rdap');
@@ -207,7 +207,7 @@ export class RoutesService {
     return count;
   }
 
-  /** The bundled snapshot, unless a refreshed one with a publication date at least as new is stored. */
+
   private selectSnapshot(): { snapshot: BootstrapSnapshot; origin: BootstrapInfo['origin'] } {
     const bundled = loadRegistryData().bootstrap;
     const row = this.db.get<{ value_json: string }>('SELECT value_json FROM metadata WHERE key = ?', [BOOTSTRAP_METADATA_KEY]);
@@ -228,7 +228,7 @@ export class RoutesService {
     this.info = state.info;
   }
 
-  /** Pure: derives routes from a snapshot. Endpoints that are not valid https URLs are skipped. */
+
   private compute(snapshot: BootstrapSnapshot, origin: BootstrapInfo['origin']): RouteState {
     const routes = new Map<string, RegistryRoute>();
     const httpOnly = new Map<string, string[]>();
@@ -304,7 +304,7 @@ interface RouteState {
   info: BootstrapInfo;
 }
 
-/** Base URL (ending in `/`) and host for a usable https bootstrap URL, else null. */
+
 function httpsBase(url: string): { base: string; host: string } | null {
   try {
     const parsed = new URL(url);

@@ -11,7 +11,7 @@ import { RegistryHttpTransport, type HttpGetRequest, type HttpGetResponse } from
 import { RegistryModule } from '../../src/registry/registry.module.js';
 import { WhoisTransport, type WhoisRequest, type WhoisResponse } from '../../src/registry/whois/whois-transport.js';
 
-/** Fake RDAP/bootstrap transport: answers from a function and records every request. */
+
 export class FakeHttp extends RegistryHttpTransport {
   calls: HttpGetRequest[] = [];
   constructor(public respond: (request: HttpGetRequest) => HttpGetResponse | Promise<HttpGetResponse> = () => {
@@ -42,7 +42,7 @@ export function http(status: number, body = '', headers: Record<string, string> 
   return { url, status, headers, body, truncated: false };
 }
 
-/** CoreModule + RegistryModule on a temporary SQLite database, with fake transports. */
+
 export async function createRegistryHarness() {
   const dataDir = mkdtempSync(join(tmpdir(), 'domain-scout-registry-'));
   const clock = new FakeClock();

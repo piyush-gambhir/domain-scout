@@ -1,14 +1,14 @@
 import { z } from 'zod';
 
-/** Version of the public API contract. Every response carries it so agents can detect drift. */
+
 export const CONTRACT_VERSION = '1.0.0';
-/** Version of the local runtime handshake (runtime file, auth exchange). */
+
 export const PROTOCOL_VERSION = 1;
 
 export const Uuid = z.uuid().meta({ id: 'Uuid' });
-/** UTC RFC 3339 timestamp, always with a `Z` offset. */
+
 export const Timestamp = z.iso.datetime().meta({ id: 'Timestamp' });
-/** Exact decimal money amount as a string, never a float. */
+
 export const DecimalString = z
   .string()
   .regex(/^-?\d+(\.\d+)?$/)
@@ -23,7 +23,7 @@ export const Money = z
   .meta({ id: 'Money' });
 export type Money = z.infer<typeof Money>;
 
-/** ASCII (A-label) domain name, lower case, no trailing dot. */
+
 export const AsciiDomain = z
   .string()
   .min(3)
@@ -31,7 +31,7 @@ export const AsciiDomain = z
   .regex(/^[a-z0-9-]+(\.[a-z0-9-]+)+$/)
   .meta({ id: 'AsciiDomain' });
 
-/** Registration suffix without the leading dot, e.g. `com` or `co.uk`. */
+
 export const Suffix = z
   .string()
   .min(1)
@@ -76,12 +76,12 @@ export const ErrorResponse = z
   .meta({ id: 'ErrorResponse' });
 export type ErrorResponse = z.infer<typeof ErrorResponse>;
 
-/** Single-resource response envelope. */
+
 export function envelope<T extends z.ZodType>(data: T, id: string) {
   return z.object({ contractVersion: z.string(), data }).meta({ id });
 }
 
-/** Paginated list envelope with an opaque cursor. */
+
 export function page<T extends z.ZodType>(item: T, id: string) {
   return z
     .object({
@@ -101,7 +101,7 @@ export const PageQuery = z.object({
 export const Ok = z.object({ ok: z.literal(true) }).meta({ id: 'Ok' });
 export const OkResponse = envelope(Ok, 'OkResponse');
 
-/** Freshness of an observation relative to now and the configured thresholds. */
+
 export const Freshness = z.enum(['fresh', 'stale', 'expired']).meta({
   id: 'Freshness',
   description:

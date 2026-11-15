@@ -16,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 const SUFFIX = /^[a-z0-9-]+(\.[a-z0-9-]+)*$/;
 export const MAX_EXTENSIONS = 2000;
 
-/** Parses free entry such as "io, .co.uk  dev". Unicode suffixes become their ASCII (punycode) form. */
+
 export function parseExtensions(input: string): { valid: string[]; invalid: string[] } {
   const valid: string[] = [];
   const invalid: string[] = [];
@@ -37,7 +37,7 @@ export function parseExtensions(input: string): { valid: string[]; invalid: stri
   return { valid: uniq(valid), invalid };
 }
 
-/** Free-entry field in a popover: type extensions, press Enter. */
+
 function AddExtensions({ value, onChange, compact }: { value: string[]; onChange: (next: string[]) => void; compact?: boolean }) {
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -126,10 +126,10 @@ function SavePreset({ value, onDone }: { value: string[]; onDone: () => void }) 
   );
 }
 
-/**
- * The extension set a search expands names across, as removable chips. "+" adds by typing; the preset
- * menu swaps in a saved set. Callers decide whether a change is remembered.
- */
+
+
+
+
 export function ExtensionChips({ value, onChange, compact }: { value: string[]; onChange: (next: string[]) => void; compact?: boolean }) {
   const presets = usePresets();
   const [saving, setSaving] = useState(false);

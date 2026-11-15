@@ -16,9 +16,9 @@ import { ThemeLibrary, type ThemeWord } from './themes.js';
  * separate, explicit submission.
  */
 
-/** Upper bound on raw candidates per request so large theme combinations stay bounded and fast. */
+
 export const MAX_GENERATED = 20_000;
-/** Theme x theme pairs use only this many pool words (about 3,500 ordered pairs). */
+
 export const PAIR_POOL_SIZE = 60;
 export const DEFAULT_SEED = 1;
 
@@ -26,23 +26,23 @@ const CONSONANTS = 'bcdfghjklmnprstvz';
 const VOWELS = 'aeiou';
 
 interface Raw {
-  /** Label, or the complete domain for hacks. */
+
   name: string;
   domain: string | null;
-  /** The registrable label that length and character rules apply to. */
+
   label: string;
   strategy: GenerationStrategy;
   rule: string;
-  /** Informational notes kept on valid candidates. */
+
   notes: string[];
-  /** Ambiguous registration boundary: returned with valid=false so it is never scanned implicitly. */
+
   boundary: string[];
 }
 
 interface Context {
-  /** Normalized roots in input order, duplicates kept so the preview counts them. */
+
   suppliedRoots: string[];
-  /** Normalized unique roots used as bases by the other strategies. */
+
   roots: string[];
   prefixes: string[];
   suffixes: string[];
@@ -57,7 +57,7 @@ interface Base {
   describe: string;
 }
 
-/** Deterministic 32-bit PRNG (mulberry32); the same seed always yields the same sequence. */
+
 export function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
@@ -86,7 +86,7 @@ export function suffixLabelIssues(label: string): string[] {
   return label.startsWith('xn--') ? issues.filter((i) => !i.startsWith('hyphens in the third')) : issues;
 }
 
-/** Every problem with a complete domain: the registrable label, each extension label and the total length. */
+
 export function domainIssues(label: string, extension: string): string[] {
   const issues = [
     ...ldhIssues(label),
@@ -131,7 +131,7 @@ function* rootsStrategy(ctx: Context): Generator<Raw> {
   for (const root of ctx.suppliedRoots) yield label({ name: root, strategy: 'roots', rule: `root ${root}` });
 }
 
-/** Affixes and mutations apply to roots, or to the selected theme words when no roots are given. */
+
 function bases(ctx: Context): Base[] {
   if (ctx.roots.length) return ctx.roots.map((word) => ({ word, describe: `root ${word}` }));
   return ctx.pool.map(({ word, theme }) => ({ word, describe: `theme word ${word} (${theme})` }));
@@ -202,11 +202,11 @@ function* mutationsStrategy(ctx: Context): Generator<Raw> {
   }
 }
 
-/**
- * Domain hacks read the whole domain as one word: "bitly" with extension ly gives bit.ly. Words come
- * from roots and the selected themes. Only single-label extensions split cleanly; a multi-label
- * suffix such as co.uk spans a registry boundary, so those hacks are flagged and never valid.
- */
+
+
+
+
+
 function* hacksStrategy(ctx: Context): Generator<Raw> {
   const words = [
     ...ctx.roots.map((word) => ({ word, describe: `root ${word}` })),
@@ -243,7 +243,7 @@ const STRATEGIES: Record<GenerationStrategy, (ctx: Context) => Generator<Raw>> =
   hacks: hacksStrategy,
 };
 
-/** Round-robin across strategies so a limited preview still shows every requested strategy. */
+
 function* interleave(generators: Generator<Raw>[]): Generator<Raw> {
   let active = generators;
   while (active.length) {
@@ -260,10 +260,10 @@ function* interleave(generators: Generator<Raw>[]): Generator<Raw> {
 
 type Rules = GenerationRequestParsed['rules'];
 
-/**
- * User rules. Exclusion matches when the label, or the whole hack read as one word, equals or
- * contains an excluded term.
- */
+
+
+
+
 function passesRules(raw: Raw, rules: Rules, exclude: string[]): boolean {
   const { label: l } = raw;
   if (l.length < rules.minLength || l.length > rules.maxLength) return false;

@@ -28,7 +28,7 @@ import { Database } from '../../src/storage/database.js';
 import { SettingsService } from '../../src/system/settings.service.js';
 import { createTestApp, type TestApp } from '../helpers.js';
 
-/** Fake time that moves with real time (so timers fire) and can also be advanced by tests. */
+
 export class LiveClock extends FakeClock {
   private offset = 0;
   override now() {
@@ -42,7 +42,7 @@ export class LiveClock extends FakeClock {
   }
 }
 
-/** Registry for jobs tests: production modules' handlers are ignored so only the fakes run. */
+
 export class TestOperationRegistry extends OperationRegistry {
   private readonly fakes = new Map<JobOperation, OperationHandler>();
   override register(_handler: OperationHandler) {}
@@ -65,7 +65,7 @@ export function normalizeDomain(domain: string): NormalizedDomain | null {
   return { ascii: domain, unicode: domain, label: label!, suffix: rest.join('.'), isIdn: false };
 }
 
-/** Minimal InputPreviewer: lines, commas or whitespace; base names expand across extensions. */
+
 export function fakePreviewer(): InputPreviewer {
   return {
     normalize: normalizeDomain,
@@ -142,7 +142,7 @@ export function fakeHandler(options: {
   };
 }
 
-/** A resolved result with evidence of the right kind for the operation. */
+
 export function simpleResult(item: JobItemRecord, ctx: OperationContext, outcome?: string): OperationResult {
   if (item.operation === 'registry') return registryResult(item, ctx, outcome ?? 'no_record');
   const out = outcome ?? RESOLVED_ITEM_OUTCOMES[item.operation][0]!;
@@ -200,7 +200,7 @@ export function registryResult(
   };
 }
 
-/** A manually released barrier for holding handler calls in flight. */
+
 export function gate() {
   let open!: () => void;
   const promise = new Promise<void>((resolve) => {
@@ -232,9 +232,9 @@ export interface JobsTestApp extends TestApp {
   events: EventsService;
   db: Database;
   settings: SettingsService;
-  /** Waits until the job reaches a terminal state and returns it. */
+
   finished(jobId: string, timeoutMs?: number): Promise<Job>;
-  /** Persisted events for a job, in order. */
+
   jobEvents(jobId: string): DomainEvent[];
 }
 
@@ -247,7 +247,7 @@ export async function createJobsApp(
     engine?: Partial<JobsEngineOptions>;
     settings?: z.output<typeof SettingsPatch>;
     stopGraceMs?: number;
-    /** Keep the data directory after close (restart tests reopen it). */
+
     keepData?: boolean;
   } = {},
 ): Promise<JobsTestApp> {

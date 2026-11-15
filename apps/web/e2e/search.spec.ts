@@ -2,8 +2,8 @@ import { expect, test } from './fixtures';
 import { GIB, SMALL_SEARCH, buildJob, eurPriceOf, mockApp, outcomeOf, priceOf } from './app-fixtures';
 import { mockApi, ok, startedWork, uuid } from './mock-api';
 
-// Journey 1, "name a thing": a few names, one Enter, a grid of free and taken names with prices, and
-// a provider checkout link two clicks away. POST /jobs is a fixture: nothing reaches a registry.
+
+
 
 const SIX = ['com', 'io', 'dev', 'app', 'co', 'ai'];
 const NOT_AVAILABLE = /\bAvailable\b/;
@@ -19,7 +19,7 @@ test('typing names and pressing Enter shows a grid of names by extension with pr
   const input = page.getByRole('textbox', { name: 'Search names or domains' });
   await expect(input).toBeFocused();
   await input.fill(SMALL_SEARCH);
-  // The local preview counts what Enter would check before anything runs: 3 names x 6 + 2 domains.
+
   await expect(page.getByTestId('search-preview')).toContainText('20 checks');
   await input.press('Enter');
 
@@ -31,7 +31,7 @@ test('typing names and pressing Enter shows a grid of names by extension with pr
   const grid = page.getByRole('grid', { name: 'Results by name and extension' });
   for (const name of [...GIB, 'example', 'google']) await expect(grid.getByRole('rowheader', { name })).toBeVisible();
   for (const ext of SIX) await expect(grid.getByRole('columnheader', { name: `.${ext}`, exact: true })).toBeVisible();
-  // Domains typed in full keep their own extension only.
+
   await expect(page.locator('[data-testid="grid-cell"][data-domain^="example."]')).toHaveCount(1);
 
   const free = page.locator(CELL(FREE));
@@ -40,14 +40,14 @@ test('typing names and pressing Enter shows a grid of names by extension with pr
   for (const domain of ['example.com', `${GIB[1]}.io`]) {
     const taken = page.locator(CELL(domain));
     await expect(taken).toContainText('Taken');
-    // A taken name is never offered at a registration price.
+
     await expect(taken).not.toContainText('$');
   }
   await expect(page.locator(CELL(`${GIB[2]}.ai`))).toContainText("Couldn't check");
   await expect(page.getByTestId('result-summary')).toContainText('not registered');
   await expect(page.getByText(NOT_AVAILABLE)).toHaveCount(0);
 
-  // Two clicks from a free name to the provider's checkout page: the cell, then Buy.
+
   await free.getByRole('button', { name: new RegExp(`^${FREE.replace('.', '\\.')}:`) }).click();
   const dock = page.getByRole('complementary', { name: FREE });
   await expect(dock.getByTestId('domain-status')).toContainText('Not registered');
@@ -72,12 +72,12 @@ test('extension chips remove, add and apply presets, and the set is remembered i
   await expect(chips.getByText('.co.uk', { exact: true })).toBeVisible();
   await expect(chips.getByText('.net', { exact: true })).toBeVisible();
 
-  // Quick edits are saved as one change after a short pause.
+
   await expect
     .poll(() => calls.filter((c) => c.method === 'PATCH' && c.path === '/settings').at(-1)?.body)
     .toEqual({ search: { defaultExtensions: ['com', 'io', 'dev', 'app', 'co', 'net', 'co.uk'] } });
 
-  // Presets come from the backend's built-in list and replace the set.
+
   await chips.getByRole('button', { name: 'Presets' }).click();
   await page.getByRole('menuitem', { name: /^Tech/ }).click();
   await expect(chips.getByText('.tech', { exact: true })).toBeVisible();
@@ -86,7 +86,7 @@ test('extension chips remove, add and apply presets, and the set is remembered i
   await expect.poll(lastSaved).toContain('tech');
   expect(lastSaved()).not.toContain('com');
 
-  // A new visit starts with the remembered set.
+
   await page.reload();
   await expect(page.getByRole('group', { name: 'Extensions' }).getByText('.tech', { exact: true })).toBeVisible();
 });
@@ -99,7 +99,7 @@ test('a CSV file reads one column, searches those names and keeps how it was rea
   const input = page.getByRole('textbox', { name: 'Search names or domains' });
   await expect(input).toHaveValue(csv);
   await expect(page.getByRole('button', { name: 'Clear launch-names.csv' })).toBeVisible();
-  // Choose the column to read; the local preview counts its three domains.
+
   await page.getByRole('button', { name: 'Options, 1 changed' }).click();
   await expect(page.getByRole('radio', { name: 'CSV' })).toHaveAttribute('aria-checked', 'true');
   await page.getByRole('textbox', { name: 'CSV column' }).fill('domain');
@@ -109,17 +109,17 @@ test('a CSV file reads one column, searches those names and keeps how it was rea
   await page.getByRole('button', { name: 'Search', exact: true }).click();
   await expect(page).toHaveURL(/\/search\//);
   const create = calls.find((c) => c.method === 'POST' && c.path === '/jobs');
-  // The file name labels the search in History.
+
   expect(create?.body).toMatchObject({ label: 'launch-names.csv', input: { text: csv, format: 'csv', csvColumn: 'domain' } });
 
-  // One result per domain in the column, never the notes column.
+
   const cells = page.getByTestId('grid-cell');
   await expect(cells).toHaveCount(3);
   await expect(page.locator(CELL('example.com'))).toContainText('Taken');
   await expect(page.locator(CELL(`${GIB[1]}.io`))).toContainText('Taken');
   await expect(page.locator(CELL(`${GIB[0]}.dev`))).toContainText('Not registered');
 
-  // The results bar restores the input the way it was read.
+
   await expect(page.getByRole('button', { name: 'Options, 1 changed' })).toBeVisible();
   await page.getByRole('button', { name: 'Options, 1 changed' }).click();
   await expect(page.getByRole('radio', { name: 'CSV' })).toHaveAttribute('aria-checked', 'true');
@@ -127,7 +127,7 @@ test('a CSV file reads one column, searches those names and keeps how it was rea
 });
 
 test('ideas turn keywords into local suggestions and check only the picked names', async ({ page }) => {
-  // Picked ideas are not in the fixture name set, so the fixture answers with gibberish names.
+
   const { calls } = await mockApp(page, { answerWith: GIB[0] });
   await page.goto('/');
   await page.getByRole('button', { name: 'Ideas' }).click();
@@ -135,7 +135,7 @@ test('ideas turn keywords into local suggestions and check only the picked names
   await keywords.fill('scout trail');
   const ideas = page.getByRole('list', { name: 'Ideas' });
   await expect(ideas.getByRole('checkbox', { name: 'Select scouttrail' })).toBeVisible();
-  // Generating ideas sends nothing to a registry.
+
   expect(startedWork(calls)).toEqual([]);
 
   await ideas.getByRole('checkbox', { name: 'Select scouttrail' }).check();
@@ -188,7 +188,7 @@ test('?criteria= restores a saved search, and its filter and budget shape the re
         filter: { suffixes: ['dev'], maxLength: 24 },
         extensions: ['com', 'dev'],
         providerIds: ['porkbun'],
-        // A budget in another currency than the settings currency (USD) travels with the filter.
+
         budget: { amount: '15', currency: 'EUR' },
         generation: null,
         input: SMALL_SEARCH,
@@ -202,12 +202,12 @@ test('?criteria= restores a saved search, and its filter and budget shape the re
   await expect(page.getByRole('group', { name: 'Extensions' }).getByText('.dev', { exact: true })).toBeVisible();
   expect(startedWork(calls)).toEqual([]);
 
-  // Three names on .com and .dev plus two full domains.
+
   await expect(page.getByTestId('search-preview')).toContainText('8 checks');
   await page.getByRole('textbox', { name: 'Search names or domains' }).press('Enter');
   await expect(page).toHaveURL(/\/search\/[0-9a-f-]{36}\?/);
 
-  // A restored filter opens the list view with the filter applied, not the grid.
+
   await expect(page.getByTestId('result-row').first()).toBeVisible();
   await expect(page.getByTestId('grid-cell')).toHaveCount(0);
   const freeQuery = () =>
@@ -221,7 +221,7 @@ test('?criteria= restores a saved search, and its filter and budget shape the re
   expect(query.get('suffixes')).toBe('dev');
   expect(query.get('maxLength')).toBe('24');
 
-  // Only unregistered .dev names within the EUR budget render; in USD the set would differ.
+
   const expected = GIB.map((g) => `${g}.dev`).filter((d) => outcomeOf(d) === 'no_record' && Number(eurPriceOf(d)) <= 15);
   const inUsd = GIB.map((g) => `${g}.dev`).filter((d) => outcomeOf(d) === 'no_record' && Number(priceOf(d)) <= 15);
   expect(expected, 'the fixture makes the currency matter').not.toEqual(inUsd);

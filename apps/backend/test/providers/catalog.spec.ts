@@ -45,7 +45,7 @@ describe('Porkbun keyless catalog', () => {
       'com',
       'si',
     ]);
-    // catalog.updated is recorded with the state change.
+
     const events = t.app.get(EventsService).read(0, { types: ['catalog.updated'] });
     expect(events.at(-1)?.payload).toEqual({ providerId: 'porkbun', suffixCount: 3, fetchedAt: '2026-10-05T12:00:00.000Z' });
   });
@@ -84,7 +84,7 @@ describe('Porkbun keyless catalog', () => {
     const provider = ProviderResponse.parse((await t.api.get('/providers/porkbun').expect(200)).body).data;
     expect(provider.catalog).toMatchObject({ fetchedAt: '2026-10-05T13:00:00.000Z', freshness: 'stale' });
     expect(provider.catalog?.lastError?.code).toBe('catalog_transient');
-    // Best prices still use the last known values; nothing became zero.
+
     expect(t.app.get(Database).get<{ amount: string }>("SELECT amount FROM best_prices WHERE suffix = 'com'")?.amount).toBe('11.08');
   });
 
@@ -206,7 +206,7 @@ describe('catalog integrity (audit 3, 7, 11, 12)', () => {
     delete trimmed.pricing.com;
     t.transport.on(/pricing\/get/, { status: 200, headers: {}, body: JSON.stringify(trimmed) });
     expect((await refresh('porkbun')).outcome).toBe('updated');
-    // The offers API, the evidence endpoint and a domain-scoped export agree: no current .com price.
+
     expect(OfferListResponse.parse((await t.api.get(`/domains/${DOMAIN}/offers`).expect(200)).body).data).toEqual([]);
     expect(await domainOffers()).toEqual([]);
     const created = (await t.api.post('/exports').send({ format: 'json', scope: { kind: 'domains', domains: [DOMAIN] } }).expect(201)).body.data;
@@ -252,14 +252,14 @@ describe('catalog integrity (audit 3, 7, 11, 12)', () => {
     expect(result).toMatchObject({ outcome: 'failed', resolved: false, retryable: false });
     expect(result.error?.code).toBe('catalog_bad_response');
     expect(result.reused).toBeUndefined();
-    // Previous values stay current and the offer list still validates; the failure is recorded.
+
     const after = OfferListResponse.parse((await t.api.get('/providers/hostinger/catalog').expect(200)).body).data;
     expect(after.map((o) => o.id)).toEqual(before.map((o) => o.id));
     const provider = ProviderResponse.parse((await t.api.get('/providers/hostinger').expect(200)).body).data;
     expect(provider.catalog?.lastError?.code).toBe('catalog_bad_response');
     expect(t.app.get(Database).get<{ n: number }>("SELECT COUNT(*) AS n FROM offers WHERE provider_id = 'hostinger'")?.n).toBe(1);
 
-    // A quote built from the same malformed price is a bad response, not stored evidence.
+
     t.transport.on(/availability$/, fixture('hostinger', 'availability', { domain: DOMAIN }));
     const quote = await t.app.get(QuoteHandler).execute(jobItem('quote', DOMAIN, 'hostinger', 'com'), operationContext(t));
     expect(quote).toMatchObject({ outcome: 'error', resolved: false, evidence: [] });

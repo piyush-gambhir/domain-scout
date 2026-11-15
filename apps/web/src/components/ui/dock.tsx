@@ -7,11 +7,11 @@ import { cn } from '@/lib/utils';
 import { Button } from './button';
 
 const WIDTH_KEY = 'ds.dock.width';
-/** Matches --spacing-dock. */
+
 const DEFAULT_WIDTH = 448;
 const MIN_WIDTH = 360;
 const MAX_WIDTH = 720;
-/** Space the table beside the dock keeps when the window is narrow. */
+
 const KEEP_FOR_CONTENT = 420;
 const STEP = 16;
 
@@ -20,7 +20,7 @@ function storedWidth(): number {
   return Number.isFinite(value) && value > 0 ? value : DEFAULT_WIDTH;
 }
 
-/** Largest width that still leaves room for the content beside the dock. */
+
 function maxWidth(): number {
   const sidebar = document.querySelector<HTMLElement>('[data-testid="sidebar"]')?.offsetWidth ?? 0;
   return Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, window.innerWidth - sidebar - KEEP_FOR_CONTENT));
@@ -32,12 +32,12 @@ function isEditable(target: EventTarget | null) {
   return target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
 }
 
-/**
- * Detail pane docked to the right edge of the page. It takes its width from the content beside it
- * instead of covering it, so the table stays visible and usable: opening another row swaps the
- * content. The left edge is a splitter (drag, or arrow keys when focused); the width is remembered
- * per browser. Escape closes it unless a menu, dialog or text field has the key.
- */
+
+
+
+
+
+
 export function Dock({
   label,
   header,
@@ -46,7 +46,7 @@ export function Dock({
   children,
   className,
 }: {
-  /** Accessible name of the pane. */
+
   label: string;
   header: React.ReactNode;
   actions?: React.ReactNode;
@@ -63,7 +63,7 @@ export function Dock({
     const measure = () => setLimit(maxWidth());
     measure();
     window.addEventListener('resize', measure);
-    // The sidebar collapsing or expanding (Cmd/Ctrl+B) changes the room left for the table.
+
     const sidebar = document.querySelector('[data-testid="sidebar"]');
     const observer = sidebar ? new ResizeObserver(measure) : null;
     if (sidebar) observer?.observe(sidebar);
@@ -79,9 +79,9 @@ export function Dock({
     writeStorage('local', WIDTH_KEY, String(clamped));
   }, []);
 
-  // Remember the last focused element on the page outside the pane (the row that opened it) and
-  // return focus there when the pane closes while it holds focus. Dialogs and menus render in portals
-  // outside <main>, so focus moving into them (e.g. Quote opened from the pane) is not an opener.
+
+
+
   const opener = useRef<HTMLElement | null>(null);
   useEffect(() => {
     const pane = ref.current;
@@ -102,8 +102,8 @@ export function Dock({
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || isEditable(event.target)) return;
-      // An open menu, dialog, popover or select takes Escape first. Tooltips also mark Escape handled,
-      // so defaultPrevented alone cannot tell; only real layers keep the pane open.
+
+
       if (document.querySelector(OPEN_LAYER)) return;
       onClose();
     };
@@ -134,7 +134,7 @@ export function Dock({
       aria-label={label}
       style={{ width: shown }}
       className={cn(
-        // A soft tint separates the pane; controls inside step one shade darker to stay visible on it.
+
         'relative flex min-h-0 shrink-0 flex-col bg-sidebar [--hover:var(--sidebar-hover)] [--input:var(--sidebar-hover)] [--selected:var(--sidebar-active)]',
         className,
       )}

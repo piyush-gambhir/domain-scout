@@ -5,7 +5,7 @@ import { ProviderId, ProviderConfirmation } from './providers.js';
 import { RegistryObservation } from './registry.js';
 import { Offer } from './pricing.js';
 
-/* Collections (shortlists), saved criteria, extension presets and candidate generation. */
+
 
 export const Collection = z
   .object({

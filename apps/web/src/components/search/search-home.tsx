@@ -33,7 +33,7 @@ import {
   useSubmitSearch,
 } from './search-state';
 
-/** What the home keeps across navigation within a browser session. */
+
 interface Draft {
   text: string;
   keywords: string;
@@ -46,7 +46,7 @@ interface Draft {
 const DRAFT_KEY = 'ds.search.draft';
 const EMPTY: Draft = { text: '', keywords: '', mode: 'names', options: DEFAULT_OPTIONS, rules: DEFAULT_RULES, fileName: null };
 
-/** A restored saved search: its results filter and the ideas it had picked. */
+
 interface Restored {
   name: string;
   resultsQuery: string;
@@ -81,13 +81,13 @@ function SearchHomeInner() {
   const client = useQueryClient();
   const [draft, setDraft] = useState<Draft>(() => initialDraft(new URLSearchParams(params.toString())));
   const defaults = useDefaultExtensions();
-  // Null until the remembered set loads (or a restore sets it); chips then show the user's set.
+
   const [extensions, setExtensionsState] = useState<string[] | null>(null);
   const [restored, setRestored] = useState<Restored | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const submit = useSubmitSearch();
   const shownExtensions = extensions ?? defaults.value ?? (defaults.loaded ? FALLBACK_EXTENSIONS : []);
-  // Bumped by every user edit, so a slow restore never overwrites what was typed meanwhile.
+
   const editVersion = useRef(0);
   const update = (patch: Partial<Draft>) => {
     editVersion.current += 1;
@@ -99,8 +99,8 @@ function SearchHomeInner() {
     defaults.remember(next);
   };
 
-  // Links to the home while it is open (the palette's "Name ideas", Ideas from results) switch mode.
-  // Adjusted during render, like derived state, so the first paint already shows the mode.
+
+
   const linkKey = `${params.get('mode')}|${params.get('q')}`;
   const [seenLink, setSeenLink] = useState(linkKey);
   if (seenLink !== linkKey) {
@@ -113,7 +113,7 @@ function SearchHomeInner() {
     }
   }
 
-  // Restore sources run once and leave the URL: ?job= (a past search), ?criteria= (a saved search).
+
   const handled = useRef<string | null>(null);
   useEffect(() => {
     const job = params.get('job');
@@ -155,7 +155,7 @@ function SearchHomeInner() {
             setDraft((d) => ({ ...d, mode: 'ideas', keywords: (generation.roots ?? []).join(' '), rules: rulesFromRequest(generation) }));
             setRestored({ name: data.name, resultsQuery: query.toString() ? `?${query.toString()}` : '', selection: data.input === null ? null : lines });
           } else {
-            // Saved input is normalized names, one per line: never read it with an old draft's CSV options.
+
             setDraft((d) => ({ ...d, mode: 'names', text: data.input ?? '', fileName: null, options: { ...DEFAULT_OPTIONS, format: 'lines' } }));
             setRestored({ name: data.name, resultsQuery: query.toString() ? `?${query.toString()}` : '', selection: null });
           }
@@ -170,7 +170,7 @@ function SearchHomeInner() {
     return () => clearTimeout(timer);
   }, [draft]);
 
-  // "/" focuses the search bar from anywhere on the page.
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) return;
@@ -218,7 +218,7 @@ function SearchHomeInner() {
     };
   };
 
-  // Saved criteria keep text but not parse options, so CSV input saves the values of the column read.
+
   const criteriaInput =
     draft.options.format === 'csv' ? (preview.current ? uniq(preview.current.rows.map((r) => r.original.trim()).filter(Boolean)).join('\n') : null) : draft.text;
   const saveSearch = useMutation({
@@ -322,7 +322,7 @@ function SearchHomeInner() {
   );
 }
 
-/** The search form reads a session draft from browser storage, so it renders on the client only. */
+
 export function SearchHome() {
   const isClient = useIsClient();
   if (!isClient) return <HomeSkeleton />;

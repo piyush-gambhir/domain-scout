@@ -2,11 +2,11 @@ import { domainToASCII, domainToUnicode } from 'node:url';
 import { parse as parseHost } from 'tldts';
 import type { InputReason, InputReasonCode, NormalizedDomain } from '@domain-scout/contracts';
 
-/**
- * Validation and normalization of one input entry. Registration boundaries come from the Public
- * Suffix List ICANN section (via tldts) plus the IANA root list; the PSL private section is used
- * only to recognize hosting suffixes such as github.io, never to define a registry domain.
- */
+
+
+
+
+
 
 export const MAX_LABEL = 63;
 export const MAX_NAME = 253;
@@ -26,7 +26,7 @@ const LDH = /^[a-z0-9-]+$/;
 // eslint-disable-next-line no-control-regex
 const NON_ASCII = /[^\x00-\x7f]/;
 
-/** Trims, strips URL parts, lower-cases and removes one trailing dot, recording each change. */
+
 export function cleanEntry(raw: string): { value: string; reasons: InputReason[] } {
   const reasons: InputReason[] = [];
   let value = raw.trim();
@@ -58,7 +58,7 @@ export function cleanEntry(raw: string): { value: string; reasons: InputReason[]
   return { value, reasons };
 }
 
-/** LDH rules for one ASCII label (after IDN conversion). Returns the first violation, if any. */
+
 export function labelProblem(label: string): InputReason | null {
   if (label === '') return reason('invalid_characters', 'Contains an empty label (consecutive or leading dots)');
   if (label.length > MAX_LABEL) {
@@ -86,10 +86,10 @@ function shorten(text: string) {
   return text.length > 70 ? `${text.slice(0, 67)}...` : text;
 }
 
-/** Converts to an A-label form, or explains why that is impossible. */
+
 export function toAscii(value: string): { ascii: string } | { problem: InputReason } {
   if (/\s/.test(value)) return { problem: reason('invalid_characters', 'Contains whitespace') };
-  // URL host processing would percent-decode or drop some ASCII (acme%2ecom, a\b); refuse it up front.
+
   const badAscii = /[\x00-\x2c\x2f\x3a-\x40\x5b-\x60\x7b-\x7f]/.exec(value);
   if (badAscii) return { problem: reason('invalid_characters', `Contains "${badAscii[0]}", which is not allowed in domain names`) };
   const hasNonAscii = NON_ASCII.test(value);
@@ -104,11 +104,11 @@ export function toAscii(value: string): { ascii: string } | { problem: InputReas
 }
 
 export interface SuffixLookup {
-  /** True when the TLD is in the IANA root zone list. */
+
   isRootTld(tld: string): boolean;
 }
 
-/** Classifies a cleaned entry: a complete domain, a base name to expand, or an excluded row. */
+
 export function classifyEntry(value: string, suffixes: SuffixLookup): EntryVerdict {
   if (value === '') return { kind: 'invalid', reasons: [reason('empty', 'Empty entry')] };
 
@@ -137,7 +137,7 @@ export function classifyEntry(value: string, suffixes: SuffixLookup): EntryVerdi
   return classifyDomain(ascii, isIdnInput ? value : null, suffixes);
 }
 
-/** Complete (dotted) A-label name: validates labels and the registration boundary. */
+
 export function classifyDomain(ascii: string, originalUnicode: string | null, suffixes: SuffixLookup): EntryVerdict {
   const reasons: InputReason[] = [];
   for (const label of ascii.split('.')) {
@@ -154,7 +154,7 @@ export function classifyDomain(ascii: string, originalUnicode: string | null, su
   let suffix = icann.isIcann ? icann.publicSuffix : null;
   let registrable = icann.isIcann ? icann.domain : null;
   if (!suffix && suffixes.isRootTld(tld)) {
-    // Delegated TLD missing from the bundled Public Suffix List: the TLD is the only known boundary.
+
     suffix = tld;
     registrable = ascii.split('.').slice(-2).join('.');
   }

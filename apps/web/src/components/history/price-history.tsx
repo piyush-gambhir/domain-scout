@@ -98,15 +98,15 @@ function SeriesBlock({ series, providerName }: { series: PriceSeries; providerNa
   );
 }
 
-/** Observed price series, one block per comparable series. Nothing is fetched from providers here. */
+
 export function PriceHistory() {
   const providers = useProviders();
-  // A notice or a domain panel can link here for one extension (?suffix=com).
+
   const initialSuffix = useSearchParams().get('suffix') ?? '';
   const [suffix, setSuffix] = useState(initialSuffix);
   const [domain, setDomain] = useState('');
   const [providerId, setProviderId] = useState(ANY);
-  // Debounce a string key: a fresh object each render would never settle.
+
   const queryKey = useDebounced(
     JSON.stringify({
       suffix: suffix.trim().toLowerCase().replace(/^\.+/, '') || undefined,
@@ -125,7 +125,7 @@ export function PriceHistory() {
   });
   const series = history.data?.pages.flatMap((p) => p.data) ?? [];
   const names = new Map((providers.data ?? []).map((p) => [p.id, p.name]));
-  // Exports describe exactly what is shown, so they wait while another filter is loading.
+
   const exportable = series.length > 0 && !history.isPlaceholderData && !history.isFetching;
   const loaded = () => ({
     contractVersion: history.data?.pages[0]?.contractVersion ?? '',
@@ -189,7 +189,7 @@ export function PriceHistory() {
   );
 }
 
-/** Campaign conditions keep promotional series distinguishable at a glance. */
+
 function promotionLabel(promotion: PriceSeries['promotion']): string {
   if (!promotion) return 'Promotional';
   const parts = [promotion.description ?? 'Promotional'];

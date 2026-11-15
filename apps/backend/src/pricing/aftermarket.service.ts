@@ -12,13 +12,13 @@ export interface AftermarketSourceView {
   name: string;
   supported: boolean;
   requiresCredentials: boolean;
-  /** Hosts that receive domain names during lookups; empty for link-only marketplaces. */
+
   apiHosts: string[];
   searchUrlTemplate: string | null;
   reason: string | null;
 }
 
-/** Aftermarket sources and retained listing evidence. Listings never count as purchase confirmation. */
+
 @Injectable()
 export class AftermarketService {
   constructor(
@@ -28,10 +28,10 @@ export class AftermarketService {
     @Optional() private readonly previewer?: InputPreviewer,
   ) {}
 
-  /**
-   * Provider-based sources with an implemented listing lookup (credentials required), then
-   * marketplaces as link-only entries: unsupported, with the reason and their website.
-   */
+
+
+
+
   sources(): AftermarketSourceView[] {
     const providerSources = this.providers
       .manifests()
@@ -41,7 +41,7 @@ export class AftermarketService {
         name: `${m.name} aftermarket`,
         supported: true,
         requiresCredentials: m.capabilities.aftermarket.requiresCredentials,
-        // Listing lookups send the name to the provider API host (the aftermarket handler's destination).
+
         apiHosts: m.apiHost ? [m.apiHost] : [],
         searchUrlTemplate: null,
         reason: m.capabilities.aftermarket.notes,
@@ -52,7 +52,7 @@ export class AftermarketService {
       supported: false,
       requiresCredentials: false,
       apiHosts: [],
-      // The website only: no search template was verified for these marketplaces.
+
       searchUrlTemplate: m.website,
       reason: m.reason,
     }));

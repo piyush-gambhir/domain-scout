@@ -56,7 +56,7 @@ function OutLink({ href, children, label }: { href: string; children: React.Reac
   );
 }
 
-/** A collapsed group of secondary detail under the decision. */
+
 function Collapsible({ id, title, count, open, onToggle, children }: { id: string; title: string; count?: number; open: boolean; onToggle: () => void; children: React.ReactNode }) {
   const contentId = useId();
   return (
@@ -98,14 +98,14 @@ function useDomainData(name: string) {
   const prices = useSuffixPrices(suffix ? [suffix] : [], horizon);
   const names = new Map((providers.data ?? []).map((p) => [p.id, p.name]));
   for (const p of evidence.data?.providers ?? []) if (!names.has(p.providerId)) names.set(p.providerId, p.name);
-  // The shared clock re-runs this as quotes reach their expiry, so an expired quote stops being offered.
+
   const now = useNow();
   const enabled = useEnabledProviders();
   const lines = priceLines(name, prices.map.get(suffix), offers.data ?? [], horizon, names, { now, enabled });
   return { evidence, offers, providers, prices, suffix, horizon, names, lines };
 }
 
-/** Recheck one domain; the evidence refreshes when the check finishes. */
+
 function useRecheck(name: string) {
   const client = useQueryClient();
   const idempotency = useIdempotency();
@@ -115,7 +115,7 @@ function useRecheck(name: string) {
   useEffect(() => {
     if (!jobId || !done) return;
     void client.invalidateQueries({ queryKey: qk.evidence(name) });
-    // Saved lists read the latest evidence through their own entries query.
+
     void client.invalidateQueries({ queryKey: ['collectionEntries'] });
   }, [client, name, jobId, done]);
   const start = useMutation({
@@ -249,15 +249,15 @@ function RegistrarLink({ provider, domain }: { provider: { name: string; url: st
   );
 }
 
-/**
- * Where else the name can be bought: named registrars without a published price, then the sellers the
- * registry lists, collapsed behind their count with a search.
- */
+
+
+
+
 function OtherRegistrars({ domain, suffix, priced, sellers }: { domain: string; suffix: string; priced: Set<string>; sellers: EvidenceProvider[] }) {
   const providers = useProviders();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
-  // Evidence names this suffix's sellers with links built by the backend; older data falls back to the provider list.
+
   const fromEvidence = sellers.length > 0;
   const fallback = linkOnlyProviders(providers.data, suffix, priced);
   const named = fromEvidence
@@ -321,7 +321,7 @@ function OtherRegistrars({ domain, suffix, priced, sellers }: { domain: string; 
   );
 }
 
-/** Whether any enabled provider can return exact quotes right now. */
+
 function useCanQuote() {
   const providers = useProviders();
   return (providers.data ?? []).some(
@@ -671,10 +671,10 @@ function PriceHistory({ suffix, names }: { suffix: string; names: Map<string, st
   );
 }
 
-/**
- * Decision first: status and freshness, where to buy at what cost over time, then save and watch.
- * Registry evidence, other purchase paths, checks and price history wait one click below.
- */
+
+
+
+
 function DomainBody({ name, open, onToggle }: { name: string; open: Set<SectionId>; onToggle: (id: SectionId) => void }) {
   const data = useDomainData(name);
   const { evidence, lines, horizon, suffix, names } = data;
@@ -841,7 +841,7 @@ function useOpenSections() {
   };
 }
 
-/** Domain details docked beside results or a list. Open sections stay open while rows change. */
+
 export function DomainDock({ name, onClose }: { name: string; onClose: () => void }) {
   const sections = useOpenSections();
   const evidence = useQuery({
@@ -870,7 +870,7 @@ export function DomainDock({ name, onClose }: { name: string; onClose: () => voi
   );
 }
 
-/** The shareable full page for one domain: the same decision-first content in the page frame. */
+
 export function DomainPage({ name }: { name: string }) {
   const sections = useOpenSections();
   const evidence = useQuery({

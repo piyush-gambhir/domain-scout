@@ -22,9 +22,9 @@ import { Button } from '../ui/button';
 import { Skeleton, SkeletonRows } from '../ui/skeleton';
 import { MissedRuns, NextRun } from './watching-page';
 
-/** Current registry state of each watched name, from the watch's latest run. */
+
 function Names({ domains, lastJobId, notices }: { domains: string[]; lastJobId: string | null; notices: Notice[] }) {
-  // The latest run may still be going: follow it until it finishes, then read every page of results.
+
   const run = useQuery({
     queryKey: qk.job(lastJobId ?? 'none'),
     queryFn: ({ signal }) => api.call('getJob', { params: { id: lastJobId! }, signal }).then((r) => r.data),

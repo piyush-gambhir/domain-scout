@@ -16,7 +16,6 @@ import (
 
 func ptr[T any](v T) *T { return &v }
 
-// optStr returns nil for an empty string.
 func optStr(s string) *string {
 	if s == "" {
 		return nil
@@ -51,7 +50,6 @@ func parseIDs(list []string, what string) ([]api.Uuid, error) {
 	return out, nil
 }
 
-// readSource reads a file, or stdin for "-". Stdin is only read when asked.
 func (a *App) readSource(path string) (string, error) {
 	if path == "-" {
 		b, err := io.ReadAll(a.Stdin)
@@ -67,8 +65,6 @@ func (a *App) readSource(path string) (string, error) {
 	return string(b), nil
 }
 
-// splitList splits file content on newlines, commas and whitespace, dropping
-// blanks and # comments.
 func splitList(text string) []string {
 	var out []string
 	for _, line := range strings.Split(text, "\n") {
@@ -80,7 +76,6 @@ func splitList(text string) []string {
 	return out
 }
 
-// names collects positional values plus an optional --file list.
 func (a *App) names(args []string, file string) ([]string, error) {
 	out := append([]string{}, args...)
 	if file != "" {
@@ -93,8 +88,6 @@ func (a *App) names(args []string, file string) ([]string, error) {
 	return out, nil
 }
 
-// domains is names() with light normalization: trim, lower case, no
-// trailing dot. The backend performs full validation.
 func (a *App) domains(args []string, file string) ([]string, error) {
 	raw, err := a.names(args, file)
 	if err != nil {
@@ -116,7 +109,6 @@ func (a *App) domains(args []string, file string) ([]string, error) {
 	return out, nil
 }
 
-// suffixes normalizes --tlds values (".com" and "COM" become "com").
 func suffixes(list []string) []string {
 	out := make([]string, 0, len(list))
 	for _, s := range list {
@@ -128,7 +120,6 @@ func suffixes(list []string) []string {
 	return out
 }
 
-// pageFlags are --cursor, --limit and --all for paginated lists.
 type pageFlags struct {
 	cursor string
 	limit  int
@@ -148,7 +139,6 @@ func (p pageFlags) limitPtr() *int {
 	return &p.limit
 }
 
-// list prints one page, or every page with --all.
 func (a *App) list(ctx context.Context, p pageFlags, v view, fn func(cursor *string, limit *int) callFn) error {
 	if p.limit < 0 {
 		return usageErr("--limit must be positive")
@@ -171,7 +161,6 @@ func (a *App) list(ctx context.Context, p pageFlags, v view, fn func(cursor *str
 	return a.emit(res.body, v)
 }
 
-// show prints the response of a single request.
 func (a *App) show(ctx context.Context, v view, fn callFn) error {
 	c, err := a.api(ctx)
 	if err != nil {
@@ -184,8 +173,6 @@ func (a *App) show(ctx context.Context, v view, fn callFn) error {
 	return a.emit(res.body, v)
 }
 
-// filterFlags expose ResultFilter, the one filter/sort specification shared
-// by result views, exports and saved criteria.
 type filterFlags struct {
 	q             string
 	outcomes      []string
@@ -271,7 +258,6 @@ func joinOpt(list []string) *string {
 	return &s
 }
 
-// params renders the query-string form for GET /jobs/:id/results.
 func (f *filterFlags) params() api.ListJobResultsParams {
 	p := api.ListJobResultsParams{
 		Q:             optStr(f.q),
@@ -298,7 +284,6 @@ func (f *filterFlags) params() api.ListJobResultsParams {
 	return p
 }
 
-// filter renders the structured ResultFilter body form.
 func (f *filterFlags) filter() api.ResultFilterInput {
 	r := api.ResultFilterInput{
 		Q:             optStr(f.q),
@@ -340,7 +325,6 @@ func (f *filterFlags) filter() api.ResultFilterInput {
 	return r
 }
 
-// scopeFlags select an explicit export or snapshot scope.
 type scopeFlags struct {
 	scope       string
 	items       []string
@@ -362,8 +346,6 @@ func addScopeFlags(cmd *cobra.Command, s *scopeFlags) {
 	addFilterFlags(cmd, &s.filter)
 }
 
-// build validates that exactly the selectors matching --scope are present
-// and returns the ExportScope body.
 func (s *scopeFlags) build(a *App) (api.ExportScopeInput, error) {
 	var out api.ExportScopeInput
 	present := []struct {
@@ -455,8 +437,6 @@ func (s *scopeFlags) build(a *App) (api.ExportScopeInput, error) {
 	return out, nil
 }
 
-// idempotencyFlag adds --idempotency-key; an empty value gets a random key so
-// connection retries never duplicate a submission.
 func idempotencyFlag(cmd *cobra.Command, key *string) {
 	cmd.Flags().StringVar(key, "idempotency-key", "", "Idempotency-Key header; replaying the same key and body returns the original job")
 }

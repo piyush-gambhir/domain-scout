@@ -3,7 +3,7 @@ import { uniq } from '@/lib/utils';
 
 /** A candidate in the editable list: generated locally by the backend, or typed in by the user. */
 export interface Candidate {
-  /** Stable identity: the complete domain for hacks, else the label. */
+
   key: string;
   name: string;
   domain: string | null;
@@ -19,7 +19,7 @@ export function fromGenerated(candidate: GeneratedCandidate): Candidate {
 
 const LABEL = /^[a-z0-9-]+$/;
 
-/** LDH checks for a label typed by the user, mirroring the generator's rules. */
+
 function labelIssues(label: string): string[] {
   const issues: string[] = [];
   if (!label) return ['empty label'];
@@ -30,7 +30,7 @@ function labelIssues(label: string): string[] {
   return issues;
 }
 
-/** A user-supplied name or complete domain. Complete domains keep their own extension. */
+
 export function addedCandidate(raw: string): Candidate {
   const value = raw.trim().toLowerCase().replace(/\.+$/, '');
   const isDomain = value.includes('.');
@@ -47,7 +47,7 @@ export function addedCandidate(raw: string): Candidate {
   };
 }
 
-/** Splits free entry on whitespace, commas and semicolons; lower case, unique, in order. */
+
 export function parseList(text: string): string[] {
   return uniq(
     text
@@ -57,10 +57,10 @@ export function parseList(text: string): string[] {
   );
 }
 
-/**
- * Distinct domains a scan of these candidates would check: each label under each extension (at most
- * 253 characters) plus each complete domain. Same rule as the backend's expandedChecks.
- */
+
+
+
+
 export function expandedDomains(candidates: Candidate[], extensions: string[]): number {
   const domains = new Set<string>();
   for (const candidate of candidates) {

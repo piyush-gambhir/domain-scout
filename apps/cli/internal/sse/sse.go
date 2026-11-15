@@ -1,6 +1,3 @@
-// Package sse reads the backend's server-sent event stream with replay
-// (Last-Event-ID), heartbeat-aware idle detection, stream.reset handling,
-// duplicate suppression and reconnection.
 package sse
 
 import (
@@ -16,42 +13,33 @@ import (
 	"time"
 )
 
-// Event types with stream-level meaning.
 const (
 	TypeHeartbeat = "heartbeat"
 	TypeReset     = "stream.reset"
 )
 
-// Event is one dispatched server-sent event.
 type Event struct {
 	ID    string
-	HasID bool   // the block had an id field; an empty ID then clears the cursor
-	Type  string // `event:` field, else the JSON `type` in data, else "message"
+	HasID bool
+	Type  string
 	Data  []byte
-	// CursorOnly marks a block with an id field but no data: it moves the
-	// replay cursor without dispatching an event (SSE dispatch step 1).
+
 	CursorOnly bool
 }
 
-// maxRetry caps the reconnection delay a server can request with `retry:`.
 const maxRetry = time.Minute
 
-// Parser reads events from an SSE byte stream.
 type Parser struct {
 	r     *bufio.Reader
 	retry time.Duration
 }
 
-// NewParser wraps r.
 func NewParser(r io.Reader) *Parser {
 	return &Parser{r: bufio.NewReaderSize(r, 64*1024)}
 }
 
-// Retry returns the last `retry:` value sent by the server, or zero.
 func (p *Parser) Retry() time.Duration { return p.retry }
 
-// Next returns the next event. Comment lines (": ...") are skipped. A partial
-// event at end of stream is discarded, as the SSE specification requires.
 func (p *Parser) Next() (Event, error) {
 	var (
 		ev      Event
@@ -61,8 +49,7 @@ func (p *Parser) Next() (Event, error) {
 	for {
 		line, err := p.r.ReadString('\n')
 		if err != nil {
-			// io.EOF here means the stream ended, possibly mid-event; a
-			// partial event is never dispatched.
+
 			return Event{}, err
 		}
 		line = strings.TrimSuffix(strings.TrimSuffix(line, "\n"), "\r")
@@ -99,7 +86,7 @@ func (p *Parser) Next() (Event, error) {
 			data.WriteByte('\n')
 			hasData = true
 		case "retry":
-			// Clamped so a bogus value can neither overflow nor stall reconnection.
+
 			if ms, err := strconv.Atoi(value); err == nil && ms >= 0 {
 				p.retry = time.Duration(min(ms, int(maxRetry/time.Millisecond))) * time.Millisecond
 			}
@@ -117,11 +104,9 @@ func typeFromData(data []byte) string {
 	return "message"
 }
 
-// Errors returned by Stream.Run.
 var (
-	// ErrUnsupported means the server does not offer the stream; fall back to polling.
 	ErrUnsupported = errors.New("event stream not supported")
-	// ErrUnavailable means repeated connection attempts failed; fall back to polling.
+
 	ErrUnavailable = errors.New("event stream unavailable")
 )
 
@@ -130,42 +115,30 @@ type permanentError struct{ err error }
 func (p *permanentError) Error() string { return p.err.Error() }
 func (p *permanentError) Unwrap() error { return p.err }
 
-// Permanent marks an Open error that must end Run immediately (for example
-// an authorization failure) instead of being retried.
 func Permanent(err error) error { return &permanentError{err: err} }
 
-// Handlers receive stream callbacks. Returning stop=true ends Run with nil.
 type Handlers struct {
-	// OnConnect runs after every successful (re)connection, before events are
-	// read. Callers refetch state here so nothing between polls is missed.
 	OnConnect func() (stop bool, err error)
-	// OnEvent receives each new non-heartbeat, non-reset event once.
+
 	OnEvent func(Event) (stop bool, err error)
-	// OnReset runs when the server reports the replay cursor expired; callers
-	// must refetch state.
+
 	OnReset func(Event) (stop bool, err error)
 }
 
-// Stream keeps an event subscription alive across disconnects.
 type Stream struct {
-	// Open connects with the given Last-Event-ID ("" for none). Return an
-	// error wrapping ErrUnsupported when the server cannot stream at all.
 	Open func(ctx context.Context, lastEventID string) (io.ReadCloser, error)
-	// LastEventID is the resume cursor; Run updates it as events arrive.
+
 	LastEventID string
-	// IdleTimeout reconnects when nothing, not even a heartbeat, arrives for
-	// this long. Zero disables it.
+
 	IdleTimeout time.Duration
-	// MaxFailures is the number of consecutive failed connections before Run
-	// returns ErrUnavailable. Zero means 5.
+
 	MaxFailures int
-	// Backoff returns the delay before reconnect attempt n (1-based).
+
 	Backoff func(n int) time.Duration
 
 	seen dedup
 }
 
-// DefaultBackoff doubles from 250ms up to 5s.
 func DefaultBackoff(n int) time.Duration {
 	d := 250 * time.Millisecond
 	for i := 1; i < n && d < 5*time.Second; i++ {
@@ -177,8 +150,6 @@ func DefaultBackoff(n int) time.Duration {
 	return d
 }
 
-// Run reads events until a handler stops, the context ends or the stream
-// becomes unavailable.
 func (s *Stream) Run(ctx context.Context, h Handlers) error {
 	maxFailures := s.MaxFailures
 	if maxFailures <= 0 {
@@ -251,8 +222,6 @@ func pickDelay(server, fallback time.Duration) time.Duration {
 	return fallback
 }
 
-// consume reads one connection. delivered reports whether any bytes arrived,
-// which resets the failure count.
 func (s *Stream) consume(ctx context.Context, body io.ReadCloser, h Handlers) (delivered bool, retry time.Duration, stop bool, err error) {
 	ar := &activityReader{r: body}
 	if s.IdleTimeout > 0 {
@@ -260,7 +229,7 @@ func (s *Stream) consume(ctx context.Context, body io.ReadCloser, h Handlers) (d
 		defer timer.Stop()
 		ar.onRead = func() { timer.Reset(s.IdleTimeout) }
 	}
-	// Close the body when the context ends so a blocked read returns.
+
 	done := make(chan struct{})
 	defer close(done)
 	go func() {
@@ -276,13 +245,13 @@ func (s *Stream) consume(ctx context.Context, body io.ReadCloser, h Handlers) (d
 		ev, perr := p.Next()
 		retry = p.Retry()
 		if perr != nil {
-			// EOF, idle timeout or a dropped connection: reconnect.
+
 			return ar.any(), retry, false, nil
 		}
 		if ev.HasID {
 			switch {
 			case ev.ID == "":
-				s.LastEventID = "" // an empty id field resets the cursor
+				s.LastEventID = ""
 			case s.seen.duplicate(ev.ID):
 				continue
 			default:
@@ -296,8 +265,7 @@ func (s *Stream) consume(ctx context.Context, body io.ReadCloser, h Handlers) (d
 		case TypeHeartbeat:
 			continue
 		case TypeReset:
-			// The cursor expired. Continue from the reset event (or from now)
-			// and let the caller refetch authoritative state.
+
 			s.LastEventID = ev.ID
 			if h.OnReset != nil {
 				stop, err := h.OnReset(ev)
@@ -342,8 +310,6 @@ func (a *activityReader) any() bool {
 	return a.n > 0
 }
 
-// dedup suppresses replayed events. Numeric ids (the backend's monotonic
-// cursor) use a high-water mark; other ids use a bounded set.
 type dedup struct {
 	high    uint64
 	hasHigh bool

@@ -188,7 +188,7 @@ func (a *App) configureCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			// Print the provider with its updated test state, then map the result.
+
 			res, err = c.do(ctx, func(ctx context.Context, g *api.Client) (*http.Response, error) { return g.GetProvider(ctx, id) })
 			if err != nil {
 				return err
@@ -207,9 +207,6 @@ func (a *App) configureCmd() *cobra.Command {
 	return cmd
 }
 
-// credentialValues merges environment, stdin and flag values (flags win) and
-// checks them against the provider's declared fields. Error messages name
-// keys only, never values.
 func (a *App) credentialValues(fields []api.CredentialField, flagValues []string, fromEnv, stdin bool) (map[string]string, error) {
 	known := map[string]api.CredentialField{}
 	for _, f := range fields {
@@ -337,8 +334,6 @@ func (a *App) catalogCmd() *cobra.Command {
 	return group("catalog", "Provider price catalogs", refresh, list)
 }
 
-// providerJob builds provider-check, quote and transfer compare: explicit
-// domains sent to explicitly selected providers.
 func (a *App) providerJob(use, short string, create func(ctx context.Context, g *api.Client, key string, body api.ProviderJobBody) (*http.Response, error)) *cobra.Command {
 	var (
 		file      string
@@ -414,7 +409,7 @@ func (a *App) compareCmd() *cobra.Command {
 			if !pp.Valid() {
 				return usageErr("--path must be new_registration, renewal, transfer or aftermarket")
 			}
-			// Horizon and currency are sent only when given, so the backend applies the settings.
+
 			body := api.ComparisonRequestInput{Domains: ds, PurchasePath: &pp, Region: optStr(region)}
 			if cmd.Flags().Changed("horizon") {
 				if horizon < 1 || horizon > 10 {
@@ -440,7 +435,7 @@ func (a *App) compareCmd() *cobra.Command {
 				if !original {
 					return g.CreateComparison(ctx, body)
 				}
-				// An explicit null keeps original currencies even when settings name one.
+
 				raw, err := json.Marshal(struct {
 					api.ComparisonRequestInput
 					Currency *string `json:"currency"`
@@ -576,7 +571,7 @@ func (a *App) diagnoseCmd() *cobra.Command {
 					return usageErr("unknown --checks value %q: use dns, nameservers, dnssec, tls or http", s)
 				}
 			}
-			// Sent only when given, so the backend applies settings diagnostics.resolver.
+
 			var rv *api.Resolver
 			if resolver != "" {
 				r := api.Resolver(resolver)

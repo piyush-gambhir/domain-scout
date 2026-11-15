@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { PROVIDERS, SETTINGS, applyPatch, mockApi, ok, paged, provider, suffixPrices, uuid, type Call } from './mock-api';
 
-/** Times relative to the real clock, so freshness reads the way it would for a person. */
+
 const minutesAgo = (m: number) => new Date(Date.now() - m * 60_000).toISOString();
 export const NOW = minutesAgo(3);
 export const EARLIER = minutesAgo(60 * 26);
@@ -9,29 +9,29 @@ export const OLD = minutesAgo(180);
 const LATER = new Date(Date.now() + 24 * 3600_000).toISOString();
 const FRESH_UNTIL = '2099-01-01T00:00:00.000Z';
 
-/*
- * One stateful fixture for the task flows: searches, results, saved lists, watches and history.
- * POST /jobs never reaches the backend (a real search would query registries); every outcome below
- * is invented. Names are 24-character gibberish labels, the fixed test set (example.com, google.com,
- * nic.si, bbc.co.uk) or labels under the reserved .test and .example suffixes. Purchase links point
- * at .invalid hosts.
- */
+
+
+
+
+
+
+
 
 export const GIB = ['qzvkxmwplrtnbjhdgfcsyaeu', 'xjwqzvlkmpbrtnhgdfcsyuae', 'vbnqzxkwmlpjrtdhgfcsaeyu'] as const;
 export const DEFAULT_EXTENSIONS = ['com', 'io', 'dev', 'app', 'co', 'ai'];
-/**
- * A small grid search: three gibberish names across the extensions plus two fixed-set domains as
- * typed (rows for example.com and google.com hold only .com). Bare real words are never expanded.
- */
+
+
+
+
 export const SMALL_SEARCH = `${GIB.join(' ')} example.com google.com`;
 
-/** Outcomes the tests rely on; everything else follows a deterministic hash. */
+
 const FIXED: Record<string, string> = {
   'example.com': 'registered',
   'google.com': 'registered',
   'nic.si': 'registered',
   'bbc.co.uk': 'registered',
-  // A taken and a couldn't-check gibberish cell, so a small grid shows every state.
+
   [`${GIB[1]}.io`]: 'registered',
   [`${GIB[2]}.ai`]: 'rate_limited',
 };
@@ -87,7 +87,7 @@ function observation(domain: string, suffix: string, outcome: string, n: number)
 }
 
 
-/** Domains a search of this text checks: bare names across the extensions, full domains as typed. */
+
 export function expand(text: string, extensions: string[]): { domain: string; suffix: string }[] {
   const out: { domain: string; suffix: string }[] = [];
   const seen = new Set<string>();
@@ -104,12 +104,12 @@ export function expand(text: string, extensions: string[]): { domain: string; su
 
 const PRICE_BASE: Record<string, number> = { com: 10.37, io: 28.12, dev: 10.81, app: 12.98, co: 8.99, ai: 69.98, si: 20.38, test: 6, example: 7 };
 
-/** The best first-year price (USD) a free result carries; prices vary by name so ordering shows. */
+
 export function priceOf(domain: string, suffix = domain.split('.').slice(1).join('.')): string {
   return ((PRICE_BASE[suffix] ?? 9.5) + (hash(domain) % 7)).toFixed(2);
 }
 
-/** The same best price in EUR (an invented rate), so a EUR budget selects different names than USD. */
+
 export const EUR_RATE = 1.25;
 export function eurPriceOf(domain: string): string {
   return (Number(priceOf(domain)) * EUR_RATE).toFixed(2);
@@ -117,10 +117,10 @@ export function eurPriceOf(domain: string): string {
 
 const CSV_HEADERS = new Set(['domain', 'domains', 'name', 'names', 'hostname']);
 
-/**
- * Names a search reads from its input, like the backend: CSV (forced, or detected from a header row)
- * reads one column, by name or the first one; anything else is the text itself.
- */
+
+
+
+
 export function searchText(text: string, format: string | undefined, csvColumn: string | undefined): string {
   const lines = text.split(/\r?\n/).filter((l) => l.trim());
   const header = (lines[0] ?? '').split(',').map((h) => h.trim().toLowerCase());
@@ -134,7 +134,7 @@ export function searchText(text: string, format: string | undefined, csvColumn: 
     .join('\n');
 }
 
-/** A completed (or running) search with invented results. */
+
 export function buildJob(
   id: string,
   text: string,
@@ -146,7 +146,7 @@ export function buildJob(
     const pending = options.running !== undefined && n >= options.running;
     const outcome = pending ? null : (options.outcomeFor ?? outcomeOf)(domain);
     const free = outcome === 'no_record';
-    // Prices vary by label so "cheapest first" is visible in long lists.
+
     const amount = priceOf(domain, suffix);
     return {
       id: uuid(0x20000 + hash(id) % 1000 * 4096 + n),
@@ -202,7 +202,7 @@ export function buildJob(
 export type FixtureJob = ReturnType<typeof buildJob>;
 type Item = FixtureJob['items'][number];
 
-/** GET /jobs/:id/results semantics: filters, price sort with unknown last, cursor paging. */
+
 export function queryItems(all: Item[], search: URLSearchParams) {
   const list = (key: string) => search.get(key)?.split(',').filter(Boolean);
   const outcomes = list('outcomes');
@@ -211,7 +211,7 @@ export function queryItems(all: Item[], search: URLSearchParams) {
   const q = search.get('q');
   const maxPrice = search.get('maxPrice');
   const maxLength = Number(search.get('maxLength') ?? 0);
-  // Like the backend, best prices (and the price cap) are in the requested currency.
+
   const currency = search.get('priceCurrency') ?? 'USD';
   const priced = currency === 'EUR' ? all.map((i) => (i.bestPrice ? { ...i, bestPrice: { ...i.bestPrice, currency: 'EUR', amount: (Number(i.bestPrice.amount) * EUR_RATE).toFixed(2) } } : i)) : all;
   let rows = priced.filter(
@@ -230,7 +230,7 @@ export function queryItems(all: Item[], search: URLSearchParams) {
   return paged(rows.slice(offset, offset + limit), offset + limit < rows.length ? String(offset + limit) : null, rows.length);
 }
 
-/** Nine registrars with links plus a registry's own registrar list, as GET /providers returns them. */
+
 export function providerFixtures() {
   const directory = Array.from({ length: 12 }, (_, i) => ({
     ...provider(`registry-dir-${i + 1}`, `Fixture registrar ${String(i + 1).padStart(2, '0')}`, []),
@@ -252,27 +252,27 @@ export interface AppState {
 }
 
 export interface AppOptions {
-  /** Searches that exist before the page opens. */
+
   jobs?: FixtureJob[];
-  /** Saved lists: name and domains. */
+
   lists?: { name: string; domains: string[] }[];
   watches?: Record<string, unknown>[];
   notices?: Record<string, unknown>[];
-  /** Registry evidence age for saved names, so Saved can show older checks. */
+
   staleSaved?: string[];
-  /** New searches start running with this many items finished. */
+
   running?: number;
-  /**
-   * New searches answer for this text instead of the posted one, for searches whose names are not in
-   * the allowed fixture set (e.g. picked name ideas). The job still records the posted input.
-   */
+
+
+
+
   answerWith?: string;
 }
 
-/**
- * Installs the stateful fixture. Returns the recorded calls and the state, so tests can assert what
- * was sent and seed more. Unhandled requests fall through to the real local backend.
- */
+
+
+
+
 export async function mockApp(page: Page, options: AppOptions = {}): Promise<{ calls: Call[]; state: AppState }> {
   const state: AppState = {
     jobs: new Map((options.jobs ?? []).map((j) => [j.job.id, j])),
@@ -288,13 +288,13 @@ export async function mockApp(page: Page, options: AppOptions = {}): Promise<{ c
     state.entries.set(id, [...list.domains]);
   }
   let notices = options.notices ?? [];
-  /** Newest outcome per domain after rechecks; everything else keeps its invented outcome. */
+
   const latest = new Map<string, string>();
   const current = (domain: string) => latest.get(domain) ?? outcomeOf(domain);
   let nextJob = 1;
   const sync = () => {
     for (const c of state.collections) c.entryCount = state.entries.get(c.id)?.length ?? 0;
-    // Result rows report which lists hold them.
+
     for (const { items } of state.jobs.values()) {
       for (const item of items) item.collectionIds = state.collections.filter((c) => state.entries.get(c.id)?.includes(item.subject)).map((c) => c.id);
     }
@@ -331,7 +331,7 @@ export async function mockApp(page: Page, options: AppOptions = {}): Promise<{ c
       const id = uuid(0xe0000 + nextJob++);
       const names = options.answerWith ?? searchText(body.input.text, body.input.format, body.input.csvColumn);
       const built = buildJob(id, names, body.input.extensions, { label: body.label ?? null, running: options.running });
-      // The job keeps the input as posted, so the results bar restores it the way it was read.
+
       Object.assign(built.job.input, { text: body.input.text, format: body.input.format ?? 'auto', csvColumn: body.input.csvColumn ?? null, rows: body.input.text.split('\n').length });
       state.jobs.set(id, built);
       sync();
@@ -350,8 +350,8 @@ export async function mockApp(page: Page, options: AppOptions = {}): Promise<{ c
     'POST /rechecks': (c) => {
       const body = c.body as { domains: string[]; label?: string };
       const id = uuid(0xf0000 + nextJob++);
-      // A recheck answers: every name rechecked is found unregistered this time, and that becomes the
-      // latest evidence everywhere (counters, domain evidence, saved entries).
+
+
       for (const domain of body.domains) latest.set(domain, 'no_record');
       const built = buildJob(id, body.domains.join('\n'), [], { label: body.label ?? null, outcomeFor: current });
       state.jobs.set(id, built);

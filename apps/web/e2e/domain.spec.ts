@@ -2,8 +2,8 @@ import { expect, test } from './fixtures';
 import { GIB, mockApp } from './app-fixtures';
 import { NOW, PROVIDERS, job, mockApi, ok, paged, uuid } from './mock-api';
 
-// The domain page (and the dock beside results) leads with the decision: status, what it costs by
-// provider, where to buy, then save and watch. Evidence details wait one click below.
+
+
 
 const FREE = `${GIB[0]}.com`;
 const CHECKOUT = (provider: string, domain: string) => `https://${provider}.provider.invalid/checkout?domain=${domain}`;
@@ -50,11 +50,11 @@ test('a free name leads with its status, prices by provider and the cheapest che
   await expect(rows).toHaveCount(3);
   await expect(rows.first()).toContainText('Porkbun');
   await expect(rows.first()).toContainText('$10.37');
-  // First year, renewal and the three-year estimate side by side.
+
   await expect(rows.first()).toContainText('$11.08');
   await expect(rows.first()).toContainText('$32.53');
   await expect(rows.nth(1).getByTestId('buy-link')).toHaveAttribute('href', CHECKOUT('dynadot', FREE));
-  // Keyless providers can quote here, so exact quotes are one button away.
+
   await expect(prices.getByRole('button', { name: 'Get exact quotes' })).toBeVisible();
   await expect(page.getByText(/\bAvailable\b/)).toHaveCount(0);
 });
@@ -65,7 +65,7 @@ test('an exact quote replaces that provider’s published price and reads Quote'
   await page.goto(`/domains/${FREE}`);
   const rows = page.getByRole('region', { name: 'Prices' }).getByTestId('price-row');
   await expect(rows).toHaveCount(3);
-  // The quote is now the cheapest line, so it leads.
+
   await expect(rows.first()).toContainText('Dynadot');
   await expect(rows.first()).toContainText('Quote');
   await expect(rows.first()).toContainText('$1.99');
@@ -182,7 +182,7 @@ test('a job that is not a search shows its items as a plain table', async ({ pag
   await page.goto(`/search/${id}`);
   await expect(page.getByRole('heading', { level: 1, name: 'Catalog refresh' })).toBeVisible();
   await expect(page.getByRole('checkbox', { name: 'Select porkbun' })).toBeVisible();
-  // Provider rows do not open a domain panel, and domain actions are not offered.
+
   await expect(page.getByRole('button', { name: 'porkbun', exact: true })).toHaveCount(0);
   await page.getByRole('checkbox', { name: 'Select porkbun' }).click();
   const toolbar = page.getByRole('toolbar', { name: 'Selected results' });

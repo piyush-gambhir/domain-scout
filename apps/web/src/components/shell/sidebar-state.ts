@@ -4,10 +4,10 @@ import { useSyncExternalStore } from 'react';
 import { writeStorage } from '@/lib/storage';
 import { SIDEBAR_STORAGE_KEY } from './sidebar-script';
 
-/*
- * Collapsed (icon rail) state. The inline script in the root layout copies the saved value onto
- * <html data-sidebar> before first paint; this store keeps that attribute and localStorage in sync.
- */
+
+
+
+
 const listeners = new Set<() => void>();
 
 function read(): boolean {

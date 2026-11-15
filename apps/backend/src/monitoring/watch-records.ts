@@ -19,7 +19,7 @@ export interface WatchRow {
   last_job_id: string | null;
 }
 
-/** Parsed watch row used by the scheduler and change detection. */
+
 export interface WatchRecord {
   id: string;
   name: string;
@@ -93,12 +93,12 @@ export function addMinutes(iso: string, minutes: number): string {
   return new Date(Date.parse(iso) + minutes * MINUTE_MS).toISOString();
 }
 
-/**
- * Deletes watches with their runs and notices (cascade) and every event that references them, so no
- * replayable copy of their names or evidence remains. Jobs they started stay with `watch_id` set to
- * NULL; the jobs engine re-reads that column, so a running job stops tagging events with the watch.
- * Shared by DELETE /watches/:id and data deletion. Call inside a transaction. Returns the count.
- */
+
+
+
+
+
+
 export function deleteWatchRows(db: Database, events: EventsService, ids: string[]): number {
   if (ids.length === 0) return 0;
   events.deleteFor({ watchIds: ids });

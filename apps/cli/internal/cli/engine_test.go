@@ -20,8 +20,6 @@ func listJobs(ctx context.Context, g *api.Client) (*http.Response, error) {
 	return g.ListJobs(ctx, &api.ListJobsParams{})
 }
 
-// A backend that stopped itself (idle) or refuses as "stopping" is replaced
-// and the request sent once more to the new one.
 func TestClientRevivesAStoppedBackend(t *testing.T) {
 	served := func(name string) *httptest.Server {
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +59,6 @@ func TestClientRevivesAStoppedBackend(t *testing.T) {
 	}
 }
 
-// Other unavailable errors are not a stopped backend: no revive, no resend.
 func TestClientDoesNotReviveForOtherErrors(t *testing.T) {
 	var calls atomic.Int32
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -79,8 +76,6 @@ func TestClientDoesNotReviveForOtherErrors(t *testing.T) {
 	}
 }
 
-// installedBackend lays out a packaged install whose backend is this test
-// binary (fakenode) and returns a harness using it.
 func installedBackend(t *testing.T, env ...string) (*harness, string) {
 	t.Helper()
 	if goruntime.GOOS == "windows" {
@@ -112,7 +107,6 @@ func runningInstance(t *testing.T, dataDir string) string {
 	return info.InstanceID
 }
 
-// A command racing the backend's idle stop gets its answer from a new backend.
 func TestCommandSurvivesTheBackendStoppingWhenIdle(t *testing.T) {
 	h, dataDir := installedBackend(t, "FAKE_NODE_STOP_ONCE=GET /api/v1/jobs")
 	expectCode(t, h.run("--data-dir", dataDir, "service", "start"), ExitOK)
@@ -141,7 +135,7 @@ func TestNewerCLIReplacesAnOlderIdleBackend(t *testing.T) {
 	if runningInstance(t, dataDir) == first {
 		t.Fatal("the older backend should have been replaced")
 	}
-	// service status never restarts anything.
+
 	second := runningInstance(t, dataDir)
 	expectCode(t, h.run("--data-dir", dataDir, "service", "status"), ExitOK)
 	if runningInstance(t, dataDir) != second {
@@ -149,7 +143,6 @@ func TestNewerCLIReplacesAnOlderIdleBackend(t *testing.T) {
 	}
 }
 
-// The replacement starts on the port the old backend used, not the default.
 func TestReplacementKeepsTheOldBackendsPort(t *testing.T) {
 	h, dataDir := installedBackend(t, "FAKE_NODE_APP_VERSION=0.9.0")
 	custom := freePort(t)
@@ -179,8 +172,6 @@ func TestNewerCLIKeepsABusyOlderBackend(t *testing.T) {
 	}
 }
 
-// A backend that predates conditional stop would stop unconditionally, and a
-// CLI that cannot start its own backend must not stop the working one.
 func TestNewerCLIKeepsAnOlderBackendItCannotReplaceSafely(t *testing.T) {
 	for _, tc := range []struct {
 		name, env, want string

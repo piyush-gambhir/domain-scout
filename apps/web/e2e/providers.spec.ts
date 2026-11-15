@@ -1,8 +1,8 @@
 import { expect, test } from './fixtures';
 import { NOW, PROVIDERS, job, mockApi, ok, paged, provider, uuid } from './mock-api';
 
-// Credential setup, test and disconnect (R09) against route fixtures: no provider API is called and
-// the fixture backend, like the real one, never returns a secret.
+
+
 
 const SECRET = 'fixture-secret-7d1e9b4c2a';
 
@@ -55,7 +55,7 @@ test('credentials are typed masked, never shown after saving, then tested and di
   const put = calls.find((c) => c.method === 'PUT' && c.path === '/providers/dynadot/credentials');
   expect(put?.body).toEqual({ values: { apiKey: SECRET }, storage: 'session' });
 
-  // The saved value leaves the form and is not rendered or stored anywhere in the page.
+
   await expect(field).toHaveValue('');
   await expect(field).toHaveAttribute('placeholder', 'Saved');
   expect(await page.content()).not.toContain(SECRET);

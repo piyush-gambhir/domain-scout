@@ -61,7 +61,7 @@ export function item(
 
 type Route = (url: string, init?: RequestInit) => Response | Promise<Response>;
 
-/** Fake fetch that routes by URL prefix and records every call; unknown URLs fail the test. */
+
 export function fakeFetch(routes: Record<string, Route>) {
   const calls: { url: string; method: string; headers: Record<string, string> }[] = [];
   const fn: FetchLike = async (url, init) => {
@@ -78,13 +78,13 @@ export function fakeFetch(routes: Record<string, Route>) {
 export const json = (body: unknown, status = 200, headers: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json', ...headers } });
 
-/** A request that never answers until its signal aborts (for timeout tests). */
+
 export const hang: Route = (_url, init) =>
   new Promise<Response>((_resolve, reject) => {
     init?.signal?.addEventListener('abort', () => reject(init.signal!.reason), { once: true });
   });
 
-/** Fake resolver: record queries per type, and `addresses` for the connection-target lookup. */
+
 export function fakeDns(
   answers: Partial<Record<DnsRecordType, DnsRecord[] | { code: string }>>,
   addresses: string[] | { code: string } = { code: 'ENOTFOUND' },
@@ -125,7 +125,7 @@ export const noDns: DnsTransport = {
   lookup: () => Promise.reject(new Error('unexpected address lookup')),
 };
 
-/** Resolves every connection target to a public documentation-free address (example.com's former A record). */
+
 export const PUBLIC_ADDRESS = '93.184.215.14';
 export const publicDns = (addresses: string[] = [PUBLIC_ADDRESS]) => fakeDns({}, addresses);
 export const noTls: TlsProbe = () => Promise.reject(new Error('unexpected TLS probe'));
@@ -133,7 +133,7 @@ export const noHttp: HttpProbe = () => Promise.reject(new Error('unexpected HTTP
 
 type HttpAnswer = Partial<HttpProbeResponse> | { code: string } | 'hang';
 
-/** Fake pinned HTTP probe: answers per method and records which address each request was pinned to. */
+
 export function fakeHttp(answer: (request: HttpProbeRequest) => HttpAnswer) {
   const calls: { method: string; host: string; address: string; path: string }[] = [];
   const probe = vi.fn<HttpProbe>(async (request) => {

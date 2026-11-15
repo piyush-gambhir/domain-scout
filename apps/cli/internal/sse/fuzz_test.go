@@ -7,10 +7,6 @@ import (
 	"testing"
 )
 
-// FuzzParser feeds arbitrary bytes to the parser: it never panics, ends with
-// io.EOF, dispatches at most one event per line, never accepts an id with a
-// NUL, and keeps the retry delay between zero and maxRetry.
-// `go test -run=^$ -fuzz=FuzzParser ./internal/sse` explores further.
 func FuzzParser(f *testing.F) {
 	f.Add([]byte("id: 1\nevent: job.updated\ndata: {\"a\":1,\ndata:  \"b\":2}\n\n"))
 	f.Add([]byte(": comment\r\nretry: 1500\r\nid: 2\r\n\r\n"))
@@ -46,8 +42,6 @@ func FuzzParser(f *testing.F) {
 	})
 }
 
-// FuzzParserRoundTrip encodes one event the way a server would and checks the
-// parser returns exactly it, then io.EOF.
 func FuzzParserRoundTrip(f *testing.F) {
 	f.Add("7", "job.updated", `{"jobId":"j1"}`)
 	f.Add("", "message", "line one\nline two")

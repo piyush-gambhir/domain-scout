@@ -1,28 +1,28 @@
 import { AppError } from '../../core/errors.js';
 
-/** One raw entry and the 1-based source row (text line, CSV record start line or domains[] index). */
+
 export interface RawEntry {
   row: number;
   text: string;
 }
 
-/** Header names recognized when detecting a CSV domain column, most specific first. */
+
 const HEADER_PRIORITY = ['domain', 'domains', 'domain name', 'domain_name', 'domainname', 'fqdn', 'hostname', 'host', 'url', 'website', 'name', 'names'];
 const HEADER_NAMES = new Set(HEADER_PRIORITY);
 
 export interface ParsedInput {
   entries: RawEntry[];
-  /** Number of physical lines in `text`, used to number domains[] entries after it. */
+
   lineCount: number;
 }
 
-/**
- * Splits pasted text, TXT or CSV content into entries.
- *
- * `auto` reads CSV only when the first record has a recognized header (domain, name, url, ...) or
- * starts with a quoted field; otherwise every line is split on whitespace, commas and semicolons so
- * no token is discarded. CSV without a recognized header reads the first column of every record.
- */
+
+
+
+
+
+
+
 export function parseText(text: string, format: 'auto' | 'lines' | 'csv', csvColumn?: string): ParsedInput {
   const normalized = text.replace(/^﻿/, '').replace(/\r\n?/g, '\n');
   const lineCount = normalized === '' ? 0 : normalized.split('\n').length;
@@ -40,7 +40,7 @@ function lineEntries(text: string): RawEntry[] {
   return entries;
 }
 
-/** The first non-blank logical CSV record: newlines inside double quotes do not end it. */
+
 function firstRecord(text: string): string | null {
   let start = 0;
   while (start < text.length) {
@@ -60,7 +60,7 @@ function firstRecord(text: string): string | null {
   return text.slice(start);
 }
 
-/** Picks tab, semicolon or comma by counting occurrences outside double quotes. */
+
 function detectDelimiter(line: string): string {
   const counts: Record<string, number> = { '\t': 0, ';': 0, ',': 0 };
   let quoted = false;
@@ -80,7 +80,7 @@ function looksLikeCsv(text: string): boolean {
   try {
     fields = parseCsv(first, detectDelimiter(first)).records[0]?.fields ?? [];
   } catch {
-    return true; // An unbalanced quote: let the CSV parser report it.
+    return true;
   }
   return fields.length >= 2 && fields.some((field) => HEADER_NAMES.has(field.trim().toLowerCase()));
 }
@@ -90,7 +90,7 @@ interface CsvRecord {
   fields: string[];
 }
 
-/** RFC 4180 parser: quoted fields, doubled quotes, delimiters and newlines inside quotes. */
+
 export function parseCsv(text: string, delimiter: string): { records: CsvRecord[] } {
   const records: CsvRecord[] = [];
   let fields: string[] = [];

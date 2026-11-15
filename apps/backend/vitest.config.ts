@@ -1,7 +1,7 @@
 import swc from 'unplugin-swc';
 import { configDefaults, defineConfig } from 'vitest/config';
 
-// SWC emits the decorator metadata Nest dependency injection needs; esbuild does not.
+
 export default defineConfig({
   plugins: [swc.vite({ module: { type: 'es6' } })],
   test: {

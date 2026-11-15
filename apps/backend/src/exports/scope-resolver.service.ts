@@ -20,10 +20,10 @@ import { EvidenceReader } from '../evidence/evidence-reader.service.js';
 import { Database } from '../storage/database.js';
 import { hydrateObservation, type ObservationRow } from '../storage/evidence.js';
 
-/** Largest page JobResults.list returns. */
+
 const FILTER_PAGE = 1000;
 
-/** Name-check, diagnostic or listing evidence carried by a job item, flattened for artifacts. */
+
 export interface OtherEvidence {
   kind: 'name_check' | 'diagnostic' | 'listing';
   id: string;
@@ -35,7 +35,7 @@ export interface OtherEvidence {
   reason: string | null;
 }
 
-/** One exported or snapshotted row: a job item, or a domain with its latest evidence. */
+
 export interface ScopedRecord {
   itemId: string | null;
   domain: string;
@@ -46,16 +46,16 @@ export interface ScopedRecord {
   offers: Offer[];
   other: OtherEvidence[];
   bestPrice: z.infer<typeof BestPrice> | null;
-  /** Operation-specific outcome of a job item when it carries no registry evidence. */
+
   itemOutcome: string | null;
   operation: string | null;
   target: string | null;
-  /** Error message of an unresolved job item that produced no evidence. */
+
   itemError: string | null;
   notes: string | null;
 }
 
-/** Stable ids an artifact was built from, stored with it so later job changes cannot alter its meaning. */
+
 export interface ResolvedScope {
   kind: ExportScope['kind'];
   itemIds: string[] | null;
@@ -67,7 +67,7 @@ export interface Resolution {
   records: ScopedRecord[];
   resolved: ResolvedScope;
   warnings: string[];
-  /** Human description of the scope for artifact headers. */
+
   label: string;
 }
 
@@ -97,7 +97,7 @@ export class ScopeResolver {
         break;
       }
       case 'filter': {
-        // The same pages the results view shows, so prices use the filter's priceCurrency.
+
         const items = this.filteredItems(scope.jobId, ResultFilter.parse(scope.filter));
         records = items.map((item) => this.fromItem(item));
         itemIds = items.map((item) => item.id);
@@ -163,7 +163,7 @@ export class ScopeResolver {
     };
   }
 
-  /** Private notes for a domain outside a collection scope: every shortlist note, joined. */
+
   notesFor(domain: string): string | null {
     const notes = this.db
       .all<{ notes: string | null }>('SELECT notes FROM collection_entries WHERE domain = ? AND notes IS NOT NULL ORDER BY added_at', [domain])
@@ -172,7 +172,7 @@ export class ScopeResolver {
     return notes.length ? notes.join(' | ') : null;
   }
 
-  /** Every item matching the filter, in result order, hydrated exactly as the results view does. */
+
   private filteredItems(jobId: string, filter: ResultFilterParsed): JobItem[] {
     const items: JobItem[] = [];
     let cursor: string | null = null;
@@ -184,13 +184,13 @@ export class ScopeResolver {
     return items;
   }
 
-  /**
-   * Newest name check per service and namespace for the domain's label, newest diagnostic per check
-   * and newest listing per marketplace, the same kinds a job item would carry.
-   */
+
+
+
+
   private latestOther(domain: string, unicode: string, suffix: string): OtherEvidence[] {
     const label = suffix && domain.endsWith(`.${suffix}`) ? domain.slice(0, -(suffix.length + 1)) : domain.split('.')[0]!;
-    // Name-check subjects keep the case they were submitted with; match the A-label and Unicode label.
+
     const labels = [...new Set([label, unicode.split('.')[0] ?? label].map((l) => l.toLowerCase()).filter(Boolean))];
     const now = this.clock.now();
     return [
@@ -202,10 +202,10 @@ export class ScopeResolver {
     ];
   }
 
-  /**
-   * Newest observation per payload key (newest first), chosen in SQL before any limit so a long
-   * history of one service or check never hides another. `where` and `keys` are fixed fragments.
-   */
+
+
+
+
   private newestPer(kind: 'name_check' | 'diagnostic' | 'listing', where: string, params: string[], keys: string[]): ObservationRow[] {
     const partition = keys.map((key) => `json_extract(payload_json, '$.${key}')`).join(', ');
     return this.db.all<ObservationRow>(

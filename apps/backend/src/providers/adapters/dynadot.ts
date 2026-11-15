@@ -14,12 +14,12 @@ import {
   type ProviderAdapter,
 } from './types.js';
 
-/**
- * Dynadot RESTful API v2 (beta; https://www.dynadot.com/domain/api-document, command metadata read
- * 2026-10-05). Bearer API key; search, TLD price and listing commands need no X-Signature.
- * Responses are `{code, message, data}` or `{code, message, error: {description}}`; examples mix
- * `Code`/`Data` casing, so both are accepted.
- */
+
+
+
+
+
+
 export const DYNADOT_BASE = 'https://api.dynadot.com/restful/v2';
 const NAME = 'Dynadot';
 const DOC = 'https://www.dynadot.com/domain/api-document';
@@ -38,11 +38,11 @@ function errorText(body: unknown): string | null {
   return (isRecord(error) ? str(field(error, 'description')) : null) ?? str(field(body, 'message'));
 }
 
-/** Returns `data` from a successful envelope, mapping HTTP and envelope errors. */
+
 function data(ctx: AdapterContext, response: ProviderHttpResponse): Record<string, unknown> {
   const body = tryJson(response);
   const code = isRecord(body) ? Number(field(body, 'code')) : NaN;
-  // The envelope code mirrors the HTTP status; prefer it when the HTTP layer says 200.
+
   const status = response.status === 200 && Number.isFinite(code) && code !== 200 ? code : response.status;
   if (status === 429) {
     throw new ProviderError('rate_limited', `Dynadot rate limit reached: ${errorText(body) ?? 'too many requests'}`, {
@@ -56,7 +56,7 @@ function data(ctx: AdapterContext, response: ProviderHttpResponse): Record<strin
   return isRecord(payload) ? payload : {};
 }
 
-/** "(price/1 year)", "1 Year", "(Price/2 year)" to years. */
+
 function unitYears(unit: unknown): number | null {
   const match = /(\d+)\s*year/i.exec(String(unit ?? ''));
   return match ? Number(match[1]) : null;
@@ -69,7 +69,7 @@ export interface DynadotSearch {
   price: { currency: string; years: number; registration: string | null; renewal: string | null; transfer: string | null } | null;
 }
 
-/** Pure parser for /domains/{domain}/search, exported for fixture tests. */
+
 export function parseDynadotSearch(payload: Record<string, unknown>, domain: string): DynadotSearch {
   const name = str(payload.domain_name);
   if (name && name.toLowerCase() !== domain) throw new ProviderError('bad_response', 'Dynadot answered for a different domain');
@@ -103,7 +103,7 @@ function toCheck(parsed: DynadotSearch): CheckResult {
     : { status: 'unavailable', premium: parsed.premium, reason: reason('provider_unavailable', 'Dynadot search reported not available') };
 }
 
-/** Pure parser for one get_tld_price page, exported for fixture tests. */
+
 export function parseDynadotTldPrices(payload: Record<string, unknown>): { entries: CatalogEntry[]; suffixes: string[]; count: number } {
   if (!Array.isArray(payload.tld_price_list)) throw new ProviderError('bad_response', 'Dynadot TLD price response has no tld_price_list');
   if (typeof payload.currency !== 'string') throw new ProviderError('bad_response', 'Dynadot TLD price response has no currency');
@@ -115,7 +115,7 @@ export function parseDynadotTldPrices(payload: Record<string, unknown>): { entri
     const tld = str(item.tld)?.toLowerCase().replace(/^\./, '');
     if (!tld || !/^[a-z0-9-]+(\.[a-z0-9-]+)*$/.test(tld)) continue;
     suffixes.push(tld);
-    // Element format of the per-year lists is undocumented: only a plain first element is used.
+
     const firstOf = (value: unknown) => (Array.isArray(value) && value.length ? parseAmount(value[0], { stripSymbol: true }) : null);
     const minYears = typeof item.min_duration === 'number' && item.min_duration >= 1 ? item.min_duration : null;
     entries.push({
@@ -209,12 +209,12 @@ export class DynadotAdapter implements ProviderAdapter {
     });
     const marketplace = 'Dynadot Marketplace';
     if (response.status === 404) {
-      // The documented 404 text is about the account, so absence of a listing is not established.
+
       return { status: 'unknown', price: null, url: null, marketplace, reason: reason('not_found', errorText(tryJson(response)) ?? 'Dynadot returned 404') };
     }
     const payload = data(ctx, response);
     const item = payload.listing_item;
-    // The response for an unlisted name is undocumented, so a missing item stays unknown.
+
     if (!isRecord(item)) return { status: 'unknown', price: null, url: null, marketplace, reason: reason('no_listing_item', 'Dynadot returned no listing item; absence is not documented') };
     const type = (str(item.type) ?? '').toLowerCase();
     const amount = parseAmount(item.price, { stripSymbol: true });

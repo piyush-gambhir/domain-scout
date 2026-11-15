@@ -54,7 +54,7 @@ describe('watch change detection', () => {
     return WatchResponse.parse(res.body).data;
   }
 
-  /** One watch run: evidence written by `observe` is recorded as this job's own evidence. */
+
   function run(
     watchId: string,
     observe: (at: string) => void,
@@ -82,7 +82,7 @@ describe('watch change detection', () => {
     const before = fx.registry('example.com', 'registered', '2026-10-05T11:00:00.000Z');
     const w = await watch();
 
-    // Network failure, timeout and block: unresolved outcomes never create notices.
+
     run(w.id, (at) => {
       fx.registry('example.com', 'rate_limited', at);
       fx.registry('example.com', 'inconclusive', at, { reason: 'Timed out after 15000 ms' });
@@ -107,7 +107,7 @@ describe('watch change detection', () => {
     expect(created[0]!.summary).toContain('no registry record');
     expect(created[0]!.summary).not.toMatch(/available/i);
 
-    // Reprocessing the same job and a repeated identical observation add nothing.
+
     lifecycle.emit(changedJob);
     run(w.id, (at) => fx.registry('example.com', 'no_record', at));
     expect(await notices()).toHaveLength(1);
@@ -143,7 +143,7 @@ describe('watch change detection', () => {
   it('ignores evidence from other jobs and reused cached registry evidence', async () => {
     fx.registry('example.com', 'registered', '2026-10-05T11:00:00.000Z');
     const w = await watch();
-    // The watch's own check times out while an unrelated scan records no_record in the same window.
+
     run(w.id, (at) => {
       fx.registry('example.com', 'inconclusive', at, { reason: 'Timed out' });
       const other = jobs.submit({ type: 'registry_scan', input: { extensions: [], format: 'auto' }, recheck: false } as never);
@@ -153,7 +153,7 @@ describe('watch change detection', () => {
     }, 'completed_with_errors');
     expect(await notices()).toHaveLength(0);
 
-    // A watch job that reused fresh cached evidence did not observe anything new.
+
     const cached = fx.registry('example.com', 'registered', clock.iso());
     fx.created.pop();
     const job = scheduler.runNow(w.id);
@@ -167,7 +167,7 @@ describe('watch change detection', () => {
     const w = await watch();
     run(w.id, (at) => {
       fx.registry('example.com', 'no_record', at, { id: '00000000-0000-4000-8000-000000000001' });
-      // An unrelated scan at the same instant sorts after the watch's own observation.
+
       fx.registry('example.com', 'registered', at, { id: 'ffffffff-ffff-4fff-bfff-ffffffffffff' });
       fx.created.pop();
     });
@@ -179,8 +179,8 @@ describe('watch change detection', () => {
     const w = await watch({ providerIds: ['porkbun'], includeRegistry: false });
 
     run(w.id, (at) => {
-      fx.confirmation('example.com', 'porkbun', 'unknown', at); // e.g. credential_required or an error
-      fx.confirmation('example.com', 'namecheap', 'available', at); // not part of this watch
+      fx.confirmation('example.com', 'porkbun', 'unknown', at);
+      fx.confirmation('example.com', 'namecheap', 'available', at);
     });
     expect(await notices()).toHaveLength(0);
 
@@ -199,12 +199,12 @@ describe('watch change detection', () => {
     const w = await watch({ providerIds: ['porkbun'], includeRegistry: false });
 
     run(w.id, (at) => {
-      fx.offer({ providerId: 'porkbun', domain: 'example.com', suffix: 'com', registration: null, at }); // missing price
-      fx.offer({ providerId: 'porkbun', domain: 'example.com', suffix: 'com', registration: '12.0', at }); // same amount
+      fx.offer({ providerId: 'porkbun', domain: 'example.com', suffix: 'com', registration: null, at });
+      fx.offer({ providerId: 'porkbun', domain: 'example.com', suffix: 'com', registration: '12.0', at });
       fx.offer({ providerId: 'porkbun', domain: 'example.com', suffix: 'com', registration: '14.00', currency: 'EUR', at });
       fx.offer({ providerId: 'porkbun', domain: 'example.com', suffix: 'com', registration: '20.00', termYears: 2, at });
       fx.offer({ providerId: 'porkbun', domain: 'example.com', suffix: 'com', registration: '9.00', promotional: true, at });
-      fx.offer({ providerId: 'dynadot', domain: 'example.com', suffix: 'com', registration: '1.00', at }); // other provider
+      fx.offer({ providerId: 'dynadot', domain: 'example.com', suffix: 'com', registration: '1.00', at });
     });
     expect(await notices()).toHaveLength(0);
 
@@ -227,14 +227,14 @@ describe('watch change detection', () => {
     const w = await watch({ providerIds: ['porkbun'], includeRegistry: false });
 
     run(w.id, (at) => {
-      // Different campaign conditions and a different renewal term are not comparable.
+
       fx.offer({ ...base, registration: '3.00', promotion: { ...spring, restrictions: 'New customers only' }, at });
       fx.offer({ ...base, registration: '4.00', promotion: { ...spring, requiresTermYears: 2 }, at });
       fx.offer({ ...base, registration: '25.00', renewal: '40.00', renewalYears: 2, promotional: false, at });
     });
     expect(await notices()).toHaveLength(0);
 
-    // The same campaign at a new price is a comparable change.
+
     run(w.id, (at) => fx.offer({ ...base, registration: '6.00', promotion: spring, at }));
     const created = await notices();
     expect(created).toHaveLength(1);

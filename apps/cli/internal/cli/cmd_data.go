@@ -247,9 +247,6 @@ func (a *App) settingsCmd() *cobra.Command {
 	return group("settings", "Backend settings", show, set)
 }
 
-// settingsPatch turns dotted key=value pairs into a nested SettingsPatch
-// object. Values parse as JSON when possible (numbers, booleans, null,
-// arrays), otherwise as strings.
 func settingsPatch(pairs []string) (map[string]any, error) {
 	root := map[string]any{}
 	for _, pair := range pairs {

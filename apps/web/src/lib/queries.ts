@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { OperationArgs, ResultFilter } from '@domain-scout/contracts';
 import { api } from './api';
 
-/** Query keys. Caches hold unwrapped `data` so SSE updates can write them directly. */
+
 export const qk = {
   session: ['session'] as const,
   jobs: (query?: object) => (query ? (['jobs', query] as const) : (['jobs'] as const)),
@@ -51,7 +51,7 @@ export function useSettings() {
 
 export type SettingsPatchInput = OperationArgs<'patchSettings'>['body'];
 
-/** Saves part of the settings; the response replaces the cached settings. */
+
 export function usePatchSettings() {
   const client = useQueryClient();
   return useMutation({
@@ -99,7 +99,7 @@ export function useNameCheckServices() {
   });
 }
 
-/** Unread change notices for the sidebar badge. Silent when monitoring is unavailable. */
+
 export function useUnreadNoticeCount(): number {
   const { data } = useQuery({
     queryKey: [...qk.notices, 'unread-count'],

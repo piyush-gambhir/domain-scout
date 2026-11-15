@@ -8,7 +8,7 @@ import { SuffixPricesService } from './suffix-prices.service.js';
 import { PricingController } from './pricing.controller.js';
 import { TransfersService } from './transfers.service.js';
 
-/** Offers queries, comparisons, price history, transfer options, aftermarket evidence and portfolio. */
+
 @Global()
 @Module({
   controllers: [PricingController],

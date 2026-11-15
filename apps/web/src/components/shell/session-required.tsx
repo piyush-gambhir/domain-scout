@@ -1,4 +1,4 @@
-/** Shown instead of the app when the backend rejects the browser session (HTTP 401). */
+
 export function SessionRequired({ reason }: { reason?: string }) {
   return (
     <main id="main" className="grid min-h-dvh place-items-center px-4">

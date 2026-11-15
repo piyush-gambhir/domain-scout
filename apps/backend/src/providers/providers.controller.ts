@@ -40,7 +40,7 @@ export class ProvidersController {
     return paged(items, nextCursor, total);
   }
 
-  /** Submits a catalog_refresh job; the catalog request sends no candidate names. */
+
   @ApiRoute('refreshProviderCatalog')
   refresh(@ApiInput() input: RouteInput<'refreshProviderCatalog'>, @Headers('idempotency-key') idempotencyKey?: string) {
     const manifest = this.providers.require(input.params.id);

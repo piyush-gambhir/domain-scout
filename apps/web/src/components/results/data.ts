@@ -9,20 +9,20 @@ import { qk } from '@/lib/queries';
 import { useIdempotency } from '@/lib/use-idempotency';
 import { filterToQuery } from '../jobs/filters';
 
-/** Searches up to this many checks load whole, so the grid and its counts need no paging. */
+
 export const GRID_MAX_ITEMS = 2000;
-/** The grid is the default up to this many names. */
+
 export const GRID_MAX_LABELS = 30;
 const ALL_PAGE = 1000;
 export const SECTION_PAGE = 200;
 
-/** Registrable label of a result row: the domain without its suffix. */
+
 export function labelOf(item: Pick<JobItem, 'subject' | 'suffix' | 'unicode'>): string {
   if (!item.suffix) return item.subject;
   return item.subject.endsWith(`.${item.suffix}`) ? item.subject.slice(0, -item.suffix.length - 1) : item.subject;
 }
 
-/** The label as typed, for internationalized names: the Unicode form without as many labels as the suffix has. */
+
 export function unicodeLabelOf(item: Pick<JobItem, 'subject' | 'suffix' | 'unicode'>): string {
   if (!item.suffix || !item.unicode || item.unicode === item.subject) return labelOf(item);
   const parts = item.unicode.split('.');
@@ -30,7 +30,7 @@ export function unicodeLabelOf(item: Pick<JobItem, 'subject' | 'suffix' | 'unico
   return parts.length > suffixLabels ? parts.slice(0, parts.length - suffixLabels).join('.') : labelOf(item);
 }
 
-/** Every item of a search, in input order, for the grid. Live events patch rows in place. */
+
 export function useAllResults(jobId: string, enabled: boolean, poll: boolean) {
   const query = useInfiniteQuery({
     queryKey: qk.jobResults(jobId, {}),
@@ -55,19 +55,19 @@ export interface ListFilters {
   suffixes?: string[];
   maxPrice?: string;
   maxLength?: number;
-  /** Order inside each section; names that can be registered default to cheapest first. */
+
   sort?: ListSort;
-  /** Newest provider confirmation for the name. */
+
   confirmations?: ConfirmationStatus[];
-  /** In any saved list (true) or in none (false). */
+
   saved?: boolean;
-  /** Currency of the price cap; defaults to the comparison currency. */
+
   currency?: string;
-  /** Restored from saved criteria: narrow the sections to these outcomes. */
+
   outcomes?: string[];
-  /** Restored from saved criteria: only names in this saved list. */
+
   collectionId?: string;
-  /** Restored from saved criteria: only answered (true) or unanswered (false) names. */
+
   resolved?: boolean;
   order?: 'asc' | 'desc';
 }
@@ -78,9 +78,9 @@ const GROUP_OUTCOMES: Record<Exclude<RegistryGroup, 'pending'>, readonly string[
   problem: PROBLEM_OUTCOMES,
 };
 
-/** Whether a section can hold any row under these filters (restored outcome or resolution limits). */
+
 export function groupAllowed(group: RegistryGroup, filters: ListFilters): boolean {
-  // A resolution limit means finished rows only (as the backend defines it): never unfinished work.
+
   if (filters.resolved !== undefined && group === 'pending') return false;
   if (filters.resolved === true && group === 'problem') return false;
   if (filters.resolved === false && (group === 'free' || group === 'taken')) return false;
@@ -93,7 +93,7 @@ function narrow(group: Exclude<RegistryGroup, 'pending'>, filters: ListFilters):
   return filters.outcomes?.length ? outcomes.filter((o) => filters.outcomes!.includes(o)) : [...outcomes];
 }
 
-/** The results filter of one list section. */
+
 export function sectionFilter(group: RegistryGroup, filters: ListFilters, currency: string): ResultFilter {
   const common: ResultFilter = {
     q: filters.q || undefined,
@@ -105,11 +105,11 @@ export function sectionFilter(group: RegistryGroup, filters: ListFilters, curren
     resolved: filters.resolved,
   };
   const order = filters.order ?? 'asc';
-  // Sections without prices keep an explicit order; a price order means input order there.
+
   const explicit: ResultFilter = filters.sort || filters.order ? { sort: filters.sort && filters.sort !== 'price' ? filters.sort : 'input', order } : {};
   switch (group) {
     case 'free':
-      // Cheapest first unless another order is chosen; the price cap applies only to names that can be registered.
+
       return { ...common, outcomes: narrow('free', filters), sort: filters.sort ?? 'price', order, priceCurrency: filters.currency ?? currency, maxPrice: filters.maxPrice };
     case 'taken':
       return { ...common, outcomes: narrow('taken', filters), ...explicit };
@@ -134,7 +134,7 @@ export function useSectionResults(jobId: string, filter: ResultFilter, poll: boo
   return { ...query, items, total: query.data?.pages[0]?.total ?? null };
 }
 
-/** Every item matching a section filter, paging through the backend (bulk actions on "all"). */
+
 export async function resolveSection(jobId: string, filter: ResultFilter): Promise<JobItem[]> {
   const items: JobItem[] = [];
   let cursor: string | undefined;
@@ -146,7 +146,7 @@ export async function resolveSection(jobId: string, filter: ResultFilter): Promi
   return items;
 }
 
-/** Counts per result group from the job's live counters. */
+
 export function groupCounts(job: Job) {
   const o = job.counters.outcomes;
   const problem = PROBLEM_OUTCOMES.reduce((sum, k) => sum + (o[k] ?? 0), 0);
@@ -169,10 +169,10 @@ async function allItems(jobId: string): Promise<JobItem[]> {
   return items;
 }
 
-/**
- * Fresh registry checks for a few names, shown in place: the rows keep their position and take the
- * new result when the check finishes. The original search keeps its own evidence.
- */
+
+
+
+
 export function useRecheckOverlay() {
   const client = useQueryClient();
   const idempotency = useIdempotency();
@@ -188,7 +188,7 @@ export function useRecheckOverlay() {
       setRuns((current) => [...current, { id: job.id, domains }]);
     },
   });
-  // Later runs win for the same name; finished runs stop polling and refresh the name's evidence.
+
   const overlay = useQueries({
     queries: runs.map((run) => ({
       queryKey: ['recheckOverlay', run.id],
@@ -216,7 +216,7 @@ export function useRecheckOverlay() {
   return { ...overlay, recheck: (domains: string[]) => start.mutate(domains), pending: start.isPending };
 }
 
-/** A row with any newer in-place recheck applied. */
+
 export function withOverride(item: JobItem, overrides: Map<string, JobItem>): JobItem {
   const next = overrides.get(item.subject);
   return next ? { ...next, id: item.id, jobId: item.jobId, collectionIds: item.collectionIds } : item;

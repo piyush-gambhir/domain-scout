@@ -1,6 +1,6 @@
 import { UNCERTAINTY_NOTICE } from './rows.js';
 
-/** Structured snapshot content. The HTML is rendered from exactly this data. */
+
 export interface SnapshotItem {
   domain: string;
   unicode: string;
@@ -15,7 +15,7 @@ export interface SnapshotItem {
     eligibility: string | null;
   } | null;
   confirmations?: { providerId: string; status: string; checkedAt: string; freshnessAtCreation: string }[];
-  /** Name checks, diagnostics and listings carried by job items in scope. */
+
   checks?: {
     kind: string;
     label: string;
@@ -117,10 +117,10 @@ td{padding:4px 12px 4px 0;vertical-align:top}
 footer{color:var(--muted);font-size:13px;margin-top:32px}
 `;
 
-/**
- * Self-contained HTML: inline CSS only, no scripts, no external assets, every value escaped, and a
- * Content-Security-Policy that blocks any network request when the file is opened.
- */
+
+
+
+
 export function renderSnapshotHtml(doc: SnapshotDocument): string {
   const items = doc.items.map(renderItem).join('\n');
   return `<!doctype html>

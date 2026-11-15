@@ -44,7 +44,7 @@ export const DOH_ENDPOINTS: Record<Exclude<Resolver, 'system'>, { host: string; 
 const TYPE_CODES = { A: 1, NS: 2, CNAME: 5, MX: 15, AAAA: 28, DS: 43, DNSKEY: 48 } as const;
 type QueryType = DnsRecordType | 'DS' | 'DNSKEY';
 
-/** DNS over HTTPS JSON response (Cloudflare and Google share this format). */
+
 export interface DohResponse {
   Status: number;
   AD?: boolean;
@@ -59,10 +59,10 @@ interface QueryResult {
   raw: string[];
   ad: boolean | null;
   error?: string;
-  /** Stable reason code for errors, e.g. dns_error, rate_limited, unexpected_redirect. */
+
   errorCode?: string;
   retryable?: boolean;
-  /** The resolver rate limited this query; no further queries go to it in this check. */
+
   rateLimited?: boolean;
   cooldownUntil?: string | null;
   rawBody?: string;
@@ -78,10 +78,10 @@ interface Observed {
   raw?: ObservationWrite['raw'];
 }
 
-/**
- * `diagnostic` items: subject is the ASCII domain, target is the check (dns, nameservers, dnssec,
- * tls, http). Diagnostics are independent evidence and never write or change registry outcomes.
- */
+
+
+
+
 @Injectable()
 export class DiagnosticHandler implements OperationHandler {
   readonly operation = 'diagnostic' as const;
@@ -158,7 +158,7 @@ export class DiagnosticHandler implements OperationHandler {
     return DOH_ENDPOINTS[resolver].host;
   }
 
-  /* DNS records (A/AAAA/MX) and nameservers (NS). */
+
 
   private async dnsCheck(
     domain: string,
@@ -200,7 +200,7 @@ export class DiagnosticHandler implements OperationHandler {
     const statuses = entries.map(([, r]) => r.status);
     const what = types.includes('NS') ? 'nameservers' : 'DNS records';
     if (entries.some(([, r]) => r.status === 'ok')) {
-      // Partial answers stay observed; failed or skipped types are listed in data.errors and data.skipped.
+
       const incomplete = [...Object.keys(errors), ...skipped];
       return {
         outcome: 'observed',
@@ -249,7 +249,7 @@ export class DiagnosticHandler implements OperationHandler {
     };
   }
 
-  /* DNSSEC: DS at the parent and DNSKEY at the zone, plus the resolver's AD flag. */
+
 
   private async dnssecCheck(domain: string, resolver: Resolver, ctx: OperationContext, keepRaw: boolean): Promise<Observed> {
     if (resolver === 'system') {
@@ -275,7 +275,7 @@ export class DiagnosticHandler implements OperationHandler {
       authenticatedData: { DS: ds.ad, DNSKEY: dnskey?.ad ?? null },
     };
     const raw = keepRaw ? rawOf([ds.rawBody, dnskey?.rawBody].filter(Boolean).join('\n')) : null;
-    // A cooldown from either query applies, whichever failure is reported.
+
     const cooldownUntil = latestTime([ds.cooldownUntil, dnskey?.cooldownUntil]);
     if (ds.status === 'nxdomain') {
       return {
@@ -417,11 +417,11 @@ export class DiagnosticHandler implements OperationHandler {
     }
   }
 
-  /*
-   * Connection targets. The domain is validated and resolved first; if any address is non-public
-   * (loopback, private, link-local, shared, reserved or multicast) no connection is made, so a
-   * requested diagnostic cannot be used to reach local services.
-   */
+
+
+
+
+
 
   private async vetTarget(
     domain: string,
@@ -477,14 +477,14 @@ export class DiagnosticHandler implements OperationHandler {
     return { addresses };
   }
 
-  /* TLS certificate on port 443 with SNI, pinned to a vetted address. */
+
 
   private async tlsCheck(domain: string, ctx: OperationContext): Promise<Observed> {
     const destination = `${domain}:443`;
     const timer = withTimeout(ctx.signal, ctx.settings.retries.timeoutMs);
     const target = await this.vetTarget(domain, destination, ctx, timer);
     if (target.failure) return target.failure;
-    // One IPv4 and one IPv6 candidate: the second is tried only when the first is unreachable.
+
     const candidates = [target.addresses.find((a) => isIP(a) === 4), target.addresses.find((a) => isIP(a) === 6)].filter(
       (a): a is string => Boolean(a),
     );
@@ -542,7 +542,7 @@ export class DiagnosticHandler implements OperationHandler {
     };
   }
 
-  /* Website: HEAD with manual redirects, GET fallback, bounded time and size. */
+
 
   private async httpCheck(domain: string, ctx: OperationContext, keepRaw: boolean): Promise<Observed> {
     const url = `https://${domain}/`;
@@ -550,9 +550,9 @@ export class DiagnosticHandler implements OperationHandler {
     const timer = withTimeout(ctx.signal, ctx.settings.retries.timeoutMs);
     const target = await this.vetTarget(domain, destination, ctx, timer);
     if (target.failure) return target.failure;
-    // The request is pinned to the vetted address (no second resolution, so no DNS rebinding);
-    // SNI, Host and certificate validation use the domain. Redirects are reported, never followed.
-    // One IPv4 and one IPv6 candidate, as for TLS: the next is tried only when one is unreachable.
+
+
+
     const candidates = [target.addresses.find((a) => isIP(a) === 4), target.addresses.find((a) => isIP(a) === 6)].filter(
       (a): a is string => a !== undefined,
     );
@@ -657,7 +657,7 @@ export class DiagnosticHandler implements OperationHandler {
   }
 
   private result(item: JobItemRecord, check: DiagnosticCheck, ctx: OperationContext, checkedAt: Date, observed: Observed): OperationResult {
-    // Freshness is computed at read time; staleAt follows the registry freshness setting.
+
     const staleAt = new Date(checkedAt.getTime() + ctx.settings.freshness.registryMinutes * 60_000).toISOString();
     const diagnostic: Omit<Diagnostic, 'freshness'> = {
       id: randomUUID(),
@@ -700,7 +700,7 @@ export class DiagnosticHandler implements OperationHandler {
   }
 }
 
-/* Parsing helpers, exported for tests. */
+
 
 export function parseDoh(text: string): DohResponse | null {
   try {
@@ -738,7 +738,7 @@ export function interpretDoh(response: DohResponse, type: QueryType): Omit<Query
 
 function recordValues(type: DnsRecordType, records: DnsRecord[]) {
   if (type === 'MX') {
-    // A null MX (RFC 7505, "0 .") states the domain accepts no mail; keep it visible as ".".
+
     return records
       .map((r) => ({ priority: r.priority ?? null, exchange: stripDot(r.value) || '.' }))
       .sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0) || a.exchange.localeCompare(b.exchange));
@@ -785,7 +785,7 @@ export function parseSans(value: string | null): string[] {
     .filter(Boolean);
 }
 
-/** Latest of several ISO timestamps, or null when none is set. */
+
 function latestTime(values: (string | null | undefined)[]): string | null {
   const times = values.filter((v): v is string => Boolean(v));
   return times.length ? times.reduce((a, b) => (Date.parse(a) >= Date.parse(b) ? a : b)) : null;

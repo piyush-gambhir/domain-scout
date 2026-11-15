@@ -21,7 +21,7 @@ func TestCancelledWaitMachineOutput(t *testing.T) {
 			f.reply("GET", "/api/v1/jobs/"+jobID+"/results", 200, page([]string{finished}, ""))
 
 			r := newHarness(t).api(f, "scan", "example.com", "google.com", "--wait", "--output", output)
-			expectCode(t, r, ExitUnresolved) // Backend cancellation is exit 3, not an interrupted wait (130).
+			expectCode(t, r, ExitUnresolved)
 			for _, note := range []string{"Submitted job " + jobID, "cancelled: 1/2 finished", "ended cancelled with 1 unfinished"} {
 				if !strings.Contains(r.stderr, note) {
 					t.Errorf("stderr missing %q: %s", note, r.stderr)
@@ -47,7 +47,6 @@ func TestCancelledWaitMachineOutput(t *testing.T) {
 				return
 			}
 
-			// --wait prints the results envelope; the job's terminal state is on stderr and in the exit code.
 			out := decodeJSON(t, r.stdout)
 			data, ok := out["data"].([]any)
 			if out["contractVersion"] != "1.0.0" || !ok || len(data) != 1 || !reflect.DeepEqual(data[0], decodeJSON(t, finished)) {
@@ -59,7 +58,7 @@ func TestCancelledWaitMachineOutput(t *testing.T) {
 
 func TestQuoteWaitPreservesDecisionFields(t *testing.T) {
 	f := newFakeAPI(t)
-	// Synthetic contract-shaped quote, not a live provider response.
+
 	offer := decodeJSON(t, `{
 		"id":"55555555-5555-4555-8555-555555555555","providerId":"porkbun",
 		"domain":"example.com","suffix":"com","purchasePath":"new_registration","kind":"exact_quote",

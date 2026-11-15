@@ -25,7 +25,7 @@ const COVERAGE_STATUS: Record<CoverageStatus, StatusInfo> = {
 };
 const ROUTING: Record<string, string> = { iana_bootstrap: 'IANA bootstrap', curated: 'Curated' };
 
-/** What the counts do and do not show. The first limit is always visible; the rest open on request. */
+
 function Limits({ limits }: { limits: string[] }) {
   const [all, setAll] = useState(false);
   const shown = all ? limits : limits.slice(0, 1);

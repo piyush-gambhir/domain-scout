@@ -55,15 +55,15 @@ export interface ItemRow {
   updated_at: string;
 }
 
-/** Shape of job_items.evidence_json: ids of evidence other than the registry observation. */
+
 export interface ItemEvidenceRefs {
   observations?: string[];
   offers?: string[];
-  /** True when registry_observation_id points at cached evidence reused instead of a new query. */
+
   reusedRegistry?: boolean;
 }
 
-/** Public summary of what a job was asked to do (Job.input minus the restorable text). */
+
 export interface JobInputSummary {
   extensions: string[];
   providerIds: string[];
@@ -72,13 +72,13 @@ export interface JobInputSummary {
   rows: number;
 }
 
-/**
- * Stored jobs.input_json: the validated request fields, planner flags and the public summary.
- * Handlers receive this object as JobItemRecord.jobInput.
- */
+
+
+
+
 export type StoredJobInput = Record<string, unknown> & { type: JobType; recheck: boolean; summary: JobInputSummary };
 
-/** Mutable job state the scheduler tracks in memory and persists after each change. */
+
 export interface RunSnapshot {
   state: JobState;
   counters: JobCounters;
@@ -108,7 +108,7 @@ export function countersOf(row: JobRow): JobCounters {
   };
 }
 
-/** How a registry scan read its input, so a restore reads it the same way. */
+
 function inputReading(input: StoredJobInput): { format: 'auto' | 'lines' | 'csv' | null; csvColumn: string | null } {
   if (input.type !== 'registry_scan') return { format: null, csvColumn: null };
   const source = (input.input ?? {}) as { text?: string; format?: string; csvColumn?: string };
@@ -117,7 +117,7 @@ function inputReading(input: StoredJobInput): { format: 'auto' | 'lines' | 'csv'
   return { format, csvColumn: typeof source.csvColumn === 'string' ? source.csvColumn : null };
 }
 
-/** Original text that restores a registry scan: pasted text, else the submitted domain list. */
+
 function restorableText(input: StoredJobInput): string | null {
   if (input.type !== 'registry_scan') return null;
   const source = (input.input ?? {}) as { text?: string; domains?: string[] };
@@ -127,7 +127,7 @@ function restorableText(input: StoredJobInput): string | null {
 
 type ListQuery = z.output<typeof JobListQuery>;
 
-/** Persistence for jobs and items. All SQL uses parameter binding. */
+
 @Injectable()
 export class JobStore {
   constructor(private readonly db: Database) {}
@@ -156,10 +156,10 @@ export class JobStore {
     };
   }
 
-  /**
-   * The restorable input text can be megabytes, so it is only included where a client asks for one
-   * job (GET /jobs/:id); lists and events carry `text: null`.
-   */
+
+
+
+
   toJob(row: JobRow, options: { includeText?: boolean } = {}): Job {
     const input = this.input(row);
     return {
@@ -271,7 +271,7 @@ export class JobStore {
     };
   }
 
-  /** Counters recomputed from items; used on state transitions (recovery, resume), never per item. */
+
   recount(jobId: string): { counters: JobCounters; nextRetryAt: string | null } {
     const counters = emptyCounters();
     const rows = this.db.all<{ state: ItemRow['state']; resolved: number; outcome: string | null; n: number }>(
@@ -297,7 +297,7 @@ export class JobStore {
     return this.db.get<ItemRow>('SELECT * FROM job_items WHERE id = ?', [id]);
   }
 
-  /** Jobs newest first with an opaque keyset cursor on (created_at, rowid). */
+
   list(query: ListQuery): { items: Job[]; nextCursor: string | null; total: number } {
     const where: string[] = [];
     const params: (string | number)[] = [];

@@ -1,4 +1,4 @@
-/** Settings sections in order. Shared by the server route (validation, titles) and the client page. */
+
 export const SETTINGS_SECTIONS = [
   { id: 'providers', label: 'Providers' },
   { id: 'preferences', label: 'Preferences' },

@@ -7,19 +7,19 @@ import { BIG_WATCH, label24, mockBigMonitoring, mockManyPriceSeries, mockRichDom
 import { mockSettings } from './page-fixtures';
 import { uuid } from './mock-api';
 
-/*
- * The app fills the window at desktop widths: the document never scrolls, <main> never overflows,
- * and lists that grow (results, saved names, watches, notices, history, coverage) scroll inside their
- * own pane. Every route is checked at 1440x900 and 1280x800 with enough data to overflow its lists.
- * Set DS_SCREENSHOTS=<dir> to also save light, dark and 390x844 screenshots for visual review, and
- * DS_LAYOUT_REPORT=<file> to append each measurement as a JSON line.
- */
+
+
+
+
+
+
+
 
 const GRID = uuid(0xe1);
 const GRID_BIG = uuid(0xe2);
 const LIST = uuid(0xe3);
 const RUNNING = uuid(0xe4);
-// Only the fixed test set and full 24-character gibberish labels, even though nothing leaves the page.
+
 const SMALL_TEXT = `${GIB.join(' ')} example.com google.com`;
 const GRID_TEXT = [...GIB, ...Array.from({ length: 26 }, (_, i) => label24(i)), 'example.com'].join('\n');
 const LIST_TEXT = Array.from({ length: 300 }, (_, i) => label24(i + 100)).join('\n');
@@ -56,13 +56,13 @@ interface Case {
   name: string;
   path: string;
   setup?: (page: Page) => Promise<unknown>;
-  /** Visible once the page has its data. */
+
   ready: (page: Page) => Locator;
-  /** Interactions before measuring, e.g. typing or expanding a row. */
+
   prepare?: (page: Page) => Promise<void>;
-  /** Elements inside each growing list; the nearest scrolling ancestor must overflow and scroll. */
+
   lists?: string[];
-  /** Below lg details open as pages: readiness differs there. */
+
   mobileReady?: (page: Page) => Locator;
 }
 
@@ -84,7 +84,7 @@ const CASES: Case[] = [
     setup: app(),
     ready: (page) => page.getByRole('textbox', { name: 'Keywords' }),
     prepare: async (page) => {
-      // Generation is local to the backend; nothing is checked.
+
       await page.getByRole('textbox', { name: 'Keywords' }).fill('scout trail summit');
       await expect(page.getByRole('list', { name: 'Ideas' }).getByRole('listitem').nth(30)).toBeVisible();
       await page.getByRole('checkbox', { name: 'Select scouttrail' }).check();
@@ -158,7 +158,7 @@ const CASES: Case[] = [
     setup: app(),
     ready: (page) => page.getByTestId('saved-row').first(),
     prepare: async (page) => {
-      // Only names that can be registered offer a cost comparison.
+
       await page.getByRole('button', { name: /^Compare provider costs for / }).first().click();
       await expect(page.getByTestId('comparison-row').first()).toBeVisible();
     },
@@ -223,7 +223,7 @@ interface Measure {
   innerHeight: number;
 }
 
-/** Nearest ancestor that scrolls vertically, measured in the page. */
+
 async function measure(page: Page, lists: string[]): Promise<Measure> {
   return page.evaluate(
     ({ lists }) => {
@@ -263,7 +263,7 @@ async function open(page: Page, item: Case, mobile = false) {
   await page.goto(item.path);
   await expect((mobile && item.mobileReady ? item.mobileReady : item.ready)(page)).toBeVisible({ timeout: 15_000 });
   if (!(mobile && item.mobileReady)) await item.prepare?.(page);
-  // Let fonts, transitions and resize observers settle.
+
   await page.waitForTimeout(300);
 }
 

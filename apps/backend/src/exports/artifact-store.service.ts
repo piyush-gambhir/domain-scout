@@ -34,7 +34,7 @@ export interface ArtifactInsert {
   createdAt: string;
 }
 
-/** Artifact files under <dataDir>/artifacts with their metadata in the artifacts table. */
+
 @Injectable()
 export class ArtifactStore {
   constructor(
@@ -103,7 +103,7 @@ export class ArtifactStore {
   }
 }
 
-/** Compact UTC stamp for file names, e.g. 20261005T120000Z. */
+
 export function fileStamp(iso: string): string {
   return iso.replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
 }

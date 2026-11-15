@@ -16,7 +16,7 @@ export interface PlannedItem {
   unicode: string;
   suffix: string | null;
   operation: JobOperation;
-  /** Provider, service, check or marketplace id; '' when not applicable. */
+
   target: string;
 }
 
@@ -44,7 +44,7 @@ function summary(partial: Partial<JobInputSummary>): JobInputSummary {
   return { extensions: [], providerIds: [], services: [], checks: [], rows: 0, ...partial };
 }
 
-/** Turns a validated request into job items. Pure planning: no external queries, no writes. */
+
 @Injectable()
 export class JobPlanner {
   constructor(
@@ -114,8 +114,8 @@ export class JobPlanner {
         const domains = this.domains(request.domains);
         const checks = unique(request.checks);
         const items = domains.flatMap((d) => checks.map((c) => this.domainItem(d, 'diagnostic', c)));
-        // Fixed at planning so recorded destinations, source budgets and a later resume all use the
-        // resolver that was configured when the job was submitted.
+
+
         const resolver = request.resolver ?? this.settings.get().diagnostics.resolver;
         return {
           type: 'diagnostics',
@@ -193,7 +193,7 @@ export class JobPlanner {
       if (request.includeRegistry) items.push(this.domainItem(d, 'registry', ''));
       for (const p of providerIds) items.push(this.domainItem(d, 'quote', p));
     }
-    // Catalog prices are suffix-level and send no names: one refresh per watched provider.
+
     if (request.includeCatalogPrices) {
       for (const p of providerIds) items.push({ subject: p, unicode: p, suffix: null, operation: 'catalog', target: p });
     }
@@ -210,7 +210,7 @@ export class JobPlanner {
     return { subject: d.ascii, unicode: d.unicode, suffix: d.suffix, operation, target };
   }
 
-  /** Normalizes explicit domains; any the registry rules reject fail the request with details. */
+
   private domains(domains: readonly string[]): DomainInfo[] {
     const previewer = this.ports.previewer();
     const out: DomainInfo[] = [];
@@ -261,7 +261,7 @@ function safeUnicode(ascii: string): string {
   return domainToUnicode(ascii) || ascii;
 }
 
-/** Only used when no InputPreviewer is registered: everything after the first label. */
+
 function fallbackSuffix(ascii: string): string {
   const dot = ascii.indexOf('.');
   return dot >= 0 ? ascii.slice(dot + 1) : ascii;

@@ -21,9 +21,9 @@ import {
   settingsService,
 } from './fakes.js';
 
-// DoH bodies follow the documented JSON format shared by Cloudflare and Google
-// (https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/make-api-requests/dns-json/,
-// https://developers.google.com/speed/public-dns/docs/doh/json). Reconstructions, October 2026.
+
+
+
 
 let networkSpy: ReturnType<typeof vi.spyOn>;
 beforeEach(() => {
@@ -394,7 +394,7 @@ describe('diagnostic handler: HTTP', () => {
       calls: [],
       servers: () => [],
       query: () => Promise.reject(new Error('unexpected DNS query')),
-      // A rebinding resolver: public on the first answer, loopback afterwards.
+
       lookup: async () => (lookups++ === 0 ? [PUBLIC_ADDRESS] : ['127.0.0.1']),
     };
     const { http, calls } = fakeHttp((request) => (request.method === 'HEAD' ? { status: 405 } : { status: 200 }));

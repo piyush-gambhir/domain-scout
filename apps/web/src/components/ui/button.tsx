@@ -14,7 +14,7 @@ export const buttonVariants = cva(
         danger: 'bg-negative/10 text-negative hover:bg-negative/15',
         link: 'h-auto rounded-sm px-0 text-foreground underline-offset-4 hover:underline',
       },
-      // Every size keeps the 32px minimum hit target (--spacing-control).
+
       size: {
         sm: 'h-control px-2.5',
         md: 'h-control px-3',
@@ -24,7 +24,7 @@ export const buttonVariants = cva(
         'icon-xs': 'size-control [&_svg]:size-3.5',
       },
     },
-    // A link-styled button keeps the text's own box whatever size it is given.
+
     compoundVariants: [{ variant: 'link', className: 'h-auto px-0' }],
     defaultVariants: { variant: 'secondary', size: 'md' },
   },

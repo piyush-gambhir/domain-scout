@@ -11,15 +11,15 @@ import { ShutdownCoordinator } from './shutdown.js';
 import { safeEqual } from './token.js';
 
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
-/** Operations still served while the backend is stopping. */
+
 const DURING_STOP = new Set<OperationId>(['getHealth', 'stopService']);
 
-/**
- * Global guard. Operations marked `auth: 'none'` in the contract route table are public; everything
- * else (including handlers not bound with @ApiRoute) needs the API token or a browser session.
- * Sessions must send X-CSRF-Token on mutating methods. A present Origin must be an allowed web origin
- * on every route, public ones included.
- */
+
+
+
+
+
+
 @Injectable()
 export class AuthGuard implements CanActivate {
   private readonly origins: Set<string>;
@@ -38,7 +38,7 @@ export class AuthGuard implements CanActivate {
     const req = context.switchToHttp().getRequest<Request>();
     const operationId = this.reflector.get<OperationId | undefined>(ROUTE_OPERATION, context.getHandler());
     const def = operationId ? (routes[operationId] as RouteDef) : undefined;
-    // Origin applies to public routes too: no other site may drive the session exchange.
+
     const origin = req.headers.origin;
     if (origin !== undefined && !this.origins.has(origin)) {
       throw new AppError('forbidden', 'Origin is not an allowed web origin');
@@ -73,7 +73,7 @@ export class AuthGuard implements CanActivate {
   }
 }
 
-/** Value of one cookie from a Cookie header, or null. */
+
 export function readCookie(header: string | undefined, name: string): string | null {
   if (!header) return null;
   for (const part of header.split(';')) {

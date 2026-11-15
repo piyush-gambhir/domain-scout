@@ -1,6 +1,5 @@
 package cli
 
-// Table columns per resource. JSON output ignores these.
 var (
 	plainView = view{}
 
@@ -57,8 +56,7 @@ var (
 			c("COMPLETE", "complete"), c("RANK", "rank"), c("MISSING", "missing"), c("FRESHNESS", "freshness"),
 		},
 	}
-	// Offers arrive lowest first-year price first within each currency, so the first one is the
-	// cheapest in its currency.
+
 	suffixPricesView = view{cols: []col{
 		c("SUFFIX", "suffix"), {header: "PROVIDERS", fn: count("offers")},
 		{header: "CHEAPEST", fn: firstOffer(func(o map[string]any) string { return cell(o["providerId"]) })},

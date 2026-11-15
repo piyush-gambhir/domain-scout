@@ -90,7 +90,7 @@ describe('coverage list and detail', () => {
     });
     const de = SuffixCoverageResponse.parse((await t.api.get('/coverage/.DE').expect(200)).body).data;
     expect(de).toMatchObject({ status: 'tested', protocol: 'whois', endpoint: 'whois.denic.de:43', routing: 'curated' });
-    // Validated live with a random label on 2026-10-06 when port 43 was reachable.
+
     expect(de.liveValidatedAt).not.toBeNull();
     expect(de.notes).toContain('reconstructed');
     expect(de.notes ?? '').not.toContain('Live validation not run');
@@ -195,7 +195,7 @@ describe('POST /coverage/refresh', () => {
     expect(fake.calls.map((c) => c.url)).toEqual(['https://data.iana.org/rdap/dns.json']);
     expect(CoverageSummaryResponse.parse(res.body).data.bootstrapPublishedAt).toBe('2026-10-05T00:00:00.000Z');
 
-    // RDAP from the bootstrap now wins over the curated WHOIS route; WHOIS fixtures no longer count.
+
     const io = SuffixCoverageResponse.parse((await t.api.get('/coverage/io').expect(200)).body).data;
     expect(io).toMatchObject({
       protocol: 'rdap',
@@ -212,14 +212,14 @@ describe('POST /coverage/refresh', () => {
     services.push([['ch'], ['https://rdap.example-ch-registry.test/']], [['co'], ['https://rdap.registry.co/co/']], [['ie'], ['https://rdap.example-ie-registry.test/']]);
     fake.respond = () => http(200, live(services));
     await t.api.post('/coverage/refresh').expect(200);
-    // Reviewed second-level exclusions hold whichever endpoint wins.
+
     const routes = t.app.get(RoutesService);
     expect([routes.route('gov.co'), routes.route('gov.ie')]).toEqual([null, null]);
     expect(routes.route('com.co')).toMatchObject({ routing: 'iana_bootstrap', endpoint: 'https://rdap.registry.co/co/' });
     const govie = SuffixCoverageResponse.parse((await t.api.get('/coverage/gov.ie').expect(200)).body).data;
     expect(govie.status).toBe('unsupported');
     const ch = SuffixCoverageResponse.parse((await t.api.get('/coverage/ch').expect(200)).body).data;
-    // RDAP fixtures still exercise the shared RDAP classifier; the live result belongs to the old endpoint.
+
     expect(ch).toMatchObject({ routing: 'iana_bootstrap', endpoint: 'https://rdap.example-ch-registry.test/', fixtureTested: true, liveValidatedAt: null });
     expect(t.app.get(RoutesService).route('li')).toMatchObject({ routing: 'curated', endpoint: 'https://rdap.nic.li/' });
   });

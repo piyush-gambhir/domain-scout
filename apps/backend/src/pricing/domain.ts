@@ -8,10 +8,10 @@ export interface DomainRef {
   suffix: string;
 }
 
-/**
- * Normalizes a domain from a route or import row. Prefers the registry module's previewer (suffix
- * rules and IDN handling); falls back to the ICANN section of the Public Suffix List.
- */
+
+
+
+
 export function normalizeDomain(input: string, previewer: InputPreviewer | null): DomainRef | null {
   const trimmed = input.trim().toLowerCase().replace(/\.$/, '');
   if (!trimmed) return null;

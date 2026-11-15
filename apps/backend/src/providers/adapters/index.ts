@@ -9,7 +9,7 @@ import { PorkbunAdapter } from './porkbun.js';
 import { SpaceshipAdapter } from './spaceship.js';
 import type { ProviderAdapter } from './types.js';
 
-/** One adapter per named provider. Directory entries have no adapter. */
+
 export function createAdapters(): Map<string, ProviderAdapter> {
   const adapters: ProviderAdapter[] = [
     new HostingerAdapter(),

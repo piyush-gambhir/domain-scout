@@ -12,7 +12,7 @@ import { ProvidersSettings } from './providers';
 import { SETTINGS_SECTIONS, type SettingsSection } from './sections';
 import { ServiceSettings } from './service';
 
-/** `fill` sections lay out their own scrolling lists; the others scroll as a whole only when long. */
+
 const CONTENT: Record<SettingsSection, { fill: boolean; render: () => React.ReactNode }> = {
   providers: { fill: true, render: () => <ProvidersSettings /> },
   preferences: {

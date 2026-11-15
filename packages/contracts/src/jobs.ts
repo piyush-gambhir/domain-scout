@@ -209,7 +209,7 @@ export const CreateJobRequest = z
 export type CreateJobRequest = z.input<typeof CreateJobRequest>;
 export type CreateJobRequestParsed = z.output<typeof CreateJobRequest>;
 
-/** Bodies for the operation-specific endpoints (POST /quotes etc.); type is implied by the path. */
+
 export const ProviderJobBody = z.object(DomainsByProviders).meta({ id: 'ProviderJobBody' });
 export const AftermarketJobBody = AftermarketJob.omit({ type: true }).meta({ id: 'AftermarketJobBody' });
 export const NameCheckJobBody = NameCheckJob.omit({ type: true }).meta({ id: 'NameCheckJobBody' });
@@ -234,7 +234,7 @@ export const ResultSort = z
     description: 'confirmation orders available, restricted, unknown, unavailable, then items without a provider confirmation',
   });
 
-/** One filter/sort specification shared by result views, CLI queries, exports and saved criteria. */
+
 export const ResultFilter = z
   .object({
     q: z.string().max(200).optional().meta({ description: 'Substring match on the domain or name' }),
@@ -255,7 +255,7 @@ export const ResultFilter = z
 export type ResultFilter = z.input<typeof ResultFilter>;
 export type ResultFilterParsed = z.output<typeof ResultFilter>;
 
-/** Query-string form of ResultFilter: list values are comma separated. */
+
 export const ResultQuery = z.object({
   q: z.string().optional(),
   outcomes: z.string().optional(),
@@ -275,7 +275,7 @@ export const ResultQuery = z.object({
 });
 export type ResultQuery = z.input<typeof ResultQuery>;
 
-/** Convert the query-string form into a structured filter. */
+
 export function resultFilterFromQuery(query: z.output<typeof ResultQuery>): ResultFilterParsed {
   const list = (value: string | undefined) =>
     value === undefined || value === '' ? undefined : value.split(',').map((v) => v.trim()).filter(Boolean);
@@ -296,7 +296,7 @@ export function resultFilterFromQuery(query: z.output<typeof ResultQuery>): Resu
   });
 }
 
-/** Convert a structured filter into query-string parameters. */
+
 export function resultFilterToQuery(filter: ResultFilter): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [key, value] of Object.entries(filter)) {
@@ -321,11 +321,11 @@ export const RecheckRequest = z
   })
   .meta({ id: 'RecheckRequest', description: 'Fresh registry checks for selected domains; prior evidence is kept' });
 
-/**
- * Outcome strings that count as resolved (a definitive answer) per operation. Everything else that
- * finished is unresolved, including unsupported and credential_required: they are not answers, and
- * retrying them can succeed after coverage or credentials change.
- */
+
+
+
+
+
 export const RESOLVED_ITEM_OUTCOMES: Record<JobOperation, readonly string[]> = {
   registry: ['registered', 'no_record', 'invalid'] satisfies RegistryOutcome[],
   provider_check: ['available', 'unavailable', 'restricted'],

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestApp, type TestApp } from '../helpers.js';
 
-/** Boots the full AppModule: these modules must wire up next to every other module. */
+
 describe('full application wiring', () => {
   let t: TestApp;
   beforeAll(async () => {

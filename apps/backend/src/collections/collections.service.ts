@@ -27,7 +27,7 @@ interface EntryRow {
 
 const COLLECTION_SELECT = `SELECT c.*, (SELECT COUNT(*) FROM collection_entries e WHERE e.collection_id = c.id) AS entry_count FROM collections c`;
 
-/** Shortlists. Deleting a collection or entry never deletes evidence. */
+
 @Injectable()
 export class CollectionsService {
   constructor(
@@ -92,7 +92,7 @@ export class CollectionsService {
     return { items: rows.map((row) => this.toEntry(row)), nextCursor: page.next(rows.length, total), total };
   }
 
-  /** All entries without evidence, in shortlist order (for exports). */
+
   entryRows(id: string): { domain: string; unicode: string; notes: string | null }[] {
     this.get(id);
     return this.db.all<EntryRow>('SELECT * FROM collection_entries WHERE collection_id = ? ORDER BY added_at, domain', [id]);

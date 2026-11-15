@@ -29,7 +29,7 @@ export const STRATEGIES: { value: GenerationStrategy; label: string }[] = [
   { value: 'hacks', label: 'Domain hacks' },
 ];
 
-/** Generation rules behind the Ideas options. Generation runs locally; nothing is sent anywhere. */
+
 export interface IdeaRules {
   themes: string[];
   prefixes: string;
@@ -44,7 +44,7 @@ export interface IdeaRules {
   seed: string;
 }
 
-/** Common brand affixes so a couple of keywords already yield a useful list; editable in Options. */
+
 export const DEFAULT_RULES: IdeaRules = {
   themes: [],
   prefixes: 'get, try, use, go, my, hey',
@@ -82,7 +82,7 @@ function intIn(value: string, min: number, max: number): number | null {
   return n >= min && n <= max ? n : null;
 }
 
-/** The generation request for these keywords and rules, or null while a rule is invalid. */
+
 export function buildGeneration(keywords: string, rules: IdeaRules, extensions: string[]): GenerationRequest | null {
   const roots = parseList(keywords).filter((r) => r.length <= 63).slice(0, 200);
   const minLength = intIn(rules.minLength, 1, 63);
@@ -140,7 +140,7 @@ function Themes({ value, onChange }: { value: string[]; onChange: (next: string[
   );
 }
 
-/** Themes, strategies and rules for name ideas. */
+
 export function IdeasOptionsPopover({ value, onChange }: { value: IdeaRules; onChange: (next: IdeaRules) => void }) {
   const set = (patch: Partial<IdeaRules>) => onChange({ ...value, ...patch });
   const changed = JSON.stringify(value) !== JSON.stringify(DEFAULT_RULES) ? 1 : 0;
@@ -240,10 +240,10 @@ function IdeaRow({ candidate, selected, onToggle }: { candidate: Candidate; sele
   );
 }
 
-/**
- * Local name suggestions for the keywords, as a list to pick from. Picking sends nothing; "Check"
- * starts a registry search of the picked names across the chosen extensions.
- */
+
+
+
+
 export function IdeasPanel({
   keywords,
   rules,
@@ -253,14 +253,14 @@ export function IdeasPanel({
   footer,
   initialSelected,
 }: {
-  /** Picks restored from a saved search, applied once the ideas first load. */
+
   initialSelected?: string[];
   keywords: string;
   rules: IdeaRules;
   extensions: string[];
   onCheck: (names: string[], request: GenerationRequest | null) => void;
   pending: boolean;
-  /** Extra actions beside Check, e.g. saving the ideas as a search. */
+
   footer?: (selected: string[], request: GenerationRequest | null) => React.ReactNode;
 }) {
   const request = useMemo(() => buildGeneration(keywords, rules, extensions), [keywords, rules, extensions]);
@@ -282,7 +282,7 @@ export function IdeasPanel({
   );
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const restore = useRef(initialSelected);
-  // Picks survive regeneration only for names still suggested.
+
   useEffect(() => {
     const keys = new Set(candidates.map((c) => c.key));
     if (restore.current && candidates.length) {

@@ -44,7 +44,7 @@ function ScopePicker({ options, value, onChange }: { options: ScopeOption[]; val
   );
 }
 
-/** Files are served by the backend through the /api/v1 forwarder; the session cookie authorizes the download. */
+
 export function apiDownloadUrl(path: string): string {
   if (path.startsWith('/api/v1/')) return path;
   return `/api/v1${path.startsWith('/') ? '' : '/'}${path}`;
@@ -78,7 +78,7 @@ export function ExportDialog({
 }) {
   const [format, setFormat] = useState<Format>('csv');
   const [scope, setScope] = useState<string | null>(null);
-  // TXT keeps only names with no registry record or a positive confirmation unless every name is asked for.
+
   const [everyName, setEveryName] = useState(false);
   const [includeNotes, setIncludeNotes] = useState(false);
   const [artifact, setArtifact] = useState<ExportArtifact | null>(null);

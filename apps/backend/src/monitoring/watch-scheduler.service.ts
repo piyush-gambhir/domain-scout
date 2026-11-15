@@ -33,13 +33,13 @@ interface RunRow {
   note: string | null;
 }
 
-/**
- * Runs due watches through the jobs engine, so source budgets and cooldowns apply automatically.
- *
- * The timer only wakes `tick()`; all scheduling state is in SQLite, so tests drive `tick()` with a
- * FakeClock. On startup, intervals that fell due while the backend was stopped are recorded as one
- * `missed` run row and at most one catch-up run is started per watch.
- */
+
+
+
+
+
+
+
 @Injectable()
 export class WatchScheduler implements OnModuleInit, OnApplicationBootstrap, OnModuleDestroy {
   private readonly logger = new Logger('Monitoring');
@@ -56,7 +56,7 @@ export class WatchScheduler implements OnModuleInit, OnApplicationBootstrap, OnM
     @Optional() private readonly lifecycle?: JobLifecycle,
   ) {}
 
-  /** Registered during init so jobs the engine recovers as interrupted at startup are reported too. */
+
   onModuleInit() {
     this.unsubscribe = this.lifecycle?.onFinished((job) => this.safely(() => this.onJobFinished(job))) ?? null;
   }
@@ -76,7 +76,7 @@ export class WatchScheduler implements OnModuleInit, OnApplicationBootstrap, OnM
     this.unsubscribe = null;
   }
 
-  /** Start every due active watch that has no run in progress. Returns the started job ids. */
+
   tick(): string[] {
     this.reconcileActiveRuns();
     const now = this.clock.iso();
@@ -94,10 +94,10 @@ export class WatchScheduler implements OnModuleInit, OnApplicationBootstrap, OnM
     return started;
   }
 
-  /**
-   * POST /watches/:id/run. Works for paused watches too and does not change the pause state.
-   * A repeated Idempotency-Key returns the job of the run it started, even while it is in progress.
-   */
+
+
+
+
   runNow(watchId: string, idempotencyKey?: string): Job {
     const watch = this.watches.record(watchId);
     if (!this.submitter) throw new AppError('unavailable', 'The job engine is not available');
@@ -115,15 +115,15 @@ export class WatchScheduler implements OnModuleInit, OnApplicationBootstrap, OnM
     return this.start(watch, 'manual', now, next, { throwOnError: true, idempotencyKey })!;
   }
 
-  /**
-   * Startup recovery: close runs left over from the previous process, record intervals missed
-   * while stopped, and start at most one catch-up run per overdue watch.
-   *
-   * Runs whose job already reached a terminal state (it may have finished just before the process
-   * stopped, before its completion was recorded) are finished normally first, so their changes are
-   * still detected. Only runs whose job is not terminal are cancelled; a terminal one whose
-   * processing failed stays open for the next tick to retry.
-   */
+
+
+
+
+
+
+
+
+
   recoverAfterDowntime() {
     this.reconcileActiveRuns({ closeMissing: false });
     const now = this.clock.iso();
@@ -166,7 +166,7 @@ export class WatchScheduler implements OnModuleInit, OnApplicationBootstrap, OnM
     }
   }
 
-  /** Called by the jobs engine after a watch job reaches a terminal state. */
+
   onJobFinished(job: Job) {
     if (!job.watchId || !TERMINAL_JOB_STATES.includes(job.state)) return;
     const watch = this.watches.find(job.watchId);
@@ -180,7 +180,7 @@ export class WatchScheduler implements OnModuleInit, OnApplicationBootstrap, OnM
       const note = job.state === 'interrupted' ? 'The job was interrupted before every item finished.' : null;
       const runs = this.db.all<RunRow>('SELECT * FROM watch_runs WHERE job_id = ? ORDER BY started_at DESC, id', [job.id]);
       if (runs.length) {
-        // A resumed job can finish more than once; changes accumulate on its first run row.
+
         runs.forEach((run, index) => {
           this.db.run(
             `UPDATE watch_runs SET status = ?, finished_at = ?, changes = changes + ?, failures = ?, note = ? WHERE id = ?`,
@@ -223,8 +223,8 @@ export class WatchScheduler implements OnModuleInit, OnApplicationBootstrap, OnM
           ? 'Started manually.'
           : null;
     const record = (job: Job | null, failure: string | null) => {
-      // A job that finished synchronously may already have a run row from onJobFinished; it still
-      // gets the idempotency key so a replay returns this job instead of starting another.
+
+
       const existing = job ? this.db.get<{ id: string }>('SELECT id FROM watch_runs WHERE job_id = ? LIMIT 1', [job.id]) : undefined;
       if (existing && options.idempotencyKey) {
         this.db.run('UPDATE watch_runs SET idempotency_key = COALESCE(idempotency_key, ?) WHERE id = ?', [options.idempotencyKey, existing.id]);
@@ -257,7 +257,7 @@ export class WatchScheduler implements OnModuleInit, OnApplicationBootstrap, OnM
     if (this.submitter) {
       const submitter = this.submitter;
       try {
-        // Submission and run bookkeeping commit together, so a job is never left untracked.
+
         return this.db.transaction(() => {
           const job = submitter.submit(
             request,
@@ -281,16 +281,16 @@ export class WatchScheduler implements OnModuleInit, OnApplicationBootstrap, OnM
     return null;
   }
 
-  /** True while a run row is open; call reconcileActiveRuns() first so finished jobs are closed. */
+
   private hasActiveRun(watchId: string): boolean {
     return this.db.get(`SELECT 1 FROM watch_runs WHERE watch_id = ? AND ${ACTIVE_RUN} LIMIT 1`, [watchId]) !== undefined;
   }
 
-  /**
-   * Close runs whose job already finished (in case a completion notification was missed), whose
-   * job was deleted (job_id set to NULL by the foreign key) or no longer exists. With
-   * `closeMissing: false` only finished jobs are processed.
-   */
+
+
+
+
+
   private reconcileActiveRuns(options: { closeMissing?: boolean } = {}) {
     const closeMissing = options.closeMissing ?? true;
     const runs = this.db.all<RunRow>(`SELECT * FROM watch_runs WHERE ${ACTIVE_RUN}`);
@@ -305,7 +305,7 @@ export class WatchScheduler implements OnModuleInit, OnApplicationBootstrap, OnM
         }
       }
       if (job && TERMINAL_JOB_STATES.includes(job.state)) {
-        // One failing run must not hold back the others; it stays open and is retried next tick.
+
         const finished = job;
         this.safely(() => this.onJobFinished(finished));
       } else if (!job && closeMissing) {
@@ -330,7 +330,7 @@ export class WatchScheduler implements OnModuleInit, OnApplicationBootstrap, OnM
   }
 }
 
-/** First slot on the watch's cadence strictly after `now`. */
+
 export function nextSlotAfter(scheduledFor: string, intervalMinutes: number, now: string): string {
   const intervalMs = intervalMinutes * MINUTE_MS;
   const start = Date.parse(scheduledFor);
@@ -339,7 +339,7 @@ export function nextSlotAfter(scheduledFor: string, intervalMinutes: number, now
   return new Date(start + steps * intervalMs).toISOString();
 }
 
-/** Appends `b` unless the note already says it (a job can be reported finished more than once). */
+
 function joinNotes(a: string | null, b: string | null): string | null {
   if (a && b && a.includes(b)) return a;
   const parts = [a, b].filter((p): p is string => !!p);

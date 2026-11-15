@@ -17,7 +17,7 @@ import { Button } from '../ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { WatchFormDialog } from './watch-form';
 
-/** Follows a run-now job and refreshes the watch, its runs and notices when it finishes. */
+
 function useRunFollower(watchId: string) {
   const client = useQueryClient();
   const [jobId, setJobId] = useState<string | null>(null);
@@ -32,7 +32,7 @@ function useRunFollower(watchId: string) {
   return { setJobId, running: Boolean(jobId && job.data && !done) };
 }
 
-/** Run now, pause or resume, edit and delete for one watch. `compact` renders icon buttons for list rows. */
+
 export function WatchActions({ watch, compact, onDeleted }: { watch: Watch; compact?: boolean; onDeleted?: () => void }) {
   const client = useQueryClient();
   const started = useJobStarted();

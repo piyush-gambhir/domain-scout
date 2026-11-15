@@ -20,7 +20,7 @@ afterEach(() => {
 
 describe('Database.transaction', () => {
   it('surfaces a failed COMMIT, rolls back and leaves the connection usable', () => {
-    // A deferred foreign key is only checked at COMMIT, so the outer commit itself fails.
+
     expect(() => db.transaction(() => db.run('INSERT INTO child (id, parent_id) VALUES (1, 99)'))).toThrow(/FOREIGN KEY/);
     expect(db.inTransaction).toBe(false);
     expect(db.get<{ n: number }>('SELECT COUNT(*) AS n FROM child')?.n).toBe(0);

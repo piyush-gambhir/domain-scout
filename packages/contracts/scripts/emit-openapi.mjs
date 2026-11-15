@@ -1,4 +1,4 @@
-// Writes openapi.json from the compiled contracts. `--check` fails when the committed file drifts.
+
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { buildOpenApiDocument } from '../dist/index.js';

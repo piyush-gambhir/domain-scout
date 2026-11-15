@@ -6,8 +6,8 @@ describe('job capacity', () => {
   let t: JobsTestApp;
   afterEach(() => t?.close());
 
-  // B08: at least 1,000 unique domains after expansion, without manual splitting. Deterministic fake
-  // transport; registry spacing is disabled so this measures the engine, not a registry's limits.
+
+
   it('runs a 1,000-item job with every item accounted for', async () => {
     t = await createJobsApp({ engine: { batchSize: 32, maxBuffered: 128 } });
     const suffixes = ['com', 'net', 'org', 'io', 'dev', 'si', 'de', 'uk'];

@@ -16,10 +16,10 @@ export function RelativeTime({ iso, className }: { iso: string | null | undefine
   );
 }
 
-/**
- * Freshness as of now: the server computes it at read time, and the client advances it with the
- * provider quote expiry and staleAt so an open page does not keep calling old evidence fresh.
- */
+
+
+
+
 export function useFreshness(
   freshness: FreshnessValue | null | undefined,
   staleAt: string | null | undefined,
@@ -53,7 +53,7 @@ export function FreshnessText({
   );
 }
 
-/** "3 min ago · Stale" in one line. */
+
 export function CheckedAt({
   iso,
   freshness,
@@ -64,7 +64,7 @@ export function CheckedAt({
   iso: string | null | undefined;
   freshness?: FreshnessValue | null;
   staleAt?: string | null;
-  /** Provider-supplied quote expiry; takes precedence over staleAt. */
+
   expiresAt?: string | null;
   className?: string;
 }) {

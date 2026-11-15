@@ -99,7 +99,7 @@ describe('domain evidence aggregation', () => {
     expect(evidence.collections).toEqual([{ id: ids.collection, name: 'Mine', notes: 'keep' }]);
     expect(evidence.providers[0]).toMatchObject({ providerId: 'porkbun', supportsSuffix: 'yes' });
 
-    // A diagnostic with no DNS answer never changes the registry history.
+
     expect(evidence.registry[0]!.outcome).toBe('no_record');
   });
 

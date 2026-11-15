@@ -40,10 +40,10 @@ interface ExportOptions {
   resolved: ResolvedScope;
 }
 
-/**
- * TXT, CSV and JSON exports. The scope is resolved to stable item and evidence ids and the file is
- * written when the export is created, so later job changes never alter an existing export.
- */
+
+
+
+
 @Injectable()
 export class ExportsService {
   constructor(
@@ -70,7 +70,7 @@ export class ExportsService {
     let fields: ExportField[];
     let content: string;
     let itemCount = records.length;
-    // TXT is a plain candidate list: it keeps candidates only unless the request opts out explicitly.
+
     const candidatesOnly = body.format === 'txt' && body.candidatesOnly !== false;
     if (body.format === 'txt') {
       fields = ['domain'];
@@ -144,10 +144,10 @@ export class ExportsService {
     this.store.delete('export', id, [row.file_name]);
   }
 
-  /**
-   * Chosen fields (default DEFAULT_EXPORT_FIELDS) plus the fields that keep uncertainty visible.
-   * Notes appear only when includeNotes is set.
-   */
+
+
+
+
   private fields(body: ExportInput, warnings: string[]): ExportField[] {
     const chosen = [...new Set(body.fields?.length ? body.fields : DEFAULT_EXPORT_FIELDS)];
     const missing = REQUIRED_STRUCTURED_FIELDS.filter((f) => !chosen.includes(f));
@@ -197,7 +197,7 @@ function jsonExport(
     const price = pickPrice(record);
     const row: Record<string, unknown> = {};
     for (const field of fields) row[field] = fieldValue(record, field, price);
-    // Name checks, diagnostics and listings stay separate evidence, each with its own source and time.
+
     if (record.other.length) row.checks = record.other.map((check) => ({ ...check }));
     return row;
   });

@@ -8,7 +8,7 @@ import { EvidenceRepository } from '../../src/storage/evidence.js';
 import { createJobsApp, fakeHandler, gate, registryResult, waitFor, type JobsTestApp } from '../jobs/helpers.js';
 import { offerWrite } from '../jobs/offer-fixture.js';
 
-/** Watches driven through the real jobs engine (handlers are fakes; no network). */
+
 describe('watches on the jobs engine', () => {
   let t: JobsTestApp | undefined;
   let dataDir: string | undefined;
@@ -39,8 +39,8 @@ describe('watches on the jobs engine', () => {
     let price = '10.00';
     app.registry.use(
       fakeHandler({ operation: 'quote', execute: () => ({ outcome: 'unavailable', resolved: true, evidence: [] }) }),
-      // Like the catalog service: the refresh commits its fetch and offers itself, then reports
-      // the offer ids for the engine to link to the item.
+
+
       fakeHandler({
         operation: 'catalog',
         execute: (item, ctx) => {
@@ -65,7 +65,7 @@ describe('watches on the jobs engine', () => {
     const watch = await createWatch(app, { providerIds: ['porkbun'], includeRegistry: false, includeCatalogPrices: true });
 
     expect((await runWatch(app, watch.id)).state).toBe('completed');
-    expect(await notices(app)).toHaveLength(0); // first observation: nothing to compare with
+    expect(await notices(app)).toHaveLength(0);
 
     price = '11.00';
     app.clock.advance(60_000);
@@ -89,7 +89,7 @@ describe('watches on the jobs engine', () => {
     const watch = await createWatch(t, { includeRegistry: true });
     await runWatch(t, watch.id);
 
-    // The process stops after the job commits but before monitoring hears about it.
+
     t.app.get(WatchScheduler).onModuleDestroy();
     outcome = 'no_record';
     t.clock.advance(60_000);
@@ -117,7 +117,7 @@ describe('watches on the jobs engine', () => {
     const crashed = await runWatch(t, watch.id);
     await t.close();
 
-    // Change detection throws once during startup recovery.
+
     const detect = vi.spyOn(ChangeDetector.prototype, 'detect').mockImplementationOnce(() => {
       throw new Error('disk I/O error');
     });
@@ -185,11 +185,11 @@ describe('watches on the jobs engine', () => {
     hold.open();
     const done = await app.finished(job.id);
     expect(done.watchId).toBeNull();
-    // Results of the detached job are still recorded, but nothing refers to the deleted watch.
+
     const all = app.events.read(0, {}, 100_000);
     expect(all.filter((e) => e.jobId === job.id && e.type === 'result.observed')).toHaveLength(2);
     expect(all.filter((e) => e.watchId === watch.id)).toEqual([]);
-    // Only the deletion tombstone may still name the watch; it carries no watch details.
+
     const tombstones = all.filter((e) => e.type === 'watch.deleted');
     expect(tombstones.map((e) => e.payload)).toEqual([{ watchId: watch.id, deletedAt: expect.any(String) }]);
     expect(JSON.stringify(all.filter((e) => e.type !== 'watch.deleted').map((e) => e.payload))).not.toContain(watch.id);

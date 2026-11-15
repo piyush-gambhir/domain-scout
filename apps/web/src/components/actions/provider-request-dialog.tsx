@@ -28,7 +28,7 @@ const OPERATIONS: { value: ProviderOperation; label: string; capability: Capabil
   { value: 'transfer', label: 'Transfer prices', capability: 'transfer', started: 'Transfer price lookups started' },
 ];
 
-/** Usable for this capability now: enabled, supported, and with credentials when they are required. */
+
 function blockedReason(provider: Provider, capability: CapabilityName): string | null {
   const cap = provider.capabilities[capability];
   if (cap.requiresCredentials && !provider.credentials.configured) return 'Needs credentials';
@@ -36,10 +36,10 @@ function blockedReason(provider: Provider, capability: CapabilityName): string |
   return null;
 }
 
-/**
- * Exact-name quotes, provider availability checks or transfer prices for selected domains and
- * providers. Names go only to the chosen providers, which the disclosure line names before submit.
- */
+
+
+
+
 export function ProviderRequestDialog({
   open,
   onOpenChange,
@@ -51,7 +51,7 @@ export function ProviderRequestDialog({
   onOpenChange: (open: boolean) => void;
   target: DomainTarget;
   defaultOperation?: ProviderOperation;
-  /** Providers checked initially, e.g. from restored criteria. */
+
   defaultSelected?: string[];
 }) {
   const providers = useProviders();

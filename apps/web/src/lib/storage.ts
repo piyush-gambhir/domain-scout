@@ -1,4 +1,4 @@
-/** Browser storage that never throws (private windows, blocked storage, server rendering). */
+
 type Area = 'local' | 'session';
 
 function area(kind: Area): Storage | null {
@@ -25,7 +25,7 @@ export function writeStorage(kind: Area, key: string, value: string | null): voi
     if (value === null) store.removeItem(key);
     else store.setItem(key, value);
   } catch {
-    // Storage full or blocked: the UI keeps working without persistence.
+
   }
 }
 

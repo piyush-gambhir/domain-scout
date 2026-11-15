@@ -4,7 +4,7 @@ import { AlertDialog as AlertPrimitive } from 'radix-ui';
 import { Button } from './button';
 import { useReturnFocus } from './dialog';
 
-/** Confirmation for destructive actions only. Routine checks never ask for confirmation. */
+
 export function ConfirmDialog({
   open,
   onOpenChange,
@@ -22,7 +22,7 @@ export function ConfirmDialog({
   confirmLabel: string;
   onConfirm: () => void;
   pending?: boolean;
-  /** Extra detail under the description, e.g. the exact records a deletion removes. */
+
   children?: React.ReactNode;
 }) {
   const returnFocus = useReturnFocus();

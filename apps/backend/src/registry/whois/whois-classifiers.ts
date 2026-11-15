@@ -23,13 +23,13 @@ import {
 
 export { classifyWhois, type WhoisContext, type WhoisParser } from './whois-common.js';
 
-/**
- * DENIC (.de), queried with `-T dn,ace`. Status values from DENIC's domain status documentation
- * (https://docs.denic.de/en/Content/DENIC-29/Domain-Status.htm): connect, failed and
- * redemptionPeriod are registered objects; free has no registration; invalid cannot be registered.
- * Throttle: "% Error: 55000000002 Connection refused; access control limit reached." (also seen as
- * "exceeded").
- */
+
+
+
+
+
+
+
 const denic: WhoisParser = {
   id: 'denic',
   version: 'whois-denic/1',
@@ -77,11 +77,11 @@ const denic: WhoisParser = {
   },
 };
 
-/**
- * JPRS (.jp), queried with the /e suffix for English labels. Free: "No match!!". Registered:
- * "[Domain Name]" line (prefixed "a." for organizational second-level names). Throttle text from
- * https://jprs.jp/about/dom-search/jprs-whois/whois-guide-notes.html.
- */
+
+
+
+
+
 const jprs: WhoisParser = {
   id: 'jprs',
   version: 'whois-jprs/1',
@@ -123,11 +123,11 @@ const jprs: WhoisParser = {
   },
 };
 
-/**
- * CNNIC (.cn). Free: "No matching record." Registered: "Domain Name:" record with Beijing-time
- * dates. Throttle text "Queried interval is too short." is taken from third-party relays of CNNIC
- * replies (not CNNIC documentation).
- */
+
+
+
+
+
 const cnnic: WhoisParser = {
   id: 'cnnic',
   version: 'whois-cnnic/1',
@@ -161,11 +161,11 @@ const cnnic: WhoisParser = {
   },
 };
 
-/**
- * EURid (.eu). Free: "Status: AVAILABLE" under the matching "Domain:" line. Registered replies have
- * no Status line and a "Registrar:" block. Any other status is inconclusive. Throttle text
- * "Excessive querying, grace period of N seconds" (EURid and DNS Belgium; older community reports).
- */
+
+
+
+
+
 const eurid: WhoisParser = {
   id: 'eurid',
   version: 'whois-eurid/1',

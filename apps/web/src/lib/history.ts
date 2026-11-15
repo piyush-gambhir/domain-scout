@@ -3,13 +3,13 @@ import { formatCount } from './format';
 
 type HistoryEntry = OperationResponse<'listHistory'>['data'][number];
 
-/**
- * Origins of work a person or their agent started: the web UI, the CLI (and MCP) and direct API
- * calls. Jobs from before origins were recorded read as api. Watch runs and system jobs are hidden.
- */
+
+
+
+
 export const PEOPLE_ORIGINS = 'ui,cli,api';
 
-/** "12 not registered of 40" for a finished search; progress while it runs. */
+
 export function searchSummary(entry: Pick<HistoryEntry, 'state' | 'type' | 'total' | 'finished' | 'outcomes'>): string {
   if (entry.state === 'queued' || entry.state === 'running' || entry.state === 'cancelling') return `Checking ${formatCount(entry.finished)} of ${formatCount(entry.total)}`;
   if (entry.type !== 'registry_scan' && entry.type !== 'watch') return `${formatCount(entry.total)} items`;

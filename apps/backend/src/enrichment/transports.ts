@@ -4,10 +4,10 @@ import { isIP, type LookupFunction } from 'node:net';
 import { checkServerIdentity, connect } from 'node:tls';
 import { packageVersion } from '../core/config.js';
 
-/**
- * Network transports for enrichment, injected by token so tests never touch the network.
- * Override with Test.createTestingModule(...).overrideProvider(TOKEN) or construct handlers directly.
- */
+
+
+
+
 export const ENRICHMENT_FETCH = Symbol('ENRICHMENT_FETCH');
 export const DNS_TRANSPORT = Symbol('DNS_TRANSPORT');
 export const TLS_PROBE = Symbol('TLS_PROBE');
@@ -15,7 +15,7 @@ export const HTTP_PROBE = Symbol('HTTP_PROBE');
 
 export type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
 
-/** Looks up globalThis.fetch at call time so a test spy on fetch observes every request. */
+
 export const defaultFetch: FetchLike = (url, init) => globalThis.fetch(url, init);
 
 export const USER_AGENT = `DomainScout/${packageVersion()} (local naming research tool; requested name checks only)`;
@@ -29,11 +29,11 @@ export interface DnsRecord {
   ttl?: number;
 }
 
-/** OS resolver access. Errors carry node:dns codes such as ENOTFOUND, ENODATA, ETIMEOUT. */
+
 export interface DnsTransport {
   servers(): string[];
   query(name: string, type: DnsRecordType, options: { timeoutMs: number; signal: AbortSignal }): Promise<DnsRecord[]>;
-  /** Every address the OS would connect to for `host` (getaddrinfo), used to vet TLS/HTTP targets. */
+
   lookup(host: string, options: { signal: AbortSignal }): Promise<string[]>;
 }
 
@@ -64,7 +64,7 @@ export class NodeDnsTransport implements DnsTransport {
 
   async lookup(host: string, options: { signal: AbortSignal }): Promise<string[]> {
     options.signal.throwIfAborted();
-    // getaddrinfo cannot be cancelled; stop waiting when the signal aborts.
+
     return new Promise<string[]>((resolve, reject) => {
       const onAbort = () => reject(options.signal.reason ?? new Error('aborted'));
       options.signal.addEventListener('abort', onAbort, { once: true });
@@ -92,11 +92,11 @@ export interface TlsProbeResult {
   certificate: TlsCertificateInfo | null;
 }
 
-/**
- * TLS handshake probe. `address` is the vetted IP to connect to (pinned) and `servername` is sent as
- * SNI and used for certificate identity checks. Rejects with an error whose `code` is ETIMEDOUT,
- * ECONNREFUSED, ENOTFOUND, etc.
- */
+
+
+
+
+
 export type TlsProbe = (
   address: string,
   port: number,
@@ -109,12 +109,12 @@ export const nodeTlsProbe: TlsProbe = (address, port, options) =>
       reject(options.signal.reason ?? new Error('aborted'));
       return;
     }
-    // rejectUnauthorized is off so an untrusted certificate is still observed; `authorized` reports trust.
+
     const socket = connect({
       host: address,
       port,
       servername: options.servername,
-      // Identity is checked against the domain, not the pinned address.
+
       checkServerIdentity: (_host, cert) => checkServerIdentity(options.servername, cert),
       rejectUnauthorized: false,
       ALPNProtocols: ['http/1.1'],
@@ -161,15 +161,15 @@ export const nodeTlsProbe: TlsProbe = (address, port, options) =>
 
 export interface HttpProbeRequest {
   method: 'HEAD' | 'GET';
-  /** Domain used for the URL, SNI, Host header and certificate validation. */
+
   host: string;
-  /** Vetted public address the connection is pinned to; the name is not resolved again. */
+
   address: string;
   path: string;
   headers: Record<string, string>;
   timeoutMs: number;
   signal: AbortSignal;
-  /** Body bytes read at most (GET); the rest is discarded. */
+
   maxBytes: number;
 }
 
@@ -181,10 +181,10 @@ export interface HttpProbeResponse {
   truncated: boolean;
 }
 
-/** One HTTPS request without redirects. Rejects with errors carrying `code` (ETIMEDOUT, ECONNREFUSED, CERT_*). */
+
 export type HttpProbe = (request: HttpProbeRequest) => Promise<HttpProbeResponse>;
 
-/** A lookup that always answers with one pinned address, so the socket cannot be steered elsewhere. */
+
 export function pinnedLookup(address: string): LookupFunction {
   const family = isIP(address);
   return ((_hostname: string, options: { all?: boolean } | undefined, callback: (...args: unknown[]) => void) => {
@@ -208,7 +208,7 @@ export const nodeHttpProbe: HttpProbe = (req) =>
       fn();
       outgoing.destroy();
     };
-    // Certificate validation stays on and is checked against `host` (servername), not the address.
+
     const outgoing = httpsRequest({
       host: req.host,
       servername: req.host,
@@ -245,7 +245,7 @@ export const nodeHttpProbe: HttpProbe = (req) =>
       incoming.on('data', (chunk: Buffer) => {
         bytesRead += chunk.length;
         if (bytesRead >= req.maxBytes) {
-          // Reading stops at the cap; anything after it is discarded unread.
+
           truncated = true;
           bytesRead = req.maxBytes;
           done();

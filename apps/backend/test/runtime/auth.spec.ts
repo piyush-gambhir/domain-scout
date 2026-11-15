@@ -62,7 +62,7 @@ describe('local auth', () => {
     const reused = await t.anon.post('/auth/session').send({ code }).expect(401);
     expect(reused.body.error.code).toBe('unauthorized');
 
-    // Only hashes are stored.
+
     const db = t.app.get(Database);
     expect(JSON.stringify(db.all('SELECT * FROM bootstrap_codes'))).not.toContain(code);
     expect(JSON.stringify(db.all('SELECT * FROM sessions'))).not.toContain(info.sessionId);

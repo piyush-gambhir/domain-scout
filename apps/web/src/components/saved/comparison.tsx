@@ -24,11 +24,11 @@ const MISSING_LABEL: Record<string, string> = {
   fx_rate: 'exchange rate',
 };
 
-/** How costs are compared in a list: horizon, currency, purchase path and providers. */
+
 export interface CompareOptions {
-  /** Null: settings decide. */
+
   horizon: number | null;
-  /** 'default': settings decide; 'original': keep each provider's currency; else convert with a saved rate. */
+
   currency: string;
   path: PurchasePath;
   providerIds: string[];
@@ -57,10 +57,10 @@ function Amount({ value, currency }: { value: string | null; currency: string | 
 
 const grid = 'grid grid-cols-[minmax(8rem,1.2fr)_minmax(6rem,1fr)_minmax(6rem,1fr)_minmax(7rem,1.2fr)_minmax(6rem,0.8fr)_3.5rem] items-center gap-x-4';
 
-/**
- * Ownership cost by provider for one saved name, from retained offers only (nothing is sent to a
- * provider). The cheapest confirmed total is marked; totals with unknown tax or fees say so.
- */
+
+
+
+
 export function ProviderComparison({ domain, options, names }: { domain: string; options: CompareOptions; names: Map<string, string> }) {
   const request = comparisonRequest([domain], options);
   const comparison = useQuery({

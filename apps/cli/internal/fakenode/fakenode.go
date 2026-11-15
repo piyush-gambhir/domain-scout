@@ -1,8 +1,3 @@
-// Package fakenode lets a Go test binary stand in for `node` when the
-// launcher spawns the backend or web server. It is imported only by tests.
-//
-// A test sets DOMAIN_SCOUT_NODE to os.Args[0] and passes FAKE_NODE=1 in the
-// child environment; TestMain calls Main, which takes over the process.
 package fakenode
 
 import (
@@ -18,27 +13,24 @@ import (
 	"time"
 )
 
-// Env variables that control the fake.
 const (
-	EnvActive   = "FAKE_NODE"              // "1" enables the fake
-	EnvVersion  = "FAKE_NODE_VERSION"      // `node --version` output (default v26.12.1)
-	EnvProtocol = "FAKE_NODE_PROTOCOL"     // protocolVersion the fake backend reports (default 1)
-	EnvWebDelay = "FAKE_NODE_WEB_DELAY_MS" // delay before the fake UI server listens
-	// EnvAppVersion is the application version the fake backend reports (default 0.0.0-fake).
+	EnvActive   = "FAKE_NODE"
+	EnvVersion  = "FAKE_NODE_VERSION"
+	EnvProtocol = "FAKE_NODE_PROTOCOL"
+	EnvWebDelay = "FAKE_NODE_WEB_DELAY_MS"
+
 	EnvAppVersion = "FAKE_NODE_APP_VERSION"
-	// EnvBusy makes POST /service/stop-unless-busy answer 409 as a busy backend does.
+
 	EnvBusy = "FAKE_NODE_BUSY"
-	// EnvNoConditionalStop serves no /service/stop-unless-busy, like a backend that predates it.
+
 	EnvNoConditionalStop = "FAKE_NODE_NO_CONDITIONAL_STOP"
-	// EnvStopOnce names a route ("GET /api/v1/jobs") the first backend for a data
-	// directory refuses as "stopping" before exiting, like an idle stop racing a request.
+
 	EnvStopOnce = "FAKE_NODE_STOP_ONCE"
-	// EnvLocked makes the backend exit as the real one does when another holds the data directory lock.
+
 	EnvLocked = "FAKE_NODE_LOCKED"
 	Token     = "fake-token"
 )
 
-// Main runs the fake when enabled and never returns in that case.
 func Main() {
 	if os.Getenv(EnvActive) != "1" {
 		return

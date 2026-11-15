@@ -8,7 +8,7 @@ export interface SseMessage {
   json: any;
 }
 
-/** Minimal incremental SSE reader for tests (supertest buffers until the response ends). */
+
 export class SseClient {
   readonly messages: SseMessage[] = [];
   private buffer = '';
@@ -43,7 +43,7 @@ export class SseClient {
     return this.res.statusCode ?? 0;
   }
 
-  /** Resolves once `predicate` holds for the received messages. */
+
   waitFor(predicate: (messages: SseMessage[]) => boolean, timeoutMs = 3000): Promise<SseMessage[]> {
     return new Promise((resolve, reject) => {
       const check = () => {
@@ -64,7 +64,7 @@ export class SseClient {
     });
   }
 
-  /** Messages other than heartbeats. */
+
   events(): SseMessage[] {
     return this.messages.filter((m) => m.event !== 'heartbeat');
   }

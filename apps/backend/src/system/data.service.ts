@@ -10,20 +10,20 @@ import { runtimePaths } from '../runtime/paths.js';
 import { Database, json } from '../storage/database.js';
 import { DATABASE_FILE } from '../storage/storage.module.js';
 
-/**
- * What each category covers (counts are rows of the listed tables):
- * - jobs: finished jobs with their items and idempotency keys (active jobs are never deleted)
- * - registry_evidence / name_checks / diagnostics: observations of that kind (raw responses cascade)
- * - provider_evidence: provider confirmations and aftermarket listings
- * - price_history: offers (catalog prices and exact quotes), catalog fetch records, derived best prices
- * - raw_diagnostics: retained raw responses only (observations stay)
- * - collections: shortlists and their entries; criteria: saved criteria and extension presets
- * - watches: watches with their runs and notices; portfolio: imported portfolio entries
- * - artifacts: export and snapshot records and their files under <dataDir>/artifacts
- *
- * Deleting evidence or prices also removes the copies other records carry: notices whose before or
- * after evidence is gone, and events whose payload repeats deleted evidence, prices or notices.
- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const COUNT_SQL: Record<DataCategory, string> = {
   jobs: 'SELECT COUNT(*) AS n FROM jobs',
   registry_evidence: "SELECT COUNT(*) AS n FROM observations WHERE kind = 'registry'",
@@ -54,7 +54,7 @@ export interface DataDeleteInput {
   before?: string;
 }
 
-/** Local data inventory and scoped deletion that preserves unrelated records. */
+
 @Injectable()
 export class DataService {
   constructor(
@@ -74,7 +74,7 @@ export class DataService {
     };
   }
 
-  /** Database file plus its active WAL and shared-memory files. */
+
   databaseBytes(): number {
     if (this.config.dataDir === ':memory:') return 0;
     const base = resolve(this.config.dataDir, DATABASE_FILE);
@@ -98,7 +98,7 @@ export class DataService {
     const artifactFiles: string[] = [];
     let wipeArtifacts = false;
 
-    // secure_delete zeroes freed pages so removed data does not linger in the database file.
+
     const previous = this.db.get<{ secure_delete: number }>('PRAGMA secure_delete')?.secure_delete ?? 0;
     this.db.exec('PRAGMA secure_delete = ON');
     let deleted: { category: DataCategory; count: number }[];
@@ -125,7 +125,7 @@ export class DataService {
       this.db.exec(`PRAGMA secure_delete = ${previous ? 'ON' : 'OFF'}`);
     }
 
-    // Files go after the commit: a failed unlink leaves an orphan file, never a dangling record.
+
     if (categories.includes('artifacts')) this.removeArtifactFiles(artifactFiles, wipeArtifacts);
     this.db.checkpoint();
     return { deleted };
@@ -153,7 +153,7 @@ export class DataService {
         return offers;
       }
       case 'collections': {
-        // Entries cascade; the evidence they pointed at is kept.
+
         if (!collectionIds) return this.run('DELETE FROM collections WHERE 1 = 1', [], 'created_at', before);
         let count = 0;
         for (const chunk of chunks(collectionIds)) {
@@ -175,11 +175,11 @@ export class DataService {
     }
   }
 
-  /**
-   * Removes copies of deleted evidence: notices that compare it, then events repeating it (including
-   * notice.created for those notices). Event deletion advances the replay watermark, so a client
-   * resuming from an older cursor gets stream.reset instead of a gap.
-   */
+
+
+
+
+
   private deleteCopies(categories: DataCategory[]) {
     const evidence = categories.some((c) => OBSERVATION_KINDS[c]);
     const prices = categories.includes('price_history');
@@ -193,7 +193,7 @@ export class DataService {
     this.events.deleteOrphanedCopies({ evidence, prices, notices: true });
   }
 
-  /** Finished jobs only; running work belongs to the jobs engine. Items and idempotency keys cascade. */
+
   private deleteJobs(before: string | null): number {
     const states = TERMINAL_JOB_STATES as readonly string[];
     const ids = this.ids(
@@ -210,7 +210,7 @@ export class DataService {
     return count;
   }
 
-  /** Watches with their runs and notices; jobs they started stay, detached from the watch. */
+
   private deleteWatches(before: string | null): number {
     const ids = this.ids(`SELECT id FROM watches${before ? ' WHERE created_at < ?' : ''}`, before ? [before] : []);
     let count = 0;
@@ -227,7 +227,7 @@ export class DataService {
     for (const chunk of chunks(rows.map((r) => r.id))) {
       count += this.db.run(`DELETE FROM artifacts WHERE id IN (${chunk.map(() => '?').join(',')})`, chunk).changes;
     }
-    // Snapshots keep a second (JSON) file whose name the exports module records in options_json.
+
     const extra = (r: { options_json: string }) => {
       const file = json.parse<{ jsonFile?: unknown }>(r.options_json, {}).jsonFile;
       return typeof file === 'string' ? [file] : [];
@@ -235,12 +235,12 @@ export class DataService {
     return { count, files: rows.flatMap((r) => [r.file_name, r.id, ...extra(r)]) };
   }
 
-  /**
-   * Removes artifact files that are direct entries of <dataDir>/artifacts (the exports module stores
-   * basenames only). Each name is matched exactly and as an id prefix (`<id>.html`). Without a time
-   * bound every entry goes. Path-like names are ignored, and rm never follows a symlinked entry, so
-   * nothing outside the directory can be reached.
-   */
+
+
+
+
+
+
   private removeArtifactFiles(names: string[], wipe: boolean) {
     const root = runtimePaths(this.config.dataDir).artifactsDir;
     try {

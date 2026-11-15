@@ -24,7 +24,7 @@ export class NameCheckCatalogService extends NameCheckCatalog {
   }
 }
 
-/** Requested name checks and DNS/DNSSEC/TLS/HTTP diagnostics. Global so NameCheckCatalog is injectable anywhere. */
+
 @Global()
 @Module({
   controllers: [EnrichmentController],

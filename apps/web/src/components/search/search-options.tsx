@@ -10,8 +10,8 @@ import { SwitchField } from '../ui/switch';
 import { OptionsTrigger } from './search-field';
 import { type Format, type SearchOptions, optionsChanged } from './search-state';
 
-/** Input format, CSV column, recheck and label: choices most searches never need. */
-/** Saves the typed names and extensions as a named search to restore later from Saved. */
+
+
 function SaveSearch({ onSave, saving }: { onSave: (name: string) => Promise<unknown>; saving: boolean }) {
   const [name, setName] = useState('');
   return (

@@ -9,7 +9,7 @@ const PAD = { top: 12, right: 16, bottom: 24, left: 64 };
 
 export type PriceField = 'registration' | 'renewal' | 'transfer';
 
-/** The amount a series is about: transfer series chart the transfer price, renewal series the renewal. */
+
 export function primaryField(series: Pick<PriceSeries, 'purchasePath'>): PriceField {
   if (series.purchasePath === 'transfer') return 'transfer';
   if (series.purchasePath === 'renewal') return 'renewal';
@@ -18,7 +18,7 @@ export function primaryField(series: Pick<PriceSeries, 'purchasePath'>): PriceFi
 
 interface Plotted {
   time: number;
-  /** Plot position only. Displayed amounts always use the original decimal string. */
+
   value: number;
   amount: string;
   observedAt: string;
@@ -49,10 +49,10 @@ function niceTicks(min: number, max: number, count = 3): number[] {
   return ticks;
 }
 
-/**
- * Observed prices over time for one comparable series. Unknown amounts are not plotted, and the line
- * breaks at unknown amounts and at reported gaps: missing periods stay visibly missing.
- */
+
+
+
+
 export function PriceChart({ series, field }: { series: PriceSeries; field: PriceField }) {
   const { ref, width } = useWidth<HTMLDivElement>();
   const [active, setActive] = useState<number | null>(null);
@@ -61,7 +61,7 @@ export function PriceChart({ series, field }: { series: PriceSeries; field: Pric
   const gaps = series.gaps.map((g) => ({ from: new Date(g.from).getTime(), to: new Date(g.to).getTime() }));
   const times = [...sorted.map((p) => new Date(p.observedAt).getTime()), ...gaps.flatMap((g) => [g.from, g.to])];
 
-  // Segments break on an unknown amount or a reported gap between neighbours.
+
   const segments: Plotted[][] = [];
   const plotted: Plotted[] = [];
   let current: Plotted[] = [];
@@ -84,7 +84,7 @@ export function PriceChart({ series, field }: { series: PriceSeries; field: Pric
   if (current.length) segments.push(current);
 
   const summary = `${plotted.length} observed ${field} prices${gaps.length ? ` with ${gaps.length} period${gaps.length === 1 ? '' : 's'} without observations` : ''}`;
-  // The measured wrapper stays mounted so a later refetch with known amounts can draw.
+
   if (plotted.length === 0) {
     return (
       <div ref={ref} className="w-full">
@@ -98,7 +98,7 @@ export function PriceChart({ series, field }: { series: PriceSeries; field: Pric
   const values = plotted.map((p) => p.value);
   const low = Math.min(...values);
   const high = Math.max(...values);
-  // Pad the observed range so points never sit on the plot edge; ticks fall inside it.
+
   const spread = high - low || Math.max(high * 0.1, 1);
   const yMin = Math.max(0, low - spread * 0.25);
   const yMax = high + spread * 0.25;

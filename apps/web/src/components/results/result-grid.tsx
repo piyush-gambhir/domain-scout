@@ -22,9 +22,9 @@ export interface ResultActions {
 }
 
 interface GridProps {
-  /** Pending rows read "Checking" while the search runs and "Not checked" after it stopped. */
+
   running: boolean;
-  /** The list one keystroke saves to; the bookmark shows membership there. */
+
   savedListId: string | null;
   items: JobItem[];
   extensions: string[];
@@ -71,10 +71,10 @@ function cellTip(item: JobItem, line: PriceLine | null, horizon: number) {
   );
 }
 
-/**
- * Names down, extensions across: the answer to "which of these are free and what do they cost" at a
- * glance. Free cells are tinted so they stand out without color; taken ones recede.
- */
+
+
+
+
 export function ResultGrid({ running, savedListId, items, extensions, prices, currency, horizon, names, activeDomain, checking, watchIndex, buyFor, onBuyFor, actions }: GridProps) {
   const { labels, columns, cells, firstCell } = useMemo(() => {
     const labels: { key: string; display: string }[] = [];
@@ -91,7 +91,7 @@ export function ResultGrid({ running, savedListId, items, extensions, prices, cu
       if (!cols.includes(suffix)) cols.push(suffix);
       cells.set(`${label}|${suffix}`, item);
     }
-    // Only extensions that hold at least one result get a column.
+
     const used = new Set(items.map((i) => i.suffix ?? ''));
     const columns = cols.filter((c) => used.has(c));
     let firstCell = { r: 0, c: 0 };
@@ -125,7 +125,7 @@ export function ResultGrid({ running, savedListId, items, extensions, prices, cu
   };
 
   const template = `minmax(8rem, 13rem) repeat(${columns.length}, minmax(8.5rem, 1fr))`;
-  // Scroll sideways only when every column at its minimum no longer fits.
+
   const minWidth = `calc(8rem + ${columns.length} * 8.5rem + ${columns.length} * 0.375rem)`;
 
   return (
@@ -291,7 +291,7 @@ function GridCell({
       </Tooltip>
       <div
         className={cn(
-          // Bottom right, over the short second line; the cell tint backs it so text never shows through.
+
           'absolute bottom-1 right-1 flex items-center gap-0.5 rounded-md p-0.5 opacity-0 transition-opacity group-focus-within/cell:opacity-100 group-hover/cell:opacity-100',
           free ? 'bg-input group-hover/cell:bg-selected' : 'bg-background group-hover/cell:bg-hover',
           active && 'bg-selected group-hover/cell:bg-selected',

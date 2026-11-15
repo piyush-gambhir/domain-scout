@@ -6,23 +6,23 @@ export interface BuiltQuery {
   params: SQLInputValue[];
 }
 
-/** Keyset position: [seq] for input order, else [nullRank, sortValue, seq]. */
+
 export type ResultKey = SQLInputValue[];
 
 interface SortSpec {
-  /** Sort expression; null sorts by input order only. */
+
   expr: string | null;
-  /** Value standing in for NULL inside the keyset tuple (nulls are ordered by a separate flag). */
+
   fallback: string;
 }
 
-/** Registrable label length in visible characters: the Unicode text before the suffix, or the whole name. */
+
 const LABEL_LENGTH = `(CASE WHEN i.suffix IS NULL OR instr(i.unicode, '.') = 0 THEN length(i.unicode) ELSE instr(i.unicode, '.') - 1 END)`;
 
 const statusRank = (payload: string) =>
   `CASE json_extract(${payload}, '$.status') WHEN 'available' THEN 0 WHEN 'restricted' THEN 1 WHEN 'unknown' THEN 2 WHEN 'unavailable' THEN 3 END`;
 
-/** Same evidence rule as the confirmations filter: the item's own confirmation, else the newest for its domain. */
+
 const CONFIRMATION_RANK = `COALESCE(
   (SELECT ${statusRank('co.payload_json')} FROM json_each(i.evidence_json, '$.observations') je
      CROSS JOIN observations co ON co.id = je.value WHERE co.kind = 'confirmation' LIMIT 1),
@@ -36,7 +36,7 @@ const SORTS: Record<ResultFilterParsed['sort'], SortSpec> = {
   length: { expr: LABEL_LENGTH, fallback: '0' },
   outcome: { expr: 'i.outcome', fallback: "''" },
   checkedAt: { expr: 'COALESCE(ro.observed_at, i.finished_at)', fallback: "''" },
-  // Decimal strings compare exactly as REAL for the 15 significant digits prices use.
+
   price: { expr: 'CAST(bp.amount AS REAL)', fallback: '0' },
   confirmation: { expr: CONFIRMATION_RANK, fallback: '0' },
 };
@@ -49,15 +49,15 @@ function marks(values: readonly unknown[]): string {
   return values.map(() => '?').join(', ');
 }
 
-/**
- * SQL for one job's results under the shared ResultFilter. Every value is bound as a parameter;
- * only fixed fragments from this file are interpolated.
- *
- * Semantics: `resolved: false` means finished without a definitive answer (pending work is selected
- * with `states`); `maxPrice` keeps only items with a known best price at or below it; `confirmations`
- * matches the provider confirmation evidence recorded on the item itself, or, for items without
- * any (registry rows), the newest confirmation recorded for the domain by any provider.
- */
+
+
+
+
+
+
+
+
+
 export class ResultQueryBuilder {
   private readonly sort: SortSpec;
   private readonly desc: boolean;
@@ -65,7 +65,7 @@ export class ResultQueryBuilder {
   constructor(
     private readonly jobId: string,
     private readonly filter: ResultFilterParsed,
-    /** Currency of the best_prices row used for maxPrice and price sorting. */
+
     private readonly priceCurrency: string,
   ) {
     this.sort = SORTS[filter.sort] ?? SORTS.input;
@@ -113,10 +113,10 @@ export class ResultQueryBuilder {
       params.push(f.resolved ? 1 : 0);
     }
     if (f.confirmations?.length) {
-      // The item's own confirmation evidence decides; items without any (registry rows) use the
-      // newest confirmation recorded for the same domain from any provider. CROSS JOIN keeps
-      // json_each as the outer loop, so each item does primary-key lookups of its own evidence
-      // ids instead of scanning every confirmation.
+
+
+
+
       const own = `SELECT 1 FROM json_each(i.evidence_json, '$.observations') je
            CROSS JOIN observations co ON co.id = je.value
            WHERE co.kind = 'confirmation'`;
@@ -147,11 +147,11 @@ export class ResultQueryBuilder {
     return { sql: `WHERE ${clauses.join(' AND ')}`, params };
   }
 
-  /** Keyset tuple expressions, ordered the same direction so one row comparison pages correctly. */
+
   private keyExprs(): string[] {
     const { expr, fallback } = this.sort;
     if (!expr) return ['i.seq'];
-    // Nulls always last: rank 0 for values first in ascending order, rank 1 first when descending.
+
     const rank = this.desc ? `(${expr} IS NOT NULL)` : `(${expr} IS NULL)`;
     return [rank, `COALESCE(${expr}, ${fallback})`, 'i.seq'];
   }
@@ -162,7 +162,7 @@ export class ResultQueryBuilder {
     return { sql: `SELECT COUNT(*) AS n ${from.sql} ${where.sql}`, params: [...from.params, ...where.params] };
   }
 
-  /** Page of item rows plus their keyset values as _k0.._kN. Fetches `limit` rows after `after`. */
+
   page(after: ResultKey | null, limit: number): BuiltQuery {
     const from = this.from();
     const where = this.where();
@@ -179,7 +179,7 @@ export class ResultQueryBuilder {
     return { sql, params };
   }
 
-  /** Every matching item id in result order (exports resolve their scope with this). */
+
   ids(): BuiltQuery {
     const from = this.from();
     const where = this.where();

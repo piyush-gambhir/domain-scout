@@ -3,11 +3,11 @@ import { isRecord, parseJson, str, tryJson } from './http.js';
 import { ProviderError, draft, reason, type AdapterContext, type CheckResult, type DomainParts, type ProviderAdapter } from './types.js';
 import type { ProviderHttpResponse } from '../transport.js';
 
-/**
- * Spaceship API v1 (https://docs.spaceship.dev/). Availability returns `result` and premium
- * operation prices only. Only the result value "available" is documented; anything else stays
- * unknown instead of being read as taken.
- */
+
+
+
+
+
 export const SPACESHIP_BASE = 'https://spaceship.dev/api/v1';
 const NAME = 'Spaceship';
 const DOCS = 'https://docs.spaceship.dev/';
@@ -26,7 +26,7 @@ export interface SpaceshipAvailability {
   premium: { operation: string; amount: string | null; currency: string | null }[];
 }
 
-/** Pure parser for GET /domains/{domain}/available, exported for fixture tests. */
+
 export function parseSpaceshipAvailability(body: unknown, domain: string): SpaceshipAvailability {
   if (!isRecord(body)) throw new ProviderError('bad_response', 'Spaceship availability response is not an object');
   if (typeof body.domain === 'string' && body.domain.toLowerCase() !== domain) {
@@ -79,7 +79,7 @@ export class SpaceshipAdapter implements ProviderAdapter {
     const parsed = await this.availability(ctx, domain);
     const check = toCheck(parsed);
     const register = parsed.premium.find((p) => p.operation === 'register');
-    // Standard names carry no price in the API; only premium operation prices can become an offer.
+
     if (check.status !== 'available' || !register?.currency || !register.amount) return { check, offers: [] };
     const renew = parsed.premium.find((p) => p.operation === 'renew' && p.currency === register.currency);
     const transfer = parsed.premium.find((p) => p.operation === 'transfer' && p.currency === register.currency);
@@ -89,8 +89,8 @@ export class SpaceshipAdapter implements ProviderAdapter {
         draft({
           kind: 'exact_quote',
           currency: register.currency,
-          // Operation prices carry no documented term, so they are kept as premium amounts only:
-          // registration and renewal terms stay unknown and the offer cannot rank as a total.
+
+
           registration: { amount: null, years: 1 },
           renewal: { amount: null, years: 1 },
           transfer: { amount: null, includesYears: null },

@@ -64,7 +64,7 @@ export function DataSettings() {
       setCollectionIds(new Set());
       const total = result.deleted.reduce((sum, d) => sum + d.count, 0);
       toast.success(`Deleted ${plural(total, 'record')}`);
-      // Deletion can touch any view; refetch everything.
+
       void client.invalidateQueries();
     },
   });

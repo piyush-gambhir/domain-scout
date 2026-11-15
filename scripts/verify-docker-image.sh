@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Builds the Docker image and runs it the way compose.yaml does, on a spare loopback port with its
-# own volume, then checks the sign-in link, the UI and the API through the web server, the health
-# check and a graceful stop. Removes the container, volume and image afterwards. Sends no names.
-# Usage: scripts/verify-docker-image.sh [host-port]
+
+
+
+
 set -euo pipefail
 repo="$(cd "$(dirname "$0")/.." && pwd)"
 port="${1:-3917}"

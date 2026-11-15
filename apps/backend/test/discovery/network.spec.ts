@@ -10,7 +10,7 @@ import { GenerationRequest } from '@domain-scout/contracts';
 import { GenerationService } from '../../src/discovery/generation.service.js';
 import { ThemeLibrary } from '../../src/discovery/themes.js';
 
-// Scenario 11 and N04: generation sends nothing to any registry, provider, resolver or AI service.
+
 describe('generation makes no network requests', () => {
   afterEach(() => vi.restoreAllMocks());
 

@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 
-/* One shared clock for relative times and freshness, ticking every 15 seconds. */
+
 let now = Date.now();
 const listeners = new Set<() => void>();
 let timer: ReturnType<typeof setInterval> | null = null;

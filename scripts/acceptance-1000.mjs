@@ -1,10 +1,10 @@
-// Acceptance run for the bulk workflow (docs/PRODUCT.md B04-B08, scenarios 2 and 19) against a local stub
-// registry, so no name leaves the machine. Drives the real Go CLI and backend:
-//   1. 1,200 .com names scanned through `domain-scout scan`, cancelled at about 30% and resumed;
-//   2. a second 1,200-name job interrupted by stopping the backend, restarted and resumed;
-//   3. API latency sampled while jobs run; a filtered TXT export checked against the stub's truth.
-// Every finished name must be queried exactly once. Requires `pnpm build`.
-// Usage: node scripts/acceptance-1000.mjs [--names 1200] [--latency-ms 15]
+
+
+
+
+
+
+
 import { spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -22,7 +22,7 @@ const arg = (name, fallback) => {
 const COUNT = arg('names', 1200);
 const LATENCY = arg('latency-ms', 15);
 
-// --- Stub registry: every third label has no record, the rest are registered. ---
+
 const requests = new Map();
 const isFree = (label) => Number(label.replace(/\D/g, '')) % 3 === 0;
 const stub = createServer((req, res) => {
@@ -87,7 +87,7 @@ const percentile = (values, p) => {
   return sorted.length ? Math.round(sorted[Math.min(sorted.length - 1, Math.floor((p / 100) * sorted.length))]) : null;
 };
 
-/** Polls a job, sampling result-page latency, until `until(job)` holds. */
+
 async function follow(jobId, until, latencies) {
   for (;;) {
     const job = (await api(`/jobs/${jobId}`)).body.data;
@@ -98,7 +98,7 @@ async function follow(jobId, until, latencies) {
   }
 }
 
-/** Subjects finished so far, with the stub's request count for each at this moment. */
+
 async function finishedSnapshot(jobId) {
   const counts = new Map();
   let cursor = null;
@@ -110,8 +110,8 @@ async function finishedSnapshot(jobId) {
   return counts;
 }
 
-/** Finished names the registry was asked about again after the snapshot. In-flight work that was
- * aborted by the interruption is expected to be retried and is not counted. */
+
+
 function requeried(snapshot) {
   return [...snapshot].filter(([name, n]) => (requests.get(name) ?? 0) > n);
 }
@@ -122,10 +122,10 @@ function names(prefix) {
 
 async function main() {
   run(['service', 'start', '--port', String(backendPort)]);
-  // Pacing is a registry courtesy; the stub needs none, so measure the engine itself.
+
   await api('/settings', { method: 'PATCH', body: JSON.stringify({ concurrency: { perSource: 8, minSourceIntervalMs: 0 } }) });
 
-  // 1. Cancel at about 30% and resume.
+
   const latencies = [];
   const t0 = performance.now();
   const first = JSON.parse(run(['scan', '--tlds', 'com', '--label', 'Acceptance A', '-'], names('acca')).stdout).data;
@@ -144,13 +144,13 @@ async function main() {
   const repeatsA = requeried(finishedA);
   check('resume never re-queries a name finished before the cancel', repeatsA.length === 0, `${finishedA.size} finished before, ${repeatsA.length} re-queried`);
 
-  // 2. Stop the backend mid-run, restart, resume.
+
   const second = JSON.parse(run(['scan', '--tlds', 'com', '--label', 'Acceptance B', '-'], names('accb')).stdout).data;
   await follow(second.id, (j) => j.counters.finished >= COUNT * 0.3, latencies);
   run(['service', 'stop']);
   run(['service', 'start', '--port', String(backendPort)]);
-  // run() blocks the event loop, so fetch's pool has not yet seen the old backend close its
-  // keep-alive sockets; one I/O turn lets it drop them instead of reusing a reset connection.
+
+
   await new Promise((resolve) => setImmediate(resolve));
   const afterRestart = (await api(`/jobs/${second.id}`)).body.data;
   check('a stopped backend marks unfinished work interrupted', afterRestart.state === 'interrupted', `${afterRestart.state}, ${afterRestart.counters.finished} finished`);
@@ -161,7 +161,7 @@ async function main() {
   const repeatsB = requeried(finishedB);
   check('resume after restart never re-queries a finished name', repeatsB.length === 0, `${finishedB.size} finished before, ${repeatsB.length} re-queried`);
 
-  // 3. Responsiveness and exports.
+
   metrics.resultsPageMs = { p50: percentile(latencies, 50), p95: percentile(latencies, 95), max: percentile(latencies, 100), samples: latencies.length };
   check('result pages stay fast while jobs run (p95 under 250 ms)', metrics.resultsPageMs.p95 < 250, JSON.stringify(metrics.resultsPageMs));
   const txt = run(['export', '--scope', 'job', '--job', first.id, '--format', 'txt']).stdout;

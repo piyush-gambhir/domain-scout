@@ -1,7 +1,7 @@
-/**
- * Marketplaces without a supported interface: link-only entries (their website, since no search
- * template was verified). Requests for them finish as unsupported.
- */
+
+
+
+
 export const LINK_ONLY_MARKETPLACES: Record<string, { name: string; website: string; reason: string }> = {
   sedo: {
     name: 'Sedo',

@@ -11,10 +11,10 @@ import { FakeClock } from '../../src/core/clock.js';
 import { testConfig, type AppConfig } from '../../src/core/config.js';
 import { AppExceptionFilter } from '../../src/core/errors.js';
 
-/**
- * Boots CoreModule plus the modules under test, with fakes for ports owned by other modules.
- * Isolated from the full AppModule so these tests do not depend on unrelated modules.
- */
+
+
+
+
 @Global()
 @Module({})
 class FakePortsModule {

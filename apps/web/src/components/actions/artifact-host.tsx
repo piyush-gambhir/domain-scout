@@ -8,7 +8,7 @@ export interface ArtifactRequest {
   defaultScope: string;
 }
 
-/** One place to open export or snapshot dialogs with a preselected scope. */
+
 export function ArtifactDialogsHost({ request, onClose, scopes }: { request: ArtifactRequest | null; onClose: () => void; scopes: ScopeOption[] }) {
   return (
     <>

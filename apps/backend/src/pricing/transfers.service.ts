@@ -7,7 +7,7 @@ import { ProvidersService } from '../providers/providers.service.js';
 import { requireDomain } from './domain.js';
 import { OffersService } from './offers.service.js';
 
-/** Registry statuses that bear on transfers (EPP status values, case-insensitive). */
+
 const TRANSFER_STATUS = /transferprohibited|pendingtransfer|pendingdelete|redemptionperiod|serverhold|clienthold|pendingrestore/i;
 
 const ALWAYS_UNKNOWN = [
@@ -16,11 +16,11 @@ const ALWAYS_UNKNOWN = [
   'Account eligibility at the receiving provider',
 ];
 
-/**
- * Read-only transfer comparison from retained data: transfer prices (exact transfer quotes, else the
- * provider's published transfer price for the suffix) and sourced eligibility facts from the latest
- * registry observation. Authorization codes are never requested and no transfer is started.
- */
+
+
+
+
+
 @Injectable()
 export class TransfersService {
   constructor(

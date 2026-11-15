@@ -43,7 +43,7 @@ import { type CompareOptions, DEFAULT_COMPARE, ProviderComparison } from './comp
 
 const PAGE = 200;
 
-/** Notes edited in place: click to type, Enter or leaving the field saves, Escape cancels. */
+
 function InlineNotes({ collectionId, entry }: { collectionId: string; entry: CollectionEntry }) {
   const client = useQueryClient();
   const [editing, setEditing] = useState(false);
@@ -94,7 +94,7 @@ function InlineNotes({ collectionId, entry }: { collectionId: string; entry: Col
   );
 }
 
-/** Notes behind an icon when the table is too narrow for the notes column. */
+
 function NotesPopover({ collectionId, entry }: { collectionId: string; entry: CollectionEntry }) {
   const client = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -276,7 +276,7 @@ function ListTitle({ collection, count }: { collection: Collection; count: numbe
   );
 }
 
-/** Notes for the whole list, edited in a dialog from the list menu. */
+
 function ListNotesDialog({ collection, open, onOpenChange }: { collection: Collection; open: boolean; onOpenChange: (open: boolean) => void }) {
   const client = useQueryClient();
   const [value, setValue] = useState(collection.notes ?? '');
@@ -313,7 +313,7 @@ function ListNotesDialog({ collection, open, onOpenChange }: { collection: Colle
   );
 }
 
-/** Rechecks names and refreshes the list when the check finishes. */
+
 function useListRecheck(collectionId: string, label: string) {
   const client = useQueryClient();
   const idempotency = useIdempotency();
@@ -343,7 +343,7 @@ const COLS =
   'grid-cols-[2rem_minmax(0,1fr)_9.5rem_7rem] @3xl:grid-cols-[2rem_minmax(0,1fr)_9.5rem_minmax(7rem,9rem)_5.5rem_6rem_7rem] @5xl:grid-cols-[2rem_minmax(0,1.3fr)_9.5rem_minmax(7rem,9rem)_5.5rem_6rem_minmax(8rem,1fr)_7rem]';
 const SHOW = { price: 'hidden @3xl:flex', notes: 'hidden @5xl:flex' };
 
-/** One saved list: fresh status, cost over time per provider, and where to buy. */
+
 export function ListView({ collection, onDeleted }: { collection: Collection; onDeleted: () => void }) {
   const router = useRouter();
   const client = useQueryClient();
@@ -374,7 +374,7 @@ export function ListView({ collection, onDeleted }: { collection: Collection; on
     getNextPageParam: (last) => last.nextCursor ?? undefined,
   });
   const rows = useMemo(() => entries.data?.pages.flatMap((p) => p.data) ?? [], [entries.data]);
-  // Filtering searches the whole list, so load the remaining pages once a filter is typed.
+
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = entries;
   useEffect(() => {
     if (q.trim() && hasNextPage && !isFetchingNextPage) void fetchNextPage();
@@ -400,7 +400,7 @@ export function ListView({ collection, onDeleted }: { collection: Collection; on
     return all;
   }, [collection.id]);
   const allDomains = useCallback(async () => (await allEntries()).map((e) => e.domain), [allEntries]);
-  // The banner counts loaded rows; Recheck all covers every stale name in the list, loaded or not.
+
   const recheckAll = async () => recheck.start((hasNextPage ? (await allEntries()).filter(isStale) : stale).map((r) => r.domain));
   const target: DomainTarget = selected.size
     ? { count: selected.size, resolveDomains: async () => [...selected] }
@@ -582,7 +582,7 @@ export function ListView({ collection, onDeleted }: { collection: Collection; on
                   const outcome = entry.registry?.outcome ?? null;
                   const free = outcome === 'no_record';
                   const taken = outcome === 'registered';
-                  // A taken name cannot be newly registered, so there is no registration cost to compare.
+
                   const comparable = !(taken && options.path === 'new_registration');
                   const isOpen = comparable && expanded.has(entry.domain);
                   const isSelected = selected.has(entry.domain);

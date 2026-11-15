@@ -17,7 +17,7 @@ interface FixtureFile {
   response: { status: number; headers: Record<string, string>; json?: unknown; body?: string };
 }
 
-/** Loads a provider fixture; `{domain}` placeholders are replaced with the requested name. */
+
 export function fixture(provider: string, name: string, vars: { domain?: string } = {}): ProviderHttpResponse {
   const file = JSON.parse(readFileSync(new URL(`${provider}/${name}.json`, FIXTURES), 'utf8')) as FixtureFile;
   if (!file.provenance) throw new Error(`Fixture ${provider}/${name} has no provenance`);
@@ -28,7 +28,7 @@ export function fixture(provider: string, name: string, vars: { domain?: string 
 
 type Responder = ProviderHttpResponse | Error | ((request: ProviderHttpRequest) => ProviderHttpResponse | Error);
 
-/** Records every outbound request and answers from registered fixtures. Unmatched requests fail. */
+
 export class FakeTransport extends ProviderTransport {
   readonly requests: ProviderHttpRequest[] = [];
   private readonly routes: { match: (r: ProviderHttpRequest) => boolean; respond: Responder; once: boolean }[] = [];
@@ -57,7 +57,7 @@ export class FakeTransport extends ProviderTransport {
   }
 }
 
-/** Adapter context over a fake transport, without the Nest app. */
+
 export function adapterContext(transport: FakeTransport, credentials: Record<string, string> = {}, now = new Date('2026-10-05T12:00:00.000Z')): AdapterContext {
   const http = new ProviderHttp(transport, { timeoutMs: 5000, now: () => now, secrets: Object.values(credentials) });
   return { credentials, http, now };
@@ -105,7 +105,7 @@ export function operationContext(t: TestApp, clock: FakeClock = t.clock): Operat
   };
 }
 
-/** Every string an object contains, for secret-leak assertions. */
+
 export function serialized(value: unknown): string {
   return JSON.stringify(value) ?? '';
 }

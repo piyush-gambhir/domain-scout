@@ -5,10 +5,10 @@ import { SettingsService } from '../system/settings.service.js';
 import { compare, multiply, sum } from './money.js';
 import { OffersService } from './offers.service.js';
 
-/**
- * Published prices of every enabled provider for several suffixes at once, so result rows and the
- * Buy menu need no request per domain. Suffix-level only: no candidate name is involved.
- */
+
+
+
+
 @Injectable()
 export class SuffixPricesService {
   constructor(
@@ -27,7 +27,7 @@ export class SuffixPricesService {
           const provider = this.providers.toProvider(manifest);
           const registrationYears = offer.registration.years;
           const renewalYears = offer.renewal.years;
-          // Only yearly terms extend cleanly to a horizon; anything else stays unknown.
+
           const extraYears = horizon - registrationYears;
           const horizonTotal =
             offer.registration.amount === null

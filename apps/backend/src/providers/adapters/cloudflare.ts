@@ -12,10 +12,10 @@ import {
   type ProviderAdapter,
 } from './types.js';
 
-/**
- * Cloudflare Registrar API (https://developers.cloudflare.com/registrar/registrar-api/, beta).
- * Responses use the `{success, errors, messages, result}` envelope; costs are decimal strings.
- */
+
+
+
+
 export const CLOUDFLARE_BASE = 'https://api.cloudflare.com/client/v4';
 const NAME = 'Cloudflare';
 const CHECK_DOC = 'https://developers.cloudflare.com/api/resources/registrar/methods/check/';
@@ -57,7 +57,7 @@ export interface CloudflareCheck {
   renewal: string | null;
 }
 
-/** Pure parser for domain-check, exported for fixture tests. */
+
 export function parseCloudflareCheck(body: Record<string, unknown>, domain: string): CloudflareCheck | null {
   const result = isRecord(body.result) ? body.result : null;
   const domains = result && Array.isArray(result.domains) ? result.domains : [];
@@ -103,7 +103,7 @@ export interface CloudflareTransfer {
   renewal: string | null;
 }
 
-/** Pure parser for domain-transfer-check (result.domains keyed by name), exported for fixture tests. */
+
 export function parseCloudflareTransfer(body: Record<string, unknown>, domain: string): CloudflareTransfer | null {
   const result = isRecord(body.result) ? body.result : null;
   const domains = result && isRecord(result.domains) ? result.domains : null;
@@ -129,7 +129,7 @@ export class CloudflareAdapter implements ProviderAdapter {
     return { operation: this.testOperation, message: 'Cloudflare accepted the token for this account (listing Registrar extensions succeeded).' };
   }
 
-  /** Supported extensions only; Cloudflare publishes no price catalog. */
+
   async catalog(ctx: AdapterContext): Promise<CatalogResult> {
     const suffixes: string[] = [];
     let cursor = '';
@@ -183,7 +183,7 @@ export class CloudflareAdapter implements ProviderAdapter {
     };
   }
 
-  /** Read-only transfer check without an auth code: Domain Scout never requests authorization codes. */
+
   async transfer(ctx: AdapterContext, domain: DomainParts) {
     const response = await ctx.http.request({
       method: 'POST',
@@ -203,7 +203,7 @@ export class CloudflareAdapter implements ProviderAdapter {
           purchasePath: 'transfer',
           kind: 'exact_quote',
           currency: parsed.currency,
-          // transfer_cost is the first-year cost; renewal_cost covers each later year.
+
           transfer: { amount: parsed.transfer, includesYears: 1 },
           renewal: { amount: parsed.renewal, years: 1 },
           source: { label: 'Cloudflare domain-transfer-check', url: TRANSFER_DOC },

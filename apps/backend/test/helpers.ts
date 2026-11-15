@@ -11,7 +11,7 @@ import { AppModule } from '../src/app.module.js';
 import { FakeClock, type Clock } from '../src/core/clock.js';
 import { testConfig, type AppConfig } from '../src/core/config.js';
 
-/** A Nest provider replacement, e.g. a fake transport: `{ provide: RdapTransport, useValue: fake }`. */
+
 export type ProviderOverride =
   | { provide: unknown; useValue: unknown }
   | { provide: unknown; useClass: Type }
@@ -21,22 +21,22 @@ export interface TestAppOptions {
   clock?: Clock;
   config?: Partial<AppConfig>;
   overrides?: ProviderOverride[];
-  /**
-   * Default true: requests without an Authorization or Cookie header are sent with the API token,
-   * so feature tests need no auth plumbing. Auth tests pass false to see the real rejections.
-   */
+
+
+
+
   autoAuth?: boolean;
 }
 
 type Method = 'get' | 'post' | 'put' | 'patch' | 'delete';
-/** supertest request builders; paths may omit the /api/v1 prefix. */
+
 export type TestClient = Record<Method, (path: string) => request.Test>;
 
 export interface BrowserSession {
   sessionId: string;
   csrfToken: string;
   expiresAt: string;
-  /** Cookie header value carrying ds_session and ds_csrf, as the Next server would set them. */
+
   cookie: string;
 }
 
@@ -44,15 +44,15 @@ export interface TestApp {
   app: NestExpressApplication;
   clock: FakeClock;
   config: AppConfig;
-  /** The local API token. */
+
   token: string;
-  /** Requests carrying `Authorization: Bearer <token>`. */
+
   api: TestClient;
-  /** Requests with no credentials, even when autoAuth is on. */
+
   anon: TestClient;
-  /** Opens a browser session through the real bootstrap-code exchange. */
+
   createSession(): Promise<BrowserSession>;
-  /** Listens on an ephemeral loopback port (for streaming tests) and returns the base URL. */
+
   listen(): Promise<string>;
   close(): Promise<void>;
 }
@@ -63,7 +63,7 @@ export function apiPath(path: string): string {
   return path.startsWith('/api/') ? path : `/api/v1${path.startsWith('/') ? '' : '/'}${path}`;
 }
 
-/** Boots the full application against a temporary data directory. */
+
 export async function createTestApp(options: TestAppOptions = {}): Promise<TestApp> {
   const dataDir = mkdtempSync(join(tmpdir(), 'domain-scout-test-'));
   const config = testConfig({ dataDir, runtimeDir: join(dataDir, 'run'), ...options.config });
@@ -86,7 +86,7 @@ export async function createTestApp(options: TestAppOptions = {}): Promise<TestA
     app = await createApp({ config, clock });
   }
 
-  // Test-only convenience; production code has no bypass. The token is still verified by the guard.
+
   app.use((req: { headers: Record<string, string | string[] | undefined> }, _res: unknown, next: () => void) => {
     const anonymous = req.headers[ANON_HEADER] !== undefined;
     delete req.headers[ANON_HEADER];

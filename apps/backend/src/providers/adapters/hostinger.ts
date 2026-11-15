@@ -13,12 +13,12 @@ import {
   type ProviderAdapter,
 } from './types.js';
 
-/**
- * Hostinger API (https://docs.hostinger.com/api-reference/overview; official SDK docs read
- * 2026-10-05). Availability has no price fields. The billing catalog lists items with prices in
- * cents per period; Hostinger does not document which action a price maps to, so catalog prices are
- * published references only and never an exact-name or premium quote.
- */
+
+
+
+
+
+
 export const HOSTINGER_BASE = 'https://developers.hostinger.com';
 const NAME = 'Hostinger';
 const CATALOG_DOC = 'https://github.com/hostinger/api-python-sdk/blob/main/docs/BillingCatalogApi.md';
@@ -32,7 +32,7 @@ function detail(response: ProviderHttpResponse): string | null {
   return isRecord(body) ? str(body.message) : null;
 }
 
-/** Pure parser for the billing catalog (category DOMAIN), exported for fixture tests. */
+
 export function parseHostingerCatalog(body: unknown): { entries: CatalogEntry[]; suffixes: string[] } {
   if (!Array.isArray(body)) throw new ProviderError('bad_response', 'Hostinger catalog response is not an array');
   const entries: CatalogEntry[] = [];
@@ -40,7 +40,7 @@ export function parseHostingerCatalog(body: unknown): { entries: CatalogEntry[];
   for (const item of body) {
     if (!isRecord(item) || (str(item.category) ?? '').toUpperCase() !== 'DOMAIN') continue;
     const name = str(item.name) ?? '';
-    // Domain items are named after the extension, e.g. ".COM Domain"; transfer products are skipped.
+
     const match = /^\.([a-z0-9-]+(?:\.[a-z0-9-]+)*)\b/i.exec(name.trim());
     if (!match || /transfer/i.test(name)) continue;
     const suffix = match[1]!.toLowerCase();
@@ -58,8 +58,8 @@ export function parseHostingerCatalog(body: unknown): { entries: CatalogEntry[];
       ...draft({
         kind: 'published',
         currency,
-        // first_period_price is the documented first-period price; whether `price` is the renewal
-        // price is undocumented, so renewal stays unknown and the regular price is only labeled.
+
+
         registration: { amount: fromMinorUnits(price.first_period_price, currency), years },
         renewal: { amount: null, years },
         source: {
@@ -72,7 +72,7 @@ export function parseHostingerCatalog(body: unknown): { entries: CatalogEntry[];
   return { entries, suffixes };
 }
 
-/** Pure parser for availability, exported for fixture tests. */
+
 export function parseHostingerAvailability(body: unknown, domain: string): CheckResult {
   if (!Array.isArray(body)) throw new ProviderError('bad_response', 'Hostinger availability response is not an array');
   const hit = body.find((r) => isRecord(r) && r.is_alternative !== true && typeof r.domain === 'string' && r.domain.toLowerCase() === domain);
@@ -121,10 +121,10 @@ export class HostingerAdapter implements ProviderAdapter {
     return parseHostingerAvailability(parseJson(response, NAME), domain.ascii);
   }
 
-  /**
-   * Availability plus the catalog price for the extension. The price is recorded as a published,
-   * suffix-level price with unknown premium status: Hostinger offers no exact-name quote.
-   */
+
+
+
+
   async quote(ctx: AdapterContext, domain: DomainParts) {
     const check = await this.check(ctx, domain);
     if (check.status !== 'available') return { check, offers: [] };

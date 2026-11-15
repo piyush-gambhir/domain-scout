@@ -12,13 +12,13 @@ interface Candidate {
   preferred: number;
 }
 
-/**
- * Rebuilds best_prices: the lowest published first-year registration per suffix and currency among
- * enabled providers, using each provider's current published price for the suffix and currency
- * (see current-catalog.ts). Prices are compared as decimals; ties go to a preferred provider, then
- * the provider id. Call inside the transaction that changed catalogs or preferences. Job results
- * find the offer behind each row with the same selection (see JobResultsService).
- */
+
+
+
+
+
+
+
 export function recomputeBestPrices(db: Database): number {
   const rows = db.all<Candidate>(
     `WITH ${LATEST_FETCH_CTE},

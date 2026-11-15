@@ -1,10 +1,10 @@
-/**
- * Versioned migrations, embedded so the compiled backend needs no SQL asset files.
- * Never edit an applied migration; add a new version instead.
- *
- * Conventions: TEXT ids (UUID), UTC ISO timestamps as TEXT, money as decimal TEXT, JSON as TEXT.
- * Evidence tables are append-only; current views are derived by querying the latest row.
- */
+
+
+
+
+
+
+
 import { JOBS_MIGRATION, JOBS_ORIGIN_MIGRATION } from '../jobs/schema.js';
 import { MONITORING_MIGRATION } from '../monitoring/schema.js';
 import { PROVIDERS_MIGRATION } from '../providers/schema.js';
@@ -15,7 +15,7 @@ export interface Migration {
   sql: string;
 }
 
-const INITIAL = /* sql */ `
+const INITIAL =           `
 CREATE TABLE settings (
   key TEXT PRIMARY KEY,
   value_json TEXT NOT NULL,

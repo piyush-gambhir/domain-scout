@@ -14,7 +14,6 @@ import (
 	"github.com/piyush-gambhir/domain-scout/cli/internal/api"
 )
 
-// BackendInfo mirrors <dataDir>/run/backend.json written by the backend.
 type BackendInfo struct {
 	URL             string `json:"url"`
 	PID             int    `json:"pid"`
@@ -26,24 +25,17 @@ type BackendInfo struct {
 	DataDir         string `json:"dataDir"`
 }
 
-// WebInfo mirrors <dataDir>/run/web.json, written by the launcher when it
-// starts the UI server.
 type WebInfo struct {
 	URL string `json:"url"`
 	PID int    `json:"pid"`
-	// BackendURL is the backend the UI server forwards to (CLI extension;
-	// absent in files written by other tools).
+
 	BackendURL string `json:"backendUrl,omitempty"`
 }
 
-// RunDir is the transient runtime directory inside the data directory.
 func RunDir(dataDir string) string { return filepath.Join(dataDir, "run") }
 
-// LogDir holds backend and web server logs written by the launcher.
 func LogDir(dataDir string) string { return filepath.Join(dataDir, "logs") }
 
-// ReadBackendInfo reads backend.json. A missing file returns an error
-// matching os.ErrNotExist.
 func ReadBackendInfo(dataDir string) (*BackendInfo, error) {
 	b, err := os.ReadFile(filepath.Join(RunDir(dataDir), "backend.json"))
 	if err != nil {
@@ -59,7 +51,6 @@ func ReadBackendInfo(dataDir string) (*BackendInfo, error) {
 	return &info, nil
 }
 
-// ReadToken reads the owner-only API token file.
 func ReadToken(dataDir string) (string, error) {
 	b, err := os.ReadFile(filepath.Join(RunDir(dataDir), "api-token"))
 	if err != nil {
@@ -72,7 +63,6 @@ func ReadToken(dataDir string) (string, error) {
 	return tok, nil
 }
 
-// ReadWebInfo reads web.json.
 func ReadWebInfo(dataDir string) (*WebInfo, error) {
 	b, err := os.ReadFile(filepath.Join(RunDir(dataDir), "web.json"))
 	if err != nil {
@@ -85,7 +75,6 @@ func ReadWebInfo(dataDir string) (*WebInfo, error) {
 	return &info, nil
 }
 
-// WriteWebInfo writes web.json with owner-only permissions.
 func WriteWebInfo(dataDir string, info WebInfo) error {
 	dir := RunDir(dataDir)
 	if err := os.MkdirAll(dir, 0o700); err != nil {
@@ -99,30 +88,25 @@ func WriteWebInfo(dataDir string, info WebInfo) error {
 	return os.Rename(tmp, filepath.Join(dir, "web.json"))
 }
 
-// RemoveWebInfo deletes web.json if present.
 func RemoveWebInfo(dataDir string) {
 	_ = os.Remove(filepath.Join(RunDir(dataDir), "web.json"))
 }
 
-// Errors returned by health verification.
 var (
-	// ErrUnreachable means nothing answered at the URL (stale runtime file or stopped backend).
 	ErrUnreachable = errors.New("backend unreachable")
-	// ErrNotBackend means something answered but it is not a Domain Scout backend.
+
 	ErrNotBackend = errors.New("not a Domain Scout backend")
-	// ErrIdentityMismatch means a backend answered with a different instance id.
+
 	ErrIdentityMismatch = errors.New("backend identity mismatch")
-	// ErrProtocolMismatch means the backend speaks an unsupported runtime protocol.
+
 	ErrProtocolMismatch = errors.New("backend protocol version mismatch")
 )
 
-// Health is the verified health response plus its verbatim body.
 type Health struct {
 	Response api.HealthResponse
 	Raw      []byte
 }
 
-// FetchHealth calls GET /api/v1/health (no auth) and decodes it.
 func FetchHealth(ctx context.Context, hc *http.Client, baseURL string) (*Health, error) {
 	req, err := api.NewGetHealthRequest(strings.TrimRight(baseURL, "/"))
 	if err != nil {
@@ -150,9 +134,6 @@ func FetchHealth(ctx context.Context, hc *http.Client, baseURL string) (*Health,
 	return &Health{Response: h, Raw: body}, nil
 }
 
-// Verify checks that the backend described by info answers with the same
-// instance id and a supported protocol version. Clients must verify before
-// reusing a backend, not just trust an answering port.
 func Verify(ctx context.Context, hc *http.Client, info *BackendInfo) (*Health, error) {
 	h, err := FetchHealth(ctx, hc, info.URL)
 	if err != nil {
@@ -168,7 +149,6 @@ func Verify(ctx context.Context, hc *http.Client, info *BackendInfo) (*Health, e
 	return h, nil
 }
 
-// CheckProtocol rejects a backend speaking another runtime protocol version.
 func CheckProtocol(h *Health) error {
 	if h.Response.Data.ProtocolVersion != ProtocolVersion {
 		return fmt.Errorf("%w: backend speaks protocol %d, this CLI speaks %d; install matching versions",

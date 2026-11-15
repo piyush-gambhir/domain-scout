@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { FetchHttpTransport } from '../../src/registry/rdap/http-transport.js';
 import { NetWhoisTransport, WhoisTransportError } from '../../src/registry/whois/whois-transport.js';
 
-// Loopback servers only: these tests never reach the network.
+
 const servers: (HttpServer | TcpServer)[] = [];
 const sockets = new Set<Socket>();
 afterEach(async () => {

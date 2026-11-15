@@ -28,23 +28,23 @@ import {
   type WhoisParser,
 } from './whois-common.js';
 
-/**
- * Registry-specific WHOIS classifiers for ccTLD registries without a usable public RDAP service.
- * Sources per registry are cited below and in data/registry/whois-routing.json; reply shapes come
- * from registry documentation where it exists and otherwise from dated reference captures. Every
- * classifier requires its registry's exact negative text and a complete record shape, and treats a
- * reply that names two domains, states two statuses or carries both a negative and a record as
- * conflicting; anything else is inconclusive.
- */
+
+
+
+
+
+
+
+
 
 function stated(status: Eligibility['status'], source: string, scope: string): Eligibility {
   return { status, source, scope };
 }
 
-/**
- * A negative reply that echoes the queried name, given the distinct echoed names (see names()):
- * no_record when it echoes exactly the request, otherwise a mismatch or conflict.
- */
+
+
+
+
 function echoedNegative(ctx: WhoisContext, echoes: string[], detail: string): Classification {
   if (echoes.length > 1) return conflicting(ctx, 'names in its not-found reply');
   const name = echoes[0] ?? '';
@@ -52,7 +52,7 @@ function echoedNegative(ctx: WhoisContext, echoes: string[], detail: string): Cl
   return noRecord(ctx, name, detail);
 }
 
-/** The one name a reply's identity lines agree on, or the classification for a reply without one. */
+
 function soleName(ctx: WhoisContext, found: string[]): { name: string } | { result: Classification } {
   if (found.length > 1) return { result: conflicting(ctx, 'domain names') };
   const name = found[0];
@@ -61,7 +61,7 @@ function soleName(ctx: WhoisContext, found: string[]): { name: string } | { resu
   return { name };
 }
 
-/** The one value a field states, null when absent, or a conflict when the reply states several. */
+
 function soleValue(ctx: WhoisContext, text: string, pattern: RegExp, what: string): { value: string | null } | { result: Classification } {
   const found = all(text, pattern);
   if (values(text, pattern).length > 1) return { result: conflicting(ctx, what) };
@@ -71,16 +71,16 @@ function soleValue(ctx: WhoisContext, text: string, pattern: RegExp, what: strin
 interface IcannStyleOptions {
   id: string;
   version: string;
-  /** The registry's exact negative reply: the distinct names it echoes ([] when it echoes none), or null. */
+
   notFound(text: string): string[] | null;
-  /** Lines (besides "Domain Name:") a complete registered record carries. */
+
   required: { pattern: RegExp; label: string };
 }
 
-/**
- * Registries that print the ICANN RDDS key/value layout ("Domain Name:", "Creation Date:",
- * "Registry Expiry Date:", "Name Server:") and differ only in their negative reply.
- */
+
+
+
+
 function icannStyle(options: IcannStyleOptions): WhoisParser {
   return {
     id: options.id,
@@ -97,7 +97,7 @@ function icannStyle(options: IcannStyleOptions): WhoisParser {
   };
 }
 
-/** Registered record in the ICANN layout, checked against the request and for completeness. */
+
 function icannRecord(text: string, ctx: WhoisContext, required: IcannStyleOptions['required']): Classification {
   const identity = soleName(ctx, names(text, /^Domain Name:(.*)$/gim));
   if ('result' in identity) return identity.result;
@@ -117,23 +117,23 @@ function icannRecord(text: string, ctx: WhoisContext, required: IcannStyleOption
   });
 }
 
-/** Distinct names echoed by a negative line (`pattern` needs the g and m flags), or null without one. */
+
 function echoes(text: string, pattern: RegExp): string[] | null {
   const found = names(text, pattern);
   return found.length > 0 ? found : null;
 }
 
-/** Lines of an ICANN-layout registration record; none may appear next to a negative reply. */
+
 const ICANN_RECORD = /^(?:Domain Name|Registry Domain ID|Creation Date|Updated Date|Registry Expiry Date|Registrar Registration Expiration Date|Registrar|Domain Status|Name Server|DNSSEC):/im;
 
 const REGISTRY_DOMAIN_ID = { pattern: /^(?:Registry Domain ID|Registrar):[ \t]*\S/m, label: 'Registry Domain ID or Registrar' };
 
-/**
- * Identity Digital back end (.io, .sh, .vc, .me). Free: "Domain not found." (2026 captures of
- * whois.nic.io, whois.nic.sh, whois.nic.me and whois.identitydigital.services). Identity Digital
- * documents a per-IP limit but no throttle text, and its terms mention throttling, so no loose
- * wording is ever treated as a throttle signal.
- */
+
+
+
+
+
+
 const identityDigital = icannStyle({
   id: 'identity-digital',
   version: 'whois-identity-digital/1',
@@ -141,7 +141,7 @@ const identityDigital = icannStyle({
   required: REGISTRY_DOMAIN_ID,
 });
 
-/** CentralNic platform (.la, .gl). Free: "The queried object does not exist: DOMAIN NOT FOUND". */
+
 const centralNic = icannStyle({
   id: 'centralnic',
   version: 'whois-centralnic/1',
@@ -149,7 +149,7 @@ const centralNic = icannStyle({
   required: REGISTRY_DOMAIN_ID,
 });
 
-/** Global Domains International (.ws). Free: "The queried object does not exist: <name>." */
+
 const websiteWs = icannStyle({
   id: 'website-ws',
   version: 'whois-website-ws/1',
@@ -157,7 +157,7 @@ const websiteWs = icannStyle({
   required: { pattern: /^Registrar:[ \t]*\S/m, label: 'Registrar' },
 });
 
-/** CIRA Fury platform of IE Domain Registry (.ie) and InternetNZ (.nz). Free: "Not found: <name>". */
+
 const furyNotFound = (text: string) => echoes(text, /^Not found:(.*)$/gm);
 const weAreIe = icannStyle({ id: 'weare-ie', version: 'whois-weare-ie/1', notFound: furyNotFound, required: REGISTRY_DOMAIN_ID });
 const internetNz = icannStyle({
@@ -167,7 +167,7 @@ const internetNz = icannStyle({
   required: { pattern: /^Registrar:[ \t]*\S/m, label: 'Registrar' },
 });
 
-/** .us (Registry Services LLC). Free: "No Data Found"; the registry notes that this is not availability. */
+
 const usRegistry = icannStyle({
   id: 'us-registry',
   version: 'whois-us-registry/1',
@@ -175,7 +175,7 @@ const usRegistry = icannStyle({
   required: REGISTRY_DOMAIN_ID,
 });
 
-/** CARNET (.hr). Free: "%ERROR: No entries found" (lower-case "no" in older replies). */
+
 const carnet = icannStyle({
   id: 'carnet',
   version: 'whois-carnet/1',
@@ -183,7 +183,7 @@ const carnet = icannStyle({
   required: { pattern: /^Registrar Registration Expiration Date:[ \t]*\S/m, label: 'Registrar Registration Expiration Date' },
 });
 
-/** ZARC (co.za, org.za, net.za, web.za). Free: "Available", blank lines, then "No information was found matching that query." */
+
 const zarc = icannStyle({
   id: 'zarc',
   version: 'whois-zarc/1',
@@ -191,12 +191,12 @@ const zarc = icannStyle({
   required: REGISTRY_DOMAIN_ID,
 });
 
-/**
- * DNS Belgium (.be). Status values and return codes from
- * https://docs.dnsbelgium.be/be/general/whoisanddas.html: AVAILABLE, NOT AVAILABLE (the doc's
- * example also shows REGISTERED), NOT ALLOWED; -2 excessive querying (over 100 queries per hour),
- * -3 IP address blocked for one hour, -1 internal error.
- */
+
+
+
+
+
+
 const dnsBelgium: WhoisParser = {
   id: 'dns-belgium',
   version: 'whois-dns-belgium/1',
@@ -206,7 +206,7 @@ const dnsBelgium: WhoisParser = {
     if (/^%?[ \t]*-1:[ \t]*Internal (?:server|system) error/m.test(text)) {
       return unresolved('inconclusive', 'registry_error', `${ctx.spec.host} reported an internal error (return code -1)`, { retryable: true });
     }
-    // For IDNs the Domain line prints the U-label and A-label the A-label; both must name one domain.
+
     const identity = soleName(ctx, [...new Set([...names(text, /^A-label:(.*)$/gm), ...names(text, /^Domain:(.*)$/gm)])]);
     if ('result' in identity) return identity.result;
     const name = identity.name;
@@ -234,12 +234,12 @@ const dnsBelgium: WhoisParser = {
   },
 };
 
-/**
- * Internetstiftelsen (.se). States from the WHOIS service description (December 2025,
- * https://internetstiftelsen.se/app/uploads/2025/12/internetstiftelsen-service-description-whois-protocol.pdf):
- * active, expired and deactivated are registrations; quarantine is deregistered and not yet
- * released; system is reserved or blocked by the registry. Free: `domain "<name>" not found.`
- */
+
+
+
+
+
+
 const internetstiftelsen: WhoisParser = {
   id: 'internetstiftelsen',
   version: 'whois-internetstiftelsen/1',
@@ -277,12 +277,12 @@ const internetstiftelsen: WhoisParser = {
   },
 };
 
-/**
- * Punktum dk (.dk). Record layout and status values (Active, Deactivated, Reserved, Offered to
- * waiting list) from the official specification v6.3.1,
- * https://github.com/Punktum-dk/whois-service-specification. Free: "No entries found for the
- * selected source." (reference capture, server version 6.1.1; not in the specification).
- */
+
+
+
+
+
+
 const punktum: WhoisParser = {
   id: 'punktum',
   version: 'whois-punktum/1',
@@ -290,7 +290,7 @@ const punktum: WhoisParser = {
     const missing = /^No entries found for the selected source\.[ \t]*$/m.test(text);
     if (missing && /^(?:Domain|DNS|Registered|Expires|Registrar|Status|Hostname):/m.test(text)) return conflicting(ctx, 'not-found text and record lines');
     if (missing) return noRecord(ctx, null, 'answered "No entries found for the selected source."');
-    // Domain prints the U-label for IDNs and DNS the A-label; both must name one domain.
+
     const identity = soleName(ctx, [...new Set([...names(text, /^DNS:(.*)$/gm), ...names(text, /^Domain:(.*)$/gm)])]);
     if ('result' in identity) return identity.result;
     const name = identity.name;
@@ -317,7 +317,7 @@ const punktum: WhoisParser = {
   },
 };
 
-/** DNS.PT (.pt). Free: "<name> - No Match"; registered records carry "Domain Status: Registered". */
+
 const dnsPt: WhoisParser = {
   id: 'dns-pt',
   version: 'whois-dns-pt/1',
@@ -344,7 +344,7 @@ const dnsPt: WhoisParser = {
   },
 };
 
-/** NIC Mexico (.mx and its second-level zones). Free: "No_Se_Encontro_El_Objeto/Object_Not_Found". */
+
 const nicMexico: WhoisParser = {
   id: 'nic-mexico',
   version: 'whois-nic-mexico/1',
@@ -372,11 +372,11 @@ const nicMexico: WhoisParser = {
   },
 };
 
-/**
- * CIDR, the Island Networks back end for .gg and .je. Free: the whole reply is "NOT FOUND"; the terms
- * (https://www.channelisles.net/legal/whoisterms) say names the registry does not operate or that
- * cannot be registered also give no valid result, so no_record is not eligibility.
- */
+
+
+
+
+
 const channelIsles: WhoisParser = {
   id: 'channel-isles',
   version: 'whois-channel-isles/1',
@@ -399,7 +399,7 @@ const channelIsles: WhoisParser = {
   },
 };
 
-/** AM NIC (.am). Free: "No match" under the "%AM TLD whois server" banner. */
+
 const amnic: WhoisParser = {
   id: 'amnic',
   version: 'whois-amnic/1',
@@ -428,10 +428,10 @@ const amnic: WhoisParser = {
   },
 };
 
-/**
- * Domicilium for the Isle of Man Government (.im). Free: "The domain <name> was not found." (the
- * same reply also carries a "Domain Name:" line, so the negative text is checked first).
- */
+
+
+
+
 const nicIm: WhoisParser = {
   id: 'nic-im',
   version: 'whois-nic-im/1',
@@ -439,7 +439,7 @@ const nicIm: WhoisParser = {
     const missing = echoes(text, /^The domain (.*) was not found\.[ \t]*$/gm);
     const found = names(text, /^Domain Name:(.*)$/gm);
     if (missing) {
-      // The not-found reply repeats the name on a "Domain Name:" line; it must be the same name and nothing else.
+
       const echoedNames = [...new Set([...missing, ...found])];
       if (/^(?:Domain Details|Domain Managers|Domain Owners|Expiry Date:|Name Server:)/m.test(text)) return conflicting(ctx, 'not-found text and record lines');
       return echoedNegative(ctx, echoedNames, 'answered that the domain was not found');
@@ -456,17 +456,17 @@ const nicIm: WhoisParser = {
   },
 };
 
-/**
- * RESTENA DNS-LU (.lu). domaintype values FREE, ACTIVE and RESERVED from
- * https://dns.lu/en/domains/apiprotocols. Free: "% No such domain" after "% WHOIS <name>".
- * Throttle: "%% Maximum query rate reached" (the documented wait doubles with each excess query).
- */
+
+
+
+
+
 const dnsLu: WhoisParser = {
   id: 'dns-lu',
   version: 'whois-dns-lu/1',
   classify(text, ctx) {
     if (/^%% Maximum query rate reached/m.test(text)) return rateLimited(ctx, 'DNS-LU maximum query rate reached');
-    // Query echoes are "% WHOIS <name>" lines whose first word contains a dot; banner prose ("% WHOIS database ...") does not.
+
     const queried = names(text, /^% WHOIS[ \t]+(\S*\.\S*.*)$/gm);
     if (/^% No such domain[ \t]*$/m.test(text)) {
       if (/^(?:domainname|domaintype|nserver|ownertype|registrar-name|registered):/m.test(text)) return conflicting(ctx, 'not-found text and record lines');
@@ -480,7 +480,7 @@ const dnsLu: WhoisParser = {
     if ('result' in typeLine) return typeLine.result;
     const type = typeLine.value;
     if (!type) return UNRECOGNIZED(ctx.spec.host);
-    // Documented values only: FREE, or ACTIVE / RESERVED with an optional ON HOLD or PENDING_DELETE.
+
     const kind = /^(FREE|ACTIVE|RESERVED)(?:[ \t]+(ON HOLD|PENDING_DELETE))?$/i.exec(type);
     if (!kind || (kind[1]!.toUpperCase() === 'FREE' && kind[2])) return unknownStatus(ctx, type, name);
     if (kind[1]!.toUpperCase() === 'FREE') {
@@ -501,16 +501,16 @@ const dnsLu: WhoisParser = {
 };
 
 const EIS_FOOTER = /^Estonia \.ee Top Level Domain WHOIS server[ \t]*$/m;
-/** Statuses of the registry's inactive template (app/models/whois_record.rb), shown for names without a registration. */
+
 const EIS_INACTIVE = new Set(['reserved', 'blocked', 'atauction', 'pendingregistration', 'disputed', 'deletecandidate']);
 
-/**
- * Estonian Internet Foundation (.ee). Reply texts from the registry's own server source
- * (https://github.com/internetee/whois, lib/whois_server.rb and app/views/whois_record): "Domain not
- * found", "Policy error: ..." and an inactive template (name and status only) for Reserved, Blocked,
- * AtAuction, PendingRegistration, Disputed and deleteCandidate names. Registered records carry a
- * "registered:" line. Throttling refuses the connection, which is a transport error.
- */
+
+
+
+
+
+
+
 const eis: WhoisParser = {
   id: 'eis',
   version: 'whois-eis/1',
@@ -534,7 +534,7 @@ const eis: WhoisParser = {
     const name = identity.name;
     const statuses = all(text, /^status:(.*)$/gm);
     if (statuses.length === 0 || statuses.includes('')) return INCOMPLETE(ctx.spec.host, 'a status line');
-    // The registry prints inactive states (EIS_INACTIVE) only in its template for names without a registration.
+
     const inactive = statuses.filter((status) => EIS_INACTIVE.has(status.toLowerCase()));
     if (/^registered:/m.test(text)) {
       if (inactive.length > 0 || !/^registered:[ \t]*\S/m.test(text)) return conflicting(ctx, 'registration lines and an inactive status');
@@ -560,14 +560,14 @@ const eis: WhoisParser = {
   },
 };
 
-/** "2010-07-04 04:59:06 +03:00" or "2030-12-09" from EIS records. */
+
 function eisDate(value: string | undefined): string | null {
   const match = /^(\d{4}-\d{2}-\d{2})(?: (\d{2}:\d{2}:\d{2}) ([+-]\d{2}:\d{2}))?/.exec(value?.trim() ?? '');
   if (!match) return null;
   return match[2] ? toIso(`${match[1]}T${match[2]}${match[3]}`) : dateOnly(match[1]);
 }
 
-/** NIC.LV (.lv). "[Domain]" section with "Status: free" or "Status: active". Data refreshes four times a day. */
+
 const nicLv: WhoisParser = {
   id: 'nic-lv',
   version: 'whois-nic-lv/1',
@@ -593,14 +593,14 @@ const nicLv: WhoisParser = {
 
 const DOMREG_REGISTERED = new Set(['registered', 'restricteddisposal', 'restrictedrights', 'stopped']);
 
-/**
- * DOMREG (.lt) Domain Availability Service on das.domreg.lt:4343, which the registry recommends for
- * automated checks (https://www.domreg.lt/en/faq/for-registrars/how-to-get-the-information-on-domains/;
- * port-43 WHOIS blocks an IP after 100 queries per 30 minutes). Statuses from the same page:
- * available, registered, blocked, reserved, restrictedDisposal, restrictedRights, stopped,
- * pendingCreate, pendingDelete, pendingRelease, outOfService. Only available, reserved and the
- * states of an existing registration are mapped; the rest stay inconclusive.
- */
+
+
+
+
+
+
+
+
 const domregDas: WhoisParser = {
   id: 'domreg-das',
   version: 'das-domreg/1',
@@ -622,7 +622,7 @@ const domregDas: WhoisParser = {
   },
 };
 
-/** SK-NIC (.sk). Free: "Domain not found."; registered records carry Created and Valid Until lines. */
+
 const skNic: WhoisParser = {
   id: 'sk-nic',
   version: 'whois-sk-nic/1',
@@ -649,10 +649,10 @@ const skNic: WhoisParser = {
   },
 };
 
-/**
- * RNIDS (.rs). Free: "%ERROR:103: Domain is not registered". Every status in
- * https://www.rnids.rs/en/domain-name-status-codes belongs to an existing registration.
- */
+
+
+
+
 const rnids: WhoisParser = {
   id: 'rnids',
   version: 'whois-rnids/1',
@@ -684,12 +684,12 @@ const rnids: WhoisParser = {
   },
 };
 
-/** Register.BG (.bg). Both replies start "DOMAIN NAME:"; "registration status: available" or "busy, ...". */
+
 const registerBg: WhoisParser = {
   id: 'register-bg',
   version: 'whois-register-bg/1',
   classify(text, ctx) {
-    // "DOMAIN NAME: <name> (<A-label>)": every printed form must name one domain.
+
     const headers = [...text.matchAll(/^DOMAIN NAME:(.*)$/gm)].map((line) => /^[ \t]*(\S+)(?:[ \t]+\((\S+)\))?[ \t]*$/.exec(line[1]!));
     if (headers.some((header) => header === null)) return conflicting(ctx, 'DOMAIN NAME lines');
     const identity = soleName(ctx, [...new Set(headers.flatMap((header) => [header![1], header![2]]).filter((value) => value !== undefined).map((value) => asciiName(value) ?? ''))]);
@@ -716,7 +716,7 @@ const registerBg: WhoisParser = {
   },
 };
 
-/** ISZT / domain.hu (.hu). Free: "Nincs talalat / No match"; records carry only "domain:" and "record created:". */
+
 const nicHu: WhoisParser = {
   id: 'nic-hu',
   version: 'whois-nic-hu/1',
@@ -752,12 +752,12 @@ const IT_REGISTERED = new Set([
   'inactive/notrenewed',
 ]);
 
-/**
- * Registro .it (.it). Free: "Status: AVAILABLE"; "Status: UNASSIGNABLE" for geographical or reserved
- * names (Synchronous Technical Guidelines v3.2, sections 16.4 and 16.5,
- * https://www.nic.it/sites/default/files/documenti/2024/Synchronous_Technical_Guidelines_v3.2_0.pdf).
- * Registered statuses from section 2.3.1 of the same guidelines.
- */
+
+
+
+
+
+
 const registroIt: WhoisParser = {
   id: 'registro-it',
   version: 'whois-registro-it/1',
@@ -794,7 +794,7 @@ const registroIt: WhoisParser = {
   },
 };
 
-/** nic.at (.at). Free: "% nothing found"; registered records end their domain block with "source: AT-DOM". */
+
 const nicAt: WhoisParser = {
   id: 'nic-at',
   version: 'whois-nic-at/1',
@@ -816,11 +816,11 @@ const nicAt: WhoisParser = {
   },
 };
 
-/**
- * HKIRC (.hk and com.hk, org.hk, ...). Free: the whole reply is "The domain has not been registered."
- * Throttle: "Please maintain at least 10-second time before starting another enquiry." (reference
- * capture); Domain Scout also spaces queries by that interval.
- */
+
+
+
+
+
 const hkirc: WhoisParser = {
   id: 'hkirc',
   version: 'whois-hkirc/1',
@@ -849,11 +849,11 @@ const hkirc: WhoisParser = {
   },
 };
 
-/**
- * TCI for the Coordination Center (.ru). Field meanings and the 120 queries per minute limit from
- * the official service description (https://tcinet.ru/documents/whois_ru_rf.pdf, v1.0, 2022-09-12).
- * Free: "No entries found for the selected source(s)." under the "% TCI Whois Service" banner.
- */
+
+
+
+
+
 const tci: WhoisParser = {
   id: 'tci',
   version: 'whois-tci/1',
@@ -882,12 +882,12 @@ const tci: WhoisParser = {
   },
 };
 
-/** TRABIS (.tr and com.tr, org.tr, ...). Free: "No match found for <name>"; records start "** Domain Name:". */
+
 const trabis: WhoisParser = {
   id: 'trabis',
   version: 'whois-trabis/1',
   classify(text, ctx) {
-    // The current reply is unquoted; the pre-2022 one quoted the name. A half-quoted line matches neither.
+
     const missing = [
       ...new Set(
         [...text.matchAll(/^No match found for (.*)$/gm)].map((match) => {
@@ -921,7 +921,7 @@ const trabis: WhoisParser = {
   },
 };
 
-/** ISOC-IL (co.il, org.il, ...). Free: "% No data was found to match the request criteria." */
+
 const isocIl: WhoisParser = {
   id: 'isoc-il',
   version: 'whois-isoc-il/1',
@@ -952,7 +952,7 @@ const isocIl: WhoisParser = {
   },
 };
 
-/** .aeDA (.ae and co.ae, net.ae, ...). Free: the whole reply is "No Data Found"; records have no dates. */
+
 const aeda: WhoisParser = {
   id: 'aeda',
   version: 'whois-aeda/1',
@@ -974,7 +974,7 @@ const aeda: WhoisParser = {
   },
 };
 
-/** SaudiNIC (.sa and com.sa, ...). Free: "No Match for domain: <name>" (older replies omit "domain: "). */
+
 const saudiNic: WhoisParser = {
   id: 'saudinic',
   version: 'whois-saudinic/1',
@@ -998,16 +998,16 @@ const saudiNic: WhoisParser = {
   },
 };
 
-/**
- * .so registry WHOIS. Free: a "Domain Name:" line echoing the query followed by "The queried object
- * does not exist: No Object Found"; registered records use the ICANN layout.
- */
+
+
+
+
 const nicSo: WhoisParser = {
   id: 'nic-so',
   version: 'whois-nic-so/1',
   classify(text, ctx) {
     if (/^The queried object does not exist: No Object Found[ \t]*$/m.test(text)) {
-      // The not-found reply repeats the query on a "Domain Name:" line, but carries no record lines.
+
       if (/^(?:Registry Domain ID|Creation Date|Updated Date|Registry Expiry Date|Registrar Registration Expiration Date|Registrar|Domain Status|Name Server|DNSSEC):/im.test(text)) {
         return conflicting(ctx, 'not-found text and record lines');
       }

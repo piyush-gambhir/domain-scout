@@ -284,7 +284,7 @@ func TestMCPWaitTimeoutAndValidation(t *testing.T) {
 		if !res.IsError {
 			t.Fatal("invalid scan should be a tool error")
 		}
-		// Local errors carry the full API ErrorResponse shape, like backend errors.
+
 		e, _ := mcpStructured(t, res)["error"].(map[string]any)
 		for _, key := range []string{"code", "message", "requestId", "domain", "source", "retryable", "retryAt", "details"} {
 			if _, ok := e[key]; !ok {

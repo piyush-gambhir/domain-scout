@@ -12,7 +12,6 @@ import (
 	"github.com/piyush-gambhir/domain-scout/cli/internal/api"
 )
 
-// writeArtifact downloads to --out (atomically) or to stdout.
 func (a *App) writeArtifact(ctx context.Context, c *apiClient, out string, fn callFn) error {
 	if out == "" {
 		return c.download(ctx, fn, a.Stdout)
@@ -51,8 +50,7 @@ func (a *App) exportCmd() *cobra.Command {
 			if !f.Valid() {
 				return usageErr("--format must be txt, csv or json")
 			}
-			// Tri-state: unset lets the backend default (TXT keeps candidates only); an explicit
-			// --candidates-only=false includes every name in scope.
+
 			candidatesSet := cmd.Flags().Changed("candidates-only")
 			if candidatesSet && f != api.ExportCreateInputFormatTxt {
 				return usageErr("--candidates-only applies only to --format txt")
@@ -89,8 +87,7 @@ func (a *App) exportCmd() *cobra.Command {
 			if err := json.Unmarshal(res.body, &er); err != nil {
 				return failErr("backend returned a malformed export: %v", err)
 			}
-			// Warnings carry uncertainty context (for example unresolved items
-			// in a TXT candidate list); they belong on stderr, not in the file.
+
 			for _, w := range er.Data.Warnings {
 				a.progress("warning: %s", w)
 			}

@@ -79,7 +79,7 @@ function replaceParams(mutate: (params: URLSearchParams) => void) {
   window.history.replaceState(null, '', query ? `?${query}` : window.location.pathname);
 }
 
-/** Search bar prefilled with this search; Enter starts a new one. */
+
 function ResultsSearchBar({ job, inputRef }: { job: Job; inputRef: React.RefObject<HTMLTextAreaElement | null> }) {
   const router = useRouter();
   const defaults = useDefaultExtensions();
@@ -88,7 +88,7 @@ function ResultsSearchBar({ job, inputRef }: { job: Job; inputRef: React.RefObje
   const [extensions, setExtensions] = useState(job.input.extensions);
   const [options, setOptions] = useState<SearchOptions>({ ...DEFAULT_OPTIONS, format: job.input.format ?? 'auto', csvColumn: job.input.csvColumn ?? '' });
   const [fileName, setFileName] = useState<string | null>(null);
-  // The text arrives with the job (lists and events omit it); fill it once when it does.
+
   const filled = useRef(Boolean(job.input.text));
   useEffect(() => {
     if (!filled.current && job.input.text) {
@@ -250,12 +250,12 @@ function SearchResults({ job }: { job: Job }) {
   const canGrid = job.counters.total <= GRID_MAX_ITEMS;
   const all = useAllResults(job.id, canGrid, running);
   const labelCount = useMemo(() => new Set(all.items.map(labelOf)).size, [all.items]);
-  // A results filter (e.g. restored from a saved search) only applies to the list, so it opens there.
+
   const [filteredOnOpen] = useState(() => Object.keys(filtersFromParams(new URLSearchParams(searchParams.toString()))).length > 0);
   const autoView: View | null = !canGrid || filteredOnOpen ? 'list' : all.complete ? (labelCount <= GRID_MAX_LABELS ? 'grid' : 'list') : null;
   const view: View | null = userView === 'list' || (userView === 'grid' && canGrid) ? userView : autoView;
 
-  // Suffixes to price: the search's extensions, full domains it held, and suffixes the list has loaded.
+
   const [listSuffixes, setListSuffixes] = useState<string[]>([]);
   const addListSuffixes = useCallback((next: string[]) => setListSuffixes((current) => (next.every((s) => current.includes(s)) ? current : uniq([...current, ...next]))), []);
   const suffixes = useMemo(
@@ -316,7 +316,7 @@ function SearchResults({ job }: { job: Job }) {
     retry: (domain: string) => overlay.recheck([domain]),
   };
 
-  // "/" focuses the search bar.
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) return;
@@ -343,7 +343,7 @@ function SearchResults({ job }: { job: Job }) {
   });
   const saveCriteria = useMutation({
     mutationFn: async (choice: { name: string; providerIds: string[]; budget: { amount: string; currency: string } | null }) => {
-      // Saved criteria keep text but not parse options, so a CSV search saves the values of the column it read.
+
       let input = job.input.text ?? null;
       if (input && job.input.format === 'csv') {
         const parsed = (
@@ -626,7 +626,7 @@ function SearchResults({ job }: { job: Job }) {
   );
 }
 
-/** /search/[id]: the results of one search, or the item list of any other job. */
+
 export function SearchResultsPage({ jobId }: { jobId: string }) {
   const job = useLiveJob(jobId);
   if (job.isPending) {

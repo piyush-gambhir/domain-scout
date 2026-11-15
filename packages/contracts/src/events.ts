@@ -21,7 +21,7 @@ export const EventType = z
   .meta({ id: 'EventType' });
 export type EventType = z.infer<typeof EventType>;
 
-/** Event types that are compacted after the transient replay window. */
+
 export const TRANSIENT_EVENT_TYPES: readonly EventType[] = ['job.progress', 'heartbeat'];
 
 export const SourceCooldownPayload = z

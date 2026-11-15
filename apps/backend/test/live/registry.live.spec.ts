@@ -11,16 +11,16 @@ import { RegistryChecker } from '../../src/registry/registry-checker.js';
 import { RoutesService } from '../../src/registry/routes.service.js';
 import { NetWhoisTransport } from '../../src/registry/whois/whois-transport.js';
 
-/**
- * Authorized live validation. Sends ONLY the fixed test set (example.com, google.com, nic.si,
- * bbc.co.uk and random 24-character lowercase labels) and ONLY to the routed registry RDAP/WHOIS
- * servers, at least 2 s apart per registry. Runs with DOMAIN_SCOUT_LIVE_TESTS=1.
- *
- * DOMAIN_SCOUT_LIVE_SUFFIXES=be,dk limits the run to those suffixes. DOMAIN_SCOUT_LIVE_RECORD=1
- * updates data/registry/live-validation.json, replacing results only for the suffixes attempted.
- * DOMAIN_SCOUT_LIVE_CAPTURE_DIR=<dir> writes each response (status, content type, sanitized body)
- * there, as raw material for captured_live fixtures.
- */
+
+
+
+
+
+
+
+
+
+
 const LIVE = process.env.DOMAIN_SCOUT_LIVE_TESTS === '1';
 const RECORD = process.env.DOMAIN_SCOUT_LIVE_RECORD === '1';
 const ONLY = process.env.DOMAIN_SCOUT_LIVE_SUFFIXES?.split(',').map((suffix) => suffix.trim().toLowerCase()).filter(Boolean) ?? null;
@@ -44,7 +44,7 @@ const FIXED_CASES: { domain: string; expected: 'registered' | 'no_record' }[] = 
 ];
 const fixedSuffixes = new Set(FIXED_CASES.map((c) => c.domain.slice(c.domain.indexOf('.') + 1)));
 
-/** Plus one random label per curated RDAP service and per curated WHOIS or DAS route (including co.za and the like). */
+
 const ALL_CASES = [
   ...FIXED_CASES,
   ...[...loadRegistryData().curatedRdap.routes, ...loadRegistryData().whois.routes]

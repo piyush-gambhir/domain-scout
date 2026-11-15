@@ -22,14 +22,14 @@ func TestParserFields(t *testing.T) {
 		"data:  \"b\":2}\r\n" +
 		"\r\n" +
 		"id: 2\n" +
-		"\n" + // id-only block: moves the cursor, dispatches nothing
+		"\n" +
 		"id: 3\n" +
 		"data: {\"type\":\"heartbeat\"}\n" +
 		"\n" +
 		"data: no-type\n" +
 		"\n" +
 		"id: 4\n" +
-		"data: partial" // unterminated: must not dispatch
+		"data: partial"
 	p := NewParser(strings.NewReader(in))
 
 	ev, err := p.Next()
@@ -59,8 +59,6 @@ func TestParserFields(t *testing.T) {
 	}
 }
 
-// sseServer serves one scripted response per connection and records the
-// Last-Event-ID each connection sent.
 type sseServer struct {
 	t       *testing.T
 	mu      sync.Mutex
@@ -84,8 +82,7 @@ func newSSEServer(t *testing.T, conns ...func(w http.ResponseWriter, flush func(
 		w.WriteHeader(200)
 		fl := w.(http.Flusher)
 		fl.Flush()
-		// hold waits like time.Sleep but returns when the client disconnects,
-		// so server shutdown is not delayed.
+
 		hold := func(d time.Duration) {
 			select {
 			case <-r.Context().Done():
@@ -133,10 +130,10 @@ func TestStreamReplaysWithLastEventIDAndSuppressesDuplicates(t *testing.T) {
 			event(w, "2", "job.progress")
 			event(w, "3", "job.progress")
 			flush()
-			// Connection drops here.
+
 		},
 		func(w http.ResponseWriter, flush func(), hold func(time.Duration)) {
-			// The server replays from an older point; 2 and 3 are duplicates.
+
 			event(w, "2", "job.progress")
 			event(w, "3", "job.progress")
 			event(w, "4", "job.updated")
@@ -233,7 +230,7 @@ func TestStreamIdleTimeoutReconnects(t *testing.T) {
 		func(w http.ResponseWriter, flush func(), hold func(time.Duration)) {
 			event(w, "1", "job.progress")
 			flush()
-			hold(2 * time.Second) // silent: no heartbeat
+			hold(2 * time.Second)
 		},
 		func(w http.ResponseWriter, flush func(), hold func(time.Duration)) {
 			event(w, "2", "job.updated")
@@ -310,12 +307,12 @@ func TestStreamCursorOnlyRecordsMoveAndClearCursor(t *testing.T) {
 	srv := newSSEServer(t,
 		func(w http.ResponseWriter, flush func(), hold func(time.Duration)) {
 			event(w, "1", "job.progress")
-			fmt.Fprint(w, "id: 5\n\n") // cursor only
+			fmt.Fprint(w, "id: 5\n\n")
 			flush()
 		},
 		func(w http.ResponseWriter, flush func(), hold func(time.Duration)) {
 			event(w, "6", "job.progress")
-			fmt.Fprint(w, "id:\n\n") // empty id resets the cursor
+			fmt.Fprint(w, "id:\n\n")
 			flush()
 		},
 		func(w http.ResponseWriter, flush func(), hold func(time.Duration)) {

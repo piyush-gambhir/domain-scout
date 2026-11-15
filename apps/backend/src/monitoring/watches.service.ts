@@ -37,7 +37,7 @@ interface RunRow {
   note: string | null;
 }
 
-/** Watch definitions, runs and notices. Scheduling lives in WatchScheduler. */
+
 @Injectable()
 export class WatchesService {
   constructor(
@@ -91,7 +91,7 @@ export class WatchesService {
           body.intervalMinutes ?? this.settings.get().monitoring.defaultIntervalMinutes,
           now,
           now,
-          // The first check is due right away so the watch has a fresh baseline.
+
           now,
         ],
       );
@@ -133,15 +133,15 @@ export class WatchesService {
     });
   }
 
-  /**
-   * Removes the watch, its runs, notices and events. No event describes the deletion: the contract's
-   * only watch event carries the full watch, which would put the deleted names back into replay.
-   */
+
+
+
+
   delete(id: string) {
     this.record(id);
     this.db.transaction(() => {
       deleteWatchRows(this.db, this.events, [id]);
-      // Not tagged with the watch id, so cleanup of that watch's events keeps this tombstone.
+
       this.events.emit('watch.deleted', { watchId: null }, { watchId: id, deletedAt: this.clock.iso() });
     });
   }
@@ -213,7 +213,7 @@ export class WatchesService {
     return { items: rows.map(toNotice) as Notice[], nextCursor: page.next(rows.length, total), total };
   }
 
-  /** Marks the given notices, or all of them, read; `watchId` narrows either selection to one watch. */
+
   markRead(body: { ids?: string[]; all?: boolean; watchId?: string }) {
     if (!body.all && !body.ids?.length) throw AppError.invalid('Provide ids or all: true');
     if (body.watchId) this.record(body.watchId);
@@ -236,7 +236,7 @@ export class WatchesService {
     });
   }
 
-  /** Emit watch.changed with the current state. Call inside the transaction that changed it. */
+
   changed(id: string, jobId?: string | null): Watch {
     const watch = this.get(id);
     this.events.emit('watch.changed', { watchId: id, jobId: jobId ?? null }, watch);
@@ -250,7 +250,7 @@ export class WatchesService {
     return toWatch(record, this.destinations(record), unread, this.registryState(record.domains));
   }
 
-  /** Watched names counted by the outcome of their latest registry observation, from any job. */
+
   registryState(domains: string[]): Watch['registry'] {
     const rows = this.db.all<{ outcome: string | null; n: number }>(
       `SELECT (SELECT o.outcome FROM observations o WHERE o.kind = 'registry' AND o.subject = d.value
@@ -267,7 +267,7 @@ export class WatchesService {
     return { outcomes, unchecked };
   }
 
-  /** Where a run sends the watched names: registry endpoints per suffix and the selected providers. */
+
   destinations(record: WatchRecord): string[] {
     const out: string[] = [];
     if (record.includeRegistry) {
@@ -297,7 +297,7 @@ export class WatchesService {
     if (!includeRegistry && providerIds.length === 0) {
       throw AppError.invalid('A watch needs registry checks or at least one provider');
     }
-    // The jobs engine refreshes catalogs only for the watch's providers.
+
     if (includeCatalogPrices && providerIds.length === 0) {
       throw AppError.invalid('Tracking catalog prices needs at least one provider');
     }

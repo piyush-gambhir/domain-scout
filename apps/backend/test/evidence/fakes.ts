@@ -24,15 +24,15 @@ import type { EvidenceRepository } from '../../src/storage/evidence.js';
 import { Clock } from '../../src/core/clock.js';
 import { Database } from '../../src/storage/database.js';
 
-/*
- * Fakes for ports owned by other modules, plus builders for contract-shaped evidence rows.
- * Fixture provenance: hand-written reconstructions of the contract shapes in packages/contracts,
- * not captured source responses.
- */
+
+
+
+
+
 
 const MULTI_LABEL = ['co.uk', 'com.au', 'org.uk'];
 
-/** Registry-module stand-in: lower-cases, converts IDN and knows a few multi-label suffixes. */
+
 export class FakePreviewer extends InputPreviewer {
   preview(_source: InputSourceParsed): InputPreview {
     throw new Error('not used');
@@ -60,10 +60,10 @@ export class FakeJobs extends JobSubmitter {
   readonly submitted: { request: Request | WatchJobRequest | CatalogJobRequest; options?: SubmitOptions; job: Job }[] = [];
   readonly jobs = new Map<string, Job>();
   private readonly byKey = new Map<string, Job>();
-  /** Runs synchronously inside submit(), e.g. to simulate a job that finishes before submit returns. */
+
   afterSubmit: ((job: Job) => void) | null = null;
 
-  /** With a database, submitted jobs also get a jobs row so foreign keys hold, as with the real engine. */
+
   constructor(
     private readonly clock: Clock,
     private readonly db?: Database,
@@ -99,10 +99,10 @@ export class FakeJobs extends JobSubmitter {
     return job;
   }
 
-  /**
-   * Record evidence as written by this job, the way the engine does: one finished item per row,
-   * registry ids in registry_observation_id, others in evidence_json.
-   */
+
+
+
+
   attach(jobId: string, evidence: CreatedEvidence[], options: { reusedRegistry?: boolean } = {}) {
     if (!this.db) throw new Error('FakeJobs.attach needs a database');
     const seq = this.db.get<{ n: number }>('SELECT COUNT(*) AS n FROM job_items WHERE job_id = ?', [jobId])!.n;
@@ -119,7 +119,7 @@ export class FakeJobs extends JobSubmitter {
     });
   }
 
-  /** Mark a job terminal and return the updated object. */
+
   finish(jobId: string, state: Job['state'], finishedAt: string, counters: Partial<Job['counters']> = {}): Job {
     const job = { ...this.get(jobId), state, finishedAt, updatedAt: finishedAt, counters: { ...this.get(jobId).counters, ...counters } };
     this.jobs.set(jobId, job);
@@ -141,7 +141,7 @@ export class FakeLifecycle extends JobLifecycle {
 }
 
 export class FakeResults extends JobResults {
-  /** jobId -> items in result order. */
+
   readonly items = new Map<string, JobItem[]>();
   list(jobId: string, filter: ResultFilterParsed) {
     const items = this.items.get(jobId)!.filter((item) => matches(item, filter));
@@ -219,9 +219,9 @@ export interface CreatedEvidence {
   id: string;
 }
 
-/** Writes contract-shaped evidence through the shared repository. */
+
 export class EvidenceFixtures {
-  /** Every row written, in order, so tests can attribute rows to a fake job. */
+
   readonly created: CreatedEvidence[] = [];
 
   constructor(private readonly repo: EvidenceRepository) {}
@@ -378,7 +378,7 @@ export class EvidenceFixtures {
   }
 }
 
-/** Provider for JobSubmitter backed by FakeJobs; fetch the instance with app.get(JobSubmitter). */
+
 export const fakeJobsProvider = {
   provide: JobSubmitter,
   inject: [Clock, Database],

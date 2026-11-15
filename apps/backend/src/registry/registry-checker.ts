@@ -14,7 +14,7 @@ export const MAX_REDIRECTS = 3;
 const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
 
 export interface CheckOptions {
-  /** Cancellation from the job (cancel, service stop). */
+
   signal: AbortSignal;
   timeoutMs: number;
   now: () => Date;
@@ -23,13 +23,13 @@ export interface CheckOptions {
 export interface CheckResult {
   classification: Classification;
   parserVersion: string;
-  /** Sanitized response for optional raw diagnostics; null when nothing was received. */
+
   raw: { contentType: string | null; body: string; truncated: boolean } | null;
-  /** True when `options.signal` aborted the query; the result is not evidence. */
+
   aborted: boolean;
 }
 
-/** Sends one domain to its routed registry and classifies the answer. Never contacts anything else. */
+
 @Injectable()
 export class RegistryChecker {
   constructor(
@@ -117,7 +117,7 @@ export class RegistryChecker {
 
     const finalHost = new URL(url).host.toLowerCase();
     if (response.status === 404 && this.routes.registryIdForHost(finalHost) !== route.registryId) {
-      // A negative answer counts only from the routed registry operator.
+
       return this.rdapResult(
         unresolved('inconclusive', 'unverified_negative', `404 came from ${finalHost} after a redirect, not from the routed registry ${route.host}`, {
           httpStatus: response.status,
@@ -167,7 +167,7 @@ export class RegistryChecker {
   }
 }
 
-/** A redirect target must still be an RDAP domain query for the same name (RFC 9082 path `.../domain/<name>`). */
+
 function isDomainQuery(url: URL, ascii: string): boolean {
   let path: string;
   try {

@@ -56,7 +56,7 @@ export function DropdownMenuCheckboxItem({ className, children, ...props }: Reac
   );
 }
 
-/** Vertical space between groups; no divider lines. */
+
 export function DropdownMenuGap() {
   return <div aria-hidden className="h-1" />;
 }

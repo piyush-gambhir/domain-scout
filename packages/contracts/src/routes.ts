@@ -114,7 +114,7 @@ export type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
 export interface RouteDef {
   method: HttpMethod;
-  /** Express-style path relative to API_PREFIX, e.g. `/jobs/:id`. */
+
   path: string;
   summary: string;
   tag: string;
@@ -123,13 +123,13 @@ export interface RouteDef {
   body?: z.ZodType;
   response: z.ZodType;
   status?: 200 | 201 | 202;
-  /** Accepts an Idempotency-Key header. */
+
   idempotent?: boolean;
-  /** Sends names to external services (registries, providers, enrichment destinations). */
+
   external?: boolean;
-  /** `none`: no local auth (health and session exchange only). */
+
   auth?: 'none' | 'required';
-  /** Non-JSON success bodies. */
+
   produces?: 'json' | 'sse' | 'file';
 }
 
@@ -156,7 +156,7 @@ const AsciiDomainList = z.object({ domains: z.array(AsciiDomain) });
 const AsciiDomainListResponse = envelope(AsciiDomainList, 'AsciiDomainListResponse');
 
 export const routes = {
-  // System
+
   getHealth: { method: 'get', path: '/health', summary: 'Backend identity and versions', tag: 'system', response: HealthResponse, auth: 'none' },
   getCapabilities: { method: 'get', path: '/capabilities', summary: 'Supported features, coverage counts and provider readiness', tag: 'system', response: CapabilitiesResponse },
   getSettings: { method: 'get', path: '/settings', summary: 'Current settings', tag: 'system', response: SettingsResponse },
@@ -167,10 +167,10 @@ export const routes = {
   createSession: { method: 'post', path: '/auth/session', summary: 'Exchange a bootstrap code for a browser session', tag: 'system', body: SessionExchange, response: SessionInfoResponse, status: 201, auth: 'none' },
   getSession: { method: 'get', path: '/auth/session', summary: 'Current browser session', tag: 'system', response: SessionStatusResponse },
 
-  // Input
+
   previewInput: { method: 'post', path: '/inputs/preview', summary: 'Parse, validate, expand and deduplicate input without external queries', tag: 'inputs', body: InputSource, response: InputPreviewResponse },
 
-  // Jobs
+
   createJob: { method: 'post', path: '/jobs', summary: 'Submit a job', tag: 'jobs', body: CreateJobRequest, response: JobResponse, status: 201, idempotent: true, external: true },
   listJobs: { method: 'get', path: '/jobs', summary: 'List jobs', tag: 'jobs', query: JobListQuery, response: JobListResponse },
   getJob: { method: 'get', path: '/jobs/:id', summary: 'Job state and counters', tag: 'jobs', params: IdParams, response: JobResponse },
@@ -181,16 +181,16 @@ export const routes = {
   deleteJob: { method: 'delete', path: '/jobs/:id', summary: 'Delete a finished job; shared evidence used elsewhere is kept', tag: 'jobs', params: IdParams, response: OkResponse },
   createRecheck: { method: 'post', path: '/rechecks', summary: 'Fresh registry checks for selected domains', tag: 'jobs', body: RecheckRequest, response: JobResponse, status: 201, idempotent: true, external: true },
 
-  // Events
+
   streamEvents: { method: 'get', path: '/events', summary: 'Server-sent events with replay', tag: 'events', query: EventQuery, response: SseStream, produces: 'sse' },
 
-  // Coverage
+
   listCoverage: { method: 'get', path: '/coverage', summary: 'Per-suffix routing provenance and support status', tag: 'coverage', query: CoverageQuery, response: CoverageListResponse },
   getCoverageSummary: { method: 'get', path: '/coverage/summary', summary: 'Coverage counts, bootstrap dates and limits', tag: 'coverage', response: CoverageSummaryResponse },
   refreshCoverage: { method: 'post', path: '/coverage/refresh', summary: 'Refresh IANA bootstrap metadata (no candidate names are sent)', tag: 'coverage', response: CoverageSummaryResponse },
   getSuffixCoverage: { method: 'get', path: '/coverage/:suffix', summary: 'Coverage for one suffix', tag: 'coverage', params: SuffixParams, response: SuffixCoverageResponse },
 
-  // Providers
+
   listProviders: { method: 'get', path: '/providers', summary: 'Providers, capabilities and readiness', tag: 'providers', query: PageQuery, response: ProviderListResponse },
   getProvider: { method: 'get', path: '/providers/:id', summary: 'One provider', tag: 'providers', params: ProviderParams, response: ProviderResponse },
   patchProvider: { method: 'patch', path: '/providers/:id', summary: 'Enable, disable or prefer a provider', tag: 'providers', params: ProviderParams, body: ProviderPreferencesPatch, response: ProviderResponse },
@@ -200,7 +200,7 @@ export const routes = {
   deleteProviderCredentials: { method: 'delete', path: '/providers/:id/credentials', summary: 'Disconnect: remove saved credentials', tag: 'providers', params: ProviderParams, response: ProviderResponse },
   testProviderCredentials: { method: 'post', path: '/providers/:id/credentials/test', summary: 'Test credentials with a non-candidate account operation', tag: 'providers', params: ProviderParams, response: CredentialTestResponse },
 
-  // External operations
+
   createQuotes: { method: 'post', path: '/quotes', summary: 'Exact-name quotes from selected providers', tag: 'operations', body: ProviderJobBody, response: JobResponse, status: 201, idempotent: true, external: true },
   createProviderChecks: { method: 'post', path: '/provider-checks', summary: 'Exact-name availability confirmation from selected providers', tag: 'operations', body: ProviderJobBody, response: JobResponse, status: 201, idempotent: true, external: true },
   createTransfers: { method: 'post', path: '/transfers', summary: 'Read-only transfer price quotes', tag: 'operations', body: ProviderJobBody, response: JobResponse, status: 201, idempotent: true, external: true },
@@ -210,7 +210,7 @@ export const routes = {
   listNameCheckServices: { method: 'get', path: '/name-checks/services', summary: 'Supported and unsupported name-check services', tag: 'operations', response: NameCheckServiceListResponse },
   createDiagnostics: { method: 'post', path: '/diagnostics', summary: 'Selected DNS, DNSSEC, TLS and HTTP diagnostics', tag: 'operations', body: DiagnosticsJobBody, response: JobResponse, status: 201, idempotent: true, external: true },
 
-  // Evidence and cost
+
   getDomainEvidence: { method: 'get', path: '/domains/:name/evidence', summary: 'All retained evidence for a domain', tag: 'evidence', params: DomainParams, response: DomainEvidenceResponse },
   listDomainOffers: { method: 'get', path: '/domains/:name/offers', summary: 'Catalog and quote offers matching a domain', tag: 'evidence', params: DomainParams, query: PageQuery, response: OfferListResponse },
   listDomainTransferOptions: { method: 'get', path: '/domains/:name/transfer-options', summary: 'Read-only transfer comparison from retained data', tag: 'evidence', params: DomainParams, query: PageQuery, response: TransferOptionListResponse },
@@ -220,7 +220,7 @@ export const routes = {
   getPriceHistory: { method: 'get', path: '/price-history', summary: 'Comparable observed price series', tag: 'evidence', query: PriceHistoryQuery, response: PriceHistoryResponse },
   createComparison: { method: 'post', path: '/comparisons', summary: 'Ownership cost comparison from retained offers', tag: 'evidence', body: ComparisonRequest, response: ComparisonResponse },
 
-  // Collections, criteria, presets
+
   listCollections: { method: 'get', path: '/collections', summary: 'Shortlists', tag: 'collections', query: PageQuery, response: CollectionListResponse },
   createCollection: { method: 'post', path: '/collections', summary: 'Create a shortlist', tag: 'collections', body: CollectionCreate, response: CollectionResponse, status: 201 },
   getCollection: { method: 'get', path: '/collections/:id', summary: 'One shortlist', tag: 'collections', params: IdParams, response: CollectionResponse },
@@ -239,11 +239,11 @@ export const routes = {
   createPreset: { method: 'post', path: '/presets', summary: 'Save an extension preset', tag: 'collections', body: ExtensionPresetCreate, response: ExtensionPresetResponse, status: 201 },
   deletePreset: { method: 'delete', path: '/presets/:id', summary: 'Delete a saved extension preset', tag: 'collections', params: PresetParams, response: OkResponse },
 
-  // Generation
+
   previewGeneration: { method: 'post', path: '/generation/preview', summary: 'Generate candidates locally', tag: 'generation', body: GenerationRequest, response: GenerationPreviewResponse },
   listGenerationThemes: { method: 'get', path: '/generation/themes', summary: 'Bundled local theme word lists', tag: 'generation', response: GenerationThemeListResponse },
 
-  // Monitoring
+
   listWatches: { method: 'get', path: '/watches', summary: 'Watches', tag: 'monitoring', query: PageQuery, response: WatchListResponse },
   createWatch: { method: 'post', path: '/watches', summary: 'Create a watch', tag: 'monitoring', body: WatchCreate, response: WatchResponse, status: 201 },
   getWatch: { method: 'get', path: '/watches/:id', summary: 'One watch', tag: 'monitoring', params: IdParams, response: WatchResponse },
@@ -256,18 +256,18 @@ export const routes = {
   listNotices: { method: 'get', path: '/notices', summary: 'Change notices', tag: 'monitoring', query: NoticeQuery, response: NoticeListResponse },
   markNoticesRead: { method: 'post', path: '/notices/read', summary: 'Mark notices read', tag: 'monitoring', body: NoticesMarkRead, response: OkResponse },
 
-  // Portfolio
+
   listPortfolio: { method: 'get', path: '/portfolio', summary: 'Imported portfolio entries', tag: 'portfolio', query: PageQuery, response: PortfolioListResponse },
   importPortfolio: { method: 'post', path: '/portfolio/import', summary: 'Import owned domains with user-supplied renewal facts', tag: 'portfolio', body: PortfolioImport, response: PortfolioImportResponse },
   deletePortfolioEntry: { method: 'delete', path: '/portfolio/:id', summary: 'Remove a portfolio entry', tag: 'portfolio', params: IdParams, response: OkResponse },
   comparePortfolio: { method: 'get', path: '/portfolio/comparison', summary: 'Compare renewal and transfer costs from retained data', tag: 'portfolio', query: PageQuery, response: PortfolioComparisonResponse },
 
-  // History and data
+
   listHistory: { method: 'get', path: '/history', summary: 'Past jobs with restorable inputs', tag: 'history', query: HistoryQuery, response: HistoryListResponse },
   getDataInventory: { method: 'get', path: '/data', summary: 'Local data location and record counts', tag: 'history', response: DataInventoryResponse },
   deleteData: { method: 'post', path: '/data/delete', summary: 'Scoped deletion of local data', tag: 'history', body: DataDelete, response: DataDeleteResponse },
 
-  // Artifacts
+
   createExport: { method: 'post', path: '/exports', summary: 'Create a TXT, CSV or JSON export with an explicit scope', tag: 'artifacts', body: ExportCreate, response: ExportResponse, status: 201 },
   listExports: { method: 'get', path: '/exports', summary: 'Exports', tag: 'artifacts', query: PageQuery, response: ExportListResponse },
   getExport: { method: 'get', path: '/exports/:id', summary: 'Export metadata', tag: 'artifacts', params: IdParams, response: ExportResponse },
@@ -287,7 +287,7 @@ export type OperationId = keyof Routes;
 type Infer<T> = T extends z.ZodType ? z.output<T> : never;
 type InferIn<T> = T extends z.ZodType ? z.input<T> : never;
 
-/** Request arguments accepted by the typed client for an operation. */
+
 export type OperationArgs<Op extends OperationId> = (Routes[Op] extends { params: infer P } ? { params: InferIn<P> } : {}) &
   (Routes[Op] extends { query: infer Q } ? { query?: InferIn<Q> } : {}) &
   (Routes[Op] extends { body: infer B } ? { body: InferIn<B> } : {}) & {
@@ -295,10 +295,10 @@ export type OperationArgs<Op extends OperationId> = (Routes[Op] extends { params
     signal?: AbortSignal;
   };
 
-/** Parsed success response of an operation. */
+
 export type OperationResponse<Op extends OperationId> = Infer<Routes[Op]['response']>;
 
-/** Fill `:param` placeholders in a route path. */
+
 export function buildPath(path: string, params?: Record<string, string | number>): string {
   return path.replace(/:([A-Za-z]+)/g, (_, key: string) => {
     const value = params?.[key];

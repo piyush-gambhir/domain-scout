@@ -4,8 +4,8 @@ import { NameCheckHandler } from '../../src/enrichment/name-check.handler.js';
 import { serviceManifest } from '../../src/enrichment/name-check.services.js';
 import { ctx, fakeFetch, hang, item, json, settings } from './fakes.js';
 
-// Response bodies are documentation-derived reconstructions (GitHub REST "Get a user", npm registry
-// abbreviated metadata, PyPI JSON API, crates.io API), trimmed to the fields the parser reads. October 2026.
+
+
 
 let networkSpy: ReturnType<typeof vi.spyOn>;
 beforeEach(() => {
@@ -19,7 +19,7 @@ afterEach(() => {
 function payload(result: Awaited<ReturnType<NameCheckHandler['execute']>>) {
   const row = result.evidence[0];
   if (row?.kind !== 'observation') throw new Error('expected an observation');
-  // Freshness is computed at read time, so the stored payload omits it and matches the row's stale_at.
+
   expect(row.row.payload).not.toHaveProperty('freshness');
   expect(row.row.payload.staleAt).toBe(row.row.staleAt);
   return { row: row.row, check: NameCheck.parse({ ...row.row.payload, freshness: 'fresh' }) };
@@ -78,7 +78,7 @@ describe('name_check handler', () => {
     expect(calls[0]!.headers.accept).toBe('application/json');
   });
 
-  // Large crates.io and PyPI documents exceed the 1 MB bound; identity is read from the prefix.
+
   const bigCrate = (name: string) => {
     const versions = Array.from({ length: 20_000 }, (_, i) => ({ num: `1.0.${i}`, crate: name, dl_path: `/api/v1/crates/${name}/1.0.${i}/download` }));
     return json({ crate: { id: name, name, max_version: '1.0.19999' }, versions });

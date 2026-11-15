@@ -144,8 +144,7 @@ func (a *App) notesCmd() *cobra.Command {
 					return g.PatchCollectionEntry(ctx, id, domain, api.CollectionEntryPatch{Notes: notes})
 				})
 			}
-			// CollectionPatch.notes is nullable and optional; the generated
-			// type omits nil, so send the body directly to allow clearing.
+
 			body, _ := json.Marshal(map[string]any{"notes": notes})
 			return a.show(ctx, collectionView, func(ctx context.Context, g *api.Client) (*http.Response, error) {
 				return g.PatchCollectionWithBody(ctx, id, "application/json", bytes.NewReader(body))
