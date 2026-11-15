@@ -16,17 +16,17 @@
   },
   "dependencies": {
     "@domain-scout/contracts": "workspace:*",
-    "@nestjs/common": "^12.4.0",
-    "@nestjs/core": "^12.4.0",
-    "@nestjs/platform-express": "^12.4.0",
+    "@nestjs/common": "^12.5.0",
+    "@nestjs/core": "^12.5.0",
+    "@nestjs/platform-express": "^12.5.0",
     "decimal.js": "^10.6.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
-    "tldts": "^7.4.19",
+    "tldts": "^7.4.28",
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@nestjs/testing": "^12.4.0",
+    "@nestjs/testing": "^12.5.0",
     "@swc/core": "^1.16.22",
     "@types/express": "^5.0.6",
     "@types/node": "^26.6.6",
