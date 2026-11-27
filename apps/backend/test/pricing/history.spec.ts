@@ -163,6 +163,8 @@ describe('price history (H01-H03)', () => {
     expect(page.nextCursor).not.toBeNull();
     const since = PriceHistoryResponse.parse((await t.api.get('/price-history?suffix=com&since=2026-10-09T00:00:00.000Z').expect(200)).body);
     expect(since.data[0]!.points).toHaveLength(1);
+    const exact = PriceHistoryResponse.parse((await t.api.get('/price-history?suffix=com&since=2026-10-09T01:00:00Z').expect(200)).body);
+    expect(exact.data.map((s) => s.points.map((p) => p.observedAt))).toEqual([['2026-10-09T01:00:00.000Z']]);
   });
 
   it('a provider-stated quote expiry makes the quote expired before its normal stale time', async () => {
