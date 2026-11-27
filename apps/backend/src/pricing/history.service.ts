@@ -67,7 +67,7 @@ export class HistoryService {
     }
     if (query.since) {
       where.push('observed_at >= ?');
-      params.push(query.since);
+      params.push(new Date(query.since).toISOString());
     }
     const rows = this.db.all<HistoryRow>(
       `SELECT id, provider_id, domain, suffix, purchase_path, kind, currency, region, term_years, promotional,
